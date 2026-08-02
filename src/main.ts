@@ -2,22 +2,37 @@ import Phaser from 'phaser'
 import heroImg from './assets/hero.png'
 
 class MainScene extends Phaser.Scene {
+  constructor() {
+    super({ key: 'MainScene' })
+  }
+
   preload() {
-    // ここで画像を読み込む
-    this.load.image('hero', heroImg)
+    this.load.image('button', heroImg)
   }
 
   create() {
-    // 画面中央に画像を表示する
-    this.add.image(400, 300, 'hero').setScale(0.8)
+    this.add.text(400, 220, 'タイトル画面', {
+      fontSize: '32px',
+      color: '#ffffff'
+    }).setOrigin(0.5)
 
-    // 補助テキストを表示する
-    this.add
-      .text(400, 560, '画像が表示されました', {
-        fontSize: '24px',
-        color: '#ffffff'
-      })
-      .setOrigin(0.5)
+    const btn = this.add.image(400, 320, 'button').setScale(0.4).setInteractive()
+    btn.on('pointerdown', () => {
+      this.scene.start('GameScene')
+    })
+  }
+}
+
+class GameScene extends Phaser.Scene {
+  constructor() {
+    super({ key: 'GameScene' })
+  }
+
+  create() {
+    this.add.text(400, 300, 'ゲームシーン', {
+      fontSize: '32px',
+      color: '#ffffff'
+    }).setOrigin(0.5)
   }
 }
 
@@ -26,7 +41,7 @@ const config: Phaser.Types.Core.GameConfig = {
   width: 800,
   height: 600,
   parent: 'app',
-  scene: MainScene,
+  scene: [MainScene, GameScene],
   backgroundColor: '#000000'
 }
 
