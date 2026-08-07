@@ -22,7 +22,7 @@ class MainScene extends Phaser.Scene {
   create() {
     text(this, 100, 100, 20,  "タイトル画面")
 
-    const btn = this.add.image(400, 320, 'button').setScale(0.4).setInteractive()
+    const btn = image(this, 100, 100, 0.4, "button")
     btn.on('pointerdown', () => {
       this.scene.start('GameScene')
     })
@@ -54,8 +54,8 @@ class GameScene extends Phaser.Scene {
 
 const config: Phaser.Types.Core.GameConfig = {
   type: Phaser.AUTO,
-  width: 800,
-  height: 600,
+  width: 600,
+  height: 400,
   parent: 'app',
   scene: [MainScene, GameScene, StageScene, ShopScene],
   physics: {
