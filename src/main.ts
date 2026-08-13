@@ -54,8 +54,8 @@ class GameScene extends Phaser.Scene {
 
 const config: Phaser.Types.Core.GameConfig = {
   type: Phaser.AUTO,
-  width: 600,
-  height: 400,
+  width: 1200,
+  height: 600,
   parent: 'app',
   scene: [MainScene, GameScene, StageScene, ShopScene],
   physics: {
