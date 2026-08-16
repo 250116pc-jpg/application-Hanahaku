@@ -7,7 +7,13 @@ export class ShopScene extends Phaser.Scene {
   }
 
   preload() {
-    this.load.image('panel', panelImg)
+    
+    
+    // 例：1枠が 32x32 ピクセルの場合
+    this.load.spritesheet('panel', panelImg, { 
+        frameWidth: 48, 
+        frameHeight: 48 
+    });
   }
 
   create() {
@@ -20,7 +26,15 @@ export class ShopScene extends Phaser.Scene {
       this.scene.start('GameScene')
     })
 
-    this.add.image(0, 0, 'panel').setScale(20).setInteractive().setOrigin(0, 0);
+    const screenWidth = this.scale.width;
+    const screenHeight = this.scale.height;
+
+    // フレーム番号「9」を指定して左上(0,0)に配置
+    const background = this.add.image(0, 0, 'panel', 9).setOrigin(0, 0);
+
+    // 画面いっぱいに拡大して背景にする
+    background.setDisplaySize(screenWidth, screenHeight);
+    //this.add.image(0, 0, 'panel').setScale(20).setInteractive().setOrigin(0, 0);
 
   }
 }

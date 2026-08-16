@@ -65,6 +65,7 @@ const config: Phaser.Types.Core.GameConfig = {
       debug: true
     }
   },
+  pixelArt: true,
   backgroundColor: '#000000'
 }
 
