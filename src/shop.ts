@@ -17,8 +17,8 @@ export class ShopScene extends Phaser.Scene {
   }
 
   create() {
-    const xpadding = 80; 
-    const ypadding = 40;
+    const xpadding = 260; 
+    const ypadding = 140;
     const screenWidth = this.scale.width;
     const screenHeight = this.scale.height;
 // フレーム番号「9」を指定して左上(0,0)に配置
@@ -30,7 +30,7 @@ export class ShopScene extends Phaser.Scene {
     background.setDisplaySize(screenWidth + (xpadding * 2), screenHeight + (ypadding * 2));
 
     // はみ出させた分だけ、配置場所を左上にマイナスしてずらす
-    background.setPosition(-xpadding, -ypadding + 20);
+    background.setPosition(-xpadding, -ypadding + 0);
 
     this.add.text(500, 20, 'ショップ画面', {fontSize: '32px',color: '#ffffff'}).setOrigin(0.5)
 
