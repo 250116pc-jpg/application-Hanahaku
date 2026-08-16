@@ -17,33 +17,101 @@ export class ShopScene extends Phaser.Scene {
   }
 
   create() {
-    const xpadding = 260; 
+    const xpadding = 260;
     const ypadding = 140;
+
     const screenWidth = this.scale.width;
     const screenHeight = this.scale.height;
-// フレーム番号「9」を指定して左上(0,0)に配置
-    const background = this.add.image(0, 50, 'panel', 9).setOrigin(0, 0);
 
-    
+    const background = this.add.image(0, 50, 'panel', 9)
+        .setOrigin(0, 0);
 
-    // 画面サイズより「余白×2」の分だけ大きく引き伸ばす
-    background.setDisplaySize(screenWidth + (xpadding * 2), screenHeight + (ypadding * 2));
+    background.setDisplaySize(
+        screenWidth + (xpadding * 2),
+        screenHeight + (ypadding * 2)
+    );
 
-    // はみ出させた分だけ、配置場所を左上にマイナスしてずらす
-    background.setPosition(-xpadding, -ypadding + 0);
+    background.setPosition(-xpadding, -ypadding);
 
-    this.add.text(500, 20, 'ショップ画面', {fontSize: '32px',color: '#ffffff'}).setOrigin(0.5)
+    const title = this.add.text(500, 20, 'ショップ画面', {
+        fontSize: '32px',
+        color: '#ffffff'
+    }).setOrigin(0.5);
 
-    this.add.text(0, 20, 'タイトル画面へ', {fontSize: '16px',color: '#ffffff'}).setOrigin(0)
+    const backText = this.add.text(0, 20, 'タイトル画面へ', {
+        fontSize: '16px',
+        color: '#ffffff'
+    }).setOrigin(0);
 
-    const to_GameScene = this.add.image(0, 40, 'button').setScale(0.2).setInteractive().setOrigin(0, 0);
+    const to_GameScene = this.add.image(0, 40, 'button')
+        .setScale(0.2)
+        .setInteractive()
+        .setOrigin(0, 0);
+
     to_GameScene.on('pointerdown', () => {
-      this.scene.start('GameScene')
-    })
+        this.scene.start('GameScene');
+    });
 
-    
+    // 商品
+    const items: Phaser.GameObjects.Image[] = [];
 
-    
+    for (let i = 0; i < 30; i++) {
+        items.push(
+            this.add.image(
+                100 + (i % 5) * 150,
+                100 + Math.floor(i / 5) * 150,
+                'panel',
+                9
+            )
+            .setOrigin(0, 0)
+            .setDisplaySize(110, 110)
+        );
+    }
 
-  }
+    // 商品用カメラ
+    const shopCamera = this.cameras.add(
+        0,              // x
+        70,             // y
+        screenWidth,    // 幅
+        screenHeight - 70 // 高さ
+    );
+
+    // 商品用カメラのスクロール範囲
+    const contentHeight = 100 + 6 * 150;
+
+    shopCamera.setBounds(
+        0,
+        0,
+        screenWidth,
+        contentHeight
+    );
+
+    // メインカメラには商品を表示させない
+    this.cameras.main.ignore(items);
+
+    // 商品カメラにはヘッダーを表示させない
+    shopCamera.ignore([
+        background,
+        title,
+        backText,
+        to_GameScene
+    ]);
+
+    // マウスホイールで商品をスクロール
+    this.input.on('wheel', (
+        pointer: Phaser.Input.Pointer,
+        gameObjects: Phaser.GameObjects.GameObject[],
+        deltaX: number,
+        deltaY: number
+    ) => {
+        shopCamera.scrollY += deltaY;
+
+        // 上端・下端を超えないようにする
+        shopCamera.scrollY = Phaser.Math.Clamp(
+            shopCamera.scrollY,
+            0,
+            contentHeight - (screenHeight - 70)
+        );
+    });
+}
 }
