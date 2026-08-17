@@ -28,6 +28,33 @@ const shopItems = [
         frame: 9
     }
 ];
+const stages = [
+    {
+        id: 1,
+        name: "1－1",
+        map: "nil",
+        enemies : [
+            {
+                id : 1,
+                num: 3,
+                level: 1
+            },
+            {
+                id: 2,
+                num: 2,
+                level: 2
+            }
+        ],
+        boss: {
+            
+            id: 1,
+            num: 1,
+            level: 1,
+        }
+    },
+    
+]
 export default {
-    shopItems
+    shopItems,
+    stages,
 }
