@@ -1,4 +1,5 @@
 import panelImg from './assets/elegant_ui/panel/panel.png'
+import test_data from './test_data'
 
 export class ShopScene extends Phaser.Scene {
   constructor() {
@@ -10,9 +11,11 @@ export class ShopScene extends Phaser.Scene {
       frameWidth: 48,
       frameHeight: 48
     });
+    
   }
 
   create() {
+    const shopItems = test_data.shopItems;
     const screenWidth = this.scale.width;
     const screenHeight = this.scale.height;
 
@@ -49,18 +52,16 @@ export class ShopScene extends Phaser.Scene {
     // 商品
     const shopContainer = this.add.container(0, 0);
 
-    for (let i = 0; i < 30; i++) {
-      shopContainer.add(
-        this.add.image(
-          100 + (i % 5) * 150,
-          100 + Math.floor(i / 5) * 150,
-          'panel',
-          9
-        )
-        .setOrigin(0, 0)
-        .setDisplaySize(110, 110)
-      );
-    }
+    shopItems.forEach((item, i) => {
+        const image = this.add.image(
+            100 + (i % 5) * 150,
+            100 + Math.floor(i / 5) * 150,
+            'panel',
+            item.frame
+        ).setOrigin(0, 0).setDisplaySize(110, 110);
+
+    shopContainer.add(image);
+    });
 
     // 商品の表示範囲
     const maskGraphics = this.make.graphics({});
