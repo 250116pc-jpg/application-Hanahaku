@@ -54,10 +54,18 @@ class GameScene extends Phaser.Scene {
 
 const config: Phaser.Types.Core.GameConfig = {
   type: Phaser.AUTO,
-  width: 1200,
-  height: 600,
+
+  width: 1280,
+  height: 720,
+
+  scale: {
+    mode: Phaser.Scale.FIT,
+    autoCenter: Phaser.Scale.CENTER_BOTH
+  },
+
   parent: 'app',
   scene: [MainScene, GameScene, StageScene, ShopScene],
+
   physics: {
     default: 'arcade',
     arcade: {
@@ -65,6 +73,7 @@ const config: Phaser.Types.Core.GameConfig = {
       debug: true
     }
   },
+
   pixelArt: true,
   backgroundColor: '#000000'
 }

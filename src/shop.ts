@@ -14,18 +14,19 @@ export class ShopScene extends Phaser.Scene {
 
   create() {
     const screenWidth = this.scale.width;
+    const screenHeight = this.scale.height;
 
     // 背景
     const background = this.add.image(0, 50, 'panel', 9)
       .setOrigin(0, 0)
       .setDisplaySize(
-        screenWidth + 520,
-        880
+        screenWidth + 560,
+        screenHeight + 320
       )
-      .setPosition(-260, -140);
+      .setPosition(-260, -160);
 
     // タイトル
-    this.add.text(500, 20, 'ショップ画面', {
+    this.add.text(screenWidth / 2, 30, 'ショップ画面', {
       fontSize: '32px',
       color: '#ffffff'
     }).setOrigin(0.5);
@@ -63,7 +64,12 @@ export class ShopScene extends Phaser.Scene {
 
     // 商品の表示範囲
     const maskGraphics = this.make.graphics({});
-    maskGraphics.fillRect(0, 70, screenWidth, 500);
+    maskGraphics.fillRect(
+      0,
+      70,
+      screenWidth,
+      screenHeight - 120
+    );
 
     shopContainer.setMask(
       maskGraphics.createGeometryMask()
