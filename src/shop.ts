@@ -52,16 +52,24 @@ export class ShopScene extends Phaser.Scene {
     // 商品
     const shopContainer = this.add.container(0, 0);
 
-    shopItems.forEach((item, i) => {
-        const image = this.add.image(
-            100 + (i % 5) * 150,
-            100 + Math.floor(i / 5) * 150,
+    shopItems.forEach((item, index) => {
+        const button = this.add.image(
+            100 + (index % 5) * 150,
+            100 + Math.floor(index / 5) * 150,
             'panel',
             item.frame
-        ).setOrigin(0, 0).setDisplaySize(110, 110);
+        )
+            .setOrigin(0, 0)
+            .setDisplaySize(110, 110)
+            .setInteractive();
 
-    shopContainer.add(image);
-    });
+        button.on('pointerdown', () => {
+            console.log('押されたインデックス:', index);
+            console.log('商品:', shopItems[index]);
+        });
+
+        shopContainer.add(button);
+        });
 
     // 商品の表示範囲
     const maskGraphics = this.make.graphics({});

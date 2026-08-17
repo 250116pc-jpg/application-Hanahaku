@@ -27,7 +27,7 @@ const shopItems = [
         image: "yellow_flower.png",
         frame: 9
     }
-    ];
+];
 export default {
     shopItems
 }
