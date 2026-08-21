@@ -1,0 +1,9 @@
+# インストールしたライブラリ
+node_modules/
+
+# ビルドで生成されるファイル
+dist/
+
+# ログ
+*.log
+npm-debug.log*

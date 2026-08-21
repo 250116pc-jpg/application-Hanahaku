@@ -228,8 +228,8 @@ export class HomeScene extends Phaser.Scene {
         590,
         'ショップ',
         () => {
-          this.showMessage(
-            'ショップ画面は準備中です'
+          this.scene.start(
+            'ShopScene'
           );
         }
       );
