@@ -51,7 +51,7 @@ export class HomeScene extends Phaser.Scene {
     }))
 
     ui.add(createMenuButton(this, 500, 590, '編成', () => {
-      this.showMessage('編成画面は準備中です')
+      this.scene.start('FormScene')
     }))
 
     ui.add(createMenuButton(this, 700, 590, '図鑑', () => {

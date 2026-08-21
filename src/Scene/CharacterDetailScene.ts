@@ -1,335 +1,185 @@
-import Phaser from 'phaser';
+import Phaser from 'phaser'
 
-import flowerImg from '../assets/flower.png';
+import flowerImg from '../assets/flower.png'
+import testData from '../test_data'
+import type { CharacterData } from '../test_data'
+
+const FONT_FAMILY = '"Yu Gothic", "Meiryo", sans-serif'
+const BORDER_COLOR = 0x536878
+
+type CharacterDetailSceneData = {
+  characterId?: number
+  returnScene?: string
+  returnLabel?: string
+}
 
 export class CharacterDetailScene extends Phaser.Scene {
+  private characterId = 1
+  private returnScene = 'TrainingScene'
+  private returnLabel = '育成画面へ'
+
   constructor() {
-    super(
-      'CharacterDetailScene'
-    );
+    super('CharacterDetailScene')
+  }
+
+  init(data: CharacterDetailSceneData): void {
+    this.characterId = data.characterId ?? 1
+    this.returnScene = data.returnScene ?? 'TrainingScene'
+    this.returnLabel = data.returnLabel ?? '育成画面へ'
   }
 
   preload(): void {
-    this.load.image(
-      'detailFlower',
-      flowerImg
-    );
+    this.load.image('detailFlower', flowerImg)
   }
 
   create(): void {
-    const width = this.scale.width;
-    const height = this.scale.height;
+    const width = this.scale.width
+    const height = this.scale.height
+    const character = this.findCharacter()
 
-    // =========================
-    // 画面全体を40px左へ
-    // =========================
+    this.cameras.main.setScroll(0, 0)
+    this.cameras.main.setBackgroundColor('#cfe3f5')
 
-    this.cameras.main.setScroll(
-      40,
-      0
-    );
+    this.add.rectangle(width / 2, height / 2, 1180, 650, 0xcfe3f5)
+      .setStrokeStyle(3, BORDER_COLOR)
 
-    // 背景
-    this.cameras.main.setBackgroundColor(
-      '#cfe3f5'
-    );
-
-    // =========================
-    // 外枠
-    // =========================
-
-    this.add
-      .rectangle(
-        width / 2,
-        height / 2,
-        1180,
-        650,
-        0xcfe3f5
-      )
-      .setStrokeStyle(
-        3,
-        0x536878
-      );
-
-    // =========================
-    // タイトル
-    // =========================
-
-    this.add
-      .text(
-        width - 200,
-        65,
-        'キャラ詳細',
-        this.getTextStyle(
-          34
-        )
-      )
-      .setOrigin(0.5);
-
-    // =========================
-    // 育成画面へ戻る
-    // =========================
-
-    const backButton =
-      this.add
-        .text(
-          170,
-          70,
-          '← 育成画面へ',
-          {
-            ...this.getTextStyle(
-              25
-            ),
-
-            backgroundColor:
-              '#ffffff',
-
-            padding: {
-              top: 10,
-              bottom: 12,
-              left: 18,
-              right: 18,
-            },
-          }
-        )
-        .setOrigin(0.5)
-        .setInteractive({
-          useHandCursor: true,
-        });
-
-    backButton.on(
-      'pointerover',
-      () => {
-        backButton.setBackgroundColor(
-          '#eeeeee'
-        );
-      }
-    );
-
-    backButton.on(
-      'pointerout',
-      () => {
-        backButton.setBackgroundColor(
-          '#ffffff'
-        );
-      }
-    );
-
-    backButton.on(
-      'pointerdown',
-      () => {
-        backButton.setBackgroundColor(
-          '#d0d0d0'
-        );
-      }
-    );
-
-    backButton.on(
-      'pointerup',
-      () => {
-        this.scene.start(
-          'TrainingScene'
-        );
-      }
-    );
-
-    // =========================
-    // キャラクター画像枠
-    // =========================
-
-    this.add
-      .rectangle(
-        300,
-        260,
-        340,
-        330,
-        0xffffff
-      )
-      .setStrokeStyle(
-        2,
-        0x536878
-      );
-
-    // キャラクター画像
-    const flower =
-      this.add.image(
-        300,
-        260,
-        'detailFlower'
-      );
-
-    flower.setScale(
-      0.7
-    );
-
-    // =========================
-    // 基本情報
-    // =========================
-
-    this.add.text(
-      560,
-      170,
-      'ひまわり ★★★\n' +
-      'サンフラワー\n' +
-      'レベル 10 / 30',
-      {
-        ...this.getTextStyle(
-          30
-        ),
-
-        lineSpacing: 10,
-      }
-    );
-
-    // =========================
-    // ステータス
-    // =========================
-
-    this.add.text(
-      150,
-      470,
-      'ステータス',
-      this.getTextStyle(
-        28
-      )
-    );
-
-    this.add.text(
-      170,
-      520,
-      'HP   100\n' +
-      'MP    20\n' +
-      'ATK   25\n' +
-      'DEF   10',
-      {
-        ...this.getTextStyle(
-          24
-        ),
-
-        lineSpacing: 8,
-      }
-    );
-
-    // =========================
-    // スキル
-    // =========================
-
-    this.add.text(
-      560,
-      440,
-      'スキル',
-      this.getTextStyle(
-        28
-      )
-    );
-
-    this.add.text(
-      560,
-      500,
-      'スキル1\n' +
-      'ファイヤースラッシュ Lv.2\n\n' +
-      'スキル2\n' +
-      'サンフラワー Lv.1',
-      {
-        ...this.getTextStyle(
-          23
-        ),
-
-        lineSpacing: 8,
-      }
-    );
-
-    // =========================
-    // ホームボタン
-    // =========================
-
-    const homeButton =
-      this.add
-        .text(
-          width - 150,
-          height - 70,
-          'ホームへ',
-          {
-            ...this.getTextStyle(
-              24
-            ),
-
-            backgroundColor:
-              '#ffffff',
-
-            padding: {
-              top: 12,
-              bottom: 12,
-              left: 25,
-              right: 25,
-            },
-          }
-        )
-        .setOrigin(0.5)
-        .setInteractive({
-          useHandCursor: true,
-        });
-
-    homeButton.on(
-      'pointerover',
-      () => {
-        homeButton.setBackgroundColor(
-          '#eeeeee'
-        );
-      }
-    );
-
-    homeButton.on(
-      'pointerout',
-      () => {
-        homeButton.setBackgroundColor(
-          '#ffffff'
-        );
-      }
-    );
-
-    homeButton.on(
-      'pointerdown',
-      () => {
-        homeButton.setBackgroundColor(
-          '#d0d0d0'
-        );
-      }
-    );
-
-    homeButton.on(
-      'pointerup',
-      () => {
-        this.scene.start(
-          'HomeScene'
-        );
-      }
-    );
+    this.add.text(width / 2, 55, 'キャラ詳細', this.getTextStyle(34)).setOrigin(0.5)
+    this.createBackButton()
+    this.createCharacterImage()
+    this.createBasicInfo(character)
+    this.createStatusInfo(character)
+    this.createSkillInfo(character)
+    this.createHomeButton(width, height)
   }
 
-  // =========================
-  // 共通文字スタイル
-  // =========================
+  private createBackButton(): void {
+    this.createTextButton(150, 65, `← ${this.returnLabel}`, 24, () => {
+      this.scene.start(this.returnScene)
+    })
+  }
 
-  private getTextStyle(
-    fontSize: number
-  ): Phaser.Types.GameObjects.Text.TextStyle {
-    return {
-      fontFamily:
-        '"Yu Gothic", "Meiryo", sans-serif',
+  private createCharacterImage(): void {
+    this.add.rectangle(310, 285, 360, 360, 0xffffff)
+      .setStrokeStyle(2, BORDER_COLOR)
 
-      fontSize:
-        `${fontSize}px`,
+    this.add.image(310, 285, 'detailFlower')
+      .setScale(0.75)
+  }
 
-      color:
-        '#000000',
+  private createBasicInfo(character: CharacterData): void {
+    this.add.rectangle(780, 210, 520, 170, 0xffffff)
+      .setStrokeStyle(2, BORDER_COLOR)
 
+    this.add.text(550, 145, character.name, this.getTextStyle(32))
+    this.add.text(550, 195, [
+      `種族: ${character.species}`,
+      `レア度: ${'★'.repeat(character.rarity)}`,
+      `Lv.${character.level} / ${character.maxLevel}`,
+      `属性: ${character.element} / 役割: ${character.role}`
+    ].join('\n'), {
+      ...this.getTextStyle(21),
+      lineSpacing: 6
+    })
+  }
+
+  private createStatusInfo(character: CharacterData): void {
+    this.add.rectangle(310, 560, 360, 160, 0xffffff)
+      .setStrokeStyle(2, BORDER_COLOR)
+
+    this.add.text(160, 500, 'ステータス', this.getTextStyle(26))
+    this.add.text(170, 540, [
+      `HP    ${character.stats.hp}`,
+      `MP    ${character.stats.mp}`,
+      `ATK   ${character.stats.atk}`,
+      `DEF   ${character.stats.def}`,
+      `SPD   ${character.stats.speed}`
+    ].join('\n'), {
+      ...this.getTextStyle(21),
+      lineSpacing: 5
+    })
+  }
+
+  private createSkillInfo(character: CharacterData): void {
+    this.add.rectangle(780, 505, 520, 310, 0xffffff)
+      .setStrokeStyle(2, BORDER_COLOR)
+
+    this.add.text(550, 365, 'スキル', this.getTextStyle(26))
+    this.add.text(550, 410, character.skills.map((skill, index) => {
+      return `スキル${index + 1}: ${skill}`
+    }).join('\n'), {
+      ...this.getTextStyle(22),
+      lineSpacing: 8
+    })
+
+    this.add.text(550, 500, character.description, {
+      ...this.getTextStyle(20),
+      wordWrap: { width: 430 },
+      lineSpacing: 8
+    })
+  }
+
+  private createHomeButton(width: number, height: number): void {
+    this.createTextButton(width - 140, height - 65, 'ホームへ', 24, () => {
+      this.scene.start('HomeScene')
+    })
+  }
+
+  private findCharacter(): CharacterData {
+    return testData.characters.find((character) => character.id === this.characterId)
+      ?? testData.characters[0]
+  }
+
+  private createTextButton(
+    x: number,
+    y: number,
+    label: string,
+    fontSize: number,
+    onClick: () => void
+  ): Phaser.GameObjects.Text {
+    const button = this.add.text(x, y, label, {
+      ...this.getTextStyle(fontSize),
+      backgroundColor: '#ffffff',
       padding: {
-        top: 8,
-        bottom: 8,
-        left: 6,
-        right: 6,
-      },
-    };
+        top: 10,
+        bottom: 10,
+        left: 18,
+        right: 18
+      }
+    })
+      .setOrigin(0.5)
+      .setInteractive({ useHandCursor: true })
+
+    button.on('pointerover', () => {
+      button.setBackgroundColor('#eaf4fb')
+    })
+
+    button.on('pointerout', () => {
+      button.setBackgroundColor('#ffffff')
+    })
+
+    button.on('pointerdown', () => {
+      button.setBackgroundColor('#d5e8f5')
+    })
+
+    button.on('pointerup', () => {
+      button.setBackgroundColor('#eaf4fb')
+      onClick()
+    })
+
+    return button
+  }
+
+  private getTextStyle(fontSize: number): Phaser.Types.GameObjects.Text.TextStyle {
+    return {
+      fontFamily: FONT_FAMILY,
+      fontSize: `${fontSize}px`,
+      color: '#000000',
+      padding: {
+        top: 4,
+        bottom: 4,
+        left: 4,
+        right: 4
+      }
+    }
   }
 }

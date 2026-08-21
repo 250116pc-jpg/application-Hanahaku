@@ -7,6 +7,7 @@ import { TrainingScene } from './Scene/TrainingScene';
 import { CharacterDetailScene } from './Scene/CharacterDetailScene';
 import { InventoryScene } from './Scene/InventoryScene';
 import { TestScene } from './Scene/TestScene';
+import { FormScene } from './form'
 import { ShopScene } from './shop'
 import './style.css';
 
@@ -32,6 +33,7 @@ const config: Phaser.Types.Core.GameConfig = {
     CharacterDetailScene,
     InventoryScene,
     TestScene,
+    FormScene,
     ShopScene,
   ],
 
