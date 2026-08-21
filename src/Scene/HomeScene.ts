@@ -20,29 +20,18 @@ export class HomeScene extends Phaser.Scene {
     const width = this.scale.width;
     const height = this.scale.height;
 
-    // 背景
+
     this.cameras.main.setBackgroundColor(
       '#cfe3f5'
     );
 
-    // =====================================
-    // ホーム画面全体
-    // =====================================
-    // 数字をマイナスにすると左へ移動する
-    //
-    // -30 → 少し左
-    // -50 → さらに左
-    // -70 → 今回
-    // -90 → かなり左
-    //
+
     const ui = this.add.container(
       -40,
       0
     );
 
-    // =====================================
-    // 外枠
-    // =====================================
+ 
 
     const outerFrame = this.add
       .rectangle(
@@ -61,9 +50,7 @@ export class HomeScene extends Phaser.Scene {
       outerFrame
     );
 
-    // =====================================
-    // ホーム画面タイトル背景
-    // =====================================
+
 
     const titleBackground = this.add
       .rectangle(
@@ -82,9 +69,6 @@ export class HomeScene extends Phaser.Scene {
       titleBackground
     );
 
-    // =====================================
-    // ホーム画面タイトル
-    // =====================================
 
     const titleText = this.add
       .text(
@@ -112,9 +96,7 @@ export class HomeScene extends Phaser.Scene {
       titleText
     );
 
-    // =====================================
-    // 花表示エリア
-    // =====================================
+
 
     const flowerFrame = this.add
       .rectangle(
@@ -148,9 +130,7 @@ export class HomeScene extends Phaser.Scene {
       flower
     );
 
-    // =====================================
-    // ステージ選択ボタン
-    // =====================================
+
 
     const stageButton =
       this.createCircleButton(
@@ -169,9 +149,7 @@ export class HomeScene extends Phaser.Scene {
       stageButton
     );
 
-    // =====================================
-    // 設定ボタン
-    // =====================================
+
 
     const settingsButton =
       this.createCircleButton(
@@ -190,9 +168,6 @@ export class HomeScene extends Phaser.Scene {
       settingsButton
     );
 
-    // =====================================
-    // 育成
-    // =====================================
 
     const trainingButton =
       this.createMenuButton(
@@ -210,9 +185,7 @@ export class HomeScene extends Phaser.Scene {
       trainingButton
     );
 
-    // =====================================
-    // 編成
-    // =====================================
+
 
     const formationButton =
       this.createMenuButton(
@@ -230,9 +203,7 @@ export class HomeScene extends Phaser.Scene {
       formationButton
     );
 
-    // =====================================
-    // 図鑑
-    // =====================================
+
 
     const encyclopediaButton =
       this.createMenuButton(
@@ -250,9 +221,6 @@ export class HomeScene extends Phaser.Scene {
       encyclopediaButton
     );
 
-    // =====================================
-    // ショップ
-    // =====================================
 
     const shopButton =
       this.createMenuButton(
@@ -270,9 +238,7 @@ export class HomeScene extends Phaser.Scene {
       shopButton
     );
 
-    // =====================================
-    // メッセージ
-    // =====================================
+
 
     this.messageText = this.add
       .text(
@@ -301,9 +267,7 @@ export class HomeScene extends Phaser.Scene {
     );
   }
 
-  // =====================================
-  // 下のメニューボタン
-  // =====================================
+
 
   private createMenuButton(
     x: number,
