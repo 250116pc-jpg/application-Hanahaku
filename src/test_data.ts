@@ -118,104 +118,25 @@ const shopItems = [
 ]
 
 const characters: CharacterData[] = [
-  {
-    id: 1,
-    name: 'ひまわり',
-    species: 'サンフラワー',
-    rarity: 3,
-    level: 20,
-    maxLevel: 40,
-    element: '火',
-    role: '攻撃',
-    description: '攻撃力が高い前衛向けの花です。',
-    stats: {
-      hp: 820,
-      mp: 230,
-      atk: 156,
-      def: 102,
-      speed: 98
-    },
-    skills: ['サンライトブレード', 'フレイムブルーム']
-  },
-  {
-    id: 2,
-    name: 'バラ',
-    species: 'ローズ',
-    rarity: 2,
-    level: 18,
-    maxLevel: 30,
-    element: '火',
-    role: '攻撃',
-    description: '単体攻撃が得意な花です。',
-    stats: {
-      hp: 650,
-      mp: 180,
-      atk: 142,
-      def: 80,
-      speed: 105
-    },
-    skills: ['ローズスラッシュ', 'トゲの守り']
-  },
-  {
-    id: 3,
-    name: 'ユリ',
-    species: 'リリー',
-    rarity: 2,
-    level: 15,
-    maxLevel: 30,
-    element: '水',
-    role: '回復',
-    description: '味方の回復ができるサポート役です。',
-    stats: {
-      hp: 590,
-      mp: 310,
-      atk: 82,
-      def: 88,
-      speed: 91
-    },
-    skills: ['ヒールウォーター', 'リリーバリア']
-  },
-  {
-    id: 4,
-    name: 'アジサイ',
-    species: 'ハイドランジア',
-    rarity: 2,
-    level: 12,
-    maxLevel: 30,
-    element: '水',
-    role: '防御',
-    description: '防御力が高く、編成の安定感を上げます。',
-    stats: {
-      hp: 900,
-      mp: 160,
-      atk: 75,
-      def: 140,
-      speed: 70
-    },
-    skills: ['レインガード', 'ウォールブルーム']
-  },
-  {
-    id: 5,
-    name: 'チューリップ',
-    species: 'チューリップ',
-    rarity: 1,
-    level: 10,
-    maxLevel: 20,
-    element: '風',
-    role: '補助',
-    description: '味方の行動を助ける補助役です。',
-    stats: {
-      hp: 540,
-      mp: 210,
-      atk: 90,
-      def: 74,
-      speed: 120
-    },
-    skills: ['ブリーズステップ', '応援の花粉']
-  }
+  createCharacter(1, 'ひまわり', 'サンフラワー', 3, 20, '火', '攻撃', 820, 230, 156, 102, 98),
+  createCharacter(2, 'バラ', 'ローズ', 2, 18, '火', '攻撃', 650, 180, 142, 80, 105),
+  createCharacter(3, 'ユリ', 'リリー', 2, 15, '水', '回復', 590, 310, 82, 88, 91),
+  createCharacter(4, 'アジサイ', 'ハイドランジア', 2, 12, '水', '防御', 900, 160, 75, 140, 70),
+  createCharacter(5, 'チューリップ', 'チューリップ', 1, 10, '風', '補助', 540, 210, 90, 74, 120),
+  createCharacter(6, 'マーガレット', 'デイジー', 2, 8, '光', '回復', 560, 260, 80, 76, 112),
+  createCharacter(7, 'ラベンダー', 'ラベンダー', 1, 6, '風', '補助', 500, 240, 72, 68, 130),
+  createCharacter(8, 'ベルフラワー', 'ベルフラワー', 1, 5, '水', '補助', 520, 220, 78, 70, 118),
+  createCharacter(9, 'コスモス', 'コスモス', 2, 14, '光', '攻撃', 610, 190, 128, 76, 108),
+  createCharacter(10, 'サクラ', 'チェリーブロッサム', 3, 19, '光', '攻撃', 700, 240, 148, 90, 116),
+  createCharacter(11, 'ダリア', 'ダリア', 2, 16, '火', '防御', 860, 150, 96, 136, 78),
+  createCharacter(12, 'スミレ', 'バイオレット', 1, 9, '闇', '補助', 510, 260, 86, 72, 125),
+  createCharacter(13, 'ツバキ', 'カメリア', 2, 13, '土', '防御', 880, 170, 92, 132, 74),
+  createCharacter(14, 'ポピー', 'ポピー', 1, 7, '火', '攻撃', 530, 160, 118, 64, 121),
+  createCharacter(15, 'アイリス', 'アイリス', 3, 21, '水', '攻撃', 760, 250, 150, 94, 110),
+  createCharacter(16, 'ミモザ', 'ミモザ', 2, 11, '風', '回復', 580, 290, 84, 82, 115)
 ]
 
-const formation: Array<number | null> = [1, 3, null, null]
+const formation: Array<number | null> = [1, 3, 10, null, null]
 
 const stages = [
   {
@@ -241,6 +162,41 @@ const stages = [
     }
   }
 ]
+
+function createCharacter(
+  id: number,
+  name: string,
+  species: string,
+  rarity: number,
+  level: number,
+  element: string,
+  role: string,
+  hp: number,
+  mp: number,
+  atk: number,
+  def: number,
+  speed: number
+): CharacterData {
+  return {
+    id,
+    name,
+    species,
+    rarity,
+    level,
+    maxLevel: rarity >= 3 ? 40 : rarity >= 2 ? 30 : 20,
+    element,
+    role,
+    description: `${name}は${role}が得意な花です。編成に入れるとパーティの幅が広がります。`,
+    stats: {
+      hp,
+      mp,
+      atk,
+      def,
+      speed
+    },
+    skills: [`${name}アタック`, `${element}の花びら`]
+  }
+}
 
 export default {
   shopItems,
