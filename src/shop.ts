@@ -41,18 +41,22 @@ export class ShopScene extends Phaser.Scene {
   }
 
   private createBackButton() {
-    const backButton = this.add.image(0, 40, 'button')
-      .setScale(0.2)
+    const backButton = this.add.text(30, 30, 'ホームへ', {
+      fontSize: '20px',
+      color: '#ffffff',
+      backgroundColor: '#536878',
+      padding: {
+        left: 14,
+        right: 14,
+        top: 8,
+        bottom: 8
+      }
+    })
       .setInteractive({ useHandCursor: true })
-      .setOrigin(0, 0)
+      .setOrigin(0, 0.5)
 
     backButton.on('pointerdown', () => {
-      this.scene.start('GameScene')
-    })
-
-    this.add.text(0, 20, 'ゲーム画面へ', {
-      fontSize: '16px',
-      color: '#ffffff'
+      this.scene.start('HomeScene')
     })
   }
 

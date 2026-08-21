@@ -1,56 +1,16 @@
-import Phaser from 'phaser'
-import proxy from './functions'
+import Phaser from 'phaser';
 
-
-import heroImg from './assets/hero.png'
-import grassImg from './assets/stage/test/grass.png'
-
-import { StageScene } from './stage'
+import { TitleScene } from './Scene/TitleScene';
+import { HomeScene } from './Scene/HomeScene';
+import { SettingsScene } from './Scene/SettingsScene';
+import { TrainingScene } from './Scene/TrainingScene';
+import { CharacterDetailScene } from './Scene/CharacterDetailScene';
+import { InventoryScene } from './Scene/InventoryScene';
+import { TestScene } from './Scene/TestScene';
 import { ShopScene } from './shop'
+import './style.css';
 
 
-class MainScene extends Phaser.Scene {
-  constructor() {
-    super({ key: 'MainScene' })
-  }
-
-  preload() {
-    this.load.image('button', heroImg)
-    this.load.image('shop_button', grassImg)
-  }
-
-  create() {
-    proxy.text(this, 100, 100, 20,  "タイトル画面")
-
-    const btn = proxy.image(this, 100, 100, 0.4, "button")
-    btn.on('pointerdown', () => {
-      this.scene.start('GameScene')
-    })
-  }
-}
-
-class GameScene extends Phaser.Scene {
-  constructor() {
-    super({ key: 'GameScene' })
-  }
-
-  create() {
-    proxy.text(this, 100, 100, 20,  "ホーム画面")
-
-    proxy.text(this, 100, 180, 20,  "ステージ画面へ")
-    const btn = proxy.image(this, 100, 18, 0.4, "button")
-    btn.on('pointerdown', () => {
-      this.scene.start('StageScene')
-    })
-
-    proxy.text(this, 100, 250, 20,  "ショップ画面へ")
-    
-    const shop_btn = proxy.image(this, 100, 250, 0.4, "shop_button")
-    shop_btn.on('pointerdown', () => {
-      this.scene.start('ShopScene')
-    })
-  }
-}
 
 const config: Phaser.Types.Core.GameConfig = {
   type: Phaser.AUTO,
@@ -64,7 +24,16 @@ const config: Phaser.Types.Core.GameConfig = {
   },
 
   parent: 'app',
-  scene: [MainScene, GameScene, StageScene, ShopScene],
+  scene: [
+    TitleScene,
+    HomeScene,
+    SettingsScene,
+    TrainingScene,
+    CharacterDetailScene,
+    InventoryScene,
+    TestScene,
+    ShopScene,
+  ],
 
   physics: {
     default: 'arcade',
