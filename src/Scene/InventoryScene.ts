@@ -3,7 +3,7 @@ import Phaser from 'phaser';
 // ==============================
 // アイテムカテゴリー
 // ==============================
-
+　
 type ItemCategory =
   | 'heal'
   | 'material'
