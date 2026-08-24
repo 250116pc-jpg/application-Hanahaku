@@ -535,17 +535,10 @@ this.memberContainer.setDepth(100)
     // 戦力順
     characters.sort((a, b) => {
 
-      const diff =
-        this.formationManager.getPower(a)
-        -
-        this.formationManager.getPower(b)
+      const diff = this.formationManager.getPower(a) -this.formationManager.getPower(b)
 
-      return this.sortDescending
-        ? -diff
-        : diff
+      return this.sortDescending ? -diff : diff
     })
-
-
     return characters
   }
 
