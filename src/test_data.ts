@@ -136,7 +136,7 @@ const characters: CharacterData[] = [
   createCharacter(16, 'ミモザ', 'ミモザ', 2, 11, '風', '回復', 580, 290, 84, 82, 115)
 ]
 
-const formation: Array<number | null> = [1, 3, 10, null, null]
+const formation: Array<number | null> = [1, 3, 10, null]
 
 const stages = [
   {
