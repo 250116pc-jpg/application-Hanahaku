@@ -77,10 +77,209 @@ export class SelectStageScene extends Phaser.Scene {
     button.on('pointerup', () => this.scene.start('HomeScene'));
   }
 
+    private openStageInfo(scene: Phaser.Scene, stageLabel: string): void {
 
+    const width = this.scale.width;
+    const height = this.scale.height;
+
+    // ポップアップ全体
+    const container = scene.add.container(0, 0)
+        .setDepth(3000);
+
+    // 背景を暗くする
+    const darkBackground = scene.add.rectangle(
+        width / 2,
+        height / 2,
+        width,
+        height,
+        0x000000,
+        0.55
+    )
+        .setScrollFactor(0)
+        .setInteractive();
+
+    // ポップアップ
+    const popupWidth = width * 0.7;
+    const popupHeight = height * 0.7;
+
+    const popup = scene.add.rectangle(
+        width / 2,
+        height / 2,
+        popupWidth,
+        popupHeight,
+        0xffffff
+    )
+        .setStrokeStyle(3, 0x536878)
+        .setScrollFactor(0);
+
+
+    // =========================
+    // ステージ名
+    // =========================
+
+    const title = scene.add.text(
+        width / 2,
+        height / 2 - 190,
+        stageLabel,
+        this.getTextStyle(32)
+    )
+        .setOrigin(0.5)
+        .setScrollFactor(0);
+
+
+    // =========================
+    // ステージ情報
+    // =========================
+
+    const stageInfo = scene.add.text(
+        width / 2,
+        height / 2 - 110,
+        [
+            '推奨レベル：Lv.10',
+            '消費スタミナ：10',
+            '出現する敵：3体',
+            '',
+            'クリアすると報酬を獲得できます。'
+        ],
+        {
+            ...this.getTextStyle(20),
+            color: '#444444',
+            align: 'center',
+            lineSpacing: 8
+        }
+    )
+        .setOrigin(0.5)
+        .setScrollFactor(0);
+
+
+    // =========================
+    // 進行状況の警告
+    // =========================
+
+    const warning = scene.add.text(
+        width / 2,
+        height / 2 + 10,
+        '編成を変更してから出撃できます。',
+        {
+            ...this.getTextStyle(18),
+            color: '#888888'
+        }
+    )
+        .setOrigin(0.5)
+        .setScrollFactor(0);
+
+
+    // =========================
+    // 編成ボタン
+    // =========================
+
+    const formationButton = scene.add.text(
+        width / 2 - 150,
+        height / 2 + 120,
+        '編成',
+        {
+            ...this.getTextStyle(22),
+            color: '#ffffff',
+            backgroundColor: '#536878',
+            padding: {
+                left: 35,
+                right: 35,
+                top: 15,
+                bottom: 15
+            }
+        }
+    )
+        .setOrigin(0.5)
+        .setInteractive({ useHandCursor: true })
+        .setScrollFactor(0);
+
+
+    // =========================
+    // 出撃ボタン
+    // =========================
+
+    const startButton = scene.add.text(
+        width / 2 + 150,
+        height / 2 + 120,
+        '出撃',
+        {
+            ...this.getTextStyle(22),
+            color: '#ffffff',
+            backgroundColor: '#4c8c5a',
+            padding: {
+                left: 35,
+                right: 35,
+                top: 15,
+                bottom: 15
+            }
+        }
+    )
+        .setOrigin(0.5)
+        .setInteractive({ useHandCursor: true })
+        .setScrollFactor(0);
+
+
+    // =========================
+    // コンテナに追加
+    // =========================
+
+    container.add([
+        darkBackground,
+        popup,
+        title,
+        stageInfo,
+        warning,
+        formationButton,
+        startButton
+    ]);
+
+
+    // =========================
+    // 編成画面へ
+    // =========================
+
+    formationButton.on('pointerdown', () => {
+
+        container.destroy();
+
+        scene.scene.start('FormScene');
+
+    });
+
+
+    // =========================
+    // ステージ画面へ
+    // =========================
+
+    startButton.on('pointerdown', () => {
+
+        container.destroy();
+
+        scene.scene.start('StageScene', {
+            stageLabel: stageLabel
+        });
+
+    });
+
+
+    // =========================
+    // 背景クリックで閉じる
+    // =========================
+
+    darkBackground.on('pointerdown', () => {
+
+        container.destroy();
+
+    });
+}
   private createActionCircle(x: number, y: number, diameter: number, label: string): void {
-    this.add.circle(x, y, diameter / 2, 0xffffff).setStrokeStyle(2, 0x333333);
+    const circle = this.add.circle(x, y, diameter / 2, 0xffffff).setStrokeStyle(2, 0x333333);
     this.add.text(x, y+70, label, { ...this.getTextStyle(36), align: 'center' }).setOrigin(0.5);
+    
+    circle.on('pointerover', () => circle.setFillStyle(0xeeeeee));
+    circle.on('pointerout', () => circle.setFillStyle(0xffffff));
+    circle.setInteractive({ useHandCursor: true });
+    circle.on('pointerup', () => this.openStageInfo(this, label));
   }
 
   private getTextStyle(fontSize: number): Phaser.Types.GameObjects.Text.TextStyle {
@@ -95,4 +294,5 @@ export class SelectStageScene extends Phaser.Scene {
     const line = this.add.line(10, 10, x1, y1, x2, y2, color).setOrigin(0, 0);
     line.setLineWidth(width);
   }
+  
 }
