@@ -1,8 +1,8 @@
 import Phaser from 'phaser'
 
 import flowerImg from '../assets/flower.png'
-import testData from '../test_data'
-import type { CharacterData } from '../test_data'
+import testData from './test_data'
+import type { CharacterData } from './test_data'
 
 const FONT_FAMILY = '"Yu Gothic", "Meiryo", sans-serif'
 const BORDER_COLOR = 0x536878

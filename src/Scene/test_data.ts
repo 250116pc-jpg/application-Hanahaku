@@ -137,11 +137,10 @@ const characters: CharacterData[] = [
 ]
 
 const formation: Array<number | null> = [1, 3, 10, null]
-
 const stages = [
   {
     id: 1,
-    name: '1章',
+    name: '1-1',
     map: 'nil',
     enemies: [
       {
@@ -160,9 +159,78 @@ const stages = [
       num: 1,
       level: 1
     }
+  },
+
+  {
+    id: 2,
+    name: '1-2',
+    map: 'nil',
+    enemies: [
+      {
+        id: 1,
+        num: 4,
+        level: 2
+      }
+    ],
+    boss: {
+      id: 2,
+      num: 1,
+      level: 2
+    }
+  },
+
+  {
+    id: 3,
+    name: '1-3',
+    map: 'nil',
+    enemies: [
+      {
+        id: 2,
+        num: 3,
+        level: 3
+      }
+    ],
+    boss: {
+      id: 3,
+      num: 1,
+      level: 3
+    }
+  },
+  {
+    id: 4,
+    name: '1-4',
+    map: 'nil',
+    enemies: [
+      {
+        id: 2,
+        num: 3,
+        level: 3
+      }
+    ],
+    boss: {
+      id: 3,
+      num: 1,
+      level: 3
+    }
+  },
+  {
+    id: 5,
+    name: '1-5',
+    map: 'nil',
+    enemies: [
+      {
+        id: 2,
+        num: 3,
+        level: 3
+      }
+    ],
+    boss: {
+      id: 3,
+      num: 1,
+      level: 3
+    }
   }
 ]
-
 function createCharacter(
   id: number,
   name: string,

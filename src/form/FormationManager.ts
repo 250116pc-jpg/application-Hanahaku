@@ -1,4 +1,4 @@
-import type { CharacterData } from '../test_data'
+import type { CharacterData } from '../Scene/test_data'
 
 export class FormationManager {
 

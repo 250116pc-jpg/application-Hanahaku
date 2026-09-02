@@ -1,5 +1,5 @@
 import Phaser from 'phaser'
-import type { CharacterData } from '../test_data'
+import type { CharacterData } from '../Scene/test_data'
 
 const FONT_FAMILY = '"Yu Gothic", "Meiryo", sans-serif'
 

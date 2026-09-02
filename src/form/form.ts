@@ -1,7 +1,7 @@
 import Phaser from 'phaser'
 import flowerImg from '../assets/flower.png'
-import testData from '../test_data'
-import type { CharacterData } from '../test_data'
+import testData from '../Scene/test_data'
+import type { CharacterData } from '../Scene/test_data'
 
 import { FormUI } from './FormUI'
 import { FormationManager } from './FormationManager'

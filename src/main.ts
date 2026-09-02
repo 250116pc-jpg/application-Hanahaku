@@ -10,7 +10,7 @@ import { TestScene } from './Scene/TestScene';
 import { StageScene } from './Scene/StageScene';
 import { SelectStageScene } from './Scene/SelectStageScene';
 import { FormScene } from './form/form'
-import { ShopScene } from './shop'
+import { ShopScene } from './Scene/shop'
 import './style.css';
 
 

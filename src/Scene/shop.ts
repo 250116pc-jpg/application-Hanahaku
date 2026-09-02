@@ -1,4 +1,4 @@
-import panelImg from './assets/elegant_ui/panel/panel.png'
+import panelImg from '../assets/elegant_ui/panel/panel.png'
 import testData from './test_data'
 import { createShopBackground } from './shop/background'
 import { createItemDetail } from './shop/itemDetail'
