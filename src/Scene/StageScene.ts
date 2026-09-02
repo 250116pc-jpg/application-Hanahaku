@@ -1,7 +1,7 @@
 import Phaser from 'phaser'
-import mapJson from './assets/stage/test/test_map.json'
-import grassImg from './assets/stage/test/grass.png'
-import player_idle_img from './assets/player/Red Cape Knight Character Asset/Red GIF/Hunter_3_idle.gif'
+import mapJson from '../assets/stage/test/test_map.json'
+import grassImg from '../assets/stage/test/grass.png'
+import player_idle_img from '../assets/player/Red Cape Knight Character Asset/Red GIF/Hunter_3_idle.gif'
 
 export class StageScene extends Phaser.Scene {
   private player!: Phaser.Physics.Arcade.Sprite
