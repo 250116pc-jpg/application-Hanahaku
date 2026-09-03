@@ -13,7 +13,6 @@ export class SelectStageScene extends Phaser.Scene {
   }
   create(): void {
     const width = this.scale.width;
-    const height = this.scale.height;
 
     this.cameras.main.setScroll(40, 0);
     this.cameras.main.setBackgroundColor('#cfe3f5');
