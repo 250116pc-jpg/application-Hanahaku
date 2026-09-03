@@ -291,7 +291,7 @@ export class SelectStageScene extends Phaser.Scene {
         ease: 'Power1',
         onComplete: () => {
           changeCharacterAnimation(this.player, 'idle');
-          wait(this, 1000).then(() => {
+          wait(this, 500).then(() => {
             this.openStageInfo(this,testData.stages[stageIndex].name);
           });
         }
