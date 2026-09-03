@@ -6,9 +6,9 @@ import { SettingsScene } from './Scene/SettingsScene';
 import { TrainingScene } from './Scene/TrainingScene';
 import { CharacterDetailScene } from './Scene/CharacterDetailScene';
 import { InventoryScene } from './Scene/InventoryScene';
-import { TestScene } from './Scene/TestScene';
 import { StageScene } from './Scene/StageScene';
 import { SelectStageScene } from './Scene/SelectStageScene';
+import { EncyclopediaScene } from './Scene/EncyclopediaScene';
 import { FormScene } from './form/form'
 import { ShopScene } from './Scene/shop'
 import './style.css';
@@ -33,9 +33,10 @@ const config: Phaser.Types.Core.GameConfig = {
     SettingsScene,
     TrainingScene,
     CharacterDetailScene,
-    InventoryScene,
     StageScene,
+    InventoryScene,
     SelectStageScene,
+    EncyclopediaScene,
     FormScene,
     ShopScene,
   ],
@@ -53,4 +54,3 @@ const config: Phaser.Types.Core.GameConfig = {
 }
 
 new Phaser.Game(config)
-
