@@ -29,3 +29,21 @@ export default {
     text,
     image
 }
+export function specialText(
+  scene: Phaser.Scene,
+  x: number,
+  y: number,
+  size: number,
+  strokeThickness: number,
+  text: string,
+  color1: string,
+  strokeColor: string
+
+): Phaser.GameObjects.Text {
+  return scene.add.text(x, y, text, {
+    fontSize: `${size}px`,
+    color: color1,
+    stroke: strokeColor,
+    strokeThickness: strokeThickness
+  }).setOrigin(0.5);
+}
