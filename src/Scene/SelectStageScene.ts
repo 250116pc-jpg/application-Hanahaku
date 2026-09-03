@@ -281,10 +281,4 @@ export class SelectStageScene extends Phaser.Scene {
     line.setLineWidth(width);
   }
 
-  // ========================================
-  // Playerのアニメーション変更
-  // ========================================
-  private player_action_change(action: 'run' | 'idle'): void {
-    changeCharacterAnimation(this.player, action);
-  }
 }
