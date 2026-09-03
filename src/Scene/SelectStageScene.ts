@@ -15,11 +15,11 @@ import { characterAnimations } from '../animation/animationData';
 
 export class SelectStageScene extends Phaser.Scene {
   private stagePositions = [
-      { x: 150, y: 200 },
-      { x: 230, y: 460 },
-      { x: 600, y: 260 },
-      { x: 740, y: 530 },
-      { x: 1060, y: 520 }
+      { x: 150, y: 200, type: "story"},
+      { x: 230, y: 460, type: "battle" },
+      { x: 600, y: 260, type: "story" },
+      { x: 740, y: 530, type: "battle" },
+      { x: 1060, y: 520, type: "story" }
     ];
   // プレイヤー
   private player!: Phaser.GameObjects.Sprite;
