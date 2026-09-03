@@ -6,6 +6,7 @@ import player_idle_img from '../assets/player/Red Cape Knight Character Asset/Re
 export class StageScene extends Phaser.Scene {
   private player!: Phaser.Physics.Arcade.Sprite
   private cursors!: Phaser.Types.Input.Keyboard.CursorKeys | null
+  private retreatPopup?: Phaser.GameObjects.Container
 
   constructor() {
     super({ key: 'StageScene' })
@@ -100,6 +101,150 @@ export class StageScene extends Phaser.Scene {
     }
 
     this.cursors = this.input.keyboard?.createCursorKeys() ?? null
+    this.createStageHud()
+  }
+
+  private createStageHud(): void {
+    const width = this.scale.width
+
+    this.add.text(20, 16, 'HP:', this.getTextStyle(22)).setScrollFactor(0).setDepth(2000)
+    this.add.rectangle(245, 32, 330, 20, 0x555555).setScrollFactor(0).setDepth(2000)
+    this.add.rectangle(245, 32, 330, 20, 0x16a526).setScrollFactor(0).setDepth(2001)
+
+    this.add.text(20, 50, 'MP:', this.getTextStyle(22)).setScrollFactor(0).setDepth(2000)
+    this.add.rectangle(180, 66, 200, 20, 0x555555).setScrollFactor(0).setDepth(2000)
+    this.add.rectangle(180, 66, 200, 20, 0x16a9b5).setScrollFactor(0).setDepth(2001)
+
+    this.createHudButton(72, 118, 'バッグ', () => this.openInventory())
+    this.createHudButton(width - 95, 65, '撤退', () => this.showRetreatPopup())
+  }
+
+  private createHudButton(
+    x: number,
+    y: number,
+    label: string,
+    onClick: () => void
+  ): Phaser.GameObjects.Text {
+    const button = this.add.text(x, y, label, {
+      ...this.getTextStyle(22),
+      backgroundColor: '#ffffff',
+      padding: { top: 12, bottom: 12, left: 18, right: 18 }
+    })
+      .setOrigin(0.5)
+      .setScrollFactor(0)
+      .setDepth(2000)
+      .setInteractive({ useHandCursor: true })
+
+    button.on('pointerover', () => button.setBackgroundColor('#eaf4fb'))
+    button.on('pointerout', () => button.setBackgroundColor('#ffffff'))
+    button.on('pointerdown', () => button.setBackgroundColor('#d5e8f5'))
+    button.on('pointerup', () => {
+      button.setBackgroundColor('#eaf4fb')
+      onClick()
+    })
+
+    return button
+  }
+
+  private openInventory(): void {
+    if (this.scene.isActive('InventoryScene')) return
+
+    this.scene.launch('InventoryScene', { returnScene: 'StageScene' })
+    this.scene.bringToTop('InventoryScene')
+    this.scene.pause('StageScene')
+  }
+
+  private showRetreatPopup(): void {
+    if (this.retreatPopup) return
+
+    const width = this.scale.width
+    const height = this.scale.height
+    this.retreatPopup = this.add.container(0, 0).setDepth(4000).setScrollFactor(0)
+
+    const darkBackground = this.add.rectangle(
+      width / 2,
+      height / 2,
+      width + 300,
+      height + 300,
+      0x000000,
+      0.55
+    ).setScrollFactor(0).setInteractive()
+
+    const popup = this.add.rectangle(width / 2, height / 2, 650, 330, 0xffffff)
+      .setScrollFactor(0)
+      .setStrokeStyle(3, 0x536878)
+    const title = this.add.text(
+      width / 2,
+      height / 2 - 90,
+      'ステージから撤退しますか？',
+      this.getTextStyle(30)
+    ).setOrigin(0.5).setScrollFactor(0)
+    const warning = this.add.text(
+      width / 2,
+      height / 2 - 20,
+      '進行状況が失われます。',
+      { ...this.getTextStyle(22), color: '#444444' }
+    ).setOrigin(0.5).setScrollFactor(0)
+    const cancelButton = this.createPopupButton(
+      width / 2 - 150,
+      height / 2 + 90,
+      'キャンセル',
+      () => this.closeRetreatPopup()
+    )
+    const retreatButton = this.createPopupButton(
+      width / 2 + 150,
+      height / 2 + 90,
+      '撤退する',
+      () => this.retreatFromStage()
+    )
+
+    this.retreatPopup.add([
+      darkBackground,
+      popup,
+      title,
+      warning,
+      cancelButton,
+      retreatButton
+    ])
+  }
+
+  private createPopupButton(
+    x: number,
+    y: number,
+    label: string,
+    onClick: () => void
+  ): Phaser.GameObjects.Container {
+    const background = this.add.rectangle(0, 0, 210, 70, 0xffffff)
+      .setStrokeStyle(2, 0x333333)
+      .setInteractive({ useHandCursor: true })
+    const text = this.add.text(0, 0, label, this.getTextStyle(23)).setOrigin(0.5)
+    const button = this.add.container(x, y, [background, text]).setScrollFactor(0)
+
+    background.on('pointerover', () => background.setFillStyle(0xeaf4fb))
+    background.on('pointerout', () => background.setFillStyle(0xffffff))
+    background.on('pointerdown', () => background.setFillStyle(0xd5e8f5))
+    background.on('pointerup', onClick)
+    return button
+  }
+
+  private closeRetreatPopup(): void {
+    if (!this.retreatPopup) return
+    this.retreatPopup.destroy(true)
+    this.retreatPopup = undefined
+  }
+
+  private retreatFromStage(): void {
+    this.closeRetreatPopup()
+    this.scene.start('SelectStageScene')
+  }
+
+  private getTextStyle(fontSize: number): Phaser.Types.GameObjects.Text.TextStyle {
+    return {
+      fontFamily: '"Yu Gothic", "Meiryo", sans-serif',
+      fontSize: `${fontSize}px`,
+      color: '#000000',
+      padding: { top: 4, bottom: 4, left: 4, right: 4 }
+    }
   }
 
   update() {
