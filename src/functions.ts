@@ -47,3 +47,11 @@ export function specialText(
     strokeThickness: strokeThickness
   }).setOrigin(0.5);
 }
+export function wait(
+  scene: Phaser.Scene,
+  duration: number
+) {
+  return new Promise(resolve => {
+    scene.time.delayedCall(duration, resolve);
+  });
+}
