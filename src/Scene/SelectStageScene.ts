@@ -300,7 +300,10 @@ export class SelectStageScene extends Phaser.Scene {
 
   // 現在地と目的地が同じ
   if (nowIndex === targetIndex) {
-    
+    this.openStageInfo(
+      this,
+      testData.stages[targetIndex].name
+    );
     return;
   }
 
