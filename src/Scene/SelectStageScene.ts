@@ -43,6 +43,7 @@ export class SelectStageScene extends Phaser.Scene {
   create(): void {
     const width = this.scale.width;
     const height = this.scale.height;
+
     // ----------------------------------------
     // カメラ
     // ----------------------------------------
