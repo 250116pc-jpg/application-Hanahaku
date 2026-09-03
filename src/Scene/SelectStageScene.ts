@@ -1,12 +1,16 @@
 import Phaser from 'phaser';
 import testData from './test_data'
-
+import {specialText } from '../functions'
+import { createBackground } from '../background'
+import backgroundImg from '../assets/background/2.png'
 export class SelectStageScene extends Phaser.Scene {
 
   constructor() {
     super('SelectStageScene');
   }
-
+  preload(): void {
+    this.load.image('background', backgroundImg);
+  }
   create(): void {
     const width = this.scale.width;
     const height = this.scale.height;
@@ -14,16 +18,12 @@ export class SelectStageScene extends Phaser.Scene {
     this.cameras.main.setScroll(40, 0);
     this.cameras.main.setBackgroundColor('#cfe3f5');
 
-    this.add.rectangle(width / 2, height / 2, width + 300, height + 300, 0xcfe3f5, 1)
-      .setScrollFactor(0)
-      .setDepth(-100);
+    createBackground(this, 'background');
 
-    this.add.text(width / 2, 70, 'ステージ選択画面', this.getTextStyle(34)).setOrigin(0.5);
+    specialText(this, width / 2, 55, 34, 8, 'ステージ選択画面', '#000000', '#70f5cf').setOrigin(0.5);
 
 
     this.createBackButton();
-
-    
 
     const stagePositions = [
         { x: 150, y: 200 },
@@ -32,10 +32,6 @@ export class SelectStageScene extends Phaser.Scene {
         { x: 740, y: 530 },
         { x: 1060, y: 520 }
     ];
-
-    
-
-
     stagePositions.forEach((position, index) => {
         const stage = testData.stages[index];
         const nextStage = testData.stages[index + 1];
@@ -126,14 +122,7 @@ export class SelectStageScene extends Phaser.Scene {
   }
 
   // ステージ名
-  const title = scene.add.text(
-    width / 2,
-    height / 2 - 190,
-    stage.name,
-    this.getTextStyle(32)
-  )
-    .setOrigin(0.5)
-    .setScrollFactor(0);
+  const title = specialText(scene, width / 2, height / 2 - 200, 28, 8, stage.name, '#000000', '#536878');
 
   // 敵情報
   const enemyText = stage.enemies
@@ -145,14 +134,7 @@ export class SelectStageScene extends Phaser.Scene {
   const bossText =
     `ボス\n敵ID: ${stage.boss.id}　${stage.boss.num}体　Lv.${stage.boss.level}`;
 
-  const stageInfo = scene.add.text(
-    width / 2,
-    height / 2 - 70,
-    `敵情報\n${enemyText}\n\n${bossText}`,
-    this.getTextStyle(20)
-  )
-    .setOrigin(0.5)
-    .setScrollFactor(0);
+  const stageInfo = specialText(scene, width / 2, height / 2 - 70, 20, 8, `敵情報\n${enemyText}\n\n${bossText}`, '#fff8f8', '#0d0d0d');
 
   // 警告
   const warning = scene.add.text(
@@ -256,7 +238,7 @@ export class SelectStageScene extends Phaser.Scene {
 }
   private createActionCircle(x: number, y: number, diameter: number, label: string): void {
     const circle = this.add.ellipse(x, y, diameter, diameter / 1.8, 0xffffff).setStrokeStyle(2, 0x333333);
-    this.add.text(x, y+70, label, { ...this.getTextStyle(36), align: 'center' }).setOrigin(0.5);
+    specialText(this, x, y+50, 26, 3, label, '#ffffff', '#01070b');
     
     circle.on('pointerover', () => circle.setFillStyle(0xeeeeee));
     circle.on('pointerout', () => circle.setFillStyle(0xffffff));
