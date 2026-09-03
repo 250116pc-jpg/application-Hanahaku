@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 
 import testData from './test_data';
-import { specialText } from '../functions';
+import { specialText, wait } from '../functions';
 import { createBackground } from '../background';
 import backgroundImg from '../assets/background/2.png';
 
@@ -14,7 +14,13 @@ import {
 import { characterAnimations } from '../animation/animationData';
 
 export class SelectStageScene extends Phaser.Scene {
-
+  private stagePositions = [
+      { x: 150, y: 200 },
+      { x: 230, y: 460 },
+      { x: 600, y: 260 },
+      { x: 740, y: 530 },
+      { x: 1060, y: 520 }
+    ];
   // プレイヤー
   private player!: Phaser.GameObjects.Sprite;
 
@@ -44,11 +50,7 @@ export class SelectStageScene extends Phaser.Scene {
     const width = this.scale.width;
     const height = this.scale.height;
 
-    // ----------------------------------------
-    // カメラ
-    // ----------------------------------------
-    this.cameras.main.setScroll(40, 0);
-    this.cameras.main.setBackgroundColor('#cfe3f5');
+
 
     // ----------------------------------------
     // 背景
@@ -68,18 +70,12 @@ export class SelectStageScene extends Phaser.Scene {
     // ----------------------------------------
     // ステージ配置座標
     // ----------------------------------------
-    const stagePositions = [
-      { x: 150, y: 200 },
-      { x: 230, y: 460 },
-      { x: 600, y: 260 },
-      { x: 740, y: 530 },
-      { x: 1060, y: 520 }
-    ];
+    
 
     // ----------------------------------------
     // ステージ作成
     // ----------------------------------------
-    stagePositions.forEach((position, index) => {
+    this.stagePositions.forEach((position, index) => {
       const stage = testData.stages[index];
       const nextStage = testData.stages[index + 1];
 
@@ -87,7 +83,7 @@ export class SelectStageScene extends Phaser.Scene {
 
       // 次のステージがある場合だけ線を描画
       if (nextStage) {
-        const nextPosition = stagePositions[index + 1];
+        const nextPosition = this.stagePositions[index + 1];
 
         // 外側の黒い線
         this.createLine(nextPosition.x, nextPosition.y, position.x, position.y, 25, 0x000000);
@@ -112,7 +108,7 @@ export class SelectStageScene extends Phaser.Scene {
     // ----------------------------------------
     // Player作成
     // ----------------------------------------
-    this.player = createCharacterSprite(this, stagePositions[0].x, stagePositions[0].y-50, 'player_idle', 'player-idle');
+    this.player = createCharacterSprite(this, this.stagePositions[0].x, this.stagePositions[0].y-50, 'player_idle', 'player-idle');
     this.player.setScale(1);
   }
 
@@ -258,7 +254,7 @@ export class SelectStageScene extends Phaser.Scene {
     // マウスアクション
     circle.on('pointerover', () => circle.setFillStyle(0xeeeeee));
     circle.on('pointerout', () => circle.setFillStyle(0xffffff));
-    circle.on('pointerup', () => this.openStageInfo(this, label));
+    circle.on('pointerup', () => this.movePlayerToStage(this.stagePositions.findIndex(pos => pos.x === x && pos.y === y)));
   }
 
   // ========================================
@@ -280,5 +276,26 @@ export class SelectStageScene extends Phaser.Scene {
     const line = this.add.line(0, 0, x1, y1 + 5, x2, y2 + 5, color).setOrigin(0, 0);
     line.setLineWidth(width);
   }
-
+  private movePlayerToStage(stageIndex: number): void {
+    if (stageIndex < 0 || stageIndex >= this.stagePositions.length) {
+      console.error(`無効なステージインデックス: ${stageIndex}`);
+      return;
+    }else {
+      const targetPosition = this.stagePositions[stageIndex];
+      changeCharacterAnimation(this.player, 'run');
+      this.tweens.add({
+        targets: this.player,
+        x: targetPosition.x,
+        y: targetPosition.y - 50,
+        duration: 1200,
+        ease: 'Power1',
+        onComplete: () => {
+          changeCharacterAnimation(this.player, 'idle');
+          wait(this, 1000).then(() => {
+            this.openStageInfo(this,testData.stages[stageIndex].name);
+          });
+        }
+      });
+    }
+  }
 }
