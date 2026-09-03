@@ -5,14 +5,10 @@ import { createCircleButton, createMenuButton } from './HomeScene/buttons'
 import {
   createFlowerPanel,
   createHomeFrame,
-  createHomeTitle,
-  createMessageText
+  createHomeTitle
 } from './HomeScene/layout'
-import { showTemporaryMessage } from './HomeScene/messages'
 
 export class HomeScene extends Phaser.Scene {
-  private messageText!: Phaser.GameObjects.Text
-
   constructor() {
     super('HomeScene')
   }
@@ -34,7 +30,6 @@ export class HomeScene extends Phaser.Scene {
     createFlowerPanel(this, ui)
     this.createNavigationButtons(ui)
 
-    this.messageText = createMessageText(this, ui, width / 2, 665)
   }
 
   private createNavigationButtons(ui: Phaser.GameObjects.Container): void {
@@ -55,7 +50,7 @@ export class HomeScene extends Phaser.Scene {
     }))
 
     ui.add(createMenuButton(this, 700, 590, '図鑑', () => {
-      this.showMessage('図鑑画面は準備中です')
+      this.scene.start('EncyclopediaScene')
     }))
 
     ui.add(createMenuButton(this, 900, 590, 'ショップ', () => {
@@ -63,7 +58,4 @@ export class HomeScene extends Phaser.Scene {
     }))
   }
 
-  private showMessage(message: string): void {
-    showTemporaryMessage(this, this.messageText, message)
-  }
 }
