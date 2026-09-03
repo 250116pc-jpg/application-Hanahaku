@@ -4,6 +4,7 @@ import testData from './test_data';
 import { specialText, wait } from '../functions';
 import { createBackground } from '../background';
 import backgroundImg from '../assets/background/2.png';
+import bookImg from '../assets/images/book.png';
 
 import {
   loadCharacterAnimation,
@@ -15,11 +16,11 @@ import { characterAnimations } from '../animation/animationData';
 
 export class SelectStageScene extends Phaser.Scene {
   private stagePositions = [
-      { x: 150, y: 200, type: "story"},
-      { x: 230, y: 460, type: "battle" },
-      { x: 600, y: 260, type: "story" },
-      { x: 740, y: 530, type: "battle" },
-      { x: 1060, y: 520, type: "story" }
+      { id: 1, x: 150, y: 200, type: "story" },
+      { id: 2, x: 230, y: 460, type: "battle" },
+      { id: 3, x: 600, y: 260, type: "story" },
+      { id: 4, x: 740, y: 530, type: "battle" },
+      { id: 5, x: 1060, y: 520, type: "story" }
     ];
   // プレイヤー
   private player!: Phaser.GameObjects.Sprite;
@@ -34,6 +35,7 @@ export class SelectStageScene extends Phaser.Scene {
   preload(): void {
     // 背景
     this.load.image('background', backgroundImg);
+    this.load.image('book', bookImg);
 
     // Playerのアニメーションデータ
     const playerData = characterAnimations.player;
@@ -49,7 +51,7 @@ export class SelectStageScene extends Phaser.Scene {
   create(): void {
     const width = this.scale.width;
     const height = this.scale.height;
-
+    let stageIndex = 1;
 
 
     // ----------------------------------------
@@ -93,6 +95,9 @@ export class SelectStageScene extends Phaser.Scene {
 
       // ステージボタン
       this.createActionCircle(position.x, position.y, 100, stage.name);
+      if (position.type === 'story') {
+        this.add.image(position.x, position.y-10, 'book').setScale(0.2).setDepth(1);
+      }
     });
 
     // ----------------------------------------
@@ -109,7 +114,7 @@ export class SelectStageScene extends Phaser.Scene {
     // Player作成
     // ----------------------------------------
     this.player = createCharacterSprite(this, this.stagePositions[0].x, this.stagePositions[0].y-50, 'player_idle', 'player-idle');
-    this.player.setScale(1);
+    this.player.setScale(1).setDepth(2);
   }
 
   // ========================================
@@ -243,6 +248,7 @@ export class SelectStageScene extends Phaser.Scene {
   // ========================================
   // ステージボタン
   // ========================================
+  private currentStageIndex: number = 0;
   private createActionCircle(x: number, y: number, diameter: number, label: string): void {
     const circle = this.add.ellipse(x, y, diameter, diameter / 1.8, 0xffffff)
       .setStrokeStyle(2, 0x333333)
@@ -250,11 +256,12 @@ export class SelectStageScene extends Phaser.Scene {
 
     // ステージ名
     specialText(this, x, y + 50, 26, 4, label, '#ffffff', '#01070b');
-
+    
     // マウスアクション
     circle.on('pointerover', () => circle.setFillStyle(0xeeeeee));
-    circle.on('pointerout', () => circle.setFillStyle(0xffffff));
-    circle.on('pointerup', () => this.movePlayerToStage(this.stagePositions.findIndex(pos => pos.x === x && pos.y === y)));
+      circle.on('pointerout', () => circle.setFillStyle(0xffffff));
+      let targetIndex = this.stagePositions.findIndex(pos => pos.x === x && pos.y === y) ;
+    circle.on('pointerup', () => this.movePlayerToStage(this.currentStageIndex, targetIndex));
   }
 
   // ========================================
@@ -276,26 +283,73 @@ export class SelectStageScene extends Phaser.Scene {
     const line = this.add.line(0, 0, x1, y1 + 5, x2, y2 + 5, color).setOrigin(0, 0);
     line.setLineWidth(width);
   }
-  private movePlayerToStage(stageIndex: number): void {
-    if (stageIndex < 0 || stageIndex >= this.stagePositions.length) {
-      console.error(`無効なステージインデックス: ${stageIndex}`);
-      return;
-    }else {
-      const targetPosition = this.stagePositions[stageIndex];
-      changeCharacterAnimation(this.player, 'run');
-      this.tweens.add({
-        targets: this.player,
-        x: targetPosition.x,
-        y: targetPosition.y - 50,
-        duration: 1200,
-        ease: 'Power1',
-        onComplete: () => {
-          changeCharacterAnimation(this.player, 'idle');
-          wait(this, 500).then(() => {
-            this.openStageInfo(this,testData.stages[stageIndex].name);
-          });
-        }
-      });
-    }
+
+  // ========================================
+  // プレイヤー移動
+  // ========================================
+ private movePlayerToStage(nowIndex: number, targetIndex: number): void {
+  console.log(`現在地: ${nowIndex}, 目的地: ${targetIndex}`);
+  // 範囲チェック
+  if (
+    targetIndex < 0 ||
+    targetIndex >= this.stagePositions.length
+  ) {
+    console.error(`無効なステージインデックス: ${targetIndex}`);
+    return;
   }
+
+  // 現在地と目的地が同じ
+  if (nowIndex === targetIndex) {
+    
+    return;
+  }
+
+  // 移動方向
+  const direction = nowIndex < targetIndex ? 1 : -1;
+
+  // 現在地の次のステージ
+  const nextIndex = nowIndex + direction;
+
+  const targetStage = this.stagePositions[nextIndex];
+
+  // 走る
+  changeCharacterAnimation(this.player, 'run');
+
+  // 1ステージ分移動
+  this.tweens.add({
+    targets: this.player,
+
+    x: targetStage.x,
+    y: targetStage.y - 50,
+
+    duration: 1200,
+    ease: 'Power1',
+
+    onComplete: () => {
+
+      // 目的地に到着したか
+      if (nextIndex === targetIndex) {
+        this.currentStageIndex = targetIndex;
+        changeCharacterAnimation(this.player, 'idle');
+
+        wait(this, 500).then(() => {
+          this.openStageInfo(
+            this,
+            testData.stages[targetIndex].name
+          );
+        });
+
+        return;
+      }
+
+      // まだ目的地じゃない
+      // 現在地を nextIndex に更新してもう一度移動
+      this.currentStageIndex = nextIndex;
+      this.movePlayerToStage(
+        nextIndex,
+        targetIndex
+      );
+    }
+  });
+}
 }
