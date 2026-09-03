@@ -1,10 +1,13 @@
 import Phaser from 'phaser'
 
 const FONT_FAMILY = '"Yu Gothic", "Meiryo", sans-serif'
-const BORDER_COLOR = 0x536878
-const DEFAULT_FILL = 0xffffff
-const HOVER_FILL = 0xeaf4fb
-const DOWN_FILL = 0xd5e8f5
+
+// カラー設定
+const BORDER_COLOR = 0x536878  // 枠線の色[cite: 5]
+const NORMAL_FILL  = 0x7fa2c4  // 通常時のボタン色
+const HOVER_FILL   = 0xadd2f5  // ホバー時の色（薄く明るい水色）
+const DOWN_FILL    = 0x5d80a2  // 押したときの色（少し濃い色）
+const TEXT_COLOR   = '#ffffff'  // 文字色
 
 export function createMenuButton(
   scene: Phaser.Scene,
@@ -13,25 +16,36 @@ export function createMenuButton(
   label: string,
   onClick: () => void
 ): Phaser.GameObjects.Container {
-  const background = scene.add.rectangle(0, 0, 150, 65, DEFAULT_FILL)
-    .setStrokeStyle(2, BORDER_COLOR)
-    .setInteractive({ useHandCursor: true })
+  const width = 150
+  const height = 65
+  const radius = 12
+
+  const bg = scene.add.graphics()
+
+  const draw = (color: number) => {
+    bg.clear()
+    bg.fillStyle(color, 1)
+    bg.fillRoundedRect(-width / 2, -height / 2, width, height, radius)
+    bg.lineStyle(2, BORDER_COLOR, 1)
+    bg.strokeRoundedRect(-width / 2, -height / 2, width, height, radius)
+  }
+
+  draw(NORMAL_FILL)
 
   const text = scene.add.text(0, 0, label, {
     fontFamily: FONT_FAMILY,
-    fontSize: '26px',
-    color: '#000000',
-    padding: {
-      top: 6,
-      bottom: 6,
-      left: 6,
-      right: 6
-    }
+    fontSize: '24px',
+    color: TEXT_COLOR,
+    fontStyle: 'bold'
   }).setOrigin(0.5)
 
-  bindButtonEvents(background, onClick)
+  const container = scene.add.container(x, y, [bg, text])
+  container.setSize(width, height)
+  container.setInteractive({ useHandCursor: true })
 
-  return scene.add.container(x, y, [background, text])
+  bindButtonEvents(container, draw, onClick)
+
+  return container
 }
 
 export function createCircleButton(
@@ -42,46 +56,46 @@ export function createCircleButton(
   label: string,
   onClick: () => void
 ): Phaser.GameObjects.Container {
-  const background = scene.add.circle(0, 0, diameter / 2, DEFAULT_FILL)
-    .setStrokeStyle(3, BORDER_COLOR)
-    .setInteractive({ useHandCursor: true })
+  const radius = diameter / 2
+  const bg = scene.add.graphics()
+
+  const draw = (color: number) => {
+    bg.clear()
+    bg.fillStyle(color, 1)
+    bg.fillCircle(0, 0, radius)
+    bg.lineStyle(3, BORDER_COLOR, 1)
+    bg.strokeCircle(0, 0, radius)
+  }
+
+  draw(NORMAL_FILL)
 
   const text = scene.add.text(0, 0, label, {
     fontFamily: FONT_FAMILY,
-    fontSize: diameter <= 100 ? '22px' : '27px',
-    color: '#000000',
-    align: 'center',
-    padding: {
-      top: 6,
-      bottom: 6,
-      left: 6,
-      right: 6
-    }
+    fontSize: diameter <= 100 ? '22px' : '26px',
+    color: TEXT_COLOR,
+    fontStyle: 'bold',
+    align: 'center'
   }).setOrigin(0.5)
 
-  bindButtonEvents(background, onClick)
+  const container = scene.add.container(x, y, [bg, text])
+  container.setSize(diameter, diameter)
+  container.setInteractive({ useHandCursor: true })
 
-  return scene.add.container(x, y, [background, text])
+  bindButtonEvents(container, draw, onClick)
+
+  return container
 }
 
 function bindButtonEvents(
-  background: Phaser.GameObjects.Shape,
+  container: Phaser.GameObjects.Container,
+  draw: (color: number) => void,
   onClick: () => void
 ) {
-  background.on('pointerover', () => {
-    background.setFillStyle(HOVER_FILL)
-  })
-
-  background.on('pointerout', () => {
-    background.setFillStyle(DEFAULT_FILL)
-  })
-
-  background.on('pointerdown', () => {
-    background.setFillStyle(DOWN_FILL)
-  })
-
-  background.on('pointerup', () => {
-    background.setFillStyle(HOVER_FILL)
+  container.on('pointerover', () => draw(HOVER_FILL))
+  container.on('pointerout', () => draw(NORMAL_FILL))
+  container.on('pointerdown', () => draw(DOWN_FILL))
+  container.on('pointerup', () => {
+    draw(HOVER_FILL)
     onClick()
   })
 }
