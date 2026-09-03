@@ -1,11 +1,11 @@
 import Phaser from 'phaser'
 
 // アセットのインポート（実際のファイルパスに合わせて調整してください）
-import bg1Img from '../assets/home1.png'
-import bg2Img from '../assets/home2.png'
-import flower1Img from '../assets/f1.png'
-import flower2Img from '../assets/f2.png'
-import flower3Img from '../assets/f3.png'
+import bg1Img from '../assets/images/home1.png'
+import bg2Img from '../assets/images/home2.png'
+import flower1Img from '../assets/images/f1.png'
+import flower2Img from '../assets/images/f2.png'
+import flower3Img from '../assets/images/f3.png'
 
 import { createCircleButton, createMenuButton } from './HomeScene/buttons'
 
