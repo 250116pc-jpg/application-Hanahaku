@@ -51,7 +51,6 @@ export class SelectStageScene extends Phaser.Scene {
   create(): void {
     const width = this.scale.width;
     const height = this.scale.height;
-    let stageIndex = 1;
 
 
     // ----------------------------------------
@@ -113,7 +112,7 @@ export class SelectStageScene extends Phaser.Scene {
     // ----------------------------------------
     // Player作成
     // ----------------------------------------
-    this.player = createCharacterSprite(this, this.stagePositions[0].x, this.stagePositions[0].y-50, 'player_idle', 'player-idle');
+    this.player = createCharacterSprite(this, this.stagePositions[this.currentStageIndex].x, this.stagePositions[this.currentStageIndex].y-50, 'player_idle', 'player-idle');
     this.player.setScale(1).setDepth(2);
   }
 
@@ -137,7 +136,10 @@ export class SelectStageScene extends Phaser.Scene {
   // ========================================
   // ステージ情報
   // ========================================
-  private openStageInfo(scene: Phaser.Scene, stageLabel: string): void {
+  private openStageInfo(
+    scene: Phaser.Scene,
+    stageLabel: string | typeof testData.stages[number]
+  ): void {
     const width = this.scale.width;
     const height = this.scale.height;
 
@@ -157,7 +159,9 @@ export class SelectStageScene extends Phaser.Scene {
       .setScrollFactor(0);
 
     // ステージデータ取得
-    const stage = testData.stages.find(stage => stage.name === stageLabel);
+    const stage = typeof stageLabel === 'string'
+      ? testData.stages.find(stage => stage.name === stageLabel)
+      : stageLabel;
     if (!stage) {
       console.error(`ステージが見つかりません: ${stageLabel}`);
       return;
@@ -236,7 +240,14 @@ export class SelectStageScene extends Phaser.Scene {
     // ステージ画面へ
     startButton.on('pointerdown', () => {
       container.destroy();
-      scene.scene.start('StageScene', { stageId: stage.id });
+      console.log(`ステージID: ${stage.id} で StageScene に遷移`);
+      const stageIndex = testData.stages.findIndex(item => item.id === stage.id);
+      const stageType = this.stagePositions[stageIndex]?.type;
+      if(stageType === 'battle') {
+        scene.scene.start('StageScene', { stageId: stage.id });
+      }else if(stageType === 'story') {
+        scene.scene.start('StoryScene', { stageId: stage.id });
+      }
     });
 
     // 閉じる
@@ -302,7 +313,7 @@ export class SelectStageScene extends Phaser.Scene {
   if (nowIndex === targetIndex) {
     this.openStageInfo(
       this,
-      testData.stages[targetIndex].name
+      testData.stages[targetIndex]
     );
     return;
   }
@@ -338,7 +349,7 @@ export class SelectStageScene extends Phaser.Scene {
         wait(this, 500).then(() => {
           this.openStageInfo(
             this,
-            testData.stages[targetIndex].name
+            testData.stages[targetIndex]
           );
         });
 
