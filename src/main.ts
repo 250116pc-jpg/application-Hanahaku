@@ -8,6 +8,7 @@ import { CharacterDetailScene } from './Scene/CharacterDetailScene';
 import { InventoryScene } from './Scene/InventoryScene';
 import { StageScene } from './Scene/StageScene';
 import { SelectStageScene } from './Scene/SelectStageScene';
+import { StoryScene } from './Scene/story/StoryScene';
 import { EncyclopediaScene } from './Scene/EncyclopediaScene';
 import { FormScene } from './form/form'
 import { ShopScene } from './Scene/shop'
@@ -34,6 +35,7 @@ const config: Phaser.Types.Core.GameConfig = {
     TrainingScene,
     CharacterDetailScene,
     StageScene,
+    StoryScene,
     InventoryScene,
     SelectStageScene,
     EncyclopediaScene,

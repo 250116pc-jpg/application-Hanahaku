@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 
-import backImg from '../assets/background/story/1.jpg';
+import backImg from '../../assets/background/story/1.jpg';
 import { createBackground } from '../../background';
 
 type ScenarioData = {
@@ -25,12 +25,12 @@ export class StoryScene extends Phaser.Scene {
 
   // シナリオ
   private scenario: ScenarioData[] = [
-    { name: '主人公', text: '……ここは、どこだろう？' },
-    { name: '主人公', text: '見たことのない花がたくさん咲いている……。' },
-    { name: '？？？', text: 'あなた、そこで何をしているの？' },
-    { name: '主人公', text: 'えっ！？' },
-    { name: '？？？', text: 'ここは危険だから、早くこっちへ来て！' },
-    { name: '主人公', text: 'わ、わかった！' }
+    { "name": "主人公", "text": "あう、あうあうあう、、うぅ、、ここはどこだにょ。" },
+    { "name": "主人公", "text": "彗星はもっとパーって輝くもんな" },
+    { "name": "？？？", "text": "あなた、そこで何をしているの？" },
+    { "name": "主人公", "text": "えっ。あ、あ、あう。にぱー" },
+    { "name": "？？？", "text": "ここは危険だから、早くこっちへ来て！僕と契約して魔法少女になってよ！" },
+    { "name": "主人公", "text": "わ、わ、わぷぷっ" }
   ];
 
   constructor() {
