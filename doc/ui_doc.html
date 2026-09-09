@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ui.ts モジュール仕様書</title>
+  <style>
+    :root {
+      --primary-color: #2b5876;
+      --accent-color: #4e4376;
+      --bg-color: #f4f7f6;
+      --text-color: #333333;
+      --code-bg: #272822;
+      --border-color: #e0e0e0;
+    }
+
+    body {
+      font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+      line-height: 1.6;
+      color: var(--text-color);
+      background-color: var(--bg-color);
+      margin: 0;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: #ffffff;
+      padding: 40px;
+      border-radius: 8px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    }
+
+    h1 {
+      color: var(--primary-color);
+      border-bottom: 3px solid var(--primary-color);
+      padding-bottom: 10px;
+      margin-top: 0;
+    }
+
+    h2 {
+      color: var(--accent-color);
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 8px;
+      margin-top: 35px;
+    }
+
+    h3 {
+      color: #444;
+      margin-top: 25px;
+    }
+
+    p {
+      margin-bottom: 15px;
+    }
+
+    ul {
+      padding-left: 20px;
+    }
+
+    li {
+      margin-bottom: 8px;
+    }
+
+    code {
+      background-color: #f0f0f0;
+      color: #d63384;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: Consolas, Monaco, 'Andale Mono', monospace;
+      font-size: 0.9em;
+    }
+
+    pre {
+      background-color: var(--code-bg);
+      color: #f8f8f2;
+      padding: 18px;
+      border-radius: 6px;
+      overflow-x: auto;
+      font-family: Consolas, Monaco, 'Andale Mono', monospace;
+      font-size: 0.9em;
+      line-height: 1.45;
+    }
+
+    pre code {
+      background-color: transparent;
+      color: inherit;
+      padding: 0;
+    }
+
+    .badge {
+      display: inline-block;
+      background: var(--primary-color);
+      color: #fff;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 0.8em;
+      font-weight: bold;
+    }
+
+    .note-box {
+      background-color: #eef6fc;
+      border-left: 4px solid #2b5876;
+      padding: 15px;
+      margin: 20px 0;
+      border-radius: 0 4px 4px 0;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1>ui.ts モジュール仕様書</h1>
+  <p><code>src/utils/ui.ts</code> は、プロジェクト全体の共通UIコンポーネント（テキストスタイル、各種ボタン、汎用ダイアログ）を提供するユーティリティモジュールです。画面ごとのUI実装の重複を減らし、デザインの統一とメンテナンス性の向上を目的としています。</p>
+
+  <div class="note-box">
+    <strong>共有用メモ:</strong> このドキュメントはブラウザで直接閲覧できるほか、ブラウザの「印刷機能（Ctrl+P / Cmd+P）」を使ってそのままPDFとして保存することもできます。
+  </div>
+
+  <h2>1. 定数・共通スタイル</h2>
+  
+  <h3>FONT_FAMILY</h3>
+  <p>プロジェクト統一のフォントファミリー定義です。</p>
+  <ul>
+    <li><strong>値:</strong> <code>'"Yu Gothic", "Meiryo", sans-serif'</code></li>
+  </ul>
+
+  <h3>getTextStyle(fontSize, extraOptions)</h3>
+  <p>標準的なテキストスタイルオブジェクトを生成して返します。</p>
+  <ul>
+    <li><strong>引数:</strong>
+      <ul>
+        <li><code>fontSize</code> (<code>number</code>): フォントサイズ (px)</li>
+        <li><code>extraOptions</code> (<code>object</code>, 任意): 追加・上書きしたい TextStyle オプション</li>
+      </ul>
+    </li>
+    <li><strong>戻り値:</strong> <code>Phaser.Types.GameObjects.Text.TextStyle</code></li>
+  </ul>
+
+  <h2>2. コンポーネント生成関数</h2>
+
+  <h3>createTextButton(scene, x, y, label, onClick, options)</h3>
+  <p>テキストベースのシンプルなUIボタン（戻るボタン、タブ、HUDボタンなど）を生成します。ホバー・クリック時の背景色変化アニメーションを自動処理します。</p>
+  <ul>
+    <li><strong>引数:</strong>
+      <ul>
+        <li><code>scene</code> (<code>Phaser.Scene</code>): 描画先のシーン</li>
+        <li><code>x</code>, <code>y</code> (<code>number</code>): 表示座標</li>
+        <li><code>label</code> (<code>string</code>): ボタンのテキスト</li>
+        <li><code>onClick</code> (<code>() => void</code>): クリック時の実行処理</li>
+        <li><code>options</code> (<code>object</code>, 任意): <code>fontSize</code>, <code>bgColor</code>, <code>hoverColor</code>, <code>downColor</code>, <code>padding</code> など</li>
+      </ul>
+    </li>
+    <li><strong>戻り値:</strong> <code>Phaser.GameObjects.Text</code></li>
+  </ul>
+
+  <h3>createRectButton(scene, x, y, width, height, label, onClick, options)</h3>
+  <p>枠線付きの矩形ボタン（ポップアップ内ボタンや大型アクションボタンなど）を Container 化して生成します。</p>
+  <ul>
+    <li><strong>引数:</strong>
+      <ul>
+        <li><code>scene</code> (<code>Phaser.Scene</code>): 描画先のシーン</li>
+        <li><code>x</code>, <code>y</code> (<code>number</code>): 表示座標</li>
+        <li><code>width</code>, <code>height</code> (<code>number</code>): ボタンの幅と高さ</li>
+        <li><code>label</code> (<code>string</code>): ボタンのテキスト</li>
+        <li><code>onClick</code> (<code>() => void</code>): クリック時の実行処理</li>
+        <li><code>options</code> (<code>object</code>, 任意): <code>fontSize</code>, <code>fillColor</code>, <code>hoverColor</code>, <code>downColor</code></li>
+      </ul>
+    </li>
+    <li><strong>戻り値:</strong> <code>Phaser.GameObjects.Container</code></li>
+  </ul>
+
+  <h2>3. 汎用ダイアログ</h2>
+
+  <h3>showRetreatDialog(scene, onRetreat) <span class="badge">Depth: 4000</span></h3>
+  <p>ステージ脱出・撤退時に表示する最前面モーダルダイアログ（暗転背景＋確認ポップアップ）を生成・表示します。「キャンセル」選択時は自動でコンテナが破棄されます。</p>
+  <ul>
+    <li><strong>引数:</strong>
+      <ul>
+        <li><code>scene</code> (<code>Phaser.Scene</code>): 描画先のシーン</li>
+        <li><code>onRetreat</code> (<code>() => void</code>): 「撤退する」を押した時の処理（シーン遷移など）</li>
+      </ul>
+    </li>
+    <li><strong>戻り値:</strong> <code>Phaser.GameObjects.Container</code></li>
+  </ul>
+
+  <h2>4. 実装例</h2>
+  <pre><code>import { getTextStyle, createTextButton, showRetreatDialog } from '../utils/ui';
+
+// 1. テキストスタイルの取得
+const titleText = this.add.text(100, 50, 'タイトル', getTextStyle(32));
+
+// 2. HUD用ボタンの作成 (深度調整をする場合)
+createTextButton(this, 100, 100, 'バッグ', () => this.openInventory(), { fontSize: 22 })
+  .setDepth(2000);
+
+// 3. 撤退ポップアップの呼び出し
+createTextButton(this, 700, 100, '撤退', () => {
+  showRetreatDialog(this, () => this.scene.start('SelectStageScene'));
+});</code></pre>
+
+</div>
+
+</body>
+</html>
