@@ -121,21 +121,82 @@ export class SelectStageScene extends Phaser.Scene {
   // 戻るボタン
   // ========================================
   private createBackButton(): void {
-    const button = this.add.text(100, 80, '← 戻る', {
-      ...this.getTextStyle(25),
-      backgroundColor: '#ffffff',
-      padding: { top: 12, bottom: 12, left: 20, right: 20 }
-    })
-      .setOrigin(0.5)
-      .setInteractive({ useHandCursor: true });
+    const x = 110;
+    const y = 80;
+    const width = 130;
+    const height = 48;
+    const radius = 10;
 
-    button.on('pointerover', () => button.setBackgroundColor('#eeeeee'));
-    button.on('pointerout', () => button.setBackgroundColor('#ffffff'));
-    button.on('pointerup', () => this.scene.start('HomeScene'));
+    const container = this.add.container(x, y);
+    const bg = this.add.graphics();
+
+    const COLOR_NORMAL = 0xffffff;
+    const COLOR_HOVER  = 0xeaf4fb;
+    const COLOR_DOWN   = 0xd5e8f5;
+    const COLOR_BORDER = 0x536878;
+
+    const drawButton = (faceColor: number, isPressed: boolean = false) => {
+      bg.clear();
+      const offset = isPressed ? 2 : 0;
+
+      bg.fillStyle(0x000000, 0.15);
+      bg.fillRoundedRect(-width / 2, -height / 2 + 4, width, height, radius);
+
+      bg.fillStyle(faceColor, 1);
+      bg.fillRoundedRect(-width / 2, -height / 2 + offset, width, height, radius);
+
+      bg.lineStyle(2, COLOR_BORDER, 1);
+      bg.strokeRoundedRect(-width / 2, -height / 2 + offset, width, height, radius);
+    };
+
+    drawButton(COLOR_NORMAL);
+
+    const text = this.add.text(0, 0, '← 戻る', {
+      ...this.getTextStyle(20), // チームのメソッドを使用してエラーを回避
+      color: '#536878',
+      fontStyle: 'bold',
+      padding: { top: 0, bottom: 0, left: 0, right: 0 }
+    }).setOrigin(0.5);
+
+    container.add([bg, text]);
+    container.setSize(width, height);
+    container.setInteractive({ useHandCursor: true });
+
+    container.on('pointerover', () => {
+      drawButton(COLOR_HOVER);
+      this.tweens.add({
+        targets: container,
+        scale: 1.02, // 拡大率を抑えめに
+        duration: 50, // 速度を速く
+        ease: 'Power1'
+      });
+    });
+
+    container.on('pointerout', () => {
+      drawButton(COLOR_NORMAL);
+      text.setY(0);
+      this.tweens.add({
+        targets: container,
+        scale: 1.0,
+        duration: 50, // 速度を速く
+        ease: 'Power1'
+      });
+    });
+
+    container.on('pointerdown', () => {
+      drawButton(COLOR_DOWN, true);
+      text.setY(2);
+    });
+
+    container.on('pointerup', () => {
+      drawButton(COLOR_HOVER);
+      text.setY(0);
+      this.scene.start('AreaSelectScene');
+    });
   }
 
   // ========================================
-  // ステージ情報
+  // ステージ情報 (文字＆ポップアップ拡大版)
   // ========================================
   private openStageInfo(
     scene: Phaser.Scene,
@@ -144,116 +205,201 @@ export class SelectStageScene extends Phaser.Scene {
     const width = this.scale.width;
     const height = this.scale.height;
 
-    // コンテナ
-    const container = scene.add.container(0, 0).setDepth(3000);
-
-    // 背景を暗くする
-    const darkBackground = scene.add.rectangle(width / 2, height / 2, width, height, 0x000000, 0.55)
-      .setScrollFactor(0)
+    const darkBackground = scene.add.rectangle(width / 2, height / 2, width, height, 0x000000, 0)
+      .setDepth(2999)
       .setInteractive();
 
-    // ポップアップ
-    const popupWidth = width * 0.7;
-    const popupHeight = height * 0.7;
-    const popup = scene.add.rectangle(width / 2, height / 2, popupWidth, popupHeight, 0xffffff)
-      .setStrokeStyle(3, 0x536878)
-      .setScrollFactor(0);
+    scene.tweens.add({
+      targets: darkBackground,
+      fillAlpha: 0.55,
+      duration: 100 
+    });
 
-    // ステージデータ取得
+    const container = scene.add.container(width / 2, height / 2).setDepth(3000);
+
     const stage = typeof stageLabel === 'string'
       ? testData.stages.find(stage => stage.name === stageLabel)
       : stageLabel;
+      
     if (!stage) {
       console.error(`ステージが見つかりません: ${stageLabel}`);
+      darkBackground.destroy();
       return;
     }
 
-    // ステージ名
-    const title = specialText(scene, width / 2, height / 2 - 200, 28, 4, stage.name, '#000000', '#536878');
-    title.setScrollFactor(0);
+    // 全体的に大きく（580x420 → 640x500）
+    const popupW = Math.min(width * 0.8, 640);
+    const popupH = Math.min(height * 0.8, 500);
 
-    // 敵情報
-    const enemyText = stage.enemies
-      .map(enemy => `敵ID: ${enemy.id} ${enemy.num}体 Lv.${enemy.level}`)
-      .join('\n');
-    const bossText = `ボス\n敵ID: ${stage.boss.id} ${stage.boss.num}体 Lv.${stage.boss.level}`;
+    const dialogGfx = scene.add.graphics();
+    
+    dialogGfx.fillStyle(0x000000, 0.25);
+    dialogGfx.fillRoundedRect(-popupW / 2 + 4, -popupH / 2 + 6, popupW, popupH, 16);
+    
+    dialogGfx.fillStyle(0xffffff, 1);
+    dialogGfx.fillRoundedRect(-popupW / 2, -popupH / 2, popupW, popupH, 16);
+    dialogGfx.lineStyle(3, 0x536878, 1);
+    dialogGfx.strokeRoundedRect(-popupW / 2, -popupH / 2, popupW, popupH, 16);
 
-    const stageInfo = specialText(scene, width / 2, height / 2 - 70, 20, 3, `敵情報\n${enemyText}\n\n${bossText}`, '#fff8f8', '#0d0d0d');
-    stageInfo.setScrollFactor(0);
+    // ヘッダー帯も少し太く (54 → 60)
+    dialogGfx.fillStyle(0x536878, 1);
+    dialogGfx.fillRoundedRect(-popupW / 2, -popupH / 2, popupW, 60, { tl: 16, tr: 16, bl: 0, br: 0 });
 
-    // 警告
-    const warning = scene.add.text(width / 2, height / 2 + 80, '編成を変更してから出撃できます。', {
+    // タイトル文字大きく (24 → 28)
+    const titleText = scene.add.text(0, -popupH / 2 + 30, stage.name, {
+      ...this.getTextStyle(28),
+      color: '#ffffff',
+      fontStyle: 'bold',
+      padding: { top: 0, bottom: 0, left: 0, right: 0 }
+    }).setOrigin(0.5);
+
+    // ✕ボタン大きく (22 → 26)
+    const closeButton = scene.add.text(popupW / 2 - 30, -popupH / 2 + 30, '✕', {
+      ...this.getTextStyle(26),
+      color: '#ffffff',
+      fontStyle: 'bold',
+      padding: { top: 0, bottom: 0, left: 0, right: 0 }
+    }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+
+    closeButton.on('pointerover', () => closeButton.setColor('#ffaaaa'));
+    closeButton.on('pointerout', () => closeButton.setColor('#ffffff'));
+
+    // カードの高さ拡大 (160 → 210)
+    const enemyCardGfx = scene.add.graphics();
+    const cardW = popupW - 60;
+    const cardH = 210;
+    const cardY = -10;
+
+    enemyCardGfx.fillStyle(0xf4f7f9, 1);
+    enemyCardGfx.fillRoundedRect(-cardW / 2, cardY - cardH / 2, cardW, cardH, 10);
+    enemyCardGfx.lineStyle(1, 0xd0d7de, 1);
+    enemyCardGfx.strokeRoundedRect(-cardW / 2, cardY - cardH / 2, cardW, cardH, 10);
+
+    const enemyLines = stage.enemies.map(e => `・ 敵ID: ${e.id} 数量: ${e.num}体 Lv.${e.level}`).join('\n');
+    const bossLine = `・ [BOSS] 敵ID: ${stage.boss.id} 数量: ${stage.boss.num}体 Lv.${stage.boss.level}`;
+
+    // サブタイトル大きく (18 → 22)
+    const enemyTitle = scene.add.text(-cardW / 2 + 20, cardY - cardH / 2 + 20, '⚔️ エリアの敵情報', {
+      ...this.getTextStyle(22),
+      color: '#333333',
+      fontStyle: 'bold',
+      padding: { top: 0, bottom: 0, left: 0, right: 0 }
+    });
+
+    // 敵情報の文字大きく、行間も広げる (16 → 20)
+    const enemyDetails = scene.add.text(-cardW / 2 + 20, cardY - cardH / 2 + 60, `${enemyLines}\n${bossLine}`, {
+      ...this.getTextStyle(20),
+      color: '#444444',
+      padding: { top: 0, bottom: 0, left: 0, right: 0 }
+    });
+    enemyDetails.setLineSpacing(12);
+
+    // 注意書き大きく (15 → 18)
+    const warningText = scene.add.text(0, popupH / 2 - 120, '※ 編成を変更してから出撃できます。', {
       ...this.getTextStyle(18),
-      color: '#888888'
-    })
-      .setOrigin(0.5)
-      .setScrollFactor(0);
+      color: '#777777',
+      padding: { top: 0, bottom: 0, left: 0, right: 0 }
+    }).setOrigin(0.5);
 
-    // 閉じるボタン
-    const closeButton = scene.add.text(width / 2 + 250, height / 2 - 190, '×', {
-      ...this.getTextStyle(32),
-      color: '#888888'
-    })
-      .setOrigin(0.5)
-      .setInteractive({ useHandCursor: true })
-      .setScrollFactor(0);
+    const closePopup = (onComplete?: () => void) => {
+      scene.tweens.add({
+        targets: darkBackground,
+        alpha: 0,
+        duration: 100 
+      });
+      scene.tweens.add({
+        targets: container,
+        scale: 0.9,
+        alpha: 0,
+        duration: 100, 
+        ease: 'Power2',
+        onComplete: () => {
+          darkBackground.destroy();
+          container.destroy();
+          if (onComplete) onComplete();
+        }
+      });
+    };
 
-    // 編成ボタン
-    const formationButton = scene.add.text(width / 2 - 150, height / 2 + 150, '編成', {
-      ...this.getTextStyle(22),
-      color: '#ffffff',
-      backgroundColor: '#536878',
-      padding: { left: 35, right: 35, top: 15, bottom: 15 }
-    })
-      .setOrigin(0.5)
-      .setInteractive({ useHandCursor: true })
-      .setScrollFactor(0);
+    const createDialogButton = (
+      x: number, y: number, btnW: number, btnH: number, text: string,
+      bgColor: number, hoverColor: number, onClick: () => void
+    ) => {
+      const btnContainer = scene.add.container(x, y);
+      const bg = scene.add.graphics();
 
-    // 出撃ボタン
-    const startButton = scene.add.text(width / 2 + 150, height / 2 + 150, '出撃', {
-      ...this.getTextStyle(22),
-      color: '#ffffff',
-      backgroundColor: '#4c8c5a',
-      padding: { left: 35, right: 35, top: 15, bottom: 15 }
-    })
-      .setOrigin(0.5)
-      .setInteractive({ useHandCursor: true })
-      .setScrollFactor(0);
+      const drawBtn = (c: number) => {
+        bg.clear();
+        bg.fillStyle(0x000000, 0.15);
+        bg.fillRoundedRect(-btnW / 2, -btnH / 2 + 3, btnW, btnH, 10);
+        bg.fillStyle(c, 1);
+        bg.fillRoundedRect(-btnW / 2, -btnH / 2, btnW, btnH, 10);
+      };
+      drawBtn(bgColor);
 
-    // コンテナに追加
+      // ボタンの文字も大きく (20 → 22)
+      const label = scene.add.text(0, 0, text, {
+        ...this.getTextStyle(22),
+        color: '#ffffff',
+        fontStyle: 'bold',
+        padding: { top: 0, bottom: 0, left: 0, right: 0 }
+      }).setOrigin(0.5);
+
+      btnContainer.add([bg, label]);
+      btnContainer.setSize(btnW, btnH);
+      btnContainer.setInteractive({ useHandCursor: true });
+
+      btnContainer.on('pointerover', () => {
+        drawBtn(hoverColor);
+        scene.tweens.add({ targets: btnContainer, scale: 1.02, duration: 50 }); 
+      });
+      btnContainer.on('pointerout', () => {
+        drawBtn(bgColor);
+        scene.tweens.add({ targets: btnContainer, scale: 1.0, duration: 50 }); 
+      });
+      btnContainer.on('pointerdown', () => btnContainer.setScale(0.98)); 
+      btnContainer.on('pointerup', () => {
+        btnContainer.setScale(1.0);
+        onClick();
+      });
+
+      return btnContainer;
+    };
+
+    // ボタンのサイズも少し大きく (150x48 → 160x56)
+    const formationBtn = createDialogButton(-120, popupH / 2 - 55, 160, 56, '編成', 0x536878, 0x6d8396, () => {
+      closePopup(() => scene.scene.start('FormScene'));
+    });
+
+    const startBtn = createDialogButton(120, popupH / 2 - 55, 160, 56, '出撃', 0x4c8c5a, 0x60ab72, () => {
+      closePopup(() => {
+        console.log(`ステージID: ${stage.id} で StageScene に遷移`);
+        const stageIndex = testData.stages.findIndex(item => item.id === stage.id);
+        const stageType = this.stagePositions[stageIndex]?.type;
+        if(stageType === 'battle') {
+          scene.scene.start('StageScene', { stageId: stage.id });
+        } else if(stageType === 'story') {
+          scene.scene.start('StoryScene', { stageId: stage.id });
+        }
+      });
+    });
+
+    closeButton.on('pointerup', () => closePopup());
+    darkBackground.on('pointerdown', () => closePopup());
+
     container.add([
-      darkBackground,
-      popup,
-      title,
-      stageInfo,
-      warning,
-      formationButton,
-      startButton,
-      closeButton
+      dialogGfx, titleText, closeButton, enemyCardGfx, enemyTitle,
+      enemyDetails, warningText, formationBtn, startBtn
     ]);
 
-    // 編成画面へ
-    formationButton.on('pointerdown', () => {
-      container.destroy();
-      scene.scene.start('FormScene');
-    });
-
-    // ステージ画面へ
-    startButton.on('pointerdown', () => {
-      container.destroy();
-      console.log(`ステージID: ${stage.id} で StageScene に遷移`);
-      const stageIndex = testData.stages.findIndex(item => item.id === stage.id);
-      const stageType = this.stagePositions[stageIndex]?.type;
-      if(stageType === 'battle') {
-        scene.scene.start('StageScene', { stageId: stage.id });
-      }else if(stageType === 'story') {
-        scene.scene.start('StoryScene', { stageId: stage.id });
-      }
-    });
-
-    // 閉じる
-    closeButton.on('pointerdown', () => {
-      container.destroy();
+    container.setScale(0.85);
+    container.setAlpha(0);
+    scene.tweens.add({
+      targets: container,
+      scale: 1,
+      alpha: 1,
+      duration: 150, 
+      ease: 'Back.out'
     });
   }
 
