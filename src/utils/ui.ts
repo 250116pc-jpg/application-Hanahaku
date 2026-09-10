@@ -29,7 +29,7 @@ export const createTextButton = (
     padding: options.padding ?? { top: 12, bottom: 12, left: 18, right: 18 }
   }))
   .setOrigin(0.5)
-  .setScrollFactor(0) // UI用なので基本はスクロール追従しない
+  .setScrollFactor(0)
   .setInteractive({ useHandCursor: true });
 
   button.on('pointerover', () => button.setBackgroundColor(hoverColor));

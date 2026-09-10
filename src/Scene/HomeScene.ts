@@ -2,12 +2,13 @@ import Phaser from 'phaser'
 
 // アセットのインポート（実際のファイルパスに合わせて調整してください）
 import bg1Img from '../assets/background/home.png'
+import btn1Img from '../assets/ui/button1.png'
 import bg2Img from '../assets/images/home2.png'
 import flower1Img from '../assets/images/f1.png'
 import flower2Img from '../assets/images/f2.png'
 import flower3Img from '../assets/images/f3.png'
 
-import { createCircleButton, createMenuButton } from './HomeScene/buttons'
+import { createButton, createCircleButton, createMenuButton } from './HomeScene/buttons'
 
 export class HomeScene extends Phaser.Scene {
   private flowerKeys: string[] = ['flower1', 'flower2', 'flower3']
@@ -25,6 +26,9 @@ export class HomeScene extends Phaser.Scene {
     this.load.image('flower1', flower1Img)
     this.load.image('flower2', flower2Img)
     this.load.image('flower3', flower3Img)
+
+    // ボタン画像
+    this.load.image('button1', btn1Img)
   }
 
   create(): void {
@@ -57,9 +61,23 @@ export class HomeScene extends Phaser.Scene {
   }
 
   private createNavigationButtons(ui: Phaser.GameObjects.Container): void {
-    ui.add(createCircleButton(this, 970, 420, 200, 'ステージ\n選択', () => {
-      this.scene.start('AreaSelectScene')
-    }))
+
+    ui.add(createButton(
+      this,
+      970,
+      480,
+      200,
+      'ステージ\n選択',
+      () => {
+        this.scene.start('AreaSelectScene')
+      },
+      {
+        key: 'button1',
+        width: 250,
+        height: 100
+      }
+    ))
+
 
     ui.add(createCircleButton(this, 1240, 90, 95, '設定', () => {
       this.scene.start('SettingsScene')

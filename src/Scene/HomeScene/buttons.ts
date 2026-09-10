@@ -98,4 +98,85 @@ function bindButtonEvents(
     draw(HOVER_FILL)
     onClick()
   })
+
 }
+export function createTextImageButton(
+  scene: Phaser.Scene,
+  x: number,
+  y: number,
+  width: number,
+  label: string,
+  onClick: () => void,
+  image?: string | {
+    key: string
+    width?: number
+    height?: number
+  }
+): Phaser.GameObjects.Container {
+
+  const height = 65
+
+  const imageConfig = typeof image === 'string'
+    ? {
+        key: image,
+        width: width,
+        height: height
+      }
+    : image ?? null
+
+  // ボタン背景
+  const bg = imageConfig
+    ? scene.add.image(0, 0, imageConfig.key)
+        .setDisplaySize(
+          imageConfig.width ?? width,
+          imageConfig.height ?? height
+        )
+    : scene.add.rectangle(
+        0,
+        0,
+        width,
+        height,
+        NORMAL_FILL
+      )
+
+  // テキストは中央
+  const text = scene.add.text(
+    0,
+    0,
+    label,
+    {
+      fontFamily: FONT_FAMILY,
+      fontSize: '24px',
+      color: TEXT_COLOR,
+      fontStyle: 'bold',
+      align: 'center'
+    }
+  ).setOrigin(0.5)
+
+  const container = scene.add.container(x, y, [
+    bg,
+    text
+  ])
+
+  container.setSize(width, height)
+
+  container.setInteractive({
+    useHandCursor: true
+  })
+
+  container.on('pointerover', () => {
+    bg.setAlpha(0.8)
+  })
+
+  container.on('pointerout', () => {
+    bg.setAlpha(1)
+  })
+
+  container.on('pointerdown', () => {
+    onClick()
+  })
+
+  return container
+}
+
+export const createButton = createTextImageButton
