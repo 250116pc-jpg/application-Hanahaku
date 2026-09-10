@@ -85,13 +85,9 @@ export function changeCharacterAnimation(
   player: Phaser.GameObjects.Sprite,
   action: 'run' | 'idle'
 ): void {
+  const animationKey = action === 'run' ? 'player-run' : 'player-idle'
 
-  if (action === 'run') {
-
-    player.play('player-run');
-
-  } else {
-
-    player.play('player-idle');
+  if (player.anims.currentAnim?.key !== animationKey) {
+    player.play(animationKey)
   }
 }

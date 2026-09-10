@@ -8,7 +8,7 @@ import flower1Img from '../assets/images/f1.png'
 import flower2Img from '../assets/images/f2.png'
 import flower3Img from '../assets/images/f3.png'
 
-import { createButton, createCircleButton, createMenuButton } from './HomeScene/buttons'
+import { createButton } from './HomeScene/buttons'
 
 export class HomeScene extends Phaser.Scene {
   private flowerKeys: string[] = ['flower1', 'flower2', 'flower3']
