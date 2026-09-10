@@ -57,11 +57,11 @@ export class StoryScene extends Phaser.Scene {
     // =========================
     // 会話ウィンドウ
     // =========================
-    const messageWindow = this.add.rectangle(width / 2, height - 140, width - 100, 190, 0x000000, 0.7)
+    this.add.rectangle(width / 2, height - 140, width - 100, 190, 0x000000, 0.7)
       .setStrokeStyle(2, 0xffffff, 0.8);
 
     // キャラクター名の背景
-    const nameBackground = this.add.rectangle(120, height - 225, 180, 45, 0x536878, 0.95);
+    this.add.rectangle(120, height - 225, 180, 45, 0x536878, 0.95);
 
     // キャラクター名テキスト
     this.nameText = this.add.text(120, height - 225, '', {
