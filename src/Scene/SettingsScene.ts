@@ -1,6 +1,11 @@
 import Phaser from 'phaser';
 
 import flowerImg from '../assets/flower.png';
+import {
+  applyAudioSettings,
+  loadAudioSettings,
+  saveAudioSettings
+} from '../audio/BgmManager';
 
 export class SettingsScene extends Phaser.Scene {
   private bgmVolume = 0.5;
@@ -35,9 +40,10 @@ export class SettingsScene extends Phaser.Scene {
     // =========================
     // 設定値の読み込み
     // =========================
-    this.bgmVolume = this.registry.get('bgmVolume') ?? 0.5;
-    this.seVolume = this.registry.get('seVolume') ?? 0.7;
-    this.isMuted = this.registry.get('isMuted') ?? false;
+    const audioSettings = loadAudioSettings(this);
+    this.bgmVolume = audioSettings.bgmVolume;
+    this.seVolume = audioSettings.seVolume;
+    this.isMuted = audioSettings.isMuted;
 
     // =========================
     // 外枠
@@ -250,7 +256,11 @@ export class SettingsScene extends Phaser.Scene {
     this.bgmText.setText(`${Math.round(this.bgmVolume * 100)}%`);
     this.seText.setText(`${Math.round(this.seVolume * 100)}%`);
     this.muteText.setText(this.isMuted ? 'ミュート解除' : 'ミュート');
-    this.sound.mute = this.isMuted;
+    applyAudioSettings(this, {
+      bgmVolume: this.bgmVolume,
+      seVolume: this.seVolume,
+      isMuted: this.isMuted,
+    });
   }
 
   // =========================
@@ -264,8 +274,10 @@ export class SettingsScene extends Phaser.Scene {
   // 設定の保存
   // =========================
   private saveSettings(): void {
-    this.registry.set('bgmVolume', this.bgmVolume);
-    this.registry.set('seVolume', this.seVolume);
-    this.registry.set('isMuted', this.isMuted);
+    saveAudioSettings(this, {
+      bgmVolume: this.bgmVolume,
+      seVolume: this.seVolume,
+      isMuted: this.isMuted,
+    });
   }
 }
