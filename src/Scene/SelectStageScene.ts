@@ -190,7 +190,7 @@ export class SelectStageScene extends Phaser.Scene {
     container.on('pointerup', () => {
       drawButton(COLOR_HOVER);
       text.setY(0);
-      this.scene.start('HomeScene');
+      this.scene.start('AreaSelectScene');
     });
   }
 
