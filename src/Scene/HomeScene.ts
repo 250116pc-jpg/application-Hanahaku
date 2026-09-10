@@ -64,29 +64,29 @@ export class HomeScene extends Phaser.Scene {
 
     ui.add(createButton(this,970,480,200,'ステージ\n選択',() => {
         this.scene.start('AreaSelectScene')},{  key: 'button1',  width: 250,  height: 100
-          
+
+        }
+    ))
+    ui.add(createButton(this, 600, 630, 180, '育成',() => {
+        this.scene.start('TrainingScene')},{  key: 'button1',  width: 180,  height: 100
+
+        }
+    ))
+    ui.add(createButton(this, 800, 630, 180, '編成',() => {
+        this.scene.start('FormScene')},{  key: 'button1',  width: 180,  height: 100
+
+        }
+    ))
+    ui.add(createButton(this, 1000, 630, 180, '図鑑',() => {
+        this.scene.start('EncyclopediaScene')},{  key: 'button1',  width: 180,  height: 100
+
         }
     ))
 
+    ui.add(createButton(this, 1200, 630, 180, 'ショップ',() => {
+        this.scene.start('ShopScene')},{  key: 'button1',  width: 180,  height: 100
 
-    ui.add(createCircleButton(this, 1240, 90, 95, '設定', () => {
-      this.scene.start('SettingsScene')
-    }))
-
-    ui.add(createMenuButton(this, 600, 630, '育成', () => {
-      this.scene.start('TrainingScene')
-    }))
-
-    ui.add(createMenuButton(this, 800, 630, '編成', () => {
-      this.scene.start('FormScene')
-    }))
-
-    ui.add(createMenuButton(this, 1000, 630, '図鑑', () => {
-      this.scene.start('EncyclopediaScene')
-    }))
-
-    ui.add(createMenuButton(this, 1200, 630, 'ショップ', () => {
-      this.scene.start('ShopScene')
-    }))
+        }
+    ))
   }
 }
