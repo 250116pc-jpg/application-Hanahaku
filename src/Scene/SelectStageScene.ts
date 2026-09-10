@@ -4,7 +4,8 @@ import testData from './test_data';
 import { specialText, wait } from '../functions';
 import { createBackground } from '../background';
 import backgroundImg from '../assets/background/2.png';
-import bookImg from '../assets/images/book.png';
+import bookImg from '../assets/images/stageIcons/717_1.png';
+import swordImg from '../assets/images/stageIcons/701_1.png';
 
 import {
   loadCharacterAnimation,
@@ -35,7 +36,9 @@ export class SelectStageScene extends Phaser.Scene {
   preload(): void {
     // 背景
     this.load.image('background', backgroundImg);
+    // アイコン
     this.load.image('book', bookImg);
+    this.load.image('sword', swordImg);
 
     // Playerのアニメーションデータ
     const playerData = characterAnimations.player;
@@ -68,10 +71,6 @@ export class SelectStageScene extends Phaser.Scene {
     // ----------------------------------------
     this.createBackButton();
 
-    // ----------------------------------------
-    // ステージ配置座標
-    // ----------------------------------------
-    
 
     // ----------------------------------------
     // ステージ作成
@@ -95,7 +94,9 @@ export class SelectStageScene extends Phaser.Scene {
       // ステージボタン
       this.createActionCircle(position.x, position.y, 100, stage.name);
       if (position.type === 'story') {
-        this.add.image(position.x, position.y-10, 'book').setScale(0.2).setDepth(1);
+        this.add.image(position.x, position.y-10, 'book').setScale(3).setDepth(1);
+      }else if (position.type === 'battle') {
+        this.add.image(position.x, position.y-10, 'sword').setScale(3).setDepth(1);
       }
     });
 
