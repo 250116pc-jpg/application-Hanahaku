@@ -2,7 +2,11 @@ import Phaser from 'phaser';
 
 import mapImg from '../assets/images/map.png';
 import { specialText } from '../functions';
-import { createTextButton } from '../utils/ui';
+import {
+  createMapSelectionButton,
+  createSelectionDetailPanel,
+  createTextButton
+} from '../utils/ui';
 
 type AreaInfo = {
   id: number;
@@ -25,10 +29,10 @@ export class AreaSelectScene extends Phaser.Scene {
   ];
 
   private selectedAreaId = 1;
-  private infoPanel!: Phaser.GameObjects.Container;
   private areaNameText!: Phaser.GameObjects.Text;
   private areaDescText!: Phaser.GameObjects.Text;
   private selectedMarker!: Phaser.GameObjects.Arc;
+  private buttons: Phaser.GameObjects.Container[] = [];
 
   constructor() {
     super('AreaSelectScene');
@@ -44,7 +48,7 @@ export class AreaSelectScene extends Phaser.Scene {
 
     this.add.rectangle(width / 2, height / 2, width, height, 0xeef3ea);
 
-    const backButton = createTextButton(this, 130, 60, '← 戻る', () => {
+    createTextButton(this, 130, 60, '← 戻る', () => {
       this.scene.start('HomeScene');
     }, {
       fontSize: 22,
@@ -53,9 +57,8 @@ export class AreaSelectScene extends Phaser.Scene {
       downColor: '#dfe3e6',
       padding: { top: 10, bottom: 10, left: 18, right: 18 }
     });
-    backButton.setDepth(10);
 
-    const header = specialText(this, width / 2, 70, 32, 4, '拝啓：エリア選択', '#20313d', '#ffffff');
+    const header = specialText(this, width / 2, 70, 32, 4, '背景：エリア選択', '#20313d', '#ffffff');
     header.setDepth(10);
 
     this.add.text(width / 2, 118, '地図上のエリアを選んで出撃先を決めてください。', {
@@ -65,7 +68,7 @@ export class AreaSelectScene extends Phaser.Scene {
       fontStyle: 'bold'
     }).setOrigin(0.5);
 
-    const searchButton = createTextButton(this, width - 230, 130, '位置情報を使用してエリア検索', () => {
+    createTextButton(this, width - 230, 130, '位置情報を使用してエリア検索', () => {
       this.searchNearestArea();
     }, {
       fontSize: 18,
@@ -74,11 +77,22 @@ export class AreaSelectScene extends Phaser.Scene {
       downColor: '#bed8ef',
       padding: { top: 12, bottom: 12, left: 20, right: 20 }
     });
-    searchButton.setDepth(10);
 
     this.drawMap(width, height);
-    this.createInfoPanel(width, height);
     this.createAreaButtons();
+    const panel = createSelectionDetailPanel(this, width * 0.79, height * 0.74, () => {
+      const area = this.areas.find((item) => item.id === this.selectedAreaId);
+      if (area) {
+        this.scene.start('SelectStageScene', {
+          areaId: area.id,
+          areaName: area.name
+        });
+      }
+    });
+
+    this.areaNameText = panel.name;
+    this.areaDescText = panel.description;
+    this.selectedMarker = panel.marker;
     this.selectArea(this.selectedAreaId, false);
   }
 
@@ -89,108 +103,39 @@ export class AreaSelectScene extends Phaser.Scene {
 
     map.setAlpha(0.97);
 
-    const mapFrame = this.add.rectangle(width / 2, height / 2 + 30, width * 0.9, height * 0.68, 0x000000, 0)
+    this.add.rectangle(width / 2, height / 2 + 30, width * 0.9, height * 0.68, 0x000000, 0)
       .setStrokeStyle(4, 0x7a968f, 1)
       .setDepth(1);
-
-    this.add.container(0, 0, [map, mapFrame]);
   }
 
   private createAreaButtons(): void {
-    this.areas.forEach((area) => {
+    this.buttons = this.areas.map((area) => {
       const isSelected = area.id === this.selectedAreaId;
-      const color = area.unlocked ? (isSelected ? 0x6fc7a8 : 0x8ed3b2) : 0xc8c8c8;
-      const ringColor = isSelected ? 0x1e5e49 : (area.unlocked ? 0x2c4f65 : 0x7a7a7a);
-
-      const button = this.add.circle(area.x, area.y, 26, color)
-        .setStrokeStyle(4, ringColor)
-        .setInteractive({ useHandCursor: true })
-        .setDepth(5);
-
-      const label = this.add.text(area.x, area.y, String(area.id), {
-        fontFamily: '"Yu Gothic", "Meiryo", sans-serif',
-        fontSize: '18px',
-        color: '#ffffff',
-        fontStyle: 'bold'
-      }).setOrigin(0.5).setDepth(6);
-
-      button.on('pointerover', () => {
-        if (area.unlocked) {
-          button.setScale(1.08);
-          label.setScale(1.08);
-        }
+      const button = createMapSelectionButton(this, area.x, area.y, String(area.id), isSelected, area.unlocked, () => {
+        this.selectArea(area.id, true);
       });
 
-      button.on('pointerout', () => {
-        button.setScale(1);
-        label.setScale(1);
-      });
-
-      button.on('pointerdown', () => {
-        if (area.unlocked) this.selectArea(area.id, true);
-      });
-
-      if (!area.unlocked) {
-        button.disableInteractive();
-        button.setFillStyle(0xbebebe);
-        button.setStrokeStyle(4, 0x777777);
-        label.setColor('#f0f0f0');
-      }
-
-      this.add.container(0, 0, [button, label]);
+      return button;
     });
   }
 
-  private createInfoPanel(width: number, height: number): void {
-    this.infoPanel = this.add.container(0, 0);
+  private updateButtonStyles(): void {
+    this.buttons.forEach((container) => {
+      const circle = container.list[0] as Phaser.GameObjects.Arc;
+      const label = container.list[1] as Phaser.GameObjects.Text;
+      const area = this.areas.find((item) => item.id === Number(label.text));
 
-    const panelBg = this.add.rectangle(width * 0.79, height * 0.74, 360, 170, 0xfafdfb)
-      .setStrokeStyle(3, 0xc8d9d3)
-      .setDepth(10);
+      if (!area) return;
 
-    const infoTitle = this.add.text(width * 0.79, height * 0.64, '選択中のエリア', {
-      fontFamily: '"Yu Gothic", "Meiryo", sans-serif',
-      fontSize: '24px',
-      color: '#1f3340',
-      fontStyle: 'bold'
-    }).setOrigin(0.5).setDepth(11);
+      const isSelected = area.id === this.selectedAreaId;
+      const fillColor = area.unlocked ? (isSelected ? 0x6fc7a8 : 0x8ed3b2) : 0xbebebe;
+      const ringColor = area.unlocked ? (isSelected ? 0x1e5e49 : 0x2c4f65) : 0x777777;
 
-    this.areaNameText = this.add.text(width * 0.79, height * 0.71, '', {
-      fontFamily: '"Yu Gothic", "Meiryo", sans-serif',
-      fontSize: '30px',
-      color: '#162b2f',
-      fontStyle: 'bold'
-    }).setOrigin(0.5).setDepth(11);
-
-    this.areaDescText = this.add.text(width * 0.79, height * 0.78, '', {
-      fontFamily: '"Yu Gothic", "Meiryo", sans-serif',
-      fontSize: '18px',
-      color: '#4a585d',
-      wordWrap: { width: 260 }
-    }).setOrigin(0.5).setDepth(11);
-
-    const goButton = createTextButton(this, width * 0.79, height * 0.86, 'このエリアで選択', () => {
-      const area = this.areas.find((item) => item.id === this.selectedAreaId);
-      if (area) {
-        this.scene.start('SelectStageScene', {
-          areaId: area.id,
-          areaName: area.name
-        });
-      }
-    }, {
-      fontSize: 20,
-      bgColor: '#4c7f9a',
-      hoverColor: '#3d6d87',
-      downColor: '#2e5c74',
-      padding: { top: 12, bottom: 12, left: 24, right: 24 }
+      circle.setFillStyle(fillColor);
+      circle.setStrokeStyle(4, ringColor);
+      label.setColor(area.unlocked ? '#ffffff' : '#f0f0f0');
+      container.setScale(isSelected ? 1.08 : 1);
     });
-    goButton.setStyle({ color: '#ffffff' });
-    goButton.setDepth(11);
-
-    this.selectedMarker = this.add.arc(width * 0.79, height * 0.61, 150, 0, 360, false, 0x7dd3b5, 0.25)
-      .setDepth(9);
-
-    this.infoPanel.add([panelBg, this.selectedMarker, infoTitle, this.areaNameText, this.areaDescText, goButton]);
   }
 
   private searchNearestArea(): void {
@@ -204,10 +149,7 @@ export class AreaSelectScene extends Phaser.Scene {
     let minDistance = Number.MAX_SAFE_INTEGER;
 
     unlockedAreas.forEach((area) => {
-      const dx = area.x - pointerX;
-      const dy = area.y - pointerY;
-      const distance = Math.sqrt(dx * dx + dy * dy);
-
+      const distance = Math.hypot(area.x - pointerX, area.y - pointerY);
       if (distance < minDistance) {
         minDistance = distance;
         nearestArea = area;
@@ -224,20 +166,7 @@ export class AreaSelectScene extends Phaser.Scene {
     this.selectedAreaId = areaId;
     this.areaNameText.setText(area.name);
     this.areaDescText.setText(`${area.description} / ${area.difficulty}`);
-
-    this.areas.forEach((item) => {
-      const circle = this.children.getChildren().find((child) => {
-        return child instanceof Phaser.GameObjects.Arc && child.x === item.x && child.y === item.y;
-      }) as Phaser.GameObjects.Arc | undefined;
-
-      if (circle) {
-        const isSelected = item.id === areaId;
-        const color = item.unlocked ? (isSelected ? 0x6fc7a8 : 0x8ed3b2) : 0xbebebe;
-        const ringColor = isSelected ? 0x1e5e49 : (item.unlocked ? 0x2c4f65 : 0x777777);
-        circle.setFillStyle(color);
-        circle.setStrokeStyle(4, ringColor);
-      }
-    });
+    this.updateButtonStyles();
 
     if (animate) {
       this.tweens.add({
