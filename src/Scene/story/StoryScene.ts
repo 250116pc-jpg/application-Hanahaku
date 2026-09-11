@@ -1,12 +1,35 @@
 import Phaser from 'phaser';
 
 import backImg from '../../assets/background/story/1.jpg';
+import story_data from "../../scenario_data/story_data.json"
 import { createBackground } from '../../background';
 
-type ScenarioData = {
+// 1つのセリフの型
+interface Dialogue {
   name: string;
   text: string;
-};
+  bg: string;
+  bgm: string;
+  effect: string;
+}
+
+interface StoryStage {
+  stage: number;
+  title: string;
+  scenario: Dialogue[];
+}
+
+interface StoryChapter {
+  chapter: number;
+  title: string;
+  stages: StoryStage[];
+}
+
+interface StorySceneData {
+  chapter: number;
+  stage: number;
+}
+
 
 export class StoryScene extends Phaser.Scene {
   // 現在のセリフ番号
@@ -21,17 +44,12 @@ export class StoryScene extends Phaser.Scene {
   private scenarioText!: Phaser.GameObjects.Text;
 
   // 会話ログ
-  private log: ScenarioData[] = [];
+  private log: Dialogue[] = [];
 
   // シナリオ
-  private scenario: ScenarioData[] = [
-    { "name": "主人公", "text": "あう、あうあうあう、、うぅ、、ここはどこだにょ。" },
-    { "name": "主人公", "text": "彗星はもっとパーって輝くもんな" },
-    { "name": "？？？", "text": "あなた、そこで何をしているの？" },
-    { "name": "主人公", "text": "えっ。あ、あ、あう。にぱー" },
-    { "name": "？？？", "text": "ここは危険だから、早くこっちへ来て！僕と契約して魔法少女になってよ！" },
-    { "name": "主人公", "text": "わ、わ、わぷぷっ" }
-  ];
+  private storyData: StoryChapter[] = story_data as StoryChapter[];
+  private scenario: Dialogue[] = [];
+  private currentChapter = 1;
 
   constructor() {
     super('StoryScene');
@@ -41,7 +59,20 @@ export class StoryScene extends Phaser.Scene {
     this.load.image('Background', backImg);
   }
 
-  create(): void {
+  create(data: StorySceneData = { chapter: 1, stage: 1 }): void {
+    this.currentChapter = data.chapter;
+
+    const chapterData = this.storyData.find((chapter) => chapter.chapter === data.chapter);
+    const stageData = chapterData?.stages.find((stage) => stage.stage === data.stage);
+
+    if (!stageData) {
+      console.error(`シナリオが見つかりません: chapter=${data.chapter}, stage=${data.stage}`);
+      this.scene.start('SelectStageScene', { areaId: data.chapter });
+      return;
+    }
+
+    this.scenario = stageData.scenario;
+
     const width = this.scale.width;
     const height = this.scale.height;
 
@@ -187,7 +218,7 @@ export class StoryScene extends Phaser.Scene {
     }
 
     // 次の画面へ
-    this.scene.start('SelectStageScene');
+    this.scene.start('SelectStageScene', { areaId: this.currentChapter });
   }
 
   // ==================================================

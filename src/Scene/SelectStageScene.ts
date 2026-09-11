@@ -15,6 +15,11 @@ import {
 } from '../animation/animation';
 import { characterAnimations } from '../animation/animationData';
 
+interface SelectStageSceneData {
+  areaId?: number;
+  areaName?: string;
+}
+
 export class SelectStageScene extends Phaser.Scene {
   private stagePositions = [
       { id: 1, x: 150, y: 200, type: "story" },
@@ -25,6 +30,7 @@ export class SelectStageScene extends Phaser.Scene {
     ];
   // プレイヤー
   private player!: Phaser.GameObjects.Sprite;
+  private currentChapter = 1;
 
   constructor() {
     super('SelectStageScene');
@@ -51,7 +57,9 @@ export class SelectStageScene extends Phaser.Scene {
   // ========================================
   // create
   // ========================================
-  create(): void {
+  create(data: SelectStageSceneData = {}): void {
+    this.currentChapter = data.areaId ?? 1;
+
     const width = this.scale.width;
     const height = this.scale.height;
 
@@ -379,7 +387,10 @@ export class SelectStageScene extends Phaser.Scene {
         if(stageType === 'battle') {
           scene.scene.start('StageScene', { stageId: stage.id });
         } else if(stageType === 'story') {
-          scene.scene.start('StoryScene', { stageId: stage.id });
+          scene.scene.start('StoryScene', {
+            chapter: this.currentChapter,
+            stage: stage.id
+          });
         }
       });
     });
