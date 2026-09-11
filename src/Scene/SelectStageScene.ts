@@ -31,6 +31,8 @@ export class SelectStageScene extends Phaser.Scene {
   // プレイヤー
   private player!: Phaser.GameObjects.Sprite;
   private currentChapter = 1;
+  private isMoving = false;
+  private isStageInfoOpen = false;
 
   constructor() {
     super('SelectStageScene');
@@ -210,6 +212,8 @@ export class SelectStageScene extends Phaser.Scene {
     scene: Phaser.Scene,
     stageLabel: string | typeof testData.stages[number]
   ): void {
+    if (this.isStageInfoOpen) return;
+
     const width = this.scale.width;
     const height = this.scale.height;
 
@@ -234,6 +238,8 @@ export class SelectStageScene extends Phaser.Scene {
       darkBackground.destroy();
       return;
     }
+
+    this.isStageInfoOpen = true;
 
     // 全体的に大きく（580x420 → 640x500）
     const popupW = Math.min(width * 0.8, 640);
@@ -324,6 +330,7 @@ export class SelectStageScene extends Phaser.Scene {
         onComplete: () => {
           darkBackground.destroy();
           container.destroy();
+          this.isStageInfoOpen = false;
           if (onComplete) onComplete();
         }
       });
@@ -430,7 +437,10 @@ export class SelectStageScene extends Phaser.Scene {
     circle.on('pointerover', () => circle.setFillStyle(0xeeeeee));
       circle.on('pointerout', () => circle.setFillStyle(0xffffff));
       let targetIndex = this.stagePositions.findIndex(pos => pos.x === x && pos.y === y) ;
-    circle.on('pointerup', () => this.movePlayerToStage(this.currentStageIndex, targetIndex));
+    circle.on('pointerup', () => {
+      if (this.isMoving || this.isStageInfoOpen) return;
+      this.movePlayerToStage(this.currentStageIndex, targetIndex);
+    });
   }
 
   // ========================================
@@ -456,7 +466,7 @@ export class SelectStageScene extends Phaser.Scene {
   // ========================================
   // プレイヤー移動
   // ========================================
- private movePlayerToStage(nowIndex: number, targetIndex: number): void {
+ private movePlayerToStage(nowIndex: number, targetIndex: number, continuing = false): void {
   console.log(`現在地: ${nowIndex}, 目的地: ${targetIndex}`);
   // 範囲チェック
   if (
@@ -475,6 +485,9 @@ export class SelectStageScene extends Phaser.Scene {
     );
     return;
   }
+
+  if (this.isMoving && !continuing) return;
+  this.isMoving = true;
 
   // 移動方向
   const direction = nowIndex < targetIndex ? 1 : -1;
@@ -509,6 +522,7 @@ export class SelectStageScene extends Phaser.Scene {
             this,
             testData.stages[targetIndex]
           );
+          this.isMoving = false;
         });
 
         return;
@@ -519,7 +533,8 @@ export class SelectStageScene extends Phaser.Scene {
       this.currentStageIndex = nextIndex;
       this.movePlayerToStage(
         nextIndex,
-        targetIndex
+        targetIndex,
+        true
       );
     }
   });
