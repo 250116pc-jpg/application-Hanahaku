@@ -209,55 +209,66 @@ return container
 
     return container
   }
+// 決定・キャンセルなどのボタン
+createActionButton(
+  x: number,
+  y: number,
+  width: number,
+  label: string,
+  primary: boolean,
+  onClick: () => void
+): void {
 
+  const fill = primary ? 0x4a8df0 : 0xffffff
+  const color = primary ? '#ffffff' : '#1f2937'
 
-  // 決定・キャンセルなどのボタン
-  createActionButton(
-    x: number,
-    y: number,
-    width: number,
-    label: string,
-    primary: boolean,
-    onClick: () => void
-  ): void {
+  const button = this.scene.add.rectangle(
+    x, y,
+    width, 56,
+    fill
+  )
+    .setStrokeStyle(3, BORDER)
+    .setInteractive({ useHandCursor: true })
 
-    const fill = primary ? 0x4a8df0 : 0xffffff
-    const color = primary ? '#ffffff' : '#1f2937'
+  this.scene.add.text(
+    x,
+    y,
+    label,
+    this.textStyle(22, color)
+  ).setOrigin(0.5)
 
-    const button = this.scene.add.rectangle(
-      x, y,
-      width, 56,
-      fill
+  // ボタン上で押し始めたか
+  let pressed = false
+
+  button.on('pointerdown', () => {
+    pressed = true
+
+    button.setFillStyle(
+      primary ? 0x2f6fc8 : 0xdbeafe
     )
-      .setStrokeStyle(3, BORDER)
-      .setInteractive({ useHandCursor: true })
+  })
 
-    this.scene.add.text(
-      x,
-      y,
-      label,
-      this.textStyle(22, color)
-    ).setOrigin(0.5)
+  button.on('pointerover', () => {
+    button.setFillStyle(
+      primary ? 0x3c7cdf : 0xeaf4fb
+    )
+  })
 
-    button.on('pointerdown', () => {
-      button.setFillStyle(
-        primary ? 0x2f6fc8 : 0xdbeafe
-      )
-    })
+  button.on('pointerout', () => {
+    // ボタンの外に出たらクリック扱いにしない
+    pressed = false
+    button.setFillStyle(fill)
+  })
 
-    button.on('pointerover', () => {
-      button.setFillStyle(
-        primary ? 0x3c7cdf : 0xeaf4fb
-      )
-    })
+  button.on('pointerup', () => {
+    if (!pressed) return
 
-    button.on('pointerout', () => {
-      button.setFillStyle(fill)
-    })
+    pressed = false
+    button.setFillStyle(fill)
 
-    button.on('pointerup', onClick)
-  }
-
+    onClick()
+  })
+}
 
   // テキスト設定
   private textStyle(
