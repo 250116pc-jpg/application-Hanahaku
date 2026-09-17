@@ -1,7 +1,6 @@
 import Phaser from 'phaser';
 import titleBackground from '../assets/background.png';
-import bgmUrl from '../assets/audio/bgm_maoujou.mp3';
-import { MAIN_BGM_KEY, startBgm } from '../audio/BgmManager';
+import { initializeAudio, preloadAudio, startBgm } from '../audio/BgmManager';
 
 export class TitleScene extends Phaser.Scene {
   constructor() {
@@ -10,10 +9,11 @@ export class TitleScene extends Phaser.Scene {
 
   preload(): void {
     this.load.image('title_bg', titleBackground);
-    this.load.audio(MAIN_BGM_KEY, bgmUrl);
+    preloadAudio(this);
   }
 
   create(): void {
+    initializeAudio(this);
     const width = this.scale.width;
     const height = this.scale.height;
 
