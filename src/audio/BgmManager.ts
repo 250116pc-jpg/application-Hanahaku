@@ -1,7 +1,7 @@
 import titleBgm from '../assets/audio/PathOfAdventure/PeriTune_Frosylva.mp3'
 import homeBgm from '../assets/audio/PathOfAdventure/PeriTune_Harbor_Morning_loop.mp3'
 import stageBgm from '../assets/audio/PathOfAdventure/Peritune_Ancient_Gust_loop.mp3'
-import clickSe from '../assets/audio/PathOfAdventure/ふぁ～クリック.mp3'
+import clickSe from '../assets/audio/PathOfAdventure/NoLoop/line.wav'
 
 
 export const BGM_KEYS = {

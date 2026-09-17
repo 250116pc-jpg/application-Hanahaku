@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import titleBackground from '../assets/background.png';
+import titleBackground from '../assets/background/background.png';
 import { initializeAudio, preloadAudio, startBgm } from '../audio/BgmManager';
 
 export class TitleScene extends Phaser.Scene {
