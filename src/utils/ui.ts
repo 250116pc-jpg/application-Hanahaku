@@ -166,13 +166,7 @@ export const createMapSelectionButton = (
   const container = scene.add.container(x, y, [button, label]).setDepth(depth);
 
   if (unlocked) {
-    button.on('pointerover', () => {
-      container.setScale(1.08);
-    });
-
-    button.on('pointerout', () => {
-      container.setScale(1);
-    });
+    
 
     button.on('pointerdown', () => {
       onSelect();
