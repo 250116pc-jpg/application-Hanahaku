@@ -1,6 +1,6 @@
 import Phaser from 'phaser'
+import { getTextStyle } from '../../utils/ui'
 
-const FONT_FAMILY = '"Yu Gothic", "Meiryo", sans-serif'
 const BORDER_COLOR = 0x536878
 
 export function createHomeFrame(
@@ -24,17 +24,9 @@ export function createHomeTitle(
   const titleBackground = scene.add.rectangle(x, 55, 230, 60, 0xffe5cf)
     .setStrokeStyle(2, 0x806b5a)
 
-  const titleText = scene.add.text(x, 55, label, {
-    fontFamily: FONT_FAMILY,
-    fontSize: '30px',
-    color: '#000000',
-    padding: {
-      top: 6,
-      bottom: 6,
-      left: 6,
-      right: 6
-    }
-  }).setOrigin(0.5)
+  const titleText = scene.add.text(x, 55, label, getTextStyle(30, {
+    padding: { top: 6, bottom: 6, left: 6, right: 6 }
+  })).setOrigin(0.5)
 
   ui.add([titleBackground, titleText])
 }
@@ -58,17 +50,10 @@ export function createMessageText(
   x: number,
   y: number
 ) {
-  const messageText = scene.add.text(x, y, '', {
-    fontFamily: FONT_FAMILY,
-    fontSize: '22px',
+  const messageText = scene.add.text(x, y, '', getTextStyle(22, {
     color: '#333333',
-    padding: {
-      top: 6,
-      bottom: 6,
-      left: 6,
-      right: 6
-    }
-  }).setOrigin(0.5)
+    padding: { top: 6, bottom: 6, left: 6, right: 6 }
+  })).setOrigin(0.5)
 
   ui.add(messageText)
 

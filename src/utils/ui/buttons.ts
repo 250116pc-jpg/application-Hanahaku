@@ -42,7 +42,7 @@ export const createRectButton = (
   height: number,
   label: string,
   onClick: () => void,
-  options: { fontSize?: number; fillColor?: number; hoverColor?: number; downColor?: number } = {}
+  options: { fontSize?: number; fillColor?: number; hoverColor?: number; downColor?: number; textColor?: string } = {}
 ): Phaser.GameObjects.Container => {
   const fillColor = options.fillColor ?? 0xffffff;
   const hoverColor = options.hoverColor ?? 0xeaf4fb;
@@ -52,7 +52,9 @@ export const createRectButton = (
     .setStrokeStyle(2, 0x333333)
     .setInteractive({ useHandCursor: true });
 
-  const text = scene.add.text(0, 0, label, getTextStyle(options.fontSize ?? 24)).setOrigin(0.5);
+  const text = scene.add.text(0, 0, label, getTextStyle(options.fontSize ?? 24, {
+    color: options.textColor ?? '#000000'
+  })).setOrigin(0.5);
   const container = scene.add.container(x, y, [bg, text]).setScrollFactor(0);
 
   bg.on('pointerover', () => bg.setFillStyle(hoverColor));

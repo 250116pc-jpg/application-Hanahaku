@@ -3,6 +3,7 @@ import Phaser from 'phaser';
 import backImg from '../../assets/background/story/1.jpg';
 import story_data from "../../scenario_data/story_data.json"
 import { createBackground } from '../../background';
+import { getTextStyle } from '../../utils/ui';
 
 // 1つのセリフの型
 interface Dialogue {
@@ -95,20 +96,18 @@ export class StoryScene extends Phaser.Scene {
     this.add.rectangle(120, height - 225, 180, 45, 0x536878, 0.95);
 
     // キャラクター名テキスト
-    this.nameText = this.add.text(120, height - 225, '', {
-      fontFamily: '"Yu Gothic", "Meiryo", sans-serif',
-      fontSize: '22px',
-      color: '#ffffff'
-    }).setOrigin(0.5);
+    this.nameText = this.add.text(120, height - 225, '', getTextStyle(22, {
+      color: '#ffffff',
+      padding: { top: 0, bottom: 0, left: 0, right: 0 }
+    })).setOrigin(0.5);
 
     // セリフテキスト
-    this.scenarioText = this.add.text(100, height - 170, '', {
-      fontFamily: '"Yu Gothic", "Meiryo", sans-serif',
-      fontSize: '24px',
+    this.scenarioText = this.add.text(100, height - 170, '', getTextStyle(24, {
       color: '#ffffff',
       wordWrap: { width: width - 200 },
-      lineSpacing: 10
-    });
+      lineSpacing: 10,
+      padding: { top: 0, bottom: 0, left: 0, right: 0 }
+    }));
 
     // =========================
     // 右上メニュー
@@ -141,13 +140,11 @@ export class StoryScene extends Phaser.Scene {
   // メニューボタン作成
   // ==================================================
   private createMenuButton(x: number, y: number, text: string): Phaser.GameObjects.Text {
-    return this.add.text(x, y, text, {
-      fontFamily: '"Yu Gothic", "Meiryo", sans-serif',
-      fontSize: '18px',
+    return this.add.text(x, y, text, getTextStyle(18, {
       color: '#ffffff',
       backgroundColor: '#333333',
       padding: { left: 18, right: 18, top: 10, bottom: 10 }
-    })
+    }))
       .setOrigin(0.5)
       .setScrollFactor(0)
       .setDepth(200)
@@ -254,29 +251,26 @@ export class StoryScene extends Phaser.Scene {
       .setStrokeStyle(3, 0x536878);
 
     // メッセージ
-    const text = this.add.text(width / 2, height / 2 - 50, message, {
-      fontFamily: '"Yu Gothic", "Meiryo", sans-serif',
-      fontSize: '24px',
-      color: '#333333'
-    }).setOrigin(0.5);
+    const text = this.add.text(width / 2, height / 2 - 50, message, getTextStyle(24, {
+      color: '#333333',
+      padding: { top: 0, bottom: 0, left: 0, right: 0 }
+    })).setOrigin(0.5);
 
     // YESボタン
-    const yesButton = this.add.text(width / 2 - 100, height / 2 + 70, 'はい', {
-      fontSize: '22px',
+    const yesButton = this.add.text(width / 2 - 100, height / 2 + 70, 'はい', getTextStyle(22, {
       color: '#ffffff',
       backgroundColor: '#536878',
       padding: { left: 40, right: 40, top: 15, bottom: 15 }
-    })
+    }))
       .setOrigin(0.5)
       .setInteractive({ useHandCursor: true });
 
     // NOボタン
-    const noButton = this.add.text(width / 2 + 100, height / 2 + 70, 'いいえ', {
-      fontSize: '22px',
+    const noButton = this.add.text(width / 2 + 100, height / 2 + 70, 'いいえ', getTextStyle(22, {
       color: '#ffffff',
       backgroundColor: '#888888',
       padding: { left: 30, right: 30, top: 15, bottom: 15 }
-    })
+    }))
       .setOrigin(0.5)
       .setInteractive({ useHandCursor: true });
 
@@ -310,13 +304,12 @@ export class StoryScene extends Phaser.Scene {
     // ログテキストの生成（配列をまとめて文字列化）
     const logTextStr = this.log.map(data => `${data.name}\n${data.text}\n`).join('\n');
 
-    const log = this.add.text(width * 0.17, height * 0.18, logTextStr, {
-      fontFamily: '"Yu Gothic", "Meiryo", sans-serif',
-      fontSize: '18px',
+    const log = this.add.text(width * 0.17, height * 0.18, logTextStr, getTextStyle(18, {
       color: '#333333',
       wordWrap: { width: width * 0.65 },
-      lineSpacing: 8
-    });
+      lineSpacing: 8,
+      padding: { top: 0, bottom: 0, left: 0, right: 0 }
+    }));
 
     const closeButton = this.add.text(width * 0.82, height * 0.15, '×', {
       fontSize: '36px',

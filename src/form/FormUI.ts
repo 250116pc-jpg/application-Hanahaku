@@ -1,7 +1,6 @@
 import Phaser from 'phaser'
 import type { CharacterData } from '../Scene/test_data'
-
-const FONT_FAMILY = '"Yu Gothic", "Meiryo", sans-serif'
+import { getTextStyle } from '../utils/ui'
 
 const BORDER = 0x8aa4c8
 const CARD_BORDER = 0x9a65ca
@@ -275,12 +274,10 @@ createActionButton(
     fontSize: number,
     color: string
   ): Phaser.Types.GameObjects.Text.TextStyle {
-
-    return {
-      fontFamily: FONT_FAMILY,
-      fontSize: `${fontSize}px`,
-      color
-    }
+    return getTextStyle(fontSize, {
+      color,
+      padding: { top: 0, bottom: 0, left: 0, right: 0 }
+    })
   }
 
 

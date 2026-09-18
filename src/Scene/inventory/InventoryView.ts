@@ -2,8 +2,8 @@ import Phaser from 'phaser'
 
 import { getCategoryName } from './InventoryData'
 import type { InventoryFilter, InventoryItem } from './InventoryData'
+import { getTextStyle, createTextButton } from '../../utils/ui'
 
-const FONT_FAMILY = '"Yu Gothic", "Meiryo", sans-serif'
 const BORDER_COLOR = 0x536878
 
 interface InventoryCallbacks {
@@ -41,7 +41,7 @@ export class InventoryView {
       .setInteractive()
     this.scene.add.rectangle(width / 2, height / 2, 920, 610, 0xcfe3f5)
       .setStrokeStyle(3, BORDER_COLOR)
-    this.scene.add.text(width / 2 + 330, 105, 'インベントリ', this.textStyle(30)).setOrigin(0.5)
+    this.scene.add.text(width / 2 + 330, 105, 'インベントリ', getTextStyle(30)).setOrigin(0.5)
 
     this.createBackButton(width / 2 - 370, 105)
     this.createCategoryButton(width / 2 - 270, 190, 'すべて', 'all')
@@ -53,7 +53,7 @@ export class InventoryView {
     this.createDetailPanel(width)
     this.createUseButton(width / 2 + 300, 550)
     this.messageText = this.scene.add.text(width / 2 + 300, 620, '', {
-      ...this.textStyle(18),
+      ...getTextStyle(18),
       align: 'center'
     }).setOrigin(0.5)
   }
@@ -76,7 +76,7 @@ export class InventoryView {
         this.scene.scale.width / 2,
         330,
         'このカテゴリーのアイテムはありません',
-        this.textStyle(22)
+        getTextStyle(22)
       ).setOrigin(0.5)
       this.itemArea.add(text)
     }
@@ -107,28 +107,25 @@ export class InventoryView {
   private createDetailPanel(width: number): void {
     this.scene.add.rectangle(width / 2 - 170, 535, 500, 200, 0xffffff)
       .setStrokeStyle(2, BORDER_COLOR)
-    this.scene.add.text(width / 2 - 390, 450, '選択中', this.textStyle(20))
+    this.scene.add.text(width / 2 - 390, 450, '選択中', getTextStyle(20))
     this.selectedNameText = this.scene.add.text(
-      width / 2 - 385, 485, 'アイテムを選択してください', this.textStyle(22)
+      width / 2 - 385, 485, 'アイテムを選択してください', getTextStyle(22)
     )
-    this.selectedCategoryText = this.scene.add.text(width / 2 - 385, 520, '', this.textStyle(18))
+    this.selectedCategoryText = this.scene.add.text(width / 2 - 385, 520, '', getTextStyle(18))
     this.selectedEffectText = this.scene.add.text(width / 2 - 385, 555, '', {
-      ...this.textStyle(18),
+      ...getTextStyle(18),
       wordWrap: { width: 430 }
     })
-    this.selectedCountText = this.scene.add.text(width / 2 - 385, 590, '', this.textStyle(18))
+    this.selectedCountText = this.scene.add.text(width / 2 - 385, 590, '', getTextStyle(18))
   }
 
   private createBackButton(x: number, y: number): void {
-    const button = this.scene.add.text(x, y, '← 戻る', {
-      ...this.textStyle(23),
-      backgroundColor: '#ffffff',
+    createTextButton(this.scene, x, y, '← 戻る', this.callbacks.onBack, {
+      fontSize: 23,
+      hoverColor: '#eeeeee',
+      downColor: '#eeeeee',
       padding: { top: 10, bottom: 10, left: 18, right: 18 }
-    }).setOrigin(0.5).setInteractive({ useHandCursor: true })
-
-    button.on('pointerover', () => button.setBackgroundColor('#eeeeee'))
-    button.on('pointerout', () => button.setBackgroundColor('#ffffff'))
-    button.on('pointerup', this.callbacks.onBack)
+    })
   }
 
   private createCategoryButton(
@@ -137,15 +134,10 @@ export class InventoryView {
     label: string,
     category: InventoryFilter
   ): void {
-    const button = this.scene.add.text(x, y, `[ ${label} ]`, {
-      ...this.textStyle(20),
-      backgroundColor: '#ffffff',
+    createTextButton(this.scene, x, y, `[ ${label} ]`, () => this.callbacks.onCategory(category), {
+      fontSize: 20,
       padding: { top: 9, bottom: 9, left: 14, right: 14 }
-    }).setOrigin(0.5).setInteractive({ useHandCursor: true })
-
-    button.on('pointerover', () => button.setBackgroundColor('#eaf4fb'))
-    button.on('pointerout', () => button.setBackgroundColor('#ffffff'))
-    button.on('pointerup', () => this.callbacks.onCategory(category))
+    })
   }
 
   private createItemCard(
@@ -160,14 +152,14 @@ export class InventoryView {
     const imageArea = this.scene.add.rectangle(0, -30, 90, 80, 0xeaf4fb)
       .setStrokeStyle(1, BORDER_COLOR)
     const imageText = this.scene.add.text(0, -30, '画像\n×？', {
-      ...this.textStyle(18),
+      ...getTextStyle(18),
       align: 'center'
     }).setOrigin(0.5)
     const nameText = this.scene.add.text(0, 40, item.name, {
-      ...this.textStyle(17),
+      ...getTextStyle(17),
       align: 'center'
     }).setOrigin(0.5)
-    const countText = this.scene.add.text(0, 68, `×${item.count}`, this.textStyle(16)).setOrigin(0.5)
+    const countText = this.scene.add.text(0, 68, `×${item.count}`, getTextStyle(16)).setOrigin(0.5)
 
     background.on('pointerover', () => background.setFillStyle(0xeaf4fb))
     background.on('pointerout', () => {
@@ -182,7 +174,7 @@ export class InventoryView {
     this.useButtonBackground = this.scene.add.rectangle(0, 0, 210, 65, 0xffffff)
       .setStrokeStyle(2, 0x333333)
       .setInteractive({ useHandCursor: true })
-    this.useButtonText = this.scene.add.text(0, 0, '使用する', this.textStyle(22)).setOrigin(0.5)
+    this.useButtonText = this.scene.add.text(0, 0, '使用する', getTextStyle(22)).setOrigin(0.5)
     this.useButton = this.scene.add.container(x, y, [this.useButtonBackground, this.useButtonText])
     this.useButtonBackground.on('pointerup', this.callbacks.onUse)
   }
@@ -191,14 +183,5 @@ export class InventoryView {
     this.useButtonBackground.setFillStyle(enabled ? 0xffffff : 0xdddddd)
     this.useButtonText.setColor(enabled ? '#000000' : '#777777')
     this.useButton.setAlpha(enabled ? 1 : 0.7)
-  }
-
-  private textStyle(fontSize: number): Phaser.Types.GameObjects.Text.TextStyle {
-    return {
-      fontFamily: FONT_FAMILY,
-      fontSize: `${fontSize}px`,
-      color: '#000000',
-      padding: { top: 7, bottom: 7, left: 6, right: 6 }
-    }
   }
 }

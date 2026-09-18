@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 
 import flowerImg from '../assets/flower.png';
+import { getTextStyle, createTextButton, createRectButton } from '../utils/ui';
 
 export class TrainingScene extends Phaser.Scene {
   private selectedTab = 'status';
@@ -37,7 +38,7 @@ export class TrainingScene extends Phaser.Scene {
     // =========================
     // タイトル
     // =========================
-    this.add.text(width / 2, 50, '育成画面', this.getTextStyle(34))
+    this.add.text(width / 2, 50, '育成画面', getTextStyle(34))
       .setOrigin(0.5);
 
     // =========================
@@ -76,11 +77,11 @@ export class TrainingScene extends Phaser.Scene {
       .setStrokeStyle(2, 0x536878);
 
     // 情報タイトル
-    this.infoTitle = this.add.text(770, 190, '', this.getTextStyle(28));
+    this.infoTitle = this.add.text(770, 190, '', getTextStyle(28));
 
     // 情報本文
     this.infoText = this.add.text(770, 245, '', {
-      ...this.getTextStyle(22),
+      ...getTextStyle(22),
       lineSpacing: 8,
       wordWrap: { width: 340 }
     });
@@ -88,9 +89,9 @@ export class TrainingScene extends Phaser.Scene {
     // =========================
     // キャラ詳細ボタン
     // =========================
-    this.createLargeButton(945, 495, 'キャラ詳細を見る', () => {
+    createRectButton(this, 945, 495, 270, 60, 'キャラ詳細を見る', () => {
       this.scene.start('CharacterDetailScene');
-    });
+    }, { fontSize: 22 });
 
     // =========================
     // 花一覧
@@ -98,7 +99,7 @@ export class TrainingScene extends Phaser.Scene {
     this.add.rectangle(width / 2, 625, 1030, 95, 0xffffff)
       .setStrokeStyle(2, 0x536878);
 
-    this.add.text(width / 2, 625, '花一覧  ひまわり  ？？？  ？？？', this.getTextStyle(24))
+    this.add.text(width / 2, 625, '花一覧  ひまわり  ？？？  ？？？', getTextStyle(24))
       .setOrigin(0.5);
 
     // 初期表示
@@ -109,28 +110,13 @@ export class TrainingScene extends Phaser.Scene {
   // 戻るボタン
   // =========================
   private createBackButton(): void {
-    const button = this.add.text(120, 70, '← 戻る', {
-      ...this.getTextStyle(26),
-      backgroundColor: '#ffffff',
-      padding: { top: 10, bottom: 12, left: 18, right: 18 }
-    })
-      .setOrigin(0.5)
-      .setInteractive({ useHandCursor: true });
-
-    button.on('pointerover', () => {
-      button.setBackgroundColor('#eeeeee');
-    });
-
-    button.on('pointerout', () => {
-      button.setBackgroundColor('#ffffff');
-    });
-
-    button.on('pointerdown', () => {
-      button.setBackgroundColor('#d0d0d0');
-    });
-
-    button.on('pointerup', () => {
+    createTextButton(this, 120, 70, '← 戻る', () => {
       this.scene.start('HomeScene');
+    }, {
+      fontSize: 26,
+      hoverColor: '#eeeeee',
+      downColor: '#d0d0d0',
+      padding: { top: 10, bottom: 12, left: 18, right: 18 }
     });
   }
 
@@ -139,7 +125,7 @@ export class TrainingScene extends Phaser.Scene {
   // =========================
   private createTabButton(x: number, y: number, label: string, tabName: string): void {
     const button = this.add.text(x, y, label, {
-      ...this.getTextStyle(22),
+      ...getTextStyle(22),
       backgroundColor: '#ffffff',
       padding: { top: 12, bottom: 12, left: 12, right: 12 }
     })
@@ -200,46 +186,4 @@ export class TrainingScene extends Phaser.Scene {
     }
   }
 
-  // =========================
-  // キャラ詳細ボタン
-  // =========================
-  private createLargeButton(x: number, y: number, label: string, onClick: () => void): void {
-    const background = this.add.rectangle(0, 0, 270, 60, 0xffffff)
-      .setStrokeStyle(2, 0x333333)
-      .setInteractive({ useHandCursor: true });
-
-    const text = this.add.text(0, 0, label, this.getTextStyle(22))
-      .setOrigin(0.5);
-
-    this.add.container(x, y, [background, text]);
-
-    background.on('pointerover', () => {
-      background.setFillStyle(0xeaf4fb);
-    });
-
-    background.on('pointerout', () => {
-      background.setFillStyle(0xffffff);
-    });
-
-    background.on('pointerdown', () => {
-      background.setFillStyle(0xd5e8f5);
-    });
-
-    background.on('pointerup', () => {
-      background.setFillStyle(0xeaf4fb);
-      onClick();
-    });
-  }
-
-  // =========================
-  // 共通テキスト
-  // =========================
-  private getTextStyle(fontSize: number): Phaser.Types.GameObjects.Text.TextStyle {
-    return {
-      fontFamily: '"Yu Gothic", "Meiryo", sans-serif',
-      fontSize: `${fontSize}px`,
-      color: '#000000',
-      padding: { top: 8, bottom: 8, left: 6, right: 6 }
-    };
-  }
 }

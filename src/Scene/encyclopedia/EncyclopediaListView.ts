@@ -1,8 +1,8 @@
 import Phaser from 'phaser'
 
 import type { CharacterData, Season } from '../test_data'
+import { getTextStyle } from '../../utils/ui'
 
-const FONT_FAMILY = '"Yu Gothic", "Meiryo", sans-serif'
 const SEASONS: Season[] = ['春', '夏', '秋', '冬']
 
 export class EncyclopediaListView {
@@ -93,10 +93,6 @@ export class EncyclopediaListView {
   }
 
   private textStyle(fontSize: number): Phaser.Types.GameObjects.Text.TextStyle {
-    return {
-      fontFamily: FONT_FAMILY,
-      fontSize: `${fontSize}px`,
-      color: '#000000'
-    }
+    return getTextStyle(fontSize, { padding: { top: 0, bottom: 0, left: 0, right: 0 } })
   }
 }

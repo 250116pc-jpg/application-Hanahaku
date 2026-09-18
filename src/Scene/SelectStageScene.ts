@@ -14,6 +14,7 @@ import {
   changeCharacterAnimation
 } from '../animation/animation';
 import { characterAnimations } from '../animation/animationData';
+import { getTextStyle } from '../utils/ui';
 
 interface SelectStageSceneData {
   areaId?: number;
@@ -162,7 +163,7 @@ export class SelectStageScene extends Phaser.Scene {
     drawButton(COLOR_NORMAL);
 
     const text = this.add.text(0, 0, '← 戻る', {
-      ...this.getTextStyle(20), // チームのメソッドを使用してエラーを回避
+      ...getTextStyle(20), // チームのメソッドを使用してエラーを回避
       color: '#536878',
       fontStyle: 'bold',
       padding: { top: 0, bottom: 0, left: 0, right: 0 }
@@ -261,7 +262,7 @@ export class SelectStageScene extends Phaser.Scene {
 
     // タイトル文字大きく (24 → 28)
     const titleText = scene.add.text(0, -popupH / 2 + 30, stage.name, {
-      ...this.getTextStyle(28),
+      ...getTextStyle(28),
       color: '#ffffff',
       fontStyle: 'bold',
       padding: { top: 0, bottom: 0, left: 0, right: 0 }
@@ -269,7 +270,7 @@ export class SelectStageScene extends Phaser.Scene {
 
     // ✕ボタン大きく (22 → 26)
     const closeButton = scene.add.text(popupW / 2 - 30, -popupH / 2 + 30, '✕', {
-      ...this.getTextStyle(26),
+      ...getTextStyle(26),
       color: '#ffffff',
       fontStyle: 'bold',
       padding: { top: 0, bottom: 0, left: 0, right: 0 }
@@ -294,7 +295,7 @@ export class SelectStageScene extends Phaser.Scene {
 
     // サブタイトル大きく (18 → 22)
     const enemyTitle = scene.add.text(-cardW / 2 + 20, cardY - cardH / 2 + 20, '⚔️ エリアの敵情報', {
-      ...this.getTextStyle(22),
+      ...getTextStyle(22),
       color: '#333333',
       fontStyle: 'bold',
       padding: { top: 0, bottom: 0, left: 0, right: 0 }
@@ -302,7 +303,7 @@ export class SelectStageScene extends Phaser.Scene {
 
     // 敵情報の文字大きく、行間も広げる (16 → 20)
     const enemyDetails = scene.add.text(-cardW / 2 + 20, cardY - cardH / 2 + 60, `${enemyLines}\n${bossLine}`, {
-      ...this.getTextStyle(20),
+      ...getTextStyle(20),
       color: '#444444',
       padding: { top: 0, bottom: 0, left: 0, right: 0 }
     });
@@ -310,7 +311,7 @@ export class SelectStageScene extends Phaser.Scene {
 
     // 注意書き大きく (15 → 18)
     const warningText = scene.add.text(0, popupH / 2 - 120, '※ 編成を変更してから出撃できます。', {
-      ...this.getTextStyle(18),
+      ...getTextStyle(18),
       color: '#777777',
       padding: { top: 0, bottom: 0, left: 0, right: 0 }
     }).setOrigin(0.5);
@@ -354,7 +355,7 @@ export class SelectStageScene extends Phaser.Scene {
 
       // ボタンの文字も大きく (20 → 22)
       const label = scene.add.text(0, 0, text, {
-        ...this.getTextStyle(22),
+        ...getTextStyle(22),
         color: '#ffffff',
         fontStyle: 'bold',
         padding: { top: 0, bottom: 0, left: 0, right: 0 }
@@ -441,18 +442,6 @@ export class SelectStageScene extends Phaser.Scene {
       if (this.isMoving || this.isStageInfoOpen) return;
       this.movePlayerToStage(this.currentStageIndex, targetIndex);
     });
-  }
-
-  // ========================================
-  // 文字スタイル
-  // ========================================
-  private getTextStyle(fontSize: number): Phaser.Types.GameObjects.Text.TextStyle {
-    return {
-      fontFamily: '"Yu Gothic", "Meiryo", sans-serif',
-      fontSize: `${fontSize}px`,
-      color: '#000000',
-      padding: { top: 7, bottom: 7, left: 6, right: 6 }
-    };
   }
 
   // ========================================

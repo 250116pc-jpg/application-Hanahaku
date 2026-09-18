@@ -6,6 +6,7 @@ import {
   loadAudioSettings,
   saveAudioSettings,
 } from '../audio/BgmManager';
+import { getTextStyle, createTextButton, createRectButton } from '../utils/ui';
 
 export class SettingsScene extends Phaser.Scene {
   private bgmVolume = 0.5;
@@ -65,7 +66,7 @@ export class SettingsScene extends Phaser.Scene {
         width - 145,
         60,
         '設定',
-        this.getTextStyle(38)
+        getTextStyle(38)
       )
       .setOrigin(0.5);
 
@@ -116,35 +117,13 @@ export class SettingsScene extends Phaser.Scene {
   }
 
   private createBackButton(): void {
-    const button =
-      this.add
-        .text(
-          80,
-          65,
-          '←',
-          {
-            ...this.getTextStyle(52),
-            backgroundColor: '#ffffff',
-            padding: {
-              top: 4,
-              bottom: 8,
-              left: 20,
-              right: 20,
-            },
-          }
-        )
-        .setOrigin(0.5)
-        .setInteractive({
-          useHandCursor: true,
-        });
-
-    button.on(
-      'pointerdown',
-      () => {
-        this.saveSettings();
-        this.scene.start('HomeScene');
-      }
-    );
+    createTextButton(this, 80, 65, '←', () => {
+      this.saveSettings();
+      this.scene.start('HomeScene');
+    }, {
+      fontSize: 52,
+      padding: { top: 4, bottom: 8, left: 20, right: 20 },
+    });
   }
 
   private createBgmControls(): void {
@@ -152,7 +131,7 @@ export class SettingsScene extends Phaser.Scene {
       130,
       185,
       'BGM音量',
-      this.getTextStyle(32)
+      getTextStyle(32)
     );
 
     this.createSmallButton(
@@ -180,7 +159,7 @@ export class SettingsScene extends Phaser.Scene {
           245,
           270,
           '',
-          this.getTextStyle(30)
+          getTextStyle(30)
         )
         .setOrigin(0.5);
 
@@ -209,7 +188,7 @@ export class SettingsScene extends Phaser.Scene {
       130,
       350,
       'SE音量',
-      this.getTextStyle(32)
+      getTextStyle(32)
     );
 
     this.createSmallButton(
@@ -237,7 +216,7 @@ export class SettingsScene extends Phaser.Scene {
           245,
           435,
           '',
-          this.getTextStyle(30)
+          getTextStyle(30)
         )
         .setOrigin(0.5);
 
@@ -262,42 +241,14 @@ export class SettingsScene extends Phaser.Scene {
   }
 
   private createMuteButton(): void {
-    this.muteText =
-      this.add
-        .text(
-          130,
-          560,
-          '',
-          {
-            ...this.getTextStyle(28),
-            backgroundColor: '#ffffff',
-            padding: {
-              top: 13,
-              bottom: 13,
-              left: 20,
-              right: 20,
-            },
-          }
-        )
-        .setInteractive({
-          useHandCursor: true,
-        });
-
-    this.muteText.on(
-      'pointerdown',
-      () => {
-        this.isMuted =
-          !this.isMuted;
-
-        this.updateDisplay();
-
-        this.setSpeech(
-          this.isMuted
-            ? '音を消したよ'
-            : '音を戻したよ'
-        );
-      }
-    );
+    this.muteText = createTextButton(this, 130, 560, '', () => {
+      this.isMuted = !this.isMuted;
+      this.updateDisplay();
+      this.setSpeech(this.isMuted ? '音を消したよ' : '音を戻したよ');
+    }, {
+      fontSize: 28,
+      padding: { top: 13, bottom: 13, left: 20, right: 20 },
+    }).setOrigin(0, 0);
   }
 
   private createSpeechBubble(): void {
@@ -338,7 +289,7 @@ export class SettingsScene extends Phaser.Scene {
           190,
           '音量を変更できるよ',
           {
-            ...this.getTextStyle(28),
+            ...getTextStyle(28),
             align: 'center',
             wordWrap: {
               width: 300,
@@ -354,36 +305,10 @@ export class SettingsScene extends Phaser.Scene {
     label: string,
     onClick: () => void
   ): Phaser.GameObjects.Text {
-    const button =
-      this.add
-        .text(
-          x,
-          y,
-          `[${label}]`,
-          {
-            ...this.getTextStyle(30),
-            backgroundColor: '#ffffff',
-            padding: {
-              top: 10,
-              bottom: 10,
-              left: 14,
-              right: 14,
-            },
-          }
-        )
-        .setOrigin(0.5)
-        .setInteractive({
-          useHandCursor: true,
-        });
-
-    button.on(
-      'pointerup',
-      () => {
-        onClick();
-      }
-    );
-
-    return button;
+    return createTextButton(this, x, y, `[${label}]`, onClick, {
+      fontSize: 30,
+      padding: { top: 10, bottom: 10, left: 14, right: 14 },
+    });
   }
 
   private createLargeButton(
@@ -393,66 +318,7 @@ export class SettingsScene extends Phaser.Scene {
     onClick: () => void,
     buttonWidth: number
   ): void {
-    const background =
-      this.add
-        .rectangle(
-          0,
-          0,
-          buttonWidth,
-          70,
-          0xffffff
-        )
-        .setStrokeStyle(
-          2,
-          0x333333
-        )
-        .setInteractive({
-          useHandCursor: true,
-        });
-
-    const text =
-      this.add
-        .text(
-          0,
-          0,
-          label,
-          this.getTextStyle(26)
-        )
-        .setOrigin(0.5);
-
-    this.add.container(
-      x,
-      y,
-      [
-        background,
-        text,
-      ]
-    );
-
-    background.on(
-      'pointerup',
-      () => {
-        onClick();
-      }
-    );
-  }
-
-  private getTextStyle(
-    fontSize: number
-  ): Phaser.Types.GameObjects.Text.TextStyle {
-    return {
-      fontFamily:
-        '"Yu Gothic", "Meiryo", sans-serif',
-      fontSize:
-        `${fontSize}px`,
-      color: '#000000',
-      padding: {
-        top: 8,
-        bottom: 8,
-        left: 6,
-        right: 6,
-      },
-    };
+    createRectButton(this, x, y, buttonWidth, 70, label, onClick, { fontSize: 26 });
   }
 
   private updateDisplay(): void {
