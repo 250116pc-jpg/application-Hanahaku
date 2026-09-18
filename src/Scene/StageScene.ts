@@ -9,7 +9,7 @@ import {
 } from '../animation/animation';
 
 import { characterAnimations } from '../animation/animationData';
-import { getTextStyle, createTextButton, showRetreatDialog } from '../utils/ui';
+import { getTextStyle, createTextButton, showRetreatDialog } from '../utils/ui/index.ts';
 import testData from './test_data';
 
 export class StageScene extends Phaser.Scene {

@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { getTextStyle, createTextButton, showRetreatDialog } from '../utils/ui';
+import { getTextStyle, createTextButton, showRetreatDialog } from '../utils/ui/index.ts';
 
 export class TestScene extends Phaser.Scene {
   constructor() {

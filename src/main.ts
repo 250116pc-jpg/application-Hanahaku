@@ -12,7 +12,7 @@ import { AreaSelectScene } from './Scene/AreaSelectScene';
 import { StoryScene } from './Scene/story/StoryScene';
 import { EncyclopediaScene } from './Scene/EncyclopediaScene';
 import { FormScene } from './form/form'
-import { ShopScene } from './Scene/shop'
+import { ShopScene } from './Scene/shop/shop'
 import './style.css';
 
 

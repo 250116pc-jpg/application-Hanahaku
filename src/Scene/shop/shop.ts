@@ -1,10 +1,10 @@
-import panelImg from '../assets/elegant_ui/panel/panel.png'
-import testData from './test_data'
-import { createShopBackground } from './shop/background'
-import { createItemDetail } from './shop/itemDetail'
-import { createShopItemList, getMaxShopScroll } from './shop/itemList'
-import { enableShopScroll } from './shop/scroll'
-import type { ShopItem } from './shop/types'
+import panelImg from '../../assets/elegant_ui/panel/panel.png'
+import testData from '../test_data'
+import { createShopBackground } from './background'
+import { createItemDetail } from './itemDetail'
+import { createShopItemList, getMaxShopScroll } from './itemList'
+import { enableShopScroll } from './scroll'
+import type { ShopItem } from './types'
 
 export class ShopScene extends Phaser.Scene {
   constructor() {
