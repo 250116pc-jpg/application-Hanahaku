@@ -36,7 +36,7 @@ export class StageScene extends Phaser.Scene {
   create(): void {
     const map = this.createMap();
     if (!map) return;
-
+    showDebugSceneName(this);
     this.createPlayerAnimations();
 
     const spawnObject = this.findPlayerSpawn(map);
