@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import mapJson from '../assets/stage/test/test_map.json';
 import grassImg from '../assets/stage/test/grass.png';
-
+import { showDebugSceneName } from '../debug';
 import {
   loadCharacterAnimation,
   createCharacterAnimation,

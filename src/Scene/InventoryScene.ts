@@ -4,6 +4,11 @@ import { createMockItems } from './inventory/InventoryData'
 import type { InventoryFilter, InventoryItem } from './inventory/InventoryData'
 import { InventoryView } from './inventory/InventoryView'
 
+//debug機能
+import { showDebugSceneName } from '../debug';
+
+//--------------------------------------------------------------
+
 export class InventoryScene extends Phaser.Scene {
   private returnScene = 'TestScene'
   private selectedCategory: InventoryFilter = 'all'
@@ -20,6 +25,7 @@ export class InventoryScene extends Phaser.Scene {
   }
 
   create(): void {
+    showDebugSceneName(this);
     this.items = createMockItems()
     this.selectedCategory = 'all'
     this.selectedItem = null

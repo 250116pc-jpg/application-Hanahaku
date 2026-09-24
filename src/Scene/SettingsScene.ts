@@ -6,6 +6,7 @@ import {
   loadAudioSettings,
   saveAudioSettings,
 } from '../audio/BgmManager';
+import { showDebugSceneName } from '../debug';
 
 export class SettingsScene extends Phaser.Scene {
   private readonly guideStorageKey = 'hanahakuSettingsGuideSeen';
@@ -38,6 +39,7 @@ export class SettingsScene extends Phaser.Scene {
   }
 
   create(): void {
+    showDebugSceneName(this);
     const width = this.scale.width;
     const height = this.scale.height;
 

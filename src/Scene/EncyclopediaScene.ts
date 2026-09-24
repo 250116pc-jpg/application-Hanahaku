@@ -5,6 +5,11 @@ import { EncyclopediaListView } from './encyclopedia/EncyclopediaListView'
 import testData from './test_data'
 import type { CharacterData, Season } from './test_data'
 import { getTextStyle, createTextButton } from '../utils/ui'
+//debug機能
+import { showDebugSceneName } from '../debug';
+
+//--------------------------------------------------------------
+
 
 const BORDER_COLOR = 0x536878
 const PANEL_COLOR = 0xffffff
@@ -25,6 +30,8 @@ export class EncyclopediaScene extends Phaser.Scene {
 
   create(): void {
     this.showList()
+    showDebugSceneName(this);
+
   }
 
   private showList(): void {

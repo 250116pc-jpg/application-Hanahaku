@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import titleBackground from '../assets/background/background.png';
 import { initializeAudio, preloadAudio, startBgm } from '../audio/BgmManager';
-
+import { showDebugSceneName } from '../debug';
 export class TitleScene extends Phaser.Scene {
   constructor() {
     super('TitleScene');
@@ -13,6 +13,7 @@ export class TitleScene extends Phaser.Scene {
   }
 
   create(): void {
+    showDebugSceneName(this);
     initializeAudio(this);
     const width = this.scale.width;
     const height = this.scale.height;

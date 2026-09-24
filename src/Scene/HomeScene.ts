@@ -9,6 +9,12 @@ import flower2Img from '../assets/images/f2.png'
 import flower3Img from '../assets/images/f3.png'
 
 import { createButton } from './HomeScene/buttons'
+//debug機能
+import { showDebugSceneName } from '../debug';
+
+//--------------------------------------------------------------
+
+
 
 export class HomeScene extends Phaser.Scene {
   private flowerKeys: string[] = ['flower1', 'flower2', 'flower3']
@@ -32,6 +38,8 @@ export class HomeScene extends Phaser.Scene {
   }
 
   create(): void {
+    showDebugSceneName(this);
+
     const width = this.scale.width
     const height = this.scale.height
 

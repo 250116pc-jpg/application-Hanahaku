@@ -1,12 +1,13 @@
 import Phaser from 'phaser';
 import { getTextStyle, createTextButton, showRetreatDialog } from '../utils/ui/index.ts';
-
+import { showDebugSceneName } from '../debug';
 export class TestScene extends Phaser.Scene {
   constructor() {
     super('TestScene');
   }
 
   create(): void {
+    showDebugSceneName(this);
     const width = this.scale.width;
     const height = this.scale.height;
 

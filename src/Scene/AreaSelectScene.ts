@@ -7,6 +7,10 @@ import {
   createSelectionDetailPanel,
   createTextButton
 } from '../utils/ui';
+//debug機能
+import { showDebugSceneName } from '../debug';
+
+//--------------------------------------------------------------
 
 // エリア情報
 type AreaInfo = {
@@ -54,6 +58,8 @@ export class AreaSelectScene extends Phaser.Scene {
 
   // 画面の作成
   create(): void {
+    showDebugSceneName(this);
+    
     const width = this.scale.width;
     const height = this.scale.height;
 

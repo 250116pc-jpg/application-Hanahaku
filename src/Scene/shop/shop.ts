@@ -5,6 +5,10 @@ import { createItemDetail } from './itemDetail'
 import { createShopItemList, getMaxShopScroll } from './itemList'
 import { enableShopScroll } from './scroll'
 import type { ShopItem } from './types'
+//debug機能
+import { showDebugSceneName } from '../../debug';
+
+//--------------------------------------------------------------
 
 export class ShopScene extends Phaser.Scene {
   constructor() {
@@ -19,6 +23,8 @@ export class ShopScene extends Phaser.Scene {
   }
 
   create() {
+    showDebugSceneName(this);
+    
     const shopItems = testData.shopItems as ShopItem[]
     const screenWidth = this.scale.width
     const screenHeight = this.scale.height

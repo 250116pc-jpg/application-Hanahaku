@@ -4,6 +4,11 @@ import flowerImg from '../assets/flower.png'
 import testData from './test_data'
 import type { CharacterData } from './test_data'
 import { getTextStyle, createTextButton } from '../utils/ui'
+//debug機能
+import { showDebugSceneName } from '../debug';
+
+//--------------------------------------------------------------
+
 
 const BORDER_COLOR = 0x536878
 
@@ -33,6 +38,8 @@ export class CharacterDetailScene extends Phaser.Scene {
   }
 
   create(): void {
+    showDebugSceneName(this);
+    
     const width = this.scale.width
     const height = this.scale.height
     const character = this.findCharacter()

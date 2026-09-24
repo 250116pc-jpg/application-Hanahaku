@@ -16,6 +16,11 @@ import {
 import { characterAnimations } from '../animation/animationData';
 import { getTextStyle } from '../utils/ui';
 
+//debug機能
+import { showDebugSceneName } from '../debug';
+
+//--------------------------------------------------------------
+
 interface SelectStageSceneData {
   areaId?: number;
   areaName?: string;
@@ -66,6 +71,7 @@ export class SelectStageScene extends Phaser.Scene {
     const width = this.scale.width;
     const height = this.scale.height;
 
+    showDebugSceneName(this);
 
     // ----------------------------------------
     // 背景

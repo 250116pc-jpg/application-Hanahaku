@@ -4,6 +4,10 @@ import backImg from '../../assets/background/story/1.jpg';
 import story_data from "../../scenario_data/story_data.json"
 import { createBackground } from '../../background';
 import { getTextStyle } from '../../utils/ui';
+//debug機能
+import { showDebugSceneName } from '../../debug';
+
+//--------------------------------------------------------------
 
 // 1つのセリフの型
 interface Dialogue {
@@ -61,6 +65,7 @@ export class StoryScene extends Phaser.Scene {
   }
 
   create(data: StorySceneData = { chapter: 1, stage: 1 }): void {
+    showDebugSceneName(this);
     this.currentChapter = data.chapter;
 
     const chapterData = this.storyData.find((chapter) => chapter.chapter === data.chapter);

@@ -5,6 +5,10 @@ import type { CharacterData } from '../Scene/test_data'
 
 import { FormUI } from './FormUI'
 import { FormationManager } from './FormationManager'
+//debug機能
+import { showDebugSceneName } from '../debug';
+
+//--------------------------------------------------------------
 
 /**
  * パーティ編成画面（FormScene）クラス
@@ -44,6 +48,7 @@ export class FormScene extends Phaser.Scene {
    * シーン生成時の初期化処理
    */
   create(): void {
+    showDebugSceneName(this);
     // UIヘルパーと編成マネージャーの初期化
     this.ui = new FormUI(this)
     this.formationManager = new FormationManager(
