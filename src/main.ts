@@ -6,7 +6,7 @@ import { SettingsScene } from './Scene/SettingsScene';
 import { TrainingScene } from './Scene/TrainingScene';
 import { CharacterDetailScene } from './Scene/CharacterDetailScene';
 import { InventoryScene } from './Scene/InventoryScene';
-import { StageScene } from './Scene/StageScene';
+import { StageScene } from './Scene/stage/StageScene';
 import { SelectStageScene } from './Scene/SelectStageScene';
 import { AreaSelectScene } from './Scene/AreaSelectScene';
 import { StoryScene } from './Scene/story/StoryScene';
