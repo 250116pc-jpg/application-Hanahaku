@@ -30,7 +30,7 @@ export class RegisterScene extends Phaser.Scene {
     formElement.innerHTML = `
       <label>
         ユーザー名
-        <input name="username" type="text" maxlength="30" autocomplete="username" required>
+        <input name="username" type="text" maxlength="255" autocomplete="username" required>
       </label>
       <label>
         メールアドレス
@@ -72,7 +72,7 @@ export class RegisterScene extends Phaser.Scene {
       this.setMessage(message, '登録しています。', false);
 
       try {
-        const phpBaseUrl = (import.meta.env.VITE_PHP_BASE_URL ?? 'http://localhost/hanahaku/php')
+        const phpBaseUrl = (import.meta.env.VITE_PHP_BASE_URL ?? 'http://localhost/php2')
           .replace(/\/$/, '');
         const response = await fetch(`${phpBaseUrl}/register.php`, {
           method: 'POST',
