@@ -61,7 +61,7 @@ export class LoginScene extends Phaser.Scene {
       this.setMessage(message, '登録情報を確認しています。', false);
 
       try {
-        const phpBaseUrl = (import.meta.env.VITE_PHP_BASE_URL ?? 'http://localhost/hanahaku/php')
+        const phpBaseUrl = (import.meta.env.VITE_PHP_BASE_URL ?? 'http://localhost/php2')
           .replace(/\/$/, '');
         const response = await fetch(`${phpBaseUrl}/login.php`, {
           method: 'POST',
