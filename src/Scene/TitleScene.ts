@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import titleBackground from '../assets/background/background.png';
 import { initializeAudio, preloadAudio, startBgm } from '../audio/BgmManager';
-import { showDebugSceneName } from '../debug';
+
 export class TitleScene extends Phaser.Scene {
   constructor() {
     super('TitleScene');
@@ -13,7 +13,6 @@ export class TitleScene extends Phaser.Scene {
   }
 
   create(): void {
-    showDebugSceneName(this);
     initializeAudio(this);
     const width = this.scale.width;
     const height = this.scale.height;
@@ -147,9 +146,27 @@ export class TitleScene extends Phaser.Scene {
         duration: 100,
         ease: 'Sine.easeOut',
         onComplete: () => {
-          this.scene.start('HomeScene');
+          this.scene.start('LoginScene');
         },
       });
+    });
+
+    const registerButton = this.add.text(
+      width / 2,
+      height / 2 + 250,
+      '新規ユーザー登録',
+      {
+        fontFamily: '"Yu Gothic", "Meiryo", sans-serif',
+        fontSize: '22px',
+        color: '#ffffff',
+        backgroundColor: '#536878',
+        padding: { left: 28, right: 28, top: 13, bottom: 13 },
+      }
+    ).setOrigin(0.5).setInteractive({ useHandCursor: true });
+
+    registerButton.on('pointerup', () => {
+      startBgm(this);
+      this.scene.start('RegisterScene');
     });
   }
 }
