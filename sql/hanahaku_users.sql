@@ -8,7 +8,7 @@ USE hanahaku;
 -- パスワードの平文は保存せず、PHPの password_hash() の結果を保存します。
 CREATE TABLE IF NOT EXISTS users (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-  name VARCHAR(50) NOT NULL,
+  name VARCHAR(255) NOT NULL,
   email VARCHAR(255) NOT NULL,
   password_hash VARCHAR(255) NOT NULL,
   coin INT UNSIGNED NOT NULL DEFAULT 0,
