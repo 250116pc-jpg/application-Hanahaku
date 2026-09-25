@@ -6,13 +6,15 @@ import { SettingsScene } from './Scene/SettingsScene';
 import { TrainingScene } from './Scene/TrainingScene';
 import { CharacterDetailScene } from './Scene/CharacterDetailScene';
 import { InventoryScene } from './Scene/InventoryScene';
-import { StageScene } from './Scene/stage/StageScene';
+import { StageScene } from './Scene/StageScene';
 import { SelectStageScene } from './Scene/SelectStageScene';
 import { AreaSelectScene } from './Scene/AreaSelectScene';
 import { StoryScene } from './Scene/story/StoryScene';
 import { EncyclopediaScene } from './Scene/EncyclopediaScene';
 import { FormScene } from './form/form'
 import { ShopScene } from './Scene/shop/shop'
+import { RegisterScene } from './Scene/RegisterScene';
+import { LoginScene } from './Scene/LoginScene';
 import './style.css';
 
 
@@ -20,7 +22,6 @@ import './style.css';
 const config: Phaser.Types.Core.GameConfig = {
   type: Phaser.AUTO,
 
-  
   width: 1280,
   height: 720,
 
@@ -30,8 +31,13 @@ const config: Phaser.Types.Core.GameConfig = {
   },
 
   parent: 'app',
+  dom: {
+    createContainer: true
+  },
   scene: [
     TitleScene,
+    LoginScene,
+    RegisterScene,
     HomeScene,
     SettingsScene,
     TrainingScene,
