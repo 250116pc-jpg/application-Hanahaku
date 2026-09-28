@@ -1,4 +1,9 @@
 import Phaser from 'phaser';
+import {
+  mountGoogleSignInButton,
+  saveCurrentUser,
+  type AuthenticatedUser,
+} from '../auth/GoogleSignIn';
 
 interface RegisterResponse {
   ok: boolean;
@@ -28,6 +33,11 @@ export class RegisterScene extends Phaser.Scene {
     const formElement = document.createElement('form');
     formElement.className = 'register-form';
     formElement.innerHTML = `
+      <div class="google-auth-area">
+        <div class="google-signin-button" aria-label="Googleアカウントで登録する"></div>
+        <p class="google-auth-hint">Googleならパスワード入力なしで登録できます</p>
+      </div>
+      <div class="auth-separator"><span>またはメールアドレスで新規登録</span></div>
       <label>
         ユーザー名
         <input name="username" type="text" maxlength="255" autocomplete="username" required>
@@ -51,6 +61,34 @@ export class RegisterScene extends Phaser.Scene {
     const dom = this.add.dom(width / 2, height / 2 + 35, formElement);
     const message = formElement.querySelector<HTMLParagraphElement>('.register-message');
     const submitButton = formElement.querySelector<HTMLButtonElement>('button[type="submit"]');
+    const googleButton = formElement.querySelector<HTMLDivElement>('.google-signin-button');
+
+    const finishGoogleRegistration = (user: AuthenticatedUser): void => {
+      if (!message || !submitButton) return;
+      saveCurrentUser(user);
+      this.setMessage(message, `${user.name}さんの登録が完了しました！`, false, true);
+      submitButton.disabled = true;
+      submitButton.textContent = '登録完了';
+      this.time.delayedCall(700, () => {
+        dom.destroy();
+        this.scene.start('HomeScene');
+      });
+    };
+
+    const disposeGoogleButton = googleButton
+      ? mountGoogleSignInButton(googleButton, {
+        onStart: () => {
+          if (message) this.setMessage(message, 'Googleアカウントを確認しています。', false);
+          if (submitButton) submitButton.disabled = true;
+        },
+        onSuccess: finishGoogleRegistration,
+        onError: (text) => {
+          if (message) this.setMessage(message, text, true);
+          if (submitButton) submitButton.disabled = false;
+        },
+      })
+      : () => undefined;
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, disposeGoogleButton);
 
     formElement.addEventListener('submit', async (event) => {
       event.preventDefault();
@@ -72,7 +110,10 @@ export class RegisterScene extends Phaser.Scene {
       this.setMessage(message, '登録しています。', false);
 
       try {
-        const phpBaseUrl = (import.meta.env.VITE_PHP_BASE_URL ?? 'http://localhost/php2')
+        const phpBaseUrl = (
+          import.meta.env.VITE_PHP_BASE_URL ??
+          'http://localhost/php/application-Hanahaku-main/php'
+        )
           .replace(/\/$/, '');
         const response = await fetch(`${phpBaseUrl}/register.php`, {
           method: 'POST',

@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { logout } from '../auth/Session';
 
 import flowerImg from '../assets/flower.png';
 import {
@@ -85,6 +86,21 @@ export class SettingsScene extends Phaser.Scene {
       .setOrigin(0.5);
 
     this.createLoggedInUserInfo();
+    let loggingOut = false;
+    this.createLargeButton(1085, 305, 'ログアウト', () => {
+      if (loggingOut) return;
+      loggingOut = true;
+      this.input.enabled = false;
+      void logout().then(() => {
+        // Stop paused gameplay as well, so another user cannot resume it.
+        for (const scene of this.scene.manager.getScenes(false)) {
+          if (scene !== this) this.scene.stop(scene.scene.key);
+        }
+        this.scene.start('LoginScene');
+      }).catch(() => {
+        this.setSpeech('ログアウトできません。接続を確認して再度お試しください。');
+      }).finally(() => { loggingOut = false; this.input.enabled = true; });
+    }, 240);
 
     this.createBackButton();
     this.createBgmControls();
