@@ -1,13 +1,14 @@
 import Phaser from 'phaser';
+import {
+  mountGoogleSignInButton,
+  saveCurrentUser,
+  type AuthenticatedUser,
+} from '../auth/GoogleSignIn';
 
 interface LoginResponse {
   ok: boolean;
   error?: string;
-  user?: {
-    id: number;
-    name: string;
-    email: string;
-  };
+  user?: AuthenticatedUser;
 }
 
 export class LoginScene extends Phaser.Scene {
@@ -32,6 +33,11 @@ export class LoginScene extends Phaser.Scene {
     const formElement = document.createElement('form');
     formElement.className = 'register-form login-form';
     formElement.innerHTML = `
+      <div class="google-auth-area">
+        <div class="google-signin-button" aria-label="Googleアカウントで続ける"></div>
+        <p class="google-auth-hint">初回はGoogleアカウントで自動登録されます</p>
+      </div>
+      <div class="auth-separator"><span>またはメールアドレスでログイン</span></div>
       <label>
         メールアドレス
         <input name="email" type="email" maxlength="255" autocomplete="email" required>
@@ -47,6 +53,34 @@ export class LoginScene extends Phaser.Scene {
     const dom = this.add.dom(width / 2, height / 2 + 30, formElement);
     const message = formElement.querySelector<HTMLParagraphElement>('.register-message');
     const submitButton = formElement.querySelector<HTMLButtonElement>('button[type="submit"]');
+    const googleButton = formElement.querySelector<HTMLDivElement>('.google-signin-button');
+
+    const finishLogin = (user: AuthenticatedUser): void => {
+      if (!message || !submitButton) return;
+      saveCurrentUser(user);
+      this.setMessage(message, `${user.name}さん、ようこそ！`, false, true);
+      submitButton.disabled = true;
+      submitButton.textContent = 'ログイン成功';
+      this.time.delayedCall(700, () => {
+        dom.destroy();
+        this.scene.start('HomeScene');
+      });
+    };
+
+    const disposeGoogleButton = googleButton
+      ? mountGoogleSignInButton(googleButton, {
+        onStart: () => {
+          if (message) this.setMessage(message, 'Googleアカウントを確認しています。', false);
+          if (submitButton) submitButton.disabled = true;
+        },
+        onSuccess: finishLogin,
+        onError: (text) => {
+          if (message) this.setMessage(message, text, true);
+          if (submitButton) submitButton.disabled = false;
+        },
+      })
+      : () => undefined;
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, disposeGoogleButton);
 
     formElement.addEventListener('submit', async (event) => {
       event.preventDefault();
@@ -61,10 +95,14 @@ export class LoginScene extends Phaser.Scene {
       this.setMessage(message, '登録情報を確認しています。', false);
 
       try {
-        const phpBaseUrl = (import.meta.env.VITE_PHP_BASE_URL ?? 'http://localhost/php2')
+        const phpBaseUrl = (
+          import.meta.env.VITE_PHP_BASE_URL ??
+          'http://localhost/php/application-Hanahaku-main/php'
+        )
           .replace(/\/$/, '');
         const response = await fetch(`${phpBaseUrl}/login.php`, {
           method: 'POST',
+      credentials: 'include',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email, password }),
         });
@@ -74,18 +112,7 @@ export class LoginScene extends Phaser.Scene {
           throw new Error(result.error || 'ログインできませんでした。');
         }
 
-        try {
-          localStorage.setItem('hanahakuCurrentUser', JSON.stringify(result.user));
-        } catch {
-          // 保存できなくても、今回のログインは続行する。
-        }
-
-        this.setMessage(message, `${result.user.name}さん、ようこそ！`, false, true);
-        submitButton.textContent = 'ログイン成功';
-        this.time.delayedCall(900, () => {
-          dom.destroy();
-          this.scene.start('HomeScene');
-        });
+        finishLogin(result.user);
       } catch (error) {
         const text = error instanceof Error ? error.message : 'サーバーに接続できませんでした。';
         this.setMessage(message, text, true);
