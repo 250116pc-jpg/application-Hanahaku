@@ -1,13 +1,55 @@
 <?php
 declare(strict_types=1);
 
+function projectEnv(string $name): ?string
+{
+    $environmentValue = getenv($name);
+    if ($environmentValue !== false && trim($environmentValue) !== '') {
+        return trim($environmentValue);
+    }
+
+    static $values = null;
+    if ($values === null) {
+        $values = [];
+        $envPath = dirname(__DIR__) . '/.env';
+        if (is_file($envPath)) {
+            foreach (file($envPath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) ?: [] as $line) {
+                $line = trim($line);
+                if ($line === '' || str_starts_with($line, '#') || !str_contains($line, '=')) {
+                    continue;
+                }
+                [$key, $value] = array_map('trim', explode('=', $line, 2));
+                $values[$key] = trim($value, "\"'");
+            }
+        }
+    }
+
+    return isset($values[$name]) && $values[$name] !== '' ? $values[$name] : null;
+}
+
 $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
-if (preg_match('#^https?://(localhost|127\.0\.0\.1)(:\d+)?$#', $origin)) {
+$configuredOrigins = array_filter(array_map(
+    'trim',
+    explode(',', projectEnv('HANAHAKU_ALLOWED_ORIGINS') ?? '')
+));
+$isLocalOrigin = preg_match('#^https?://(localhost|127\.0\.0\.1)(:\d+)?$#', $origin) === 1;
+if ($isLocalOrigin || in_array($origin, $configuredOrigins, true)) {
     header("Access-Control-Allow-Origin: {$origin}");
+    header('Vary: Origin');
+    header('Access-Control-Allow-Credentials: true');
 }
 header('Access-Control-Allow-Headers: Content-Type');
 header('Access-Control-Allow-Methods: POST, OPTIONS');
 header('Content-Type: application/json; charset=utf-8');
+header('Cache-Control: no-store');
+// Reject browser requests from untrusted origins before any mutation.
+$sameOrigin = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' ? 'https://' : 'http://') . ($_SERVER['HTTP_HOST'] ?? '');
+if ($origin !== '' && !$isLocalOrigin && $origin !== $sameOrigin && !in_array($origin, $configuredOrigins, true)) {
+    respond(['ok' => false, 'error' => '許可されていない接続元です。'], 403);
+}
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && !str_starts_with(strtolower($_SERVER['CONTENT_TYPE'] ?? ''), 'application/json')) {
+    respond(['ok' => false, 'error' => 'JSONで送信してください。'], 415);
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(204);
