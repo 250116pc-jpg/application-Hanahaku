@@ -92,6 +92,7 @@ async function authenticateWithGoogle(credential: string): Promise<Authenticated
   try {
     response = await fetch(`${getPhpBaseUrl()}/google-login.php`, {
       method: 'POST',
+      credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ credential }),
     });

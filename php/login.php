@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-require __DIR__ . '/db.php';
+require __DIR__ . '/auth.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     respond(['ok' => false, 'error' => 'POSTで送信してください。'], 405);
@@ -28,6 +28,8 @@ if (!$user || !password_verify($password, (string)$user['password_hash'])) {
 
 $update = $pdo->prepare('UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = ?');
 $update->execute([(int)$user['id']]);
+
+issueSession($pdo, (int)$user['id']);
 
 respond([
     'ok' => true,

@@ -36,10 +36,20 @@ $isLocalOrigin = preg_match('#^https?://(localhost|127\.0\.0\.1)(:\d+)?$#', $ori
 if ($isLocalOrigin || in_array($origin, $configuredOrigins, true)) {
     header("Access-Control-Allow-Origin: {$origin}");
     header('Vary: Origin');
+    header('Access-Control-Allow-Credentials: true');
 }
 header('Access-Control-Allow-Headers: Content-Type');
 header('Access-Control-Allow-Methods: POST, OPTIONS');
 header('Content-Type: application/json; charset=utf-8');
+header('Cache-Control: no-store');
+// Reject browser requests from untrusted origins before any mutation.
+$sameOrigin = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' ? 'https://' : 'http://') . ($_SERVER['HTTP_HOST'] ?? '');
+if ($origin !== '' && !$isLocalOrigin && $origin !== $sameOrigin && !in_array($origin, $configuredOrigins, true)) {
+    respond(['ok' => false, 'error' => '許可されていない接続元です。'], 403);
+}
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && !str_starts_with(strtolower($_SERVER['CONTENT_TYPE'] ?? ''), 'application/json')) {
+    respond(['ok' => false, 'error' => 'JSONで送信してください。'], 415);
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(204);

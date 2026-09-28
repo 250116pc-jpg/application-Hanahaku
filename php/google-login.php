@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-require __DIR__ . '/db.php';
+require __DIR__ . '/auth.php';
 require __DIR__ . '/google-token.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -88,6 +88,8 @@ try {
     }
     respond(['ok' => false, 'error' => 'Googleアカウントを登録できませんでした。'], 500);
 }
+
+issueSession($pdo, (int)$user['id']);
 
 respond([
     'ok' => true,

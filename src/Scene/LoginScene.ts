@@ -102,6 +102,7 @@ export class LoginScene extends Phaser.Scene {
           .replace(/\/$/, '');
         const response = await fetch(`${phpBaseUrl}/login.php`, {
           method: 'POST',
+      credentials: 'include',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email, password }),
         });
