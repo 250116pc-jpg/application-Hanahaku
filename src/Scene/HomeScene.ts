@@ -1,499 +1,105 @@
-import Phaser from 'phaser';
+import Phaser from 'phaser'
 
-import flowerImg from '../assets/flower.png';
+// アセットのインポート（実際のファイルパスに合わせて調整してください）
+import bg1Img from '../assets/background/home.png'
+import btn1Img from '../assets/ui/button1.png'
+import bg2Img from '../assets/images/home2.png'
+import flower1Img from '../assets/images/f1.png'
+import flower2Img from '../assets/images/f2.png'
+import flower3Img from '../assets/images/f3.png'
+
+import { createButton } from './HomeScene/buttons'
+//debug機能
+import { showDebugSceneName } from '../debug';
+
+//--------------------------------------------------------------
+
+
 
 export class HomeScene extends Phaser.Scene {
-  private messageText!: Phaser.GameObjects.Text;
+  private flowerKeys: string[] = ['flower1', 'flower2', 'flower3']
 
   constructor() {
-    super('HomeScene');
+    super('HomeScene')
   }
 
   preload(): void {
-    this.load.image(
-      'homeFlower',
-      flowerImg
-    );
+    // 背景画像（2種類）
+    this.load.image('bg1', bg1Img)
+    this.load.image('bg2', bg2Img)
+
+    // 花の画像リスト
+    this.load.image('flower1', flower1Img)
+    this.load.image('flower2', flower2Img)
+    this.load.image('flower3', flower3Img)
+
+    // ボタン画像
+    this.load.image('button1', btn1Img)
   }
 
   create(): void {
-    const width = this.scale.width;
-    const height = this.scale.height;
+    showDebugSceneName(this);
 
+    const width = this.scale.width
+    const height = this.scale.height
 
-    this.cameras.main.setBackgroundColor(
-      '#cfe3f5'
-    );
+    // 1. 背景の交互切り替え処理
+    let bgIndex = this.registry.get('bgIndex') ?? 0
+    const bgKey = bgIndex % 2 === 0 ? 'bg1' : 'bg2'
+    
+    // 背景画像を追加して画面サイズに合わせる
+    const bg = this.add.image(width / 2, height / 2, bgKey)
+    bg.setDisplaySize(width, height)
 
+    // 次回戻ってきたとき用にインデックスを更新
+    this.registry.set('bgIndex', bgIndex + 1)
 
-    const ui = this.add.container(
-      -40,
-      0
-    );
+    // UI用のコンテナ
+    const ui = this.add.container(-40, 0)
 
- 
+    // 2. 中央にランダムな花を表示（枠は削除）
+    const randomFlowerKey = Phaser.Utils.Array.GetRandom(this.flowerKeys)
+    // 画像の表示位置は元の四角の領域の中央付近（例: x=380, y=320）に調整
+    const flower = this.add.image(400, 320, randomFlowerKey)
+    flower.setScale(1.2) // 必要に応じて拡大・縮小
+    ui.add(flower)
 
-    const outerFrame = this.add
-      .rectangle(
-        width / 2,
-        height / 2,
-        1180,
-        650,
-        0xcfe3f5
-      )
-      .setStrokeStyle(
-        3,
-        0x536878
-      );
-
-    ui.add(
-      outerFrame
-    );
-
-
-
-    const titleBackground = this.add
-      .rectangle(
-        width / 2,
-        55,
-        230,
-        60,
-        0xffe5cf
-      )
-      .setStrokeStyle(
-        2,
-        0x806b5a
-      );
-
-    ui.add(
-      titleBackground
-    );
-
-
-    const titleText = this.add
-      .text(
-        width / 2,
-        55,
-        'ホーム画面',
-        {
-          fontFamily:
-            '"Yu Gothic", "Meiryo", sans-serif',
-
-          fontSize: '30px',
-          color: '#000000',
-
-          padding: {
-            top: 6,
-            bottom: 6,
-            left: 6,
-            right: 6,
-          },
-        }
-      )
-      .setOrigin(0.5);
-
-    ui.add(
-      titleText
-    );
-
-
-
-    const flowerFrame = this.add
-      .rectangle(
-        455,
-        330,
-        570,
-        360,
-        0xffffff
-      )
-      .setStrokeStyle(
-        3,
-        0x536878
-      );
-
-    ui.add(
-      flowerFrame
-    );
-
-    // 花画像
-    const flower = this.add.image(
-      455,
-      330,
-      'homeFlower'
-    );
-
-    flower.setScale(
-      0.7
-    );
-
-    ui.add(
-      flower
-    );
-
-
-
-    const stageButton =
-      this.createCircleButton(
-        940,
-        320,
-        150,
-        'ステージ\n選択',
-        () => {
-          this.scene.start(
-            'TestScene'
-          );
-        }
-      );
-
-    ui.add(
-      stageButton
-    );
-
-
-
-    const settingsButton =
-      this.createCircleButton(
-        1130,
-        115,
-        95,
-        '設定',
-        () => {
-          this.scene.start(
-            'SettingsScene'
-          );
-        }
-      );
-
-    ui.add(
-      settingsButton
-    );
-
-
-    const trainingButton =
-      this.createMenuButton(
-        300,
-        590,
-        '育成',
-        () => {
-          this.scene.start(
-            'TrainingScene'
-          );
-        }
-      );
-
-    ui.add(
-      trainingButton
-    );
-
-
-
-    const formationButton =
-      this.createMenuButton(
-        500,
-        590,
-        '編成',
-        () => {
-          this.showMessage(
-            '編成画面は準備中です'
-          );
-        }
-      );
-
-    ui.add(
-      formationButton
-    );
-
-
-
-    const encyclopediaButton =
-      this.createMenuButton(
-        700,
-        590,
-        '図鑑',
-        () => {
-          this.showMessage(
-            '図鑑画面は準備中です'
-          );
-        }
-      );
-
-    ui.add(
-      encyclopediaButton
-    );
-
-
-    const shopButton =
-      this.createMenuButton(
-        900,
-        590,
-        'ショップ',
-        () => {
-          this.scene.start(
-            'ShopScene'
-          );
-        }
-      );
-
-    ui.add(
-      shopButton
-    );
-
-
-
-    this.messageText = this.add
-      .text(
-        width / 2,
-        665,
-        '',
-        {
-          fontFamily:
-            '"Yu Gothic", "Meiryo", sans-serif',
-
-          fontSize: '22px',
-          color: '#333333',
-
-          padding: {
-            top: 6,
-            bottom: 6,
-            left: 6,
-            right: 6,
-          },
-        }
-      )
-      .setOrigin(0.5);
-
-    ui.add(
-      this.messageText
-    );
+    // 3. ナビゲーションボタンの配置
+    this.createNavigationButtons(ui)
   }
 
+  private createNavigationButtons(ui: Phaser.GameObjects.Container): void {
 
+    ui.add(createButton(this,1080,480,200,'ステージ\n選択',() => {
+        this.scene.start('AreaSelectScene')},{  key: 'button1',  width: 250,  height: 100
 
-  private createMenuButton(
-    x: number,
-    y: number,
-    label: string,
-    onClick: () => void
-  ): Phaser.GameObjects.Container {
-    const background = this.add
-      .rectangle(
-        0,
-        0,
-        150,
-        65,
-        0xffffff
-      )
-      .setStrokeStyle(
-        2,
-        0x536878
-      )
-      .setInteractive({
-        useHandCursor: true,
-      });
-
-    const text = this.add
-      .text(
-        0,
-        0,
-        label,
-        {
-          fontFamily:
-            '"Yu Gothic", "Meiryo", sans-serif',
-
-          fontSize: '26px',
-          color: '#000000',
-
-          padding: {
-            top: 6,
-            bottom: 6,
-            left: 6,
-            right: 6,
-          },
         }
-      )
-      .setOrigin(0.5);
+    ))
+    ui.add(createButton(this, 600, 630, 180, '育成',() => {
+        this.scene.start('TrainingScene')},{  key: 'button1',  width: 180,  height: 100
 
-    const container =
-      this.add.container(
-        x,
-        y,
-        [
-          background,
-          text,
-        ]
-      );
-
-    // マウスを乗せた時
-    background.on(
-      'pointerover',
-      () => {
-        background.setFillStyle(
-          0xeaf4fb
-        );
-      }
-    );
-
-    // マウスを外した時
-    background.on(
-      'pointerout',
-      () => {
-        background.setFillStyle(
-          0xffffff
-        );
-      }
-    );
-
-    // 押した時
-    background.on(
-      'pointerdown',
-      () => {
-        background.setFillStyle(
-          0xd5e8f5
-        );
-      }
-    );
-
-    // 離した時
-    background.on(
-      'pointerup',
-      () => {
-        background.setFillStyle(
-          0xeaf4fb
-        );
-
-        onClick();
-      }
-    );
-
-    return container;
-  }
-
-  // =====================================
-  // 丸型ボタン
-  // =====================================
-
-  private createCircleButton(
-    x: number,
-    y: number,
-    diameter: number,
-    label: string,
-    onClick: () => void
-  ): Phaser.GameObjects.Container {
-    const background = this.add
-      .circle(
-        0,
-        0,
-        diameter / 2,
-        0xffffff
-      )
-      .setStrokeStyle(
-        3,
-        0x536878
-      )
-      .setInteractive({
-        useHandCursor: true,
-      });
-
-    const text = this.add
-      .text(
-        0,
-        0,
-        label,
-        {
-          fontFamily:
-            '"Yu Gothic", "Meiryo", sans-serif',
-
-          fontSize:
-            diameter <= 100
-              ? '22px'
-              : '27px',
-
-          color: '#000000',
-          align: 'center',
-
-          padding: {
-            top: 6,
-            bottom: 6,
-            left: 6,
-            right: 6,
-          },
         }
-      )
-      .setOrigin(0.5);
+    ))
+    ui.add(createButton(this, 800, 630, 180, '編成',() => {
+        this.scene.start('FormScene')},{  key: 'button1',  width: 180,  height: 100
 
-    const container =
-      this.add.container(
-        x,
-        y,
-        [
-          background,
-          text,
-        ]
-      );
+        }
+    ))
+    ui.add(createButton(this, 1000, 630, 180, '図鑑',() => {
+        this.scene.start('EncyclopediaScene')},{  key: 'button1',  width: 180,  height: 100
 
-    // マウスを乗せた時
-    background.on(
-      'pointerover',
-      () => {
-        background.setFillStyle(
-          0xeaf4fb
-        );
-      }
-    );
+        }
+    ))
 
-    // マウスを外した時
-    background.on(
-      'pointerout',
-      () => {
-        background.setFillStyle(
-          0xffffff
-        );
-      }
-    );
+    ui.add(createButton(this, 1200, 630, 180, 'ショップ',() => {
+        this.scene.start('ShopScene')},{  key: 'button1',  width: 180,  height: 100
 
-    // 押した時
-    background.on(
-      'pointerdown',
-      () => {
-        background.setFillStyle(
-          0xd5e8f5
-        );
-      }
-    );
+        }
+    ))
+    ui.add(createButton(this, 1200, 100, 180, '設定',() => {
+        this.scene.start('SettingsScene')},{  key: 'button1',  width: 180,  height: 100
 
-    // 離した時
-    background.on(
-      'pointerup',
-      () => {
-        background.setFillStyle(
-          0xeaf4fb
-        );
-
-        onClick();
-      }
-    );
-
-    return container;
-  }
-
-  // =====================================
-  // 準備中メッセージ
-  // =====================================
-
-  private showMessage(
-    message: string
-  ): void {
-    this.messageText.setText(
-      message
-    );
-
-    this.time.delayedCall(
-      2000,
-      () => {
-        this.messageText.setText(
-          ''
-        );
-      }
-    );
+        }
+    ))
   }
 }

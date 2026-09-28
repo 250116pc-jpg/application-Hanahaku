@@ -1,0 +1,80 @@
+[
+  {
+    "chapter": 1,
+    "title": "第1章：始まりの街",
+    "stages": [
+      {
+        "stage": 1,
+        "title": "不穏な気配",
+        "scenario": [
+          { 
+            "name": "主人公", 
+            "text": "あう、あうあうあう、、うぅ、、ここはどこだにょ。",
+            "bg": "forest_night", 
+            "bgm": "danger_01", 
+            "effect": "flash" 
+          },
+          { 
+            "name": "主人公", 
+            "text": "彗星はもっとパーって輝くもんな",
+            "bg": "forest_night", 
+            "bgm": "danger_01", 
+            "effect": "" 
+          }
+        ]
+      },
+      {
+        "stage": 3,
+        "title": "契約の儀式",
+        "scenario": [
+          { 
+            "name": "？？？", 
+            "text": "ここは危険だから、早くこっちへ来て！僕と契約して魔法少女になってよ！",
+            "bg": "forest_night", 
+            "bgm": "contract_theme", 
+            "effect": "screen_shake" 
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "chapter": 2,
+    "title": "第2章：始まりの街",
+    "stages": [
+      {
+        "stage": 1,
+        "title": "不穏な気配",
+        "scenario": [
+          { 
+            "name": "主人公", 
+            "text": "あう、あうあうあう、、うぅ、、ここはどこだにょ。",
+            "bg": "forest_night", 
+            "bgm": "danger_01", 
+            "effect": "flash" 
+          },
+          { 
+            "name": "主人公", 
+            "text": "彗星はもっとパーって輝くもんな",
+            "bg": "forest_night", 
+            "bgm": "danger_01", 
+            "effect": "" 
+          }
+        ]
+      },
+      {
+        "stage": 2,
+        "title": "契約の儀式",
+        "scenario": [
+          { 
+            "name": "？？？", 
+            "text": "ここは危険だから、早くこっちへ来て！僕と契約して魔法少女になってよ！",
+            "bg": "forest_night", 
+            "bgm": "contract_theme", 
+            "effect": "screen_shake" 
+          }
+        ]
+      }
+    ]
+  }
+]

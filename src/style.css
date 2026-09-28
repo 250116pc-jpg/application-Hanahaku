@@ -1,40 +1,152 @@
+
+
 html,
 body {
   margin: 0;
   padding: 0;
-
   width: 100%;
   height: 100%;
-
   overflow: hidden;
-
-  /* Phaserの背景と同じ色 */
   background-color: #cfe3f5;
-}
-
-body {
-  display: flex;
-
-  justify-content: center;
-  align-items: center;
 }
 
 #app {
   width: 100%;
   height: 100%;
-
-  display: flex;
-
-  justify-content: center;
-  align-items: center;
-
-  /* スマホで左右に余白ができても水色にする */
   background-color: #cfe3f5;
 }
 
 canvas {
   display: block;
+}
 
-  max-width: 100%;
-  max-height: 100%;
+.register-form {
+  box-sizing: border-box;
+  width: 520px;
+  padding: 24px 34px;
+  border: 3px solid #8aa4c8;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 8px 24px rgba(31, 41, 55, 0.2);
+  color: #1f2937;
+  font-family: "Yu Gothic", "Meiryo", sans-serif;
+}
+
+.login-form {
+  width: 520px;
+  padding-top: 34px;
+  padding-bottom: 34px;
+}
+
+.register-form label {
+  display: block;
+  margin-bottom: 12px;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.register-form input {
+  box-sizing: border-box;
+  display: block;
+  width: 100%;
+  height: 46px;
+  margin-top: 5px;
+  padding: 8px 12px;
+  border: 2px solid #8aa4c8;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #1f2937;
+  font-size: 20px;
+}
+
+.register-form input:focus {
+  border-color: #356cbf;
+  outline: 3px solid rgba(53, 108, 191, 0.2);
+}
+
+.register-form button {
+  display: block;
+  min-width: 210px;
+  min-height: 52px;
+  margin: 8px auto 0;
+  border: 2px solid #d8aa45;
+  border-radius: 12px;
+  background: #356cbf;
+  color: #ffffff;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 21px;
+  font-weight: 700;
+}
+
+.register-form button:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.register-message {
+  min-height: 24px;
+  margin: 2px 0 8px;
+  color: #1f2937;
+  font-size: 16px;
+  text-align: center;
+}
+
+.register-message.is-error {
+  color: #b42318;
+}
+
+.register-message.is-success {
+  color: #087443;
+  font-weight: 700;
+}
+
+.google-auth-area {
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+.google-signin-button {
+  display: flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+}
+
+.google-signin-button.is-unavailable {
+  box-sizing: border-box;
+  width: 360px;
+  margin: 0 auto;
+  padding: 10px 12px;
+  border: 1px dashed #8aa4c8;
+  border-radius: 6px;
+  color: #536878;
+  font-size: 14px;
+}
+
+.google-auth-hint {
+  margin: 4px 0 0;
+  color: #536878;
+  font-size: 13px;
+}
+
+.auth-separator {
+  display: flex;
+  margin: 8px 0 10px;
+  align-items: center;
+  gap: 10px;
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.auth-separator::before,
+.auth-separator::after {
+  height: 1px;
+  flex: 1;
+  background: #cbd5e1;
+  content: '';
+}
+
+.auth-separator span {
+  white-space: nowrap;
 }
