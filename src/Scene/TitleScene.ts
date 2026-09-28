@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { restoreSession } from '../auth/Session';
 import titleBackground from '../assets/background/background.png';
 import { initializeAudio, preloadAudio, startBgm } from '../audio/BgmManager';
 
@@ -14,6 +15,15 @@ export class TitleScene extends Phaser.Scene {
 
   create(): void {
     initializeAudio(this);
+    this.input.enabled = false;
+    let active = true;
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => { active = false; });
+    void restoreSession().then(loggedIn => {
+      if (!active) return;
+      if (loggedIn) this.scene.start('HomeScene');
+    }).catch(() => {
+      // Keep manual login available when offline or the server is unavailable.
+    }).finally(() => { if (active) this.input.enabled = true; });
     const width = this.scale.width;
     const height = this.scale.height;
 
