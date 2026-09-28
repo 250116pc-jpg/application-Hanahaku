@@ -100,3 +100,53 @@ canvas {
   color: #087443;
   font-weight: 700;
 }
+
+.google-auth-area {
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+.google-signin-button {
+  display: flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+}
+
+.google-signin-button.is-unavailable {
+  box-sizing: border-box;
+  width: 360px;
+  margin: 0 auto;
+  padding: 10px 12px;
+  border: 1px dashed #8aa4c8;
+  border-radius: 6px;
+  color: #536878;
+  font-size: 14px;
+}
+
+.google-auth-hint {
+  margin: 4px 0 0;
+  color: #536878;
+  font-size: 13px;
+}
+
+.auth-separator {
+  display: flex;
+  margin: 8px 0 10px;
+  align-items: center;
+  gap: 10px;
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.auth-separator::before,
+.auth-separator::after {
+  height: 1px;
+  flex: 1;
+  background: #cbd5e1;
+  content: '';
+}
+
+.auth-separator span {
+  white-space: nowrap;
+}
