@@ -2,6 +2,7 @@ export type Season = '春' | '夏' | '秋' | '冬'
 
 export type CharacterData = {
   id: number
+  textureKey?: string
   name: string
   species: string
   rarity: number
