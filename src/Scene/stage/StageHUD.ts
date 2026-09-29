@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { getTextStyle, createTextButton, showRetreatDialog } from '../../utils/ui/index.ts';
+import { getTextStyle, showRetreatDialog } from '../../utils/ui/index.ts';
 import testData from '../test_data.ts';
 
 export class StageHUD {
@@ -49,15 +49,22 @@ export class StageHUD {
       color: '#ffffff', stroke: '#172333', strokeThickness: 3
     })).setOrigin(0.5).setScrollFactor(0).setDepth(this.HUD_DEPTH);
 
-    // 撤退
-    createTextButton(
-      this.scene, width - 95, 65, '撤退',
-      () => {
-        // シーン遷移は this.scene.scene.start になる点に注意
-        showRetreatDialog(this.scene, () => this.scene.scene.start('SelectStageScene'));
-      },
-      { fontSize: 22 }
-    ).setDepth(this.HUD_DEPTH);
+    // 撤退：確認ダイアログを開く画像ボタン
+    const retreat = this.scene.add.image(width - 95, 95, 'stage-retreat')
+      .setDisplaySize(88, 88)
+      .setScrollFactor(0)
+      .setDepth(this.HUD_DEPTH)
+      .setInteractive({ useHandCursor: true });
+    retreat.on('pointerover', () => retreat.setTint(0xffe6af));
+    retreat.on('pointerout', () => retreat.clearTint());
+    retreat.on('pointerdown', () => retreat.setTint(0xd6bb85));
+    retreat.on('pointerup', () => {
+      retreat.clearTint();
+      showRetreatDialog(this.scene, () => this.scene.scene.start('SelectStageScene'));
+    });
+    this.scene.add.text(width - 95, 147, '撤退', getTextStyle(18, {
+      color: '#ffffff', stroke: '#172333', strokeThickness: 3
+    })).setOrigin(0.5).setScrollFactor(0).setDepth(this.HUD_DEPTH);
   }
 
   // =========================
