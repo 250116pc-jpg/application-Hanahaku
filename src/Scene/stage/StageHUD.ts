@@ -32,9 +32,22 @@ export class StageHUD {
     this.scene.add.rectangle(180, 66, 200, 20, 0x555555).setScrollFactor(0).setDepth(this.HUD_DEPTH);
     this.scene.add.rectangle(180, 66, 200, 20, 0x16a9b5).setScrollFactor(0).setDepth(this.HUD_DEPTH + 1);
 
-    // バッグ
-    createTextButton(this.scene, 72, 118, 'バッグ', () => this.openInventory(), { fontSize: 22 })
-      .setDepth(this.HUD_DEPTH);
+    // バッグ：画面に固定した画像ボタン
+    const bag = this.scene.add.image(72, 126, 'stage-bag')
+      .setDisplaySize(88, 88)
+      .setScrollFactor(0)
+      .setDepth(this.HUD_DEPTH)
+      .setInteractive({ useHandCursor: true });
+    bag.on('pointerover', () => bag.setTint(0xffe6af));
+    bag.on('pointerout', () => bag.clearTint());
+    bag.on('pointerdown', () => bag.setTint(0xd6bb85));
+    bag.on('pointerup', () => {
+      bag.clearTint();
+      this.openInventory();
+    });
+    this.scene.add.text(72, 178, 'バッグ', getTextStyle(18, {
+      color: '#ffffff', stroke: '#172333', strokeThickness: 3
+    })).setOrigin(0.5).setScrollFactor(0).setDepth(this.HUD_DEPTH);
 
     // 撤退
     createTextButton(
