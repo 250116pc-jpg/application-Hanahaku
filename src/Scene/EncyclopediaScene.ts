@@ -3,7 +3,6 @@ import Phaser from 'phaser'
 import flowerImg from '../assets/flower.png'
 import { EncyclopediaListView } from './encyclopedia/EncyclopediaListView'
 import testData from './test_data'
-import { flowerCatalog, flowerTextures, getRegisteredIds } from './encyclopedia/flowerCatalog'
 import type { CharacterData, Season } from './test_data'
 import { getTextStyle, createTextButton } from '../utils/ui'
 //debug機能
@@ -17,13 +16,9 @@ const PANEL_COLOR = 0xffffff
 
 export class EncyclopediaScene extends Phaser.Scene {
   private selectedSeason: Season = '春'
-  private preview = true
-  private page = 0
-  private readonly characters = [...testData.characters, ...flowerCatalog]
-
-  private get registeredIds(): Set<number> {
-    return getRegisteredIds(this.registry.get('registeredCharacterIds'), this.characters)
-  }
+  private readonly registeredIds = new Set(
+    testData.formation.filter((id): id is number => id !== null)
+  )
 
   constructor() {
     super('EncyclopediaScene')
@@ -31,7 +26,6 @@ export class EncyclopediaScene extends Phaser.Scene {
 
   preload(): void {
     this.load.image('encyclopediaFlower', flowerImg)
-    flowerTextures.forEach(({ key, url }) => this.load.image(key, url))
   }
 
   create(): void {
@@ -45,24 +39,14 @@ export class EncyclopediaScene extends Phaser.Scene {
 
     new EncyclopediaListView(
       this,
-      this.characters,
+      testData.characters,
       this.registeredIds,
       season => {
-        this.page = 0
         this.selectedSeason = season
         this.showList()
       },
-      character => this.showDetail(character),
-      this.preview,
-      page => { this.page = page; this.showList() }
-    ).render(this.selectedSeason, this.page)
-    createTextButton(this, 1000, 65, this.preview ? 'お試し表示：ON' : 'お試し表示：OFF', () => {
-      this.preview = !this.preview
-      this.showList()
-    }, { fontSize: 20 })
-    this.add.text(640, 660, this.preview
-      ? 'お試し表示中：全画像を確認できます。正式な登録・契約は行いません。'
-      : '通常表示：攻略後に契約した花が図鑑に登録されます。', getTextStyle(18)).setOrigin(0.5)
+      character => this.showDetail(character)
+    ).render(this.selectedSeason)
   }
 
   private showDetail(character: CharacterData): void {
@@ -93,18 +77,13 @@ export class EncyclopediaScene extends Phaser.Scene {
 
   private createCharacterPanel(character: CharacterData): void {
     this.add.rectangle(285, 270, 360, 340, PANEL_COLOR).setStrokeStyle(2, BORDER_COLOR)
-    const image = this.add.image(285, 250, character.textureKey ?? 'encyclopediaFlower')
-    image.setScale(Math.min(240 / image.width, 240 / image.height))
+    this.add.image(285, 250, 'encyclopediaFlower').setScale(0.75)
     this.add.text(285, 405, character.name, getTextStyle(26)).setOrigin(0.5)
   }
 
   private createStatusPanel(character: CharacterData): void {
     this.add.rectangle(285, 555, 360, 190, PANEL_COLOR).setStrokeStyle(2, BORDER_COLOR)
     this.add.text(135, 475, 'ステータス', getTextStyle(24))
-    if (character.textureKey) {
-      this.add.text(155, 520, '能力値は未設定', getTextStyle(22))
-      return
-    }
     this.add.text(155, 515, [
       `HP    ${character.stats.hp}`,
       `MP    ${character.stats.mp}`,
@@ -119,10 +98,10 @@ export class EncyclopediaScene extends Phaser.Scene {
     this.add.text(545, 120, character.name, getTextStyle(32))
     this.add.text(545, 170, [
       `種族：${character.species}`,
-      character.textureKey ? 'レア度：未設定' : `レア度：${'★'.repeat(character.rarity)}`,
-      character.textureKey ? 'レベル：未設定' : `レベル：${character.level} / ${character.maxLevel}`,
+      `レア度：${'★'.repeat(character.rarity)}`,
+      `レベル：${character.level} / ${character.maxLevel}`,
       `属性：${character.element}`,
-      `役割：${character.role}${character.textureKey ? '' : '型'}`
+      `役割：${character.role}型`
     ].join('\n'), { ...getTextStyle(21), lineSpacing: 5 })
     this.add.text(545, 315, this.wrapJapaneseText(character.description, 25), {
       ...getTextStyle(18),
@@ -133,16 +112,6 @@ export class EncyclopediaScene extends Phaser.Scene {
 
   private createAdditionalInfoPanel(character: CharacterData): void {
     this.add.rectangle(810, 520, 600, 260, PANEL_COLOR).setStrokeStyle(2, BORDER_COLOR)
-    if (character.textureKey) {
-      this.add.text(545, 405, '登録情報', getTextStyle(24))
-      this.add.text(565, 460, [
-        this.registeredIds.has(character.id) ? '契約済み・登録済み' : '未契約（お試し表示）',
-        '正式登録：ステージ攻略 → 契約 → 図鑑登録',
-        'スキル・装備・契約条件：未設定',
-        '画像：asset_' + String(character.id - 1000).padStart(3, '0') + '.png'
-      ].join('\n'), { ...getTextStyle(20), lineSpacing: 14 })
-      return
-    }
     this.add.text(545, 405, '装備・親愛情報', getTextStyle(24))
     this.add.text(565, 450, ['装備：初期装備', '親愛状態：仲良し'].join('\n'), {
       ...getTextStyle(20),
