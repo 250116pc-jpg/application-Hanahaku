@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { logout } from '../auth/Session';
+import { preloadSettingsVoice, SettingsVoice } from '../audio/SettingsVoice';
 
 import flowerImg from '../assets/flower.png';
 import {
@@ -17,10 +18,13 @@ interface LoggedInUser {
 export class SettingsScene extends Phaser.Scene {
   private readonly guideStorageKey = 'hanahakuSettingsGuideSeen';
   private guideObjects: Phaser.GameObjects.GameObject[] = [];
+  private voice!: SettingsVoice;
   private returnScene = 'HomeScene';
   private resumeOnClose = false;
   private bgmVolume = 0.5;
   private seVolume = 0.7;
+  private voiceVolume = 1;
+  private voiceText!: Phaser.GameObjects.Text;
   private isMuted = false;
 
   private bgmText!: Phaser.GameObjects.Text;
@@ -38,6 +42,7 @@ export class SettingsScene extends Phaser.Scene {
   }
 
   preload(): void {
+    preloadSettingsVoice(this);
     this.load.image(
       'settingsCharacter',
       flowerImg
@@ -45,6 +50,7 @@ export class SettingsScene extends Phaser.Scene {
   }
 
   create(): void {
+    this.voice = new SettingsVoice(this);
     const width = this.scale.width;
     const height = this.scale.height;
 
@@ -62,6 +68,7 @@ export class SettingsScene extends Phaser.Scene {
 
     this.isMuted =
       audioSettings.isMuted;
+    this.voiceVolume = audioSettings.voiceVolume;
 
     this.add
       .rectangle(
@@ -105,6 +112,7 @@ export class SettingsScene extends Phaser.Scene {
     this.createBackButton();
     this.createBgmControls();
     this.createSeControls();
+    this.createVoiceControls();
     this.createMuteButton();
     this.createSpeechBubble();
 
@@ -124,6 +132,7 @@ export class SettingsScene extends Phaser.Scene {
       () => {
         this.bgmVolume = 0.5;
         this.seVolume = 0.7;
+        this.voiceVolume = 1;
         this.isMuted = false;
 
         this.updateDisplay();
@@ -147,6 +156,11 @@ export class SettingsScene extends Phaser.Scene {
     this.createLargeButton(730, 65, '操作ガイド', () => this.startGuide(), 200);
 
     this.updateDisplay();
+
+    this.add.text(640, 690, '音声：VOICEVOX:ずんだもん', {
+      ...this.getTextStyle(16), color: '#334455'
+    }).setOrigin(0.5);
+    this.voice.speak('音量を変更できるよ');
 
     if (this.returnScene === 'HomeScene' && !this.hasSeenGuide()) {
       this.time.delayedCall(0, () => this.startGuide());
@@ -226,10 +240,12 @@ export class SettingsScene extends Phaser.Scene {
         message: 'ここでBGMの音量を調整できます。\n＋と－を押して試してみましょう。' },
       { target: new Phaser.Geom.Rectangle(100, 328, 300, 165),
         message: 'ここではボタンなどの\n効果音の音量を調整できます。' },
-      { target: new Phaser.Geom.Rectangle(118, 540, 240, 85),
+      { target: new Phaser.Geom.Rectangle(100, 490, 300, 120),
+        message: 'ずんだもんの声を調整できます。\n話している間はBGMが小さくなります。' },
+      { target: new Phaser.Geom.Rectangle(118, 610, 240, 85),
         message: 'ミュートを押すと音を消せます。\nもう一度押すと元に戻ります。' },
       { target: new Phaser.Geom.Rectangle(900, 458, 300, 85),
-        message: 'BGMを50%、SEを70%に戻し、\nミュートも解除します。' },
+        message: 'BGM50%、SE70%、音声100%に戻し、\nミュートも解除します。' },
       { target: new Phaser.Geom.Rectangle(900, 578, 300, 85),
         message: '「保存して戻る」を押すと、\n変更した音量が次回も残ります。' }
     ];
@@ -420,12 +436,26 @@ export class SettingsScene extends Phaser.Scene {
     );
   }
 
+  private createVoiceControls(): void {
+    this.add.text(130, 495, '音声音量', this.getTextStyle(28));
+    this.voiceText = this.add.text(245, 570, '', this.getTextStyle(30)).setOrigin(0.5);
+    const adjust = (delta: number): void => {
+      this.voiceVolume = Phaser.Math.Clamp(Math.round((this.voiceVolume + delta) * 10) / 10, 0, 1);
+      this.voice.stop();
+      this.updateDisplay();
+      this.speechText.setText(`音声音量を${Math.round(this.voiceVolume * 100)}%にしたよ`);
+      this.voice.speak('音量を変更できるよ');
+    };
+    this.createSmallButton(145, 570, '－', () => adjust(-0.1));
+    this.createSmallButton(345, 570, '＋', () => adjust(0.1));
+  }
+
   private createMuteButton(): void {
     this.muteText =
       this.add
         .text(
           130,
-          560,
+          630,
           '',
           {
             ...this.getTextStyle(28),
@@ -627,6 +657,8 @@ export class SettingsScene extends Phaser.Scene {
       )}%`
     );
 
+    this.voiceText.setText(`${Math.round(this.voiceVolume * 100)}%`);
+
     this.muteText.setText(
       this.isMuted
         ? 'ミュート解除'
@@ -640,6 +672,7 @@ export class SettingsScene extends Phaser.Scene {
           this.bgmVolume,
         seVolume:
           this.seVolume,
+        voiceVolume: this.voiceVolume,
         isMuted:
           this.isMuted,
       }
@@ -652,6 +685,7 @@ export class SettingsScene extends Phaser.Scene {
     this.speechText.setText(
       message
     );
+    this.voice.speak(message);
   }
 
   private saveSettings(): void {
@@ -662,6 +696,7 @@ export class SettingsScene extends Phaser.Scene {
           this.bgmVolume,
         seVolume:
           this.seVolume,
+        voiceVolume: this.voiceVolume,
         isMuted:
           this.isMuted,
       }
