@@ -23,14 +23,22 @@ export class StageHUD {
     const width = this.scene.scale.width;
 
     // HP
-    this.scene.add.text(20, 16, 'HP:', getTextStyle(22)).setScrollFactor(0).setDepth(this.HUD_DEPTH);
-    this.scene.add.rectangle(245, 32, 330, 20, 0x555555).setScrollFactor(0).setDepth(this.HUD_DEPTH);
-    this.scene.add.rectangle(245, 32, 330, 20, 0x16a526).setScrollFactor(0).setDepth(this.HUD_DEPTH + 1);
+    this.scene.add.image(40, 32, 'stage-hp').setDisplaySize(40, 40).setScrollFactor(0).setDepth(this.HUD_DEPTH);
+    this.scene.add.text(64, 32, 'HP', getTextStyle(22, {
+      color: '#ffffff', fontStyle: 'bold', stroke: '#172333', strokeThickness: 3,
+      padding: { top: 0, bottom: 0, left: 0, right: 0 }
+    })).setOrigin(0, 0.5).setScrollFactor(0).setDepth(this.HUD_DEPTH);
+    this.scene.add.rectangle(280, 32, 330, 20, 0x555555).setScrollFactor(0).setDepth(this.HUD_DEPTH);
+    this.scene.add.rectangle(280, 32, 330, 20, 0x16a526).setScrollFactor(0).setDepth(this.HUD_DEPTH + 1);
 
     // MP
-    this.scene.add.text(20, 50, 'MP:', getTextStyle(22)).setScrollFactor(0).setDepth(this.HUD_DEPTH);
-    this.scene.add.rectangle(180, 66, 200, 20, 0x555555).setScrollFactor(0).setDepth(this.HUD_DEPTH);
-    this.scene.add.rectangle(180, 66, 200, 20, 0x16a9b5).setScrollFactor(0).setDepth(this.HUD_DEPTH + 1);
+    this.scene.add.image(40, 66, 'stage-mp').setDisplaySize(40, 40).setScrollFactor(0).setDepth(this.HUD_DEPTH);
+    this.scene.add.text(64, 66, 'MP', getTextStyle(22, {
+      color: '#ffffff', fontStyle: 'bold', stroke: '#172333', strokeThickness: 3,
+      padding: { top: 0, bottom: 0, left: 0, right: 0 }
+    })).setOrigin(0, 0.5).setScrollFactor(0).setDepth(this.HUD_DEPTH);
+    this.scene.add.rectangle(215, 66, 200, 20, 0x555555).setScrollFactor(0).setDepth(this.HUD_DEPTH);
+    this.scene.add.rectangle(215, 66, 200, 20, 0x16a9b5).setScrollFactor(0).setDepth(this.HUD_DEPTH + 1);
 
     // バッグ：画面に固定した画像ボタン
     const bag = this.scene.add.image(72, 126, 'stage-bag')
