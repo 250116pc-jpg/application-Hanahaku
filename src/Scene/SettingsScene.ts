@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { logout } from '../auth/Session';
+import { preloadSettingsVoice, SettingsVoice } from '../audio/SettingsVoice';
 
 import flowerImg from '../assets/flower.png';
 import {
@@ -17,6 +18,7 @@ interface LoggedInUser {
 export class SettingsScene extends Phaser.Scene {
   private readonly guideStorageKey = 'hanahakuSettingsGuideSeen';
   private guideObjects: Phaser.GameObjects.GameObject[] = [];
+  private voice!: SettingsVoice;
   private returnScene = 'HomeScene';
   private resumeOnClose = false;
   private bgmVolume = 0.5;
@@ -38,6 +40,7 @@ export class SettingsScene extends Phaser.Scene {
   }
 
   preload(): void {
+    preloadSettingsVoice(this);
     this.load.image(
       'settingsCharacter',
       flowerImg
@@ -45,6 +48,7 @@ export class SettingsScene extends Phaser.Scene {
   }
 
   create(): void {
+    this.voice = new SettingsVoice(this);
     const width = this.scale.width;
     const height = this.scale.height;
 
@@ -147,6 +151,11 @@ export class SettingsScene extends Phaser.Scene {
     this.createLargeButton(730, 65, '操作ガイド', () => this.startGuide(), 200);
 
     this.updateDisplay();
+
+    this.add.text(640, 690, '音声：VOICEVOX:ずんだもん', {
+      ...this.getTextStyle(16), color: '#334455'
+    }).setOrigin(0.5);
+    this.voice.speak('音量を変更できるよ');
 
     if (this.returnScene === 'HomeScene' && !this.hasSeenGuide()) {
       this.time.delayedCall(0, () => this.startGuide());
@@ -652,6 +661,7 @@ export class SettingsScene extends Phaser.Scene {
     this.speechText.setText(
       message
     );
+    this.voice.speak(message);
   }
 
   private saveSettings(): void {
