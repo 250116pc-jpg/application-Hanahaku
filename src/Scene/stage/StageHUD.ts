@@ -23,12 +23,12 @@ export class StageHUD {
     const width = this.scene.scale.width;
 
     // HP
-    this.scene.add.text(20, 16, 'HP:', getTextStyle(22)).setScrollFactor(0).setDepth(this.HUD_DEPTH);
+    this.scene.add.image(40, 32, 'stage-hp').setDisplaySize(40, 40).setScrollFactor(0).setDepth(this.HUD_DEPTH);
     this.scene.add.rectangle(245, 32, 330, 20, 0x555555).setScrollFactor(0).setDepth(this.HUD_DEPTH);
     this.scene.add.rectangle(245, 32, 330, 20, 0x16a526).setScrollFactor(0).setDepth(this.HUD_DEPTH + 1);
 
     // MP
-    this.scene.add.text(20, 50, 'MP:', getTextStyle(22)).setScrollFactor(0).setDepth(this.HUD_DEPTH);
+    this.scene.add.image(40, 66, 'stage-mp').setDisplaySize(40, 40).setScrollFactor(0).setDepth(this.HUD_DEPTH);
     this.scene.add.rectangle(180, 66, 200, 20, 0x555555).setScrollFactor(0).setDepth(this.HUD_DEPTH);
     this.scene.add.rectangle(180, 66, 200, 20, 0x16a9b5).setScrollFactor(0).setDepth(this.HUD_DEPTH + 1);
 
