@@ -1,5 +1,5 @@
 import Phaser from 'phaser'
-import { loadAudioSettings, resumeAudioFromGesture } from './BgmManager'
+import { loadAudioSettings, resumeAudioFromGesture, setVoiceDucking } from './BgmManager'
 
 const lines: Record<string, string> = {
   '音量を変更できるよ': 'welcome',
@@ -39,13 +39,14 @@ export class SettingsVoice {
     this.pendingUnlock = null
     this.sound?.destroy()
     this.sound = null
+    setVoiceDucking(this.scene, false)
   }
 
   speak(message: string): void {
     this.stop()
     const id = lines[message]
     const settings = loadAudioSettings(this.scene)
-    if (!id || settings.isMuted || settings.seVolume === 0) return
+    if (!id || settings.isMuted || settings.voiceVolume === 0) return
     const key = 'settings-voice-' + id
     if (!this.scene.cache.audio.exists(key)) return
     if (this.scene.sound.locked) {
@@ -57,12 +58,16 @@ export class SettingsVoice {
       return
     }
     resumeAudioFromGesture(this.scene)
-    const sound = this.scene.sound.add(key, { volume: settings.seVolume })
+    const sound = this.scene.sound.add(key, { volume: settings.voiceVolume })
     this.sound = sound
     sound.once('complete', () => {
-      if (this.sound === sound) this.sound = null
+      if (this.sound === sound) {
+        this.sound = null
+        setVoiceDucking(this.scene, false)
+      }
       sound.destroy()
     })
+    setVoiceDucking(this.scene, true)
     if (!sound.play()) this.stop()
   }
 }

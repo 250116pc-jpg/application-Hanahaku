@@ -16,6 +16,7 @@ const STORAGE_KEY = 'hanahakuAudioSettings'
 export interface AudioSettings {
   bgmVolume: number
   seVolume: number
+  voiceVolume: number
   isMuted: boolean
 }
 
@@ -31,6 +32,7 @@ type AudioState = {
   pendingClick: boolean
   unlockHooked: boolean
   installed: boolean
+  voiceDucking: boolean
 }
 
 const states = new WeakMap<Phaser.Game, AudioState>()
@@ -47,7 +49,8 @@ function stateFor(scene: Phaser.Scene): AudioState {
 
   let saved: Partial<AudioSettings> = {}
   try {
-    saved = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '{}') as Partial<AudioSettings>
+    const parsed: unknown = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '{}')
+    saved = parsed && typeof parsed === 'object' ? parsed as Partial<AudioSettings> : {}
   } catch {
     // 保存領域を使えないブラウザでも既定値で続行する。
   }
@@ -56,6 +59,7 @@ function stateFor(scene: Phaser.Scene): AudioState {
     settings: {
       bgmVolume: validVolume(saved.bgmVolume, 0.5),
       seVolume: validVolume(saved.seVolume, 0.7),
+      voiceVolume: validVolume(saved.voiceVolume, 1),
       isMuted: typeof saved.isMuted === 'boolean' ? saved.isMuted : false
     },
     currentKey: null,
@@ -63,7 +67,8 @@ function stateFor(scene: Phaser.Scene): AudioState {
     pendingKey: null,
     pendingClick: false,
     unlockHooked: false,
-    installed: false
+    installed: false,
+    voiceDucking: false
   }
   states.set(scene.game, state)
   scene.sound.mute = state.settings.isMuted
@@ -110,6 +115,17 @@ export function initializeAudio(scene: Phaser.Scene): void {
   }
 }
 
+// Only the playing level is reduced; the user's stored BGM percentage is unchanged.
+function bgmLevel(state: AudioState): number {
+  return state.settings.bgmVolume * (state.voiceDucking ? 0.15 : 1)
+}
+
+export function setVoiceDucking(scene: Phaser.Scene, active: boolean): void {
+  const state = stateFor(scene)
+  state.voiceDucking = active
+  state.currentSound?.setVolume(bgmLevel(state))
+}
+
 export function loadAudioSettings(scene: Phaser.Scene): AudioSettings {
   return { ...stateFor(scene).settings }
 }
@@ -119,12 +135,14 @@ export function applyAudioSettings(scene: Phaser.Scene, next: AudioSettings): vo
   state.settings = {
     bgmVolume: validVolume(next.bgmVolume, 0.5),
     seVolume: validVolume(next.seVolume, 0.7),
+    voiceVolume: validVolume(next.voiceVolume, 1),
     isMuted: Boolean(next.isMuted)
   }
   scene.sound.mute = state.settings.isMuted
-  state.currentSound?.setVolume(state.settings.bgmVolume)
+  state.currentSound?.setVolume(bgmLevel(state))
   scene.registry.set('bgmVolume', state.settings.bgmVolume)
   scene.registry.set('seVolume', state.settings.seVolume)
+  scene.registry.set('voiceVolume', state.settings.voiceVolume)
   scene.registry.set('isMuted', state.settings.isMuted)
 }
 
@@ -192,7 +210,7 @@ export function playBgm(scene: Phaser.Scene, key: string): void {
 
   const sound = scene.sound.add(key, {
     loop: true,
-    volume: state.settings.bgmVolume
+    volume: bgmLevel(state)
   }) as AdjustableSound
   if (sound.play()) {
     state.currentSound = sound
