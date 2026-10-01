@@ -1,6 +1,8 @@
 import Phaser from 'phaser';
 import { restoreSession } from '../auth/Session';
 import titleBackground from '../assets/background/background.png';
+import settingsButtonImage from '../assets/ui/button1.png';
+import { createTextImageButton } from '../utils/ui/buttons';
 import { initializeAudio, preloadAudio, startBgm } from '../audio/BgmManager';
 
 export class TitleScene extends Phaser.Scene {
@@ -10,6 +12,7 @@ export class TitleScene extends Phaser.Scene {
 
   preload(): void {
     this.load.image('title_bg', titleBackground);
+    this.load.image('title-settings-button', settingsButtonImage);
     preloadAudio(this);
   }
 
@@ -29,6 +32,14 @@ export class TitleScene extends Phaser.Scene {
 
     const bg = this.add.image(width / 2, height / 2, 'title_bg');
     bg.setDisplaySize(width, height);
+
+    createTextImageButton(this, width - 140, 75, 180, '設定', () => {
+      this.scene.launch('SettingsScene', {
+        returnScene: 'TitleScene',
+        resumeOnClose: true,
+      });
+      this.scene.pause();
+    }, { key: 'title-settings-button', width: 180, height: 65 });
 
     const btnWidth = 240;
     const btnHeight = 60;

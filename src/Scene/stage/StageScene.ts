@@ -1,6 +1,10 @@
 import Phaser from 'phaser';
 import mapJson from '../../assets/stage/test/test_map.json';
 import grassImg from '../../assets/stage/test/grass.png';
+import bagIcon from '../../assets/images/hanahaku_assets_v2/icons/asset_128.png';
+import retreatIcon from '../../assets/images/hanahaku_assets_v2/icons/asset_141.png';
+import hpIcon from '../../assets/images/hanahaku_assets_v2/icons/asset_142.png';
+import mpIcon from '../../assets/images/hanahaku_assets_v2/icons/asset_143.png';
 import { showDebugSceneName } from '../../debug.ts';
 import { loadCharacterAnimation, createCharacterAnimation } from '../../animation/animation.ts';
 import { characterAnimations } from '../../animation/animationData.ts';
@@ -19,6 +23,10 @@ export class StageScene extends Phaser.Scene {
 
   preload(): void {
     this.load.image('tiles', grassImg);
+    this.load.image('stage-bag', bagIcon);
+    this.load.image('stage-retreat', retreatIcon);
+    this.load.image('stage-hp', hpIcon);
+    this.load.image('stage-mp', mpIcon);
     this.load.tilemapTiledJSON('map', mapJson);
 
     const playerData = characterAnimations.player;

@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { getTextStyle, createTextButton, showRetreatDialog } from '../../utils/ui/index.ts';
+import { getTextStyle, showRetreatDialog } from '../../utils/ui/index.ts';
 import testData from '../test_data.ts';
 
 export class StageHUD {
@@ -23,28 +23,56 @@ export class StageHUD {
     const width = this.scene.scale.width;
 
     // HP
-    this.scene.add.text(20, 16, 'HP:', getTextStyle(22)).setScrollFactor(0).setDepth(this.HUD_DEPTH);
-    this.scene.add.rectangle(245, 32, 330, 20, 0x555555).setScrollFactor(0).setDepth(this.HUD_DEPTH);
-    this.scene.add.rectangle(245, 32, 330, 20, 0x16a526).setScrollFactor(0).setDepth(this.HUD_DEPTH + 1);
+    this.scene.add.image(40, 32, 'stage-hp').setDisplaySize(40, 40).setScrollFactor(0).setDepth(this.HUD_DEPTH);
+    this.scene.add.text(64, 32, 'HP', getTextStyle(22, {
+      color: '#ffffff', fontStyle: 'bold', stroke: '#172333', strokeThickness: 3,
+      padding: { top: 0, bottom: 0, left: 0, right: 0 }
+    })).setOrigin(0, 0.5).setScrollFactor(0).setDepth(this.HUD_DEPTH);
+    this.scene.add.rectangle(280, 32, 330, 20, 0x555555).setScrollFactor(0).setDepth(this.HUD_DEPTH);
+    this.scene.add.rectangle(280, 32, 330, 20, 0x16a526).setScrollFactor(0).setDepth(this.HUD_DEPTH + 1);
 
     // MP
-    this.scene.add.text(20, 50, 'MP:', getTextStyle(22)).setScrollFactor(0).setDepth(this.HUD_DEPTH);
-    this.scene.add.rectangle(180, 66, 200, 20, 0x555555).setScrollFactor(0).setDepth(this.HUD_DEPTH);
-    this.scene.add.rectangle(180, 66, 200, 20, 0x16a9b5).setScrollFactor(0).setDepth(this.HUD_DEPTH + 1);
+    this.scene.add.image(40, 66, 'stage-mp').setDisplaySize(40, 40).setScrollFactor(0).setDepth(this.HUD_DEPTH);
+    this.scene.add.text(64, 66, 'MP', getTextStyle(22, {
+      color: '#ffffff', fontStyle: 'bold', stroke: '#172333', strokeThickness: 3,
+      padding: { top: 0, bottom: 0, left: 0, right: 0 }
+    })).setOrigin(0, 0.5).setScrollFactor(0).setDepth(this.HUD_DEPTH);
+    this.scene.add.rectangle(215, 66, 200, 20, 0x555555).setScrollFactor(0).setDepth(this.HUD_DEPTH);
+    this.scene.add.rectangle(215, 66, 200, 20, 0x16a9b5).setScrollFactor(0).setDepth(this.HUD_DEPTH + 1);
 
-    // バッグ
-    createTextButton(this.scene, 72, 118, 'バッグ', () => this.openInventory(), { fontSize: 22 })
-      .setDepth(this.HUD_DEPTH);
+    // バッグ：画面に固定した画像ボタン
+    const bag = this.scene.add.image(72, 126, 'stage-bag')
+      .setDisplaySize(88, 88)
+      .setScrollFactor(0)
+      .setDepth(this.HUD_DEPTH)
+      .setInteractive({ useHandCursor: true });
+    bag.on('pointerover', () => bag.setTint(0xffe6af));
+    bag.on('pointerout', () => bag.clearTint());
+    bag.on('pointerdown', () => bag.setTint(0xd6bb85));
+    bag.on('pointerup', () => {
+      bag.clearTint();
+      this.openInventory();
+    });
+    this.scene.add.text(72, 178, 'バッグ', getTextStyle(18, {
+      color: '#ffffff', stroke: '#172333', strokeThickness: 3
+    })).setOrigin(0.5).setScrollFactor(0).setDepth(this.HUD_DEPTH);
 
-    // 撤退
-    createTextButton(
-      this.scene, width - 95, 65, '撤退',
-      () => {
-        // シーン遷移は this.scene.scene.start になる点に注意
-        showRetreatDialog(this.scene, () => this.scene.scene.start('SelectStageScene'));
-      },
-      { fontSize: 22 }
-    ).setDepth(this.HUD_DEPTH);
+    // 撤退：確認ダイアログを開く画像ボタン
+    const retreat = this.scene.add.image(width - 95, 95, 'stage-retreat')
+      .setDisplaySize(88, 88)
+      .setScrollFactor(0)
+      .setDepth(this.HUD_DEPTH)
+      .setInteractive({ useHandCursor: true });
+    retreat.on('pointerover', () => retreat.setTint(0xffe6af));
+    retreat.on('pointerout', () => retreat.clearTint());
+    retreat.on('pointerdown', () => retreat.setTint(0xd6bb85));
+    retreat.on('pointerup', () => {
+      retreat.clearTint();
+      showRetreatDialog(this.scene, () => this.scene.scene.start('SelectStageScene'));
+    });
+    this.scene.add.text(width - 95, 147, '撤退', getTextStyle(18, {
+      color: '#ffffff', stroke: '#172333', strokeThickness: 3
+    })).setOrigin(0.5).setScrollFactor(0).setDepth(this.HUD_DEPTH);
   }
 
   // =========================
