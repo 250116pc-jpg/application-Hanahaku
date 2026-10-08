@@ -1,7 +1,8 @@
 import Phaser from 'phaser';
 
 import flowerImg from '../assets/flower.png';
-import { getTextStyle, createTextButton, createRectButton } from '../utils/ui';
+import { createStandardSceneFrame, getTextStyle, createRectButton } from '../utils/ui';
+import { SCENE_KEYS } from './sceneKeys';
 
 export class TrainingScene extends Phaser.Scene {
   private selectedTab = 'status';
@@ -10,7 +11,7 @@ export class TrainingScene extends Phaser.Scene {
   private infoText!: Phaser.GameObjects.Text;
 
   constructor() {
-    super('TrainingScene');
+    super(SCENE_KEYS.TRAINING);
   }
 
   preload(): void {
@@ -19,32 +20,10 @@ export class TrainingScene extends Phaser.Scene {
 
   create(): void {
     const width = this.scale.width;
-    const height = this.scale.height;
 
-    // =========================
-    // 育成画面だけは左寄せしない
-    // =========================
-    this.cameras.main.setScroll(0, 0);
-
-    // 背景
-    this.cameras.main.setBackgroundColor('#cfe3f5');
-
-    // =========================
-    // 外枠
-    // =========================
-    this.add.rectangle(width / 2, height / 2, 1180, 650, 0xcfe3f5)
-      .setStrokeStyle(3, 0x536878);
-
-    // =========================
-    // タイトル
-    // =========================
-    this.add.text(width / 2, 50, '育成画面', getTextStyle(34))
-      .setOrigin(0.5);
-
-    // =========================
-    // 戻るボタン
-    // =========================
-    this.createBackButton();
+    createStandardSceneFrame(this, '育成画面', '← 戻る', () => {
+      this.scene.start(SCENE_KEYS.HOME);
+    });
 
     // =========================
     // 左メニュー枠
@@ -90,7 +69,7 @@ export class TrainingScene extends Phaser.Scene {
     // キャラ詳細ボタン
     // =========================
     createRectButton(this, 945, 495, 270, 60, 'キャラ詳細を見る', () => {
-      this.scene.start('CharacterDetailScene');
+      this.scene.start(SCENE_KEYS.CHARACTER_DETAIL);
     }, { fontSize: 22 });
 
     // =========================
@@ -104,20 +83,6 @@ export class TrainingScene extends Phaser.Scene {
 
     // 初期表示
     this.changeTab('status');
-  }
-
-  // =========================
-  // 戻るボタン
-  // =========================
-  private createBackButton(): void {
-    createTextButton(this, 120, 70, '← 戻る', () => {
-      this.scene.start('HomeScene');
-    }, {
-      fontSize: 26,
-      hoverColor: '#eeeeee',
-      downColor: '#d0d0d0',
-      padding: { top: 10, bottom: 12, left: 18, right: 18 }
-    });
   }
 
   // =========================

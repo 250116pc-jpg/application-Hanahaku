@@ -4,6 +4,7 @@ import {
   saveCurrentUser,
   type AuthenticatedUser,
 } from '../auth/GoogleSignIn';
+import { SCENE_KEYS } from './sceneKeys';
 
 interface RegisterResponse {
   ok: boolean;
@@ -13,7 +14,7 @@ interface RegisterResponse {
 
 export class RegisterScene extends Phaser.Scene {
   constructor() {
-    super('RegisterScene');
+    super(SCENE_KEYS.REGISTER);
   }
 
   create(): void {
@@ -71,7 +72,7 @@ export class RegisterScene extends Phaser.Scene {
       submitButton.textContent = '登録完了';
       this.time.delayedCall(700, () => {
         dom.destroy();
-        this.scene.start('HomeScene');
+        this.scene.start(SCENE_KEYS.HOME);
       });
     };
 
@@ -130,7 +131,7 @@ export class RegisterScene extends Phaser.Scene {
         submitButton.textContent = '登録完了';
         this.time.delayedCall(1200, () => {
           dom.destroy();
-          this.scene.start('LoginScene');
+          this.scene.start(SCENE_KEYS.LOGIN);
         });
       } catch (error) {
         const text = error instanceof Error ? error.message : 'サーバーに接続できませんでした。';
@@ -150,7 +151,7 @@ export class RegisterScene extends Phaser.Scene {
 
     back.on('pointerup', () => {
       dom.destroy();
-      this.scene.start('TitleScene');
+      this.scene.start(SCENE_KEYS.TITLE);
     });
   }
 

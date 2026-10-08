@@ -10,13 +10,14 @@ import { characterAnimations } from '../../animation/animationData.ts';
 // 分割したクラスのインポート
 import { Player } from './Player.ts';
 import { StageHUD } from './StageHUD.ts';
+import { SCENE_KEYS } from '../sceneKeys';
 
 export class StageScene extends Phaser.Scene {
   private player!: Player;
   private hud!: StageHUD;
 
   constructor() {
-    super({ key: 'StageScene' });
+    super({ key: SCENE_KEYS.STAGE });
   }
 
   preload(): void {

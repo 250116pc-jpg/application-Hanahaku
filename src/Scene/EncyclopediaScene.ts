@@ -4,9 +4,10 @@ import flowerImg from '../assets/flower.png'
 import { EncyclopediaListView } from './encyclopedia/EncyclopediaListView'
 import testData from './test_data'
 import type { CharacterData, Season } from './test_data'
-import { getTextStyle, createTextButton } from '../utils/ui'
+import { createStandardSceneFrame, getTextStyle } from '../utils/ui'
 //debug機能
 import { showDebugSceneName } from '../debug';
+import { SCENE_KEYS } from './sceneKeys';
 
 //--------------------------------------------------------------
 
@@ -21,7 +22,7 @@ export class EncyclopediaScene extends Phaser.Scene {
   )
 
   constructor() {
-    super('EncyclopediaScene')
+    super(SCENE_KEYS.ENCYCLOPEDIA)
   }
 
   preload(): void {
@@ -35,7 +36,7 @@ export class EncyclopediaScene extends Phaser.Scene {
   }
 
   private showList(): void {
-    this.resetScreen('← ホームへ', () => this.scene.start('HomeScene'))
+    this.resetScreen('← ホームへ', () => this.scene.start(SCENE_KEYS.HOME))
 
     new EncyclopediaListView(
       this,
@@ -58,21 +59,13 @@ export class EncyclopediaScene extends Phaser.Scene {
   }
 
   private resetScreen(backLabel: string, onBack: () => void): void {
-    const width = this.scale.width
-    const height = this.scale.height
-
     this.children.each(child => {
       if (child.input) child.disableInteractive(true)
     })
     this.input.setDefaultCursor('default')
     this.children.removeAll(true)
 
-    this.cameras.main.setScroll(0, 0)
-    this.cameras.main.setBackgroundColor('#cfe3f5')
-    this.add.rectangle(width / 2, height / 2, 1180, 650, 0xcfe3f5)
-      .setStrokeStyle(3, BORDER_COLOR)
-    this.add.text(width / 2, 55, '図鑑', getTextStyle(34)).setOrigin(0.5)
-    createTextButton(this, 140, 65, backLabel, onBack, { fontSize: 24, padding: { top: 10, bottom: 10, left: 18, right: 18 } })
+    createStandardSceneFrame(this, '図鑑', backLabel, onBack)
   }
 
   private createCharacterPanel(character: CharacterData): void {

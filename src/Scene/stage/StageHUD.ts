@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { getTextStyle, showRetreatDialog } from '../../utils/ui/index.ts';
 import testData from '../test_data.ts';
+import { SCENE_KEYS } from '../sceneKeys';
 
 export class StageHUD {
   private scene: Phaser.Scene;
@@ -60,7 +61,7 @@ export class StageHUD {
     retreat.on('pointerdown', () => retreat.setTint(0xd6bb85));
     retreat.on('pointerup', () => {
       retreat.clearTint();
-      showRetreatDialog(this.scene, () => this.scene.scene.start('SelectStageScene'));
+      showRetreatDialog(this.scene, () => this.scene.scene.start(SCENE_KEYS.SELECT_STAGE));
     });
     this.scene.add.text(width - 95, 147, '撤退', getTextStyle(18, {
       color: '#ffffff', stroke: '#172333', strokeThickness: 3
@@ -152,10 +153,10 @@ export class StageHUD {
   // =========================
   private openInventory(): void {
     // this.scene.scene を介して ScenePlugin にアクセスします
-    if (this.scene.scene.isActive('InventoryScene')) return;
+    if (this.scene.scene.isActive(SCENE_KEYS.INVENTORY)) return;
 
-    this.scene.scene.launch('InventoryScene', { returnScene: 'StageScene' });
-    this.scene.scene.bringToTop('InventoryScene');
-    this.scene.scene.pause('StageScene');
+    this.scene.scene.launch(SCENE_KEYS.INVENTORY, { returnScene: SCENE_KEYS.STAGE });
+    this.scene.scene.bringToTop(SCENE_KEYS.INVENTORY);
+    this.scene.scene.pause(SCENE_KEYS.STAGE);
   }
 }

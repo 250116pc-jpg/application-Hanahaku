@@ -7,12 +7,13 @@ import { enableShopScroll } from './scroll'
 import type { ShopItem } from './types'
 //debug機能
 import { showDebugSceneName } from '../../debug';
+import { SCENE_KEYS } from '../sceneKeys';
 
 //--------------------------------------------------------------
 
 export class ShopScene extends Phaser.Scene {
   constructor() {
-    super({ key: 'ShopScene' })
+    super({ key: SCENE_KEYS.SHOP })
   }
 
   preload() {
@@ -62,7 +63,7 @@ export class ShopScene extends Phaser.Scene {
       .setOrigin(0, 0.5)
 
     backButton.on('pointerdown', () => {
-      this.scene.start('HomeScene')
+      this.scene.start(SCENE_KEYS.HOME)
     })
   }
 

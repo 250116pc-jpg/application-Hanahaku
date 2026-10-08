@@ -1,16 +1,17 @@
 import Phaser from 'phaser'
 
 // アセットのインポート（実際のファイルパスに合わせて調整してください）
-import bg1Img from '../assets/background/home.png'
-import btn1Img from '../assets/ui/button1.png'
-import bg2Img from '../assets/images/home2.png'
-import flower1Img from '../assets/images/f1.png'
-import flower2Img from '../assets/images/f2.png'
-import flower3Img from '../assets/images/f3.png'
+import bg1Img from '../../assets/background/home.png'
+import btn1Img from '../../assets/ui/button1.png'
+import bg2Img from '../../assets/images/home2.png'
+import flower1Img from '../../assets/images/f1.png'
+import flower2Img from '../../assets/images/f2.png'
+import flower3Img from '../../assets/images/f3.png'
 
-import { createButton } from './HomeScene/buttons'
+import { createButton } from './buttons'
 //debug機能
-import { showDebugSceneName } from '../debug';
+import { showDebugSceneName } from '../../debug';
+import { SCENE_KEYS } from '../sceneKeys';
 
 //--------------------------------------------------------------
 
@@ -20,7 +21,7 @@ export class HomeScene extends Phaser.Scene {
   private flowerKeys: string[] = ['flower1', 'flower2', 'flower3']
 
   constructor() {
-    super('HomeScene')
+    super(SCENE_KEYS.HOME)
   }
 
   preload(): void {
@@ -71,33 +72,33 @@ export class HomeScene extends Phaser.Scene {
   private createNavigationButtons(ui: Phaser.GameObjects.Container): void {
 
     ui.add(createButton(this,1080,480,200,'ステージ\n選択',() => {
-        this.scene.start('AreaSelectScene')},{  key: 'button1',  width: 250,  height: 100
+        this.scene.start(SCENE_KEYS.AREA_SELECT)},{  key: 'button1',  width: 250,  height: 100
 
         }
     ))
     ui.add(createButton(this, 600, 630, 180, '育成',() => {
-        this.scene.start('TrainingScene')},{  key: 'button1',  width: 180,  height: 100
+        this.scene.start(SCENE_KEYS.TRAINING)},{  key: 'button1',  width: 180,  height: 100
 
         }
     ))
     ui.add(createButton(this, 800, 630, 180, '編成',() => {
-        this.scene.start('FormScene')},{  key: 'button1',  width: 180,  height: 100
+        this.scene.start(SCENE_KEYS.FORM)},{  key: 'button1',  width: 180,  height: 100
 
         }
     ))
     ui.add(createButton(this, 1000, 630, 180, '図鑑',() => {
-        this.scene.start('EncyclopediaScene')},{  key: 'button1',  width: 180,  height: 100
+        this.scene.start(SCENE_KEYS.ENCYCLOPEDIA)},{  key: 'button1',  width: 180,  height: 100
 
         }
     ))
 
     ui.add(createButton(this, 1200, 630, 180, 'ショップ',() => {
-        this.scene.start('ShopScene')},{  key: 'button1',  width: 180,  height: 100
+        this.scene.start(SCENE_KEYS.SHOP)},{  key: 'button1',  width: 180,  height: 100
 
         }
     ))
     ui.add(createButton(this, 1200, 100, 180, '設定',() => {
-        this.scene.start('SettingsScene')},{  key: 'button1',  width: 180,  height: 100
+        this.scene.start(SCENE_KEYS.SETTINGS)},{  key: 'button1',  width: 180,  height: 100
 
         }
     ))

@@ -2,6 +2,7 @@ import titleBgm from '../assets/audio/PathOfAdventure/PeriTune_Frosylva.mp3'
 import homeBgm from '../assets/audio/PathOfAdventure/PeriTune_Harbor_Morning_loop.mp3'
 import stageBgm from '../assets/audio/PathOfAdventure/Peritune_Ancient_Gust_loop.mp3'
 import clickSe from '../assets/audio/PathOfAdventure/NoLoop/line.wav'
+import { SCENE_KEYS } from '../Scene/sceneKeys';
 
 
 export const BGM_KEYS = {
@@ -78,9 +79,9 @@ export function preloadAudio(scene: Phaser.Scene): void {
 }
 
 function sceneBgmKey(scene: Phaser.Scene): string | null {
-  if (scene.scene.key === 'TitleScene') return BGM_KEYS.title
-  if (scene.scene.key === 'SettingsScene') return null
-  if (scene.scene.key === 'StageScene') return BGM_KEYS.stage
+  if (scene.scene.key === SCENE_KEYS.TITLE) return BGM_KEYS.title
+  if (scene.scene.key === SCENE_KEYS.SETTINGS) return null
+  if (scene.scene.key === SCENE_KEYS.STAGE) return BGM_KEYS.stage
   return BGM_KEYS.home
 }
 
