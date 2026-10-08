@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { mountAuthLayout } from '../auth/AuthLayout';
 import {
   mountGoogleSignInButton,
   saveCurrentUser,
@@ -17,21 +18,8 @@ export class LoginScene extends Phaser.Scene {
   }
 
   create(): void {
-    const width = this.scale.width;
-    const height = this.scale.height;
-
-    this.cameras.main.setBackgroundColor('#cfe3f5');
-    this.add.rectangle(width / 2, height / 2, width - 80, height - 60, 0xf8fbff)
-      .setStrokeStyle(4, 0xd8aa45);
-    this.add.text(width / 2, 75, 'ログイン', {
-      fontFamily: '"Yu Gothic", "Meiryo", sans-serif',
-      fontSize: '38px',
-      color: '#1f2937',
-      fontStyle: 'bold',
-    }).setOrigin(0.5);
-
     const formElement = document.createElement('form');
-    formElement.className = 'register-form login-form';
+    formElement.className = 'flower-auth-form';
     formElement.innerHTML = `
       <div class="google-auth-area">
         <div class="google-signin-button" aria-label="Googleアカウントで続ける"></div>
@@ -50,7 +38,7 @@ export class LoginScene extends Phaser.Scene {
       <button type="submit">ログイン</button>
     `;
 
-    const dom = this.add.dom(width / 2, height / 2 + 30, formElement);
+    const dom = mountAuthLayout(this, formElement, 'ログイン', 'アカウント作成へ', 'RegisterScene');
     const message = formElement.querySelector<HTMLParagraphElement>('.register-message');
     const submitButton = formElement.querySelector<HTMLButtonElement>('button[type="submit"]');
     const googleButton = formElement.querySelector<HTMLDivElement>('.google-signin-button');
@@ -121,31 +109,6 @@ export class LoginScene extends Phaser.Scene {
       }
     });
 
-    const back = this.add.text(78, 58, '← 戻る', {
-      fontFamily: '"Yu Gothic", "Meiryo", sans-serif',
-      fontSize: '24px',
-      color: '#ffffff',
-      backgroundColor: '#536878',
-      padding: { left: 20, right: 20, top: 12, bottom: 12 },
-    }).setOrigin(0.5).setInteractive({ useHandCursor: true });
-
-    back.on('pointerup', () => {
-      dom.destroy();
-      this.scene.start('TitleScene');
-    });
-
-    const registerLink = this.add.text(width / 2, height - 85, '未登録の方はこちら（新規登録）', {
-      fontFamily: '"Yu Gothic", "Meiryo", sans-serif',
-      fontSize: '21px',
-      color: '#356cbf',
-      backgroundColor: '#ffffff',
-      padding: { left: 22, right: 22, top: 10, bottom: 10 },
-    }).setOrigin(0.5).setInteractive({ useHandCursor: true });
-
-    registerLink.on('pointerup', () => {
-      dom.destroy();
-      this.scene.start('RegisterScene');
-    });
   }
 
   private setMessage(

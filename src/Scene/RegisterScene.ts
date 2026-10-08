@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { mountAuthLayout } from '../auth/AuthLayout';
 import {
   mountGoogleSignInButton,
   saveCurrentUser,
@@ -17,21 +18,8 @@ export class RegisterScene extends Phaser.Scene {
   }
 
   create(): void {
-    const width = this.scale.width;
-    const height = this.scale.height;
-
-    this.cameras.main.setBackgroundColor('#cfe3f5');
-    this.add.rectangle(width / 2, height / 2, width - 80, height - 60, 0xf8fbff)
-      .setStrokeStyle(4, 0xd8aa45);
-    this.add.text(width / 2, 58, 'ユーザー登録', {
-      fontFamily: '"Yu Gothic", "Meiryo", sans-serif',
-      fontSize: '36px',
-      color: '#1f2937',
-      fontStyle: 'bold',
-    }).setOrigin(0.5);
-
     const formElement = document.createElement('form');
-    formElement.className = 'register-form';
+    formElement.className = 'flower-auth-form';
     formElement.innerHTML = `
       <div class="google-auth-area">
         <div class="google-signin-button" aria-label="Googleアカウントで登録する"></div>
@@ -39,7 +27,7 @@ export class RegisterScene extends Phaser.Scene {
       </div>
       <div class="auth-separator"><span>またはメールアドレスで新規登録</span></div>
       <label>
-        ユーザー名
+        プレイヤー名
         <input name="username" type="text" maxlength="255" autocomplete="username" required>
       </label>
       <label>
@@ -55,10 +43,10 @@ export class RegisterScene extends Phaser.Scene {
         <input name="passwordConfirm" type="password" minlength="6" maxlength="72" autocomplete="new-password" required>
       </label>
       <p class="register-message" aria-live="polite"></p>
-      <button type="submit">登録する</button>
+      <button type="submit">作成する</button>
     `;
 
-    const dom = this.add.dom(width / 2, height / 2 + 35, formElement);
+    const dom = mountAuthLayout(this, formElement, 'アカウント作成', 'ログインへ', 'LoginScene');
     const message = formElement.querySelector<HTMLParagraphElement>('.register-message');
     const submitButton = formElement.querySelector<HTMLButtonElement>('button[type="submit"]');
     const googleButton = formElement.querySelector<HTMLDivElement>('.google-signin-button');
@@ -140,18 +128,6 @@ export class RegisterScene extends Phaser.Scene {
       }
     });
 
-    const back = this.add.text(78, 58, '← 戻る', {
-      fontFamily: '"Yu Gothic", "Meiryo", sans-serif',
-      fontSize: '24px',
-      color: '#ffffff',
-      backgroundColor: '#536878',
-      padding: { left: 20, right: 20, top: 12, bottom: 12 },
-    }).setOrigin(0.5).setInteractive({ useHandCursor: true });
-
-    back.on('pointerup', () => {
-      dom.destroy();
-      this.scene.start('TitleScene');
-    });
   }
 
   private setMessage(
