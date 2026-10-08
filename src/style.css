@@ -150,3 +150,20 @@ canvas {
 .auth-separator span {
   white-space: nowrap;
 }
+
+.display-settings-dialog {
+  box-sizing: border-box; width: min(620px, 94vw); max-height: 90dvh;
+  overflow-y: auto; border: 2px solid #536878; border-radius: 12px;
+  padding: 24px; background: #f7fafc; color: #203343;
+  font-family: "Yu Gothic", "Meiryo", sans-serif;
+}
+.display-settings-dialog::backdrop { background: rgba(0, 0, 0, .6); }
+.display-settings-dialog h2 { margin-top: 0; font-size: 24px; }
+.display-settings-dialog label { display: block; font-weight: bold; margin: 16px 0 8px; }
+.display-settings-dialog select { width: 100%; padding: 10px; font: inherit; color: #203343; background: white; }
+.display-settings-dialog p { font-size: 15px; line-height: 1.7; }
+.display-settings-dialog button { min-height: 44px; padding: 10px 16px; font: inherit; cursor: pointer; border: 1px solid #536878; border-radius: 6px; background: white; color: #203343; }
+.display-settings-actions { display: flex; flex-wrap: wrap; gap: 12px; }
+.display-settings-dialog details { border-top: 1px solid #aab9c5; padding: 16px 0; }
+.display-settings-dialog summary { cursor: pointer; font-weight: bold; padding: 8px 0; }
+.display-settings-dialog :focus-visible { outline: 3px solid #356cbf; outline-offset: 3px; }
