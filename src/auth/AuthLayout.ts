@@ -28,6 +28,7 @@ export function mountAuthLayout(
   if (google) {
     const googleSection = document.createElement('details');
     googleSection.className = 'auth-google-option';
+    googleSection.open = true;
     const summary = document.createElement('summary');
     summary.textContent = 'Googleアカウントで続ける';
     googleSection.append(summary, google);
