@@ -16,6 +16,8 @@ import { ShopScene } from './Scene/shop/shop'
 import { RegisterScene } from './Scene/RegisterScene';
 import { LoginScene } from './Scene/LoginScene';
 import './style.css';
+import { loadDisplaySettings } from './display/DisplaySettings';
+const displaySettings = loadDisplaySettings();
 
 
 
@@ -60,7 +62,9 @@ const config: Phaser.Types.Core.GameConfig = {
     }
   },
 
-  pixelArt: true,
+  fps: { target: displaySettings.maxFps, limit: displaySettings.maxFps },
+  pixelArt: displaySettings.quality === 'crisp',
+  render: { antialias: displaySettings.quality === 'smooth', antialiasGL: displaySettings.quality === 'smooth' },
   backgroundColor: '#000000'
 }
 

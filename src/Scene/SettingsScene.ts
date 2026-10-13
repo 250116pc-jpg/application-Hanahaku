@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { openSettingsPanel } from '../display/SettingsPanel';
 import { logout } from '../auth/Session';
 import { preloadSettingsVoice, SettingsVoice } from '../audio/SettingsVoice';
 
@@ -109,6 +110,7 @@ export class SettingsScene extends Phaser.Scene {
       }).finally(() => { loggingOut = false; this.input.enabled = true; });
     }, 240);
 
+    this.createLargeButton(1050, 400, '画面設定・クレジット', () => openSettingsPanel(this), 300);
     this.createBackButton();
     this.createBgmControls();
     this.createSeControls();
