@@ -1,0 +1,14 @@
+{ "columns":1,
+ "image":"..\/maptile_jimen_sogen_01_center.png",
+ "imageheight":500,
+ "imagewidth":500,
+ "margin":0,
+ "name":"maptile_jimen_sogen_01_center",
+ "spacing":0,
+ "tilecount":1,
+ "tiledversion":"1.12.2",
+ "tileheight":500,
+ "tilewidth":500,
+ "type":"tileset",
+ "version":"1.10"
+}

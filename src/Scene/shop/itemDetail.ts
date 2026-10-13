@@ -1,82 +1,79 @@
 import type { ItemDetailView, ShopItem } from './types'
+import { getShopItemImageKey } from './assets'
 
-const DETAIL_WIDTH = 500
-const DETAIL_HEIGHT = 400
+const PANEL_X = 1020
+const PANEL_Y = 405
+const PANEL_WIDTH = 370
+const PANEL_HEIGHT = 532
 
-export function createItemDetail(scene: Phaser.Scene): ItemDetailView {
-  const container = scene.add.container(0, 0)
+export function createItemDetail(
+  scene: Phaser.Scene,
+  onPurchase: (item: ShopItem) => void
+): ItemDetailView {
   let currentItem: ShopItem | null = null
 
-  const centerX = scene.scale.width / 2
-  const centerY = scene.scale.height / 2
-
-  const background = scene.add.rectangle(
-    centerX,
-    centerY,
-    DETAIL_WIDTH,
-    DETAIL_HEIGHT,
-    0x000000,
-    0.9
-  )
-
-  const nameText = scene.add.text(centerX, 180, '', {
-    fontSize: '32px',
-    color: '#ffffff'
+  scene.add.rectangle(
+    PANEL_X,
+    PANEL_Y,
+    PANEL_WIDTH,
+    PANEL_HEIGHT,
+    0xfff8e9,
+    0.98
+  ).setStrokeStyle(3, 0xc89d5a)
+  scene.add.text(PANEL_X, 163, '商品詳細', {
+    fontFamily: '"Yu Gothic", "Meiryo", sans-serif',
+    fontSize: '17px',
+    color: '#7b694a',
+    fontStyle: 'bold',
   }).setOrigin(0.5)
-
-  const descriptionText = scene.add.text(centerX, 240, '', {
+  scene.add.rectangle(PANEL_X, 274, 142, 142, 0xffffff)
+    .setStrokeStyle(2, 0xe1cfad)
+  const itemImage = scene.add.image(PANEL_X, 274, 'shop-flower').setDisplaySize(96, 96)
+  const nameText = scene.add.text(PANEL_X, 375, '商品を選択してください', {
+    fontFamily: '"Yu Gothic", "Meiryo", sans-serif',
+    fontSize: '23px',
+    color: '#263b31',
+    fontStyle: 'bold',
+    align: 'center',
+    wordWrap: { width: PANEL_WIDTH - 48 },
+  }).setOrigin(0.5)
+  scene.add.rectangle(PANEL_X, 415, PANEL_WIDTH - 44, 2, 0xd9c59f)
+  const descriptionText = scene.add.text(PANEL_X - PANEL_WIDTH / 2 + 28, 440, '', {
+    fontFamily: '"Yu Gothic", "Meiryo", sans-serif',
+    fontSize: '17px',
+    color: '#47584a',
+    wordWrap: { width: PANEL_WIDTH - 56 },
+    lineSpacing: 7,
+  })
+  const priceText = scene.add.text(PANEL_X - PANEL_WIDTH / 2 + 28, 526, '', {
+    fontFamily: '"Yu Gothic", "Meiryo", sans-serif',
     fontSize: '20px',
-    color: '#ffffff',
-    wordWrap: { width: DETAIL_WIDTH - 80 }
-  }).setOrigin(0.5)
-
-  const priceText = scene.add.text(centerX, 300, '', {
-    fontSize: '24px',
-    color: '#ffff00'
-  }).setOrigin(0.5)
-
-  const countText = scene.add.text(centerX, 340, '', {
-    fontSize: '20px',
-    color: '#ffffff'
-  }).setOrigin(0.5)
-
-  const buyButton = createTextButton(scene, centerX - 100, 430, '購入する', '#008800')
-  const closeButton = createTextButton(scene, centerX + 100, 430, '閉じる', '#880000')
+    color: '#78521e',
+    fontStyle: 'bold',
+  })
+  const countText = scene.add.text(PANEL_X - PANEL_WIDTH / 2 + 28, 565, '', {
+    fontFamily: '"Yu Gothic", "Meiryo", sans-serif',
+    fontSize: '17px',
+    color: '#52685a',
+  })
+  const buyButton = createTextButton(scene, PANEL_X, 630, '購入する', '#486a4f')
 
   buyButton.on('pointerdown', () => {
     if (!currentItem) return
 
     currentItem.count = (currentItem.count ?? 0) + 1
     countText.setText(formatCount(currentItem))
-    console.log('購入:', currentItem.name)
+    onPurchase(currentItem)
   })
-
-  closeButton.on('pointerdown', () => {
-    container.setVisible(false)
-  })
-
-  container.add([
-    background,
-    nameText,
-    descriptionText,
-    priceText,
-    countText,
-    buyButton,
-    closeButton
-  ])
-
-  container.setVisible(false)
 
   return {
-    container,
     show(item: ShopItem) {
       currentItem = item
+      itemImage.setTexture(getShopItemImageKey(item.id))
       nameText.setText(item.name)
       descriptionText.setText(item.description ?? '説明なし')
-      priceText.setText(`価格: ${item.price}`)
+      priceText.setText(`価格  ${item.price.toLocaleString()} G`)
       countText.setText(formatCount(item))
-      container.setVisible(true)
-      container.setDepth(10)
     }
   }
 }
@@ -89,14 +86,16 @@ function createTextButton(
   backgroundColor: string
 ) {
   return scene.add.text(x, y, label, {
-    fontSize: '24px',
+    fontFamily: '"Yu Gothic", "Meiryo", sans-serif',
+    fontSize: '20px',
     color: '#ffffff',
     backgroundColor,
+    fontStyle: 'bold',
     padding: {
-      left: 20,
-      right: 20,
-      top: 10,
-      bottom: 10
+      left: 42,
+      right: 42,
+      top: 12,
+      bottom: 12
     }
   })
     .setOrigin(0.5)
