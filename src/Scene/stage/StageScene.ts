@@ -3,7 +3,6 @@ import mapJson from '../../assets/stage/test/test_map.json';
 import grassImg from '../../assets/stage/test/grass.png';
 import bagIcon from '../../assets/images/hanahaku_assets_v2/icons/asset_128.png';
 import retreatIcon from '../../assets/images/hanahaku_assets_v2/icons/asset_141.png';
-import { showDebugSceneName } from '../../debug.ts';
 import { loadCharacterAnimation, createCharacterAnimation } from '../../animation/animation.ts';
 import { characterAnimations } from '../../animation/animationData.ts';
 
@@ -29,13 +28,16 @@ export class StageScene extends Phaser.Scene {
     const playerData = characterAnimations.player;
     loadCharacterAnimation(this, 'player_run', playerData.run);
     loadCharacterAnimation(this, 'player_idle', playerData.idle);
+    loadCharacterAnimation(this, 'player_jump', playerData.jump);
+    loadCharacterAnimation(this, 'player_fall', playerData.fall);
+    loadCharacterAnimation(this, 'player_land', playerData.land);
   }
 
-  create(): void {
+  create(data: { stageId?: number } = {}): void {
+    this.physics.world.drawDebug = false;
     const map = this.createMap();
     if (!map) return;
-    
-    showDebugSceneName(this);
+
     this.createPlayerAnimations();
 
     const spawnObject = this.findPlayerSpawn(map);
@@ -44,7 +46,7 @@ export class StageScene extends Phaser.Scene {
     const cursors = this.input.keyboard?.createCursorKeys();
 
     // プレイヤーの生成と設定を Player クラスに委譲
-    this.player = new Player(this, spawnPosition.x, spawnPosition.y, cursors!);
+    this.player = new Player(this, spawnPosition.x, spawnPosition.y, cursors);
     this.player.setupHitbox(spawnObject, map.tileWidth, map.tileHeight);
     
     if (spawnObject) {
@@ -55,7 +57,7 @@ export class StageScene extends Phaser.Scene {
 
     // UI（HUD）の生成を StageHUD クラスに委譲
     this.hud = new StageHUD(this);
-    this.hud.create();
+    this.hud.create(data.stageId);
   }
 
   // =========================
@@ -71,25 +73,7 @@ export class StageScene extends Phaser.Scene {
     if (!layer) return null;
 
     layer.setCollisionByExclusion([-1]);
-    this.createMapDebug(layer);
-
     return map;
-  }
-
-  private createMapDebug(layer: Phaser.Tilemaps.TilemapLayer): void {
-    const debugGraphics = this.add.graphics().setAlpha(0.75);
-
-    try {
-      this.physics.world.createDebugGraphic();
-      this.physics.world.drawDebug = true;
-      this.physics.world.debugGraphic = debugGraphics;
-
-      layer.renderDebug(debugGraphics, {
-        tileColor: new Phaser.Display.Color(0, 0, 0, 0),
-        collidingTileColor: new Phaser.Display.Color(255, 0, 0, 255),
-        faceColor: new Phaser.Display.Color(0, 255, 0, 255)
-      });
-    } catch {}
   }
 
   // =========================
@@ -113,6 +97,19 @@ export class StageScene extends Phaser.Scene {
       playerData.idle.frameCount,
       playerData.idle.frameRate
     );
+
+    for (const action of ['jump', 'fall', 'land'] as const) {
+      const animation = playerData[action];
+      const textureKey = `player_${action}`;
+      createCharacterAnimation(
+        this,
+        `player-${action}`,
+        textureKey,
+        animation.frameCount,
+        animation.frameRate,
+        action === 'land' ? 0 : -1
+      );
+    }
   }
 
   // =========================
