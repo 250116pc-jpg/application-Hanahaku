@@ -4,6 +4,7 @@ import playerRun from '../assets/player/Red Cape Knight Character Asset/Player_R
 import playerJump from '../assets/player/Red Cape Knight Character Asset/Player_Red sheets/Red_jumping.png'
 import playerFall from '../assets/player/Red Cape Knight Character Asset/Player_Red sheets/Red_falling.png'
 import playerLand from '../assets/player/Red Cape Knight Character Asset/Player_Red sheets/Red_landing.png'
+import playerAttack from '../assets/player/Red Cape Knight Character Asset/Player_Red sheets/Red_attack_1.png'
 
 
 export const characterAnimations = {
@@ -45,6 +46,13 @@ export const characterAnimations = {
       frameWidth: 192,
       frameHeight: 128,
       frameCount: 4,
+      frameRate: 12
+    },
+    attack: {
+      image: playerAttack,
+      frameWidth: 192,
+      frameHeight: 128,
+      frameCount: 6,
       frameRate: 12
     }
   }

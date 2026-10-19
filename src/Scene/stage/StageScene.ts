@@ -1,8 +1,12 @@
 import Phaser from 'phaser';
 import mapJson from '../../assets/stage/test/test_map.json';
 import grassImg from '../../assets/stage/test/grass.png';
-import bagIcon from '../../assets/images/hanahaku_assets_v2/icons/asset_128.png';
-import retreatIcon from '../../assets/images/hanahaku_assets_v2/icons/asset_141.png';
+import bagButton from '../../assets/button/bag_button.png';
+import retreatButton from '../../assets/button/retreat_button.png';
+import attackButton from '../../assets/button/attack_button.png';
+import jumpButton from '../../assets/button/jump_button.png';
+import skillButton from '../../assets/button/skill_button.png';
+import flowerIcon from '../../assets/flower.png';
 import { loadCharacterAnimation, createCharacterAnimation } from '../../animation/animation.ts';
 import { characterAnimations } from '../../animation/animationData.ts';
 
@@ -21,8 +25,12 @@ export class StageScene extends Phaser.Scene {
 
   preload(): void {
     this.load.image('tiles', grassImg);
-    this.load.image('stage-bag', bagIcon);
-    this.load.image('stage-retreat', retreatIcon);
+    this.load.image('stage-bag', bagButton);
+    this.load.image('stage-retreat', retreatButton);
+    this.load.image('stage-attack', attackButton);
+    this.load.image('stage-jump', jumpButton);
+    this.load.image('stage-skill', skillButton);
+    this.load.image('stage-flower', flowerIcon);
     this.load.tilemapTiledJSON('map', mapJson);
 
     const playerData = characterAnimations.player;
@@ -31,6 +39,7 @@ export class StageScene extends Phaser.Scene {
     loadCharacterAnimation(this, 'player_jump', playerData.jump);
     loadCharacterAnimation(this, 'player_fall', playerData.fall);
     loadCharacterAnimation(this, 'player_land', playerData.land);
+    loadCharacterAnimation(this, 'player_attack', playerData.attack);
   }
 
   create(data: { stageId?: number } = {}): void {
@@ -56,7 +65,7 @@ export class StageScene extends Phaser.Scene {
     this.setupWorld(map);
 
     // UI（HUD）の生成を StageHUD クラスに委譲
-    this.hud = new StageHUD(this);
+    this.hud = new StageHUD(this, this.player);
     this.hud.create(data.stageId);
   }
 
@@ -98,7 +107,7 @@ export class StageScene extends Phaser.Scene {
       playerData.idle.frameRate
     );
 
-    for (const action of ['jump', 'fall', 'land'] as const) {
+    for (const action of ['jump', 'fall', 'land', 'attack'] as const) {
       const animation = playerData[action];
       const textureKey = `player_${action}`;
       createCharacterAnimation(
@@ -107,7 +116,7 @@ export class StageScene extends Phaser.Scene {
         textureKey,
         animation.frameCount,
         animation.frameRate,
-        action === 'land' ? 0 : -1
+        action === 'land' || action === 'attack' ? 0 : -1
       );
     }
   }
