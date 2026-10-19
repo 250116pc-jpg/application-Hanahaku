@@ -1,4 +1,5 @@
 import backgroundImage from '../../assets/background/2.png';
+import shopkeeperImage from '../../assets/characters/004/004_3.png';
 import redPotionImage from '../../assets/images/hanahaku_assets_v2/items/asset_075.png';
 import bluePotionImage from '../../assets/images/hanahaku_assets_v2/items/asset_076.png';
 import greenPotionImage from '../../assets/images/hanahaku_assets_v2/items/asset_078.png';
@@ -27,6 +28,7 @@ const itemImages: Record<string, string> = {
 
 export function preloadShopAssets(scene: Phaser.Scene): void {
   scene.load.image(SHOP_BACKGROUND_KEY, backgroundImage);
+  scene.load.image('shopkeeper', shopkeeperImage);
   for (const [key, image] of Object.entries(itemImages)) {
     scene.load.image(key, image);
   }

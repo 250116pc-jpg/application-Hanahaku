@@ -1,13 +1,13 @@
 import type { ShopItem } from './types'
 import { getShopItemImageKey } from './assets'
 
-export const SHOP_LIST_BOUNDS = { x: 32, y: 128, width: 790, height: 552 } as const
-const CARD_WIDTH = 246
+export const SHOP_LIST_BOUNDS = { x: 32, y: 128, width: 700, height: 552 } as const
+const CARD_WIDTH = 220
 const CARD_HEIGHT = 160
-const CARD_GAP_X = 14
+const CARD_GAP_X = 12
 const CARD_GAP_Y = 14
 const ITEMS_PER_ROW = 3
-const START_X = 160
+const START_X = 144
 const START_Y = 208
 
 export function createShopItemList(
@@ -59,7 +59,12 @@ export function createShopItemList(
       background.setFillStyle(0xfff8e9, 0.97)
       background.setStrokeStyle(item.id === selectedItemId ? 4 : 2, item.id === selectedItemId ? 0x557649 : 0xb68b4d)
     })
-    background.on('pointerdown', () => {
+    background.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
+      // Geometry masks hide clipped cards visually, but Phaser still hit-tests them.
+      // Ignore hits outside the visible list, including cards scrolled beneath the header.
+      const { x: listX, y: listY, width, height } = SHOP_LIST_BOUNDS
+      if (pointer.x < listX || pointer.x > listX + width || pointer.y < listY || pointer.y > listY + height) return
+
       selectedItemId = item.id
       for (const [id, cardBackground] of cardBackgrounds) {
         cardBackground.setStrokeStyle(id === selectedItemId ? 4 : 2, id === selectedItemId ? 0x557649 : 0xb68b4d)

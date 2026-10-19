@@ -1,9 +1,9 @@
 import type { ItemDetailView, ShopItem } from './types'
 import { getShopItemImageKey } from './assets'
 
-const PANEL_X = 1020
+const PANEL_X = 840
 const PANEL_Y = 405
-const PANEL_WIDTH = 370
+const PANEL_WIDTH = 220
 const PANEL_HEIGHT = 532
 
 export function createItemDetail(
