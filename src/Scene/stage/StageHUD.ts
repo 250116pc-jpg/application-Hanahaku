@@ -130,9 +130,12 @@ export class StageHUD {
     const w = this.scene.scale.width;
     const h = this.scene.scale.height;
     const baseX = w - 72;
-    this.imageButton(baseX, h - 132, 90, '', 'stage-attack', () => this.player?.attack());
-    this.imageButton(baseX - 104, h - 94, 82, '', 'stage-skill', () => {});
-    this.imageButton(baseX + 2, h - 34, 78, '', 'stage-jump', () => this.player?.jump());
+    //攻撃
+    this.imageButton(baseX - 154, h - 94, 130, '', 'stage-attack', () => this.player?.attack());
+    //スキル
+    this.imageButton(baseX - 20, h - 172,  100, '', 'stage-skill', () => {});
+    //ジャンプ
+    this.imageButton(baseX - 40, h - 64, 130, '', 'stage-jump', () => this.player?.jump());
   }
 
   private imageButton(x: number, y: number, size: number, label: string, texture: string, onClick: () => void): void {
