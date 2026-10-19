@@ -1,8 +1,8 @@
 import Phaser from 'phaser';
-import mapJson from '../../assets/stage/test/test_map.json';
-import grassImg from '../../assets/stage/test/grass.png';
+import mapUrl from '../../assets/stage/flower_ruins/flower_ruins_example.tmj?url';
+import terrainImg from '../../assets/stage/flower_ruins/flower_ruins.png';
+import backgroundImg from '../../assets/stage/flower_ruins/flower_ruins_background.png';
 import bagButton from '../../assets/button/bag_button.png';
-import retreatButton from '../../assets/button/retreat_button.png';
 import attackButton from '../../assets/button/attack_button.png';
 import jumpButton from '../../assets/button/jump_button.png';
 import skillButton from '../../assets/button/skill_button.png';
@@ -24,14 +24,14 @@ export class StageScene extends Phaser.Scene {
   }
 
   preload(): void {
-    this.load.image('tiles', grassImg);
+    this.load.image('stage-terrain', terrainImg);
+    this.load.image('stage-background', backgroundImg);
     this.load.image('stage-bag', bagButton);
-    this.load.image('stage-retreat', retreatButton);
     this.load.image('stage-attack', attackButton);
     this.load.image('stage-jump', jumpButton);
     this.load.image('stage-skill', skillButton);
     this.load.image('stage-flower', flowerIcon);
-    this.load.tilemapTiledJSON('map', mapJson);
+    this.load.tilemapTiledJSON('map', mapUrl);
 
     const playerData = characterAnimations.player;
     loadCharacterAnimation(this, 'player_run', playerData.run);
@@ -46,6 +46,13 @@ export class StageScene extends Phaser.Scene {
     this.physics.world.drawDebug = false;
     const map = this.createMap();
     if (!map) return;
+
+    this.add.image(0, 0, 'stage-background')
+      .setOrigin(0, 0)
+      .setDisplaySize(map.widthInPixels, Math.max(map.heightInPixels, this.scale.height))
+      // Keep ruins and castle aligned with the tiled ground while the camera follows the player.
+      .setScrollFactor(1, 1)
+      .setDepth(-100);
 
     this.createPlayerAnimations();
 
@@ -74,11 +81,11 @@ export class StageScene extends Phaser.Scene {
   // =========================
   private createMap(): Phaser.Tilemaps.Tilemap | null {
     const map = this.make.tilemap({ key: 'map' });
-    const tileset = map.addTilesetImage('grass', 'tiles');
+    const tileset = map.addTilesetImage('flower_ruins', 'stage-terrain');
 
     if (!tileset) return null;
 
-    const layer = map.createLayer('タイルレイヤー1', tileset, 0, 0);
+    const layer = map.createLayer('地形', tileset, 0, 0);
     if (!layer) return null;
 
     layer.setCollisionByExclusion([-1]);

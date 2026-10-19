@@ -1,8 +1,9 @@
 import Phaser from 'phaser';
-import { getTextStyle, showRetreatDialog } from '../../utils/ui/index.ts';
+import { getTextStyle } from '../../utils/ui/index.ts';
 import testData from '../test_data.ts';
 import { SCENE_KEYS } from '../sceneKeys';
 import type { Player } from './Player';
+import retreatButtonAsset from '../../assets/button/retreat_button.png';
 
 /** Screen-fixed controls and status display for the side-scrolling stage. */
 export class StageHUD {
@@ -11,6 +12,7 @@ export class StageHUD {
   private readonly player?: Player;
   private selectedFlower = 0;
   private readonly partySelectionBorders: Phaser.GameObjects.Graphics[] = [];
+  private retreatDialog: HTMLDivElement | null = null;
 
   constructor(scene: Phaser.Scene, player?: Player) {
     this.scene = scene;
@@ -56,9 +58,134 @@ export class StageHUD {
   private createUtilityButtons(): void {
     this.imageButton(72, 170, 74, '', 'stage-bag', () => this.openInventory());
     const x = this.scene.scale.width - 68;
-    this.imageButton(x, 150, 76, '', 'stage-retreat', () => {
-      showRetreatDialog(this.scene, () => this.scene.scene.start(SCENE_KEYS.SELECT_STAGE));
+    this.createRetreatDomButton(x, 150, 76);
+  }
+
+  private createRetreatDomButton(x: number, y: number, size: number): void {
+    const canvas = this.scene.game.canvas;
+    if (!canvas.parentElement) return;
+
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.setAttribute('aria-label', '撤退');
+    Object.assign(button.style, {
+      position: 'fixed',
+      margin: '0',
+      padding: '0',
+      border: '0',
+      background: `url("${retreatButtonAsset}") center / contain no-repeat`,
+      cursor: 'pointer',
+      zIndex: '10000',
+      touchAction: 'manipulation'
     });
+
+    const placeButton = (): void => {
+      const canvasRect = canvas.getBoundingClientRect();
+      const scaleX = canvasRect.width / this.scene.scale.width;
+      const scaleY = canvasRect.height / this.scene.scale.height;
+      button.style.left = `${canvasRect.left + x * scaleX - size * scaleX / 2}px`;
+      button.style.top = `${canvasRect.top + y * scaleY - size * scaleY / 2}px`;
+      button.style.width = `${size * scaleX}px`;
+      button.style.height = `${size * scaleY}px`;
+    };
+
+    document.body.appendChild(button);
+    placeButton();
+    const resizeObserver = new ResizeObserver(placeButton);
+    resizeObserver.observe(canvas);
+    window.addEventListener('resize', placeButton);
+
+    button.addEventListener('click', () => {
+      if (this.retreatDialog) return;
+      this.retreatDialog = this.createRetreatDialog();
+    });
+
+    this.scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      resizeObserver.disconnect();
+      window.removeEventListener('resize', placeButton);
+      button.remove();
+      this.retreatDialog?.remove();
+      this.retreatDialog = null;
+    });
+  }
+
+  private createRetreatDialog(): HTMLDivElement {
+    const canvasRect = this.scene.game.canvas.getBoundingClientRect();
+    const dialog = document.createElement('div');
+    dialog.setAttribute('role', 'dialog');
+    dialog.setAttribute('aria-modal', 'true');
+    dialog.setAttribute('aria-label', '撤退確認');
+    Object.assign(dialog.style, {
+      position: 'fixed',
+      left: `${canvasRect.left}px`,
+      top: `${canvasRect.top}px`,
+      width: `${canvasRect.width}px`,
+      height: `${canvasRect.height}px`,
+      zIndex: '10001',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      background: 'rgba(0, 0, 0, 0.55)',
+      fontFamily: 'Yu Mincho, YuMincho, serif'
+    });
+
+    const panel = document.createElement('div');
+    Object.assign(panel.style, {
+      boxSizing: 'border-box',
+      width: 'min(650px, 90%)',
+      minHeight: '300px',
+      padding: '42px 28px',
+      border: '3px solid #536878',
+      borderRadius: '12px',
+      background: '#fff',
+      color: '#17212a',
+      textAlign: 'center',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: '20px'
+    });
+    const title = document.createElement('div');
+    title.textContent = 'ステージから撤退しますか？';
+    Object.assign(title.style, { fontSize: 'clamp(20px, 3vw, 32px)', fontWeight: 'bold' });
+    const warning = document.createElement('div');
+    warning.textContent = '進行状況が失われます。';
+    Object.assign(warning.style, { fontSize: 'clamp(16px, 2vw, 24px)', color: '#444' });
+    const actions = document.createElement('div');
+    Object.assign(actions.style, { display: 'flex', gap: '18px', justifyContent: 'center', flexWrap: 'wrap' });
+    const makeAction = (label: string, onClick: () => void): HTMLButtonElement => {
+      const action = document.createElement('button');
+      action.type = 'button';
+      action.textContent = label;
+      Object.assign(action.style, {
+        minWidth: '180px',
+        minHeight: '58px',
+        padding: '8px 18px',
+        border: '2px solid #333',
+        borderRadius: '8px',
+        background: '#fff',
+        color: '#111',
+        font: 'bold 20px Yu Mincho, YuMincho, serif',
+        cursor: 'pointer'
+      });
+      action.addEventListener('click', onClick);
+      action.addEventListener('pointerenter', () => { action.style.background = '#eaf4fb'; });
+      action.addEventListener('pointerleave', () => { action.style.background = '#fff'; });
+      return action;
+    };
+    actions.append(
+      makeAction('キャンセル', () => { dialog.remove(); this.retreatDialog = null; }),
+      makeAction('撤退する', () => {
+        dialog.remove();
+        this.retreatDialog = null;
+        this.scene.scene.start(SCENE_KEYS.SELECT_STAGE);
+      })
+    );
+    panel.append(title, warning, actions);
+    dialog.append(panel);
+    document.body.append(dialog);
+    return dialog;
   }
 
   private createPartyHud(): void {
@@ -140,14 +267,25 @@ export class StageHUD {
 
   private imageButton(x: number, y: number, size: number, label: string, texture: string, onClick: () => void): void {
     const image = this.scene.add.image(x, y, texture).setDisplaySize(size, size)
-      .setScrollFactor(0).setDepth(this.depth + 3).setInteractive({ useHandCursor: true });
+      .setScrollFactor(0).setDepth(this.depth + 3);
+    // Use a screen-fixed rectangular target independent of the PNG's transparent pixels.
+    // Phaser skips fully transparent objects during input hit testing, so keep a tiny alpha.
+    const hitArea = this.scene.add.rectangle(x, y, size, size, 0xffffff, 0.01)
+      .setScrollFactor(0).setDepth(this.depth + 5)
+      .setInteractive(new Phaser.Geom.Rectangle(0, 0, size, size), Phaser.Geom.Rectangle.Contains);
+    if (hitArea.input) hitArea.input.cursor = 'pointer';
     this.text(x, y + size * 0.34, label, Math.max(10, size * 0.15), '#fff4e8', 'bold')
       .setOrigin(0.5).setDepth(this.depth + 4);
     // setDisplaySize changes displayWidth/Height; preserve that base scale for hover feedback.
     const baseScale = image.scale;
-    image.on('pointerover', () => this.scene.tweens.add({ targets: image, scale: baseScale * 1.04, duration: 90 }));
-    image.on('pointerout', () => this.scene.tweens.add({ targets: image, scale: baseScale, duration: 90 }));
-    image.on('pointerdown', onClick);
+    hitArea.on('pointerover', () => this.scene.tweens.add({ targets: image, scale: baseScale * 1.04, duration: 90 }));
+    hitArea.on('pointerout', () => this.scene.tweens.add({ targets: image, scale: baseScale, duration: 90 }));
+    hitArea.on('pointerdown', () => image.setScale(baseScale * 0.97));
+    hitArea.on('pointerup', () => {
+      image.setScale(baseScale);
+      onClick();
+    });
+    hitArea.on('pointerupoutside', () => image.setScale(baseScale));
   }
 
   private panel(x: number, y: number, w: number, h: number, radius: number, alpha = 0.94, highlight = false): void {
