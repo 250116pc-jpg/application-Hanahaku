@@ -1,4 +1,5 @@
 import Phaser from 'phaser'
+import { preloadCharacterImages, addCharacterImage } from '../utils/characterImage'
 
 import flowerImg from '../assets/flower.png'
 import testData from './test_data'
@@ -34,6 +35,7 @@ export class CharacterDetailScene extends Phaser.Scene {
   }
 
   preload(): void {
+    preloadCharacterImages(this)
     this.load.image('detailFlower', flowerImg)
   }
 
@@ -69,8 +71,7 @@ export class CharacterDetailScene extends Phaser.Scene {
     this.add.rectangle(310, 285, 360, 360, 0xffffff)
       .setStrokeStyle(2, BORDER_COLOR)
 
-    this.add.image(310, 285, 'detailFlower')
-      .setScale(0.75)
+    addCharacterImage(this, 310, 285, this.findCharacter().id, 'detailFlower', 0.75, 280)
   }
 
   private createBasicInfo(character: CharacterData): void {

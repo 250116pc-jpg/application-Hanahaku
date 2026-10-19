@@ -1,4 +1,5 @@
 import Phaser from 'phaser'
+import { addCharacterImage } from '../utils/characterImage'
 import type { CharacterData } from '../Scene/test_data'
 import { getTextStyle } from '../utils/ui'
 
@@ -56,11 +57,10 @@ export class FormUI {
       )
     )
 
-    const image = this.scene.add.image(
-      width / 2,
-      48 * scale,
-      'formFlower'
-    ).setScale(0.18 * scale)
+    const image = addCharacterImage(
+      this.scene, width / 2, 43 * scale, character.id,
+      'formFlower', 0.18 * scale, 42 * scale
+    )
 
     const nameText = this.scene.add.text(
       8 * scale,

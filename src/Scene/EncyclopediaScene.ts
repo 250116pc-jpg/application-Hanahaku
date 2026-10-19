@@ -1,4 +1,5 @@
 import Phaser from 'phaser'
+import { preloadCharacterImages, addCharacterImage } from '../utils/characterImage'
 
 import flowerImg from '../assets/flower.png'
 import { EncyclopediaListView } from './encyclopedia/EncyclopediaListView'
@@ -17,7 +18,7 @@ const PANEL_COLOR = 0xffffff
 export class EncyclopediaScene extends Phaser.Scene {
   private selectedSeason: Season = '春'
   private readonly registeredIds = new Set(
-    testData.formation.filter((id): id is number => id !== null)
+    testData.registeredCharacterIds
   )
 
   constructor() {
@@ -25,6 +26,7 @@ export class EncyclopediaScene extends Phaser.Scene {
   }
 
   preload(): void {
+    preloadCharacterImages(this)
     this.load.image('encyclopediaFlower', flowerImg)
   }
 
@@ -77,7 +79,7 @@ export class EncyclopediaScene extends Phaser.Scene {
 
   private createCharacterPanel(character: CharacterData): void {
     this.add.rectangle(285, 270, 360, 340, PANEL_COLOR).setStrokeStyle(2, BORDER_COLOR)
-    this.add.image(285, 250, 'encyclopediaFlower').setScale(0.75)
+    addCharacterImage(this, 285, 250, character.id, 'encyclopediaFlower', 0.75, 260)
     this.add.text(285, 405, character.name, getTextStyle(26)).setOrigin(0.5)
   }
 

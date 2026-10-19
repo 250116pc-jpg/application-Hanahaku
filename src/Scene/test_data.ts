@@ -139,6 +139,9 @@ const characters: CharacterData[] = [
   createCharacter(16, 'ミモザ', 'ミモザ', 2, 11, '風', '回復', '冬', 580, 290, 84, 82, 115)
 ]
 
+// Prototype contract seed; replace with saved contract IDs when the API is ready.
+// Keep ownership separate from the current party so removing a flower does not unregister it.
+const registeredCharacterIds: number[] = [1, 3, 10]
 const formation: Array<number | null> = [1, 3, 10, null]
 const stages = [
   {
@@ -275,5 +278,6 @@ export default {
   shopItems,
   characters,
   formation,
+  registeredCharacterIds,
   stages
 }
