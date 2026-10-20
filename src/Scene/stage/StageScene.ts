@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
-import mapUrl from '../../assets/stage/flower_ruins/flower_ruins_example.tmj?url';
-import terrainImg from '../../assets/stage/flower_ruins/flower_ruins.png';
+import mapUrl from '../../assets/stage/Cainos/cainos_stage.tmj?url';
+import terrainImg from '../../assets/stage/Cainos/Pixel Art Platformer - Village Props/Texture/TX Tileset Ground.png';
+import propsImg from '../../assets/stage/Cainos/Pixel Art Platformer - Village Props/Texture/TX Village Props.png';
 import backgroundImg from '../../assets/stage/flower_ruins/flower_ruins_background.png';
 import bagButton from '../../assets/button/bag_button.png';
 import attackButton from '../../assets/button/attack_button.png';
@@ -25,6 +26,7 @@ export class StageScene extends Phaser.Scene {
 
   preload(): void {
     this.load.image('stage-terrain', terrainImg);
+    this.load.image('stage-props', propsImg);
     this.load.image('stage-background', backgroundImg);
     this.load.image('stage-bag', bagButton);
     this.load.image('stage-attack', attackButton);
@@ -53,6 +55,7 @@ export class StageScene extends Phaser.Scene {
       // Keep ruins and castle aligned with the tiled ground while the camera follows the player.
       .setScrollFactor(1, 1)
       .setDepth(-100);
+    this.createMapDecorations(map);
 
     this.createPlayerAnimations();
 
@@ -81,15 +84,53 @@ export class StageScene extends Phaser.Scene {
   // =========================
   private createMap(): Phaser.Tilemaps.Tilemap | null {
     const map = this.make.tilemap({ key: 'map' });
-    const tileset = map.addTilesetImage('flower_ruins', 'stage-terrain');
+    const tileset = map.addTilesetImage('Cainos Ground', 'stage-terrain');
 
     if (!tileset) return null;
 
     const layer = map.createLayer('地形', tileset, 0, 0);
     if (!layer) return null;
 
-    layer.setCollisionByExclusion([-1]);
+    layer.setCollisionByProperty({ solid: true });
     return map;
+  }
+
+  private createMapDecorations(map: Phaser.Tilemaps.Tilemap): void {
+    const propsTexture = this.textures.get('stage-props');
+    const propFrames = ['tree-01', 'tree-02', 'bush-02', 'bush-03', 'brick-wall'];
+    const frames = [
+      { key: 'tree-01', x: 833, y: 446, width: 153, height: 163 },
+      { key: 'tree-02', x: 694, y: 471, width: 120, height: 138 },
+      { key: 'bush-02', x: 452, y: 573, width: 89, height: 36 },
+      { key: 'bush-03', x: 576, y: 572, width: 95, height: 37 },
+      { key: 'brick-wall', x: 733, y: 629, width: 136, height: 43 },
+    ];
+    frames.forEach(frame => {
+      if (!propsTexture.has(frame.key)) {
+        propsTexture.add(frame.key, 0, frame.x, frame.y, frame.width, frame.height);
+      }
+    });
+
+    const decorations = map.getObjectLayer('装飾');
+    decorations?.objects.forEach(object => {
+      const rawProperties = object.properties;
+      const frameFromTile = object.gid === undefined ? undefined : propFrames[object.gid - 257];
+      const frameFromProperty = Array.isArray(rawProperties)
+        ? rawProperties.find(property => property.name === 'frame')?.value
+        : (rawProperties as Record<string, unknown> | undefined)?.frame;
+      const frame = frameFromTile ?? frameFromProperty;
+      if (typeof frame !== 'string' || !propsTexture.has(frame)) return;
+
+      const width = object.width ?? 0;
+      const height = object.height ?? 0;
+      const imageX = (object.x ?? 0) + width / 2;
+      const imageY = (object.y ?? 0) + (object.gid === undefined ? height : 0);
+      this.add.image(imageX, imageY, 'stage-props', frame)
+        .setOrigin(0.5, 1)
+        .setDisplaySize(width, height)
+        .setScrollFactor(1, 1)
+        .setDepth(-1);
+    });
   }
 
   // =========================
