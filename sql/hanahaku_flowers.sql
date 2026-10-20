@@ -1,14 +1,21 @@
 USE hanahaku;
 
+CREATE TABLE IF NOT EXISTS `skill` (
+    `id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    `name` TEXT NOT NULL,
+    `description` TEXT NULL,
+    `upgrade_data` JSON NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS flowers (
  `id` INT NOT NULL AUTO_INCREMENT COMMENT 'ただのID',
  `name` VARCHAR(100) NOT NULL COMMENT '花の名前',
  `level` INT NULL COMMENT '花のレベル',
  `skill_level` INT NULL COMMENT 'スキルのレベル',
- `enhance_id` INT NULL COMMENT '強化ID（参照先未作成）',
+ `upgrade_id` INT NULL COMMENT '強化ID（参照先未作成）',
  `Game_image` VARCHAR(255) NULL COMMENT 'ゲームの花画像',
  `Real_image` VARCHAR(255) NULL COMMENT 'リアルな花画像',
- `skill_id` INT NULL COMMENT 'スキルの種類（参照先未作成）',
+ `skill_id` INT NULL COMMENT 'スキルの種類',
  `MP` INT NULL COMMENT '花の精神力',
  `ATK` INT NULL COMMENT '攻撃力',
  `CRT` FLOAT NULL COMMENT 'クリティカル率（0～1）',
@@ -20,6 +27,7 @@ CREATE TABLE IF NOT EXISTS flowers (
  `RES_Ground` INT NULL COMMENT '土耐性',
  `explain` TEXT NULL COMMENT '説明',
  PRIMARY KEY (id),
+ CONSTRAINT fk_flowers_skill FOREIGN KEY (skill_id) REFERENCES skill(id) ON DELETE RESTRICT ON UPDATE RESTRICT,
  CONSTRAINT chk_flower_critical_rate CHECK (CRT IS NULL OR CRT BETWEEN 0 AND 1)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -50,7 +58,8 @@ CREATE TABLE IF NOT EXISTS ally (
     skill_id INT NULL,
     description TEXT NULL,
     req_items JSON NULL,
-    PRIMARY KEY (id)
+    PRIMARY KEY (id),
+    CONSTRAINT fk_ally_skill FOREIGN KEY (skill_id) REFERENCES skill(id) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS enemy (
