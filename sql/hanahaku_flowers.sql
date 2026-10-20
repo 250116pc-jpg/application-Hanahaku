@@ -1,6 +1,3 @@
--- 最新設計書準拠。データのINSERTは行いません。
--- enhance_id / skill_id の外部キーは参照先テーブル作成後に設定します。
--- 既存テーブルの構造変更は CREATE TABLE IF NOT EXISTS では行われません。
 USE hanahaku;
 
 CREATE TABLE IF NOT EXISTS flowers (
