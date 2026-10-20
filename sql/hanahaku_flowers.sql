@@ -43,18 +43,10 @@ CREATE TABLE IF NOT EXISTS items (
     PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS shop (
-    id INT NOT NULL AUTO_INCREMENT,
-    name VARCHAR(255) NOT NULL,
-    `explain` TEXT NULL,
-    price INT NULL,
-    PRIMARY KEY (id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
 CREATE TABLE IF NOT EXISTS ally (
     id INT NOT NULL AUTO_INCREMENT,
     name TEXT NOT NULL,
-    enhance_id INT NULL,
+    upgrade_id INT NULL,
     skill_id INT NULL,
     description TEXT NULL,
     req_items JSON NULL,
@@ -64,9 +56,10 @@ CREATE TABLE IF NOT EXISTS ally (
 CREATE TABLE IF NOT EXISTS enemy (
     id INT NOT NULL AUTO_INCREMENT,
     name TEXT NOT NULL,
-    enhance_id INT NULL,
+    upgrade_id INT NULL,
     flower_id INT NULL,
     description TEXT NULL,
     stages JSON NULL,
-    PRIMARY KEY (id)
+    PRIMARY KEY (id),
+    CONSTRAINT fk_enemy_flower FOREIGN KEY (flower_id) REFERENCES flowers(id) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
