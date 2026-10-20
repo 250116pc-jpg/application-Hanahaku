@@ -6,9 +6,8 @@ import bg2Img from '../assets/background/home_image2.png'
 import bg3Img from '../assets/background/home_image3.png'
 import bg4Img from '../assets/background/home_image4.png'
 import btn1Img from '../assets/ui/button1.png'
-import flower1Img from '../assets/images/f1.png'
-import flower2Img from '../assets/images/f2.png'
-import flower3Img from '../assets/images/f3.png'
+import { loadCharacterAnimation, createCharacterAnimation, createCharacterSprite } from '../animation/animation'
+import { characterAnimations } from '../animation/animationData'
 
 import { createButton } from './HomeScene/buttons'
 //debug機能
@@ -20,7 +19,6 @@ import { showDebugSceneName } from '../debug';
 
 export class HomeScene extends Phaser.Scene {
   private readonly backgroundKeys = ['bg1', 'bg2', 'bg3', 'bg4']
-  private flowerKeys: string[] = ['flower1', 'flower2', 'flower3']
 
   constructor() {
     super('HomeScene')
@@ -33,10 +31,9 @@ export class HomeScene extends Phaser.Scene {
     this.load.image('bg3', bg3Img)
     this.load.image('bg4', bg4Img)
 
-    // 花の画像リスト
-    this.load.image('flower1', flower1Img)
-    this.load.image('flower2', flower2Img)
-    this.load.image('flower3', flower3Img)
+    // ホーム表示用のプレイヤー待機アニメーション
+    loadCharacterAnimation(this, 'home-player-idle', characterAnimations.player.idle)
+    loadCharacterAnimation(this, 'home-player-run', characterAnimations.player.run)
 
     // ボタン画像
     this.load.image('button1', btn1Img)
@@ -62,12 +59,38 @@ export class HomeScene extends Phaser.Scene {
     // UI用のコンテナ
     const ui = this.add.container(-40, 0)
 
-    // 2. 中央にランダムな花を表示（枠は削除）
-    const randomFlowerKey = Phaser.Utils.Array.GetRandom(this.flowerKeys)
-    // 画像の表示位置は元の四角の領域の中央付近（例: x=380, y=320）に調整
-    const flower = this.add.image(400, 320, randomFlowerKey)
-    flower.setScale(1.2) // 必要に応じて拡大・縮小
-    ui.add(flower)
+    // 2. 左側にプレイヤーを表示（物理・移動操作なしで待機をループ再生）
+    const idle = characterAnimations.player.idle
+    // 共通定義は変更せず、ホームでは画像に存在するコマ数に収める
+    const idleFrameCount = Math.min(idle.frameCount, this.textures.get('home-player-idle').frameTotal - 1)
+    createCharacterAnimation(this, 'home-player-idle', 'home-player-idle', idleFrameCount, idle.frameRate)
+    const player = createCharacterSprite(this, 420, 390, 'home-player-idle', 'home-player-idle')
+    player.setScale(2.25)
+    ui.add(player)
+    const run = characterAnimations.player.run
+    createCharacterAnimation(this, 'home-player-run', 'home-player-run', run.frameCount, run.frameRate)
+    player.setInteractive({ useHandCursor: true })
+    player.on('pointerdown', () => {
+      // 往復中の連打による移動の重複を防ぐ
+      if (player.anims.currentAnim?.key !== 'home-player-idle') return
+      const startX = player.x
+      const startFlipX = player.flipX
+      player.setFlipX(false)
+      player.play('home-player-run')
+      this.tweens.add({
+        targets: player,
+        x: startX + 120,
+        duration: 900,
+        ease: 'Linear',
+        yoyo: true,
+        onYoyo: () => player.setFlipX(true),
+        onComplete: () => {
+          player.setX(startX)
+          player.setFlipX(startFlipX)
+          player.play('home-player-idle')
+        }
+      })
+    })
 
     // 3. ナビゲーションボタンの配置
     this.createNavigationButtons(ui)
