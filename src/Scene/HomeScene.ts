@@ -1,9 +1,11 @@
 import Phaser from 'phaser'
 
 // アセットのインポート（実際のファイルパスに合わせて調整してください）
-import bg1Img from '../assets/background/home.png'
+import bg1Img from '../assets/background/home_image1.png'
+import bg2Img from '../assets/background/home_image2.png'
+import bg3Img from '../assets/background/home_image3.png'
+import bg4Img from '../assets/background/home_image4.png'
 import btn1Img from '../assets/ui/button1.png'
-import bg2Img from '../assets/images/home2.png'
 import flower1Img from '../assets/images/f1.png'
 import flower2Img from '../assets/images/f2.png'
 import flower3Img from '../assets/images/f3.png'
@@ -17,6 +19,7 @@ import { showDebugSceneName } from '../debug';
 
 
 export class HomeScene extends Phaser.Scene {
+  private readonly backgroundKeys = ['bg1', 'bg2', 'bg3', 'bg4']
   private flowerKeys: string[] = ['flower1', 'flower2', 'flower3']
 
   constructor() {
@@ -24,9 +27,11 @@ export class HomeScene extends Phaser.Scene {
   }
 
   preload(): void {
-    // 背景画像（2種類）
+    // 背景画像（表示順に4種類）
     this.load.image('bg1', bg1Img)
     this.load.image('bg2', bg2Img)
+    this.load.image('bg3', bg3Img)
+    this.load.image('bg4', bg4Img)
 
     // 花の画像リスト
     this.load.image('flower1', flower1Img)
@@ -43,16 +48,16 @@ export class HomeScene extends Phaser.Scene {
     const width = this.scale.width
     const height = this.scale.height
 
-    // 1. 背景の交互切り替え処理
-    let bgIndex = this.registry.get('bgIndex') ?? 0
-    const bgKey = bgIndex % 2 === 0 ? 'bg1' : 'bg2'
+    // 1. ホームに戻るたびに背景を1→2→3→4→1の順で切り替える
+    const bgIndex = this.registry.get('bgIndex') ?? 0
+    const bgKey = this.backgroundKeys[bgIndex % this.backgroundKeys.length]
     
     // 背景画像を追加して画面サイズに合わせる
     const bg = this.add.image(width / 2, height / 2, bgKey)
     bg.setDisplaySize(width, height)
 
     // 次回戻ってきたとき用にインデックスを更新
-    this.registry.set('bgIndex', bgIndex + 1)
+    this.registry.set('bgIndex', (bgIndex + 1) % this.backgroundKeys.length)
 
     // UI用のコンテナ
     const ui = this.add.container(-40, 0)
