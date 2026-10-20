@@ -246,14 +246,22 @@ export class SettingsScene extends Phaser.Scene {
         message: 'ずんだもんの声を調整できます。\n話している間はBGMが小さくなります。' },
       { target: new Phaser.Geom.Rectangle(118, 610, 240, 85),
         message: 'ミュートを押すと音を消せます。\nもう一度押すと元に戻ります。' },
+      { target: new Phaser.Geom.Rectangle(890, 355, 320, 90),
+        message: '「画面設定・クレジット」から、\n最大FPSと画質を変更できます。\n保存後、再読み込みすると反映されます。' },
+      { target: new Phaser.Geom.Rectangle(890, 355, 320, 90),
+        message: '同じ画面の「クレジットを見る」で、\n制作チームや使用した素材・音声の\n情報を確認できます。' },
       { target: new Phaser.Geom.Rectangle(900, 458, 300, 85),
         message: 'BGM50%、SE70%、音声100%に戻し、\nミュートも解除します。' },
+      { target: new Phaser.Geom.Rectangle(955, 260, 260, 90),
+        message: '「ログアウト」を押すと、\nログイン状態を解除してログイン画面へ戻ります。\n別のアカウントに切り替えるときに使います。' },
       { target: new Phaser.Geom.Rectangle(900, 578, 300, 85),
         message: '「保存して戻る」を押すと、\n変更した音量が次回も残ります。' }
     ];
     if (index >= steps.length) return;
 
     const { target, message } = steps[index];
+    // Keep the guide beside right-hand controls rather than covering them.
+    const panelOffsetX = target.x >= 850 ? -440 : 0;
     const right = this.scale.width + 40;
     const bottom = this.scale.height;
     const dim = (x: number, y: number, width: number, height: number) => {
@@ -269,21 +277,21 @@ export class SettingsScene extends Phaser.Scene {
     this.guideObjects.push(this.add.graphics().setDepth(5001)
       .lineStyle(4, 0xffdc70, 1)
       .strokeRoundedRect(target.x - 4, target.y - 4, target.width + 8, target.height + 8, 12));
-    this.guideObjects.push(this.add.rectangle(850, 350, 620, 200, 0xffffff, 0.98)
+    this.guideObjects.push(this.add.rectangle(850 + panelOffsetX, 350, 620, 240, 0xffffff, 0.98)
       .setStrokeStyle(3, 0x536878).setDepth(5002).setInteractive());
-    this.guideObjects.push(this.add.text(565, 267, `操作ガイド  ${index + 1} / ${steps.length}`,
+    this.guideObjects.push(this.add.text(565 + panelOffsetX, 247, `操作ガイド  ${index + 1} / ${steps.length}`,
       { ...this.getTextStyle(25), fontStyle: 'bold' }).setDepth(5003));
-    this.guideObjects.push(this.add.text(565, 315, message,
+    this.guideObjects.push(this.add.text(565 + panelOffsetX, 295, message,
       { ...this.getTextStyle(23), wordWrap: { width: 550 } }).setDepth(5003));
 
-    const skip = this.add.text(710, 412, 'スキップ', {
+    const skip = this.add.text(710 + panelOffsetX, 432, 'スキップ', {
       ...this.getTextStyle(23), backgroundColor: '#e7edf2',
       padding: { left: 22, right: 22, top: 12, bottom: 12 }
     }).setOrigin(0.5).setDepth(5004).setInteractive({ useHandCursor: true });
     skip.on('pointerup', () => this.clearGuide());
     this.guideObjects.push(skip);
 
-    const next = this.add.text(1010, 412, index === steps.length - 1 ? '完了' : '次へ', {
+    const next = this.add.text(1010 + panelOffsetX, 432, index === steps.length - 1 ? '完了' : '次へ', {
       ...this.getTextStyle(23), backgroundColor: '#ffdc70',
       padding: { left: 28, right: 28, top: 12, bottom: 12 }
     }).setOrigin(0.5).setDepth(5004).setInteractive({ useHandCursor: true });
