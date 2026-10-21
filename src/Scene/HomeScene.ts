@@ -98,34 +98,34 @@ export class HomeScene extends Phaser.Scene {
 
   private createNavigationButtons(ui: Phaser.GameObjects.Container): void {
 
-    ui.add(createButton(this,1080,480,200,'ステージ\n選択',() => {
-        this.scene.start('AreaSelectScene')},{  key: 'button1',  width: 250,  height: 100
+    ui.add(createButton(this,1080,450,220,'ステージ\n選択',() => {
+        this.scene.start('AreaSelectScene')},{  key: 'button1',  width: 260,  height: 110
 
         }
     ))
-    ui.add(createButton(this, 600, 630, 180, '育成',() => {
-        this.scene.start('TrainingScene')},{  key: 'button1',  width: 180,  height: 100
+    ui.add(createButton(this, 510, 630, 200, '育成',() => {
+        this.scene.start('TrainingScene')},{  key: 'button1',  width: 200,  height: 100
 
         }
     ))
-    ui.add(createButton(this, 800, 630, 180, '編成',() => {
-        this.scene.start('FormScene')},{  key: 'button1',  width: 180,  height: 100
+    ui.add(createButton(this, 740, 630, 200, '編成',() => {
+        this.scene.start('FormScene')},{  key: 'button1',  width: 200,  height: 100
 
         }
     ))
-    ui.add(createButton(this, 1000, 630, 180, '図鑑',() => {
-        this.scene.start('EncyclopediaScene')},{  key: 'button1',  width: 180,  height: 100
+    ui.add(createButton(this, 970, 630, 200, '図鑑',() => {
+        this.scene.start('EncyclopediaScene')},{  key: 'button1',  width: 200,  height: 100
 
         }
     ))
 
-    ui.add(createButton(this, 1200, 630, 180, 'ショップ',() => {
-        this.scene.start('ShopScene')},{  key: 'button1',  width: 180,  height: 100
+    ui.add(createButton(this, 1200, 630, 200, 'ショップ',() => {
+        this.scene.start('ShopScene')},{  key: 'button1',  width: 200,  height: 100
 
         }
     ))
-    ui.add(createButton(this, 1200, 100, 180, '設定',() => {
-        this.scene.start('SettingsScene')},{  key: 'button1',  width: 180,  height: 100
+    ui.add(createButton(this, 1220, 70, 180, '設定',() => {
+        this.scene.start('SettingsScene')},{  key: 'button1',  width: 150,  height: 80
 
         }
     ))
