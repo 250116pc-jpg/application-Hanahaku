@@ -28,12 +28,12 @@ export class SettingsScene extends Phaser.Scene {
   private bgmVolume = DEFAULT_AUDIO_SETTINGS.bgmVolume;
   private seVolume = DEFAULT_AUDIO_SETTINGS.seVolume;
   private voiceVolume = DEFAULT_AUDIO_SETTINGS.voiceVolume;
-  private bgmSliderFill!: Phaser.GameObjects.Rectangle;
+  private bgmSliderFill!: Phaser.GameObjects.Graphics;
   private bgmSliderKnob!: Phaser.GameObjects.Arc;
   private voiceText!: Phaser.GameObjects.Text;
-  private seSliderFill!: Phaser.GameObjects.Rectangle;
+  private seSliderFill!: Phaser.GameObjects.Graphics;
   private seSliderKnob!: Phaser.GameObjects.Arc;
-  private voiceSliderFill!: Phaser.GameObjects.Rectangle;
+  private voiceSliderFill!: Phaser.GameObjects.Graphics;
   private voiceSliderKnob!: Phaser.GameObjects.Arc;
   private activeSliderUpdate: ((pointer: Phaser.Input.Pointer) => void) | null = null;
   private activeSliderEnd: (() => void) | null = null;
@@ -414,7 +414,7 @@ export class SettingsScene extends Phaser.Scene {
     onChange: (value: number) => void,
     onEnd: () => void,
     setDisplay: (
-      fill: Phaser.GameObjects.Rectangle,
+      fill: Phaser.GameObjects.Graphics,
       knob: Phaser.GameObjects.Arc,
       text: Phaser.GameObjects.Text
     ) => void,
@@ -426,27 +426,25 @@ export class SettingsScene extends Phaser.Scene {
       const ratio = Phaser.Math.Clamp((pointer.worldX - sliderStartX) / sliderWidth, 0, 1);
       onChange(Math.round(ratio * 100) / 100);
     };
-    this.add.rectangle(
-      sliderStartX + sliderWidth / 2,
-      y,
-      sliderWidth,
-      12,
-      0x718284
-    ).setStrokeStyle(1, 0x536878);
-    const fill = this.add.rectangle(
-      sliderStartX,
-      y,
-      sliderWidth * initialValue,
-      8,
-      0x86bd35
-    ).setOrigin(0, 0.5);
+    // Soft, rounded track with a generous touch target kept separate from the artwork.
+    this.add.graphics()
+      .fillStyle(0xffffff, 0.65)
+      .fillRoundedRect(sliderStartX - 12, y - 18, sliderWidth + 24, 36, 18)
+      .fillStyle(0xd4e2dd, 1)
+      .fillRoundedRect(sliderStartX, y - 5, sliderWidth, 10, 5);
+    const fill = this.add.graphics().setPosition(sliderStartX, y);
+    this.drawSliderFill(fill, initialValue);
     const knob = this.add.circle(
-      sliderStartX + sliderWidth * initialValue,
-      y,
-      13,
-      0xffdc70
-    ).setStrokeStyle(2, 0x536878).setDepth(fill.depth + 1);
-    const text = this.add.text(430, y, '', this.getTextStyle(26)).setOrigin(0.5);
+      sliderStartX + sliderWidth * initialValue, y, 12, 0xffffff
+    ).setStrokeStyle(3, 0x5a9277).setDepth(fill.depth + 1);
+    this.add.graphics()
+      .fillStyle(0xffffff, 0.82)
+      .fillRoundedRect(394, y - 20, 72, 40, 14)
+      .lineStyle(1, 0xb5cfc2, 0.7)
+      .strokeRoundedRect(394, y - 20, 72, 40, 14);
+    const text = this.add.text(430, y, '', {
+      ...this.getTextStyle(22), color: '#35644f', fontStyle: 'bold',
+    }).setOrigin(0.5);
     const hitArea = this.add.rectangle(
       sliderStartX + sliderWidth / 2,
       y,
@@ -456,10 +454,16 @@ export class SettingsScene extends Phaser.Scene {
       0
     ).setInteractive({ useHandCursor: true });
 
+    hitArea.on('pointerover', () => knob.setFillStyle(0xf0faf4));
+    hitArea.on('pointerout', () => knob.setFillStyle(0xffffff));
     hitArea.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
       onStart?.();
       this.activeSliderUpdate = updateFromPointer;
-      this.activeSliderEnd = onEnd;
+      knob.setScale(1.18).setStrokeStyle(3, 0x397658);
+      this.activeSliderEnd = () => {
+        knob.setScale(1).setStrokeStyle(3, 0x5a9277);
+        onEnd();
+      };
       updateFromPointer(pointer);
     });
 
@@ -489,6 +493,13 @@ export class SettingsScene extends Phaser.Scene {
     setDisplay(fill, knob, text);
   }
 
+  private drawSliderFill(fill: Phaser.GameObjects.Graphics, value: number): void {
+    const width = 200 * Phaser.Math.Clamp(value, 0, 1);
+    fill.clear();
+    if (width > 0) {
+      fill.fillStyle(0x71ac8c, 1).fillRoundedRect(0, -5, width, 10, Math.min(5, width / 2));
+    }
+  }
   private createMuteButton(): void {
     this.muteText =
       this.add
@@ -657,13 +668,13 @@ export class SettingsScene extends Phaser.Scene {
         this.seVolume * 100
       )}%`
     );
-    this.bgmSliderFill.setSize(200 * this.bgmVolume, 8);
+    this.drawSliderFill(this.bgmSliderFill, this.bgmVolume);
     this.bgmSliderKnob.setX(160 + 200 * this.bgmVolume);
-    this.seSliderFill.setSize(200 * this.seVolume, 8);
+    this.drawSliderFill(this.seSliderFill, this.seVolume);
     this.seSliderKnob.setX(160 + 200 * this.seVolume);
 
     this.voiceText.setText(`${Math.round(this.voiceVolume * 100)}%`);
-    this.voiceSliderFill.setSize(200 * this.voiceVolume, 8);
+    this.drawSliderFill(this.voiceSliderFill, this.voiceVolume);
     this.voiceSliderKnob.setX(160 + 200 * this.voiceVolume);
 
     this.muteText.setText(
