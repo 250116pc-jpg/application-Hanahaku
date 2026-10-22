@@ -1,0 +1,6 @@
+skill	スキルデータ		
+名前	内容	タイプ	いろいろ
+id	スキルid	id	PRIMARY、AI
+name	スキル名	text	
+description	説明	text	
+upgrade_data	スキルの内容	json	

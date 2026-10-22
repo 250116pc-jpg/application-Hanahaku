@@ -5,6 +5,9 @@ import playerJump from '../assets/player/Red Cape Knight Character Asset/Player_
 import playerFall from '../assets/player/Red Cape Knight Character Asset/Player_Red sheets/Red_falling.png'
 import playerLand from '../assets/player/Red Cape Knight Character Asset/Player_Red sheets/Red_landing.png'
 import playerAttack from '../assets/player/Red Cape Knight Character Asset/Player_Red sheets/Red_attack_1.png'
+import playerSkill from '../assets/player/Red Cape Knight Character Asset/Player_Red sheets/Red_spin_attack.png'
+import playerDefend from '../assets/player/Red Cape Knight Character Asset/Player_Red sheets/Red_ducking.png'
+import playerDeath from '../assets/player/Red Cape Knight Character Asset/Player_Red sheets/Red_Death.png'
 
 
 export const characterAnimations = {
@@ -54,6 +57,27 @@ export const characterAnimations = {
       frameHeight: 128,
       frameCount: 6,
       frameRate: 12
+    },
+    skill: {
+      image: playerSkill,
+      frameWidth: 192,
+      frameHeight: 128,
+      frameCount: 9,
+      frameRate: 12
+    },
+    defend: {
+      image: playerDefend,
+      frameWidth: 192,
+      frameHeight: 128,
+      frameCount: 4,
+      frameRate: 8
+    },
+    death: {
+      image: playerDeath,
+      frameWidth: 192,
+      frameHeight: 128,
+      frameCount: 6,
+      frameRate: 8
     }
   }
 };

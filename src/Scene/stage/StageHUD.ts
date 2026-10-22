@@ -260,7 +260,7 @@ export class StageHUD {
     //攻撃
     this.imageButton(baseX - 154, h - 94, 130, '', 'stage-attack', () => this.player?.attack());
     //スキル
-    this.imageButton(baseX - 20, h - 172,  100, '', 'stage-skill', () => {});
+    this.imageButton(baseX - 20, h - 172,  100, '', 'stage-skill', () => this.player?.skill());
     //ジャンプ
     this.imageButton(baseX - 40, h - 64, 130, '', 'stage-jump', () => this.player?.jump());
   }

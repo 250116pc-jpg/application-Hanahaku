@@ -42,6 +42,9 @@ export class StageScene extends Phaser.Scene {
     loadCharacterAnimation(this, 'player_fall', playerData.fall);
     loadCharacterAnimation(this, 'player_land', playerData.land);
     loadCharacterAnimation(this, 'player_attack', playerData.attack);
+    loadCharacterAnimation(this, 'player_skill', playerData.skill);
+    loadCharacterAnimation(this, 'player_defend', playerData.defend);
+    loadCharacterAnimation(this, 'player_death', playerData.death);
   }
 
   create(data: { stageId?: number } = {}): void {
@@ -155,7 +158,7 @@ export class StageScene extends Phaser.Scene {
       playerData.idle.frameRate
     );
 
-    for (const action of ['jump', 'fall', 'land', 'attack'] as const) {
+    for (const action of ['jump', 'fall', 'land', 'attack', 'skill', 'defend', 'death'] as const) {
       const animation = playerData[action];
       const textureKey = `player_${action}`;
       createCharacterAnimation(
@@ -164,7 +167,7 @@ export class StageScene extends Phaser.Scene {
         textureKey,
         animation.frameCount,
         animation.frameRate,
-        action === 'land' || action === 'attack' ? 0 : -1
+        action === 'land' || action === 'attack' || action === 'skill' || action === 'death' ? 0 : -1
       );
     }
   }

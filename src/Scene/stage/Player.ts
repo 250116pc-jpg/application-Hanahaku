@@ -7,7 +7,8 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   private readonly JUMP_POWER = 330;
   private wasGrounded = true;
   private landingAnimationPlaying = false;
-  private attacking = false;
+  private action: 'attack' | 'skill' | null = null;
+  private dead = false;
 
   constructor(scene: Phaser.Scene, x: number, y: number, cursors?: Phaser.Types.Input.Keyboard.CursorKeys) {
     super(scene, x, y, 'player_idle');
@@ -21,7 +22,9 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       if (animation.key === 'player-land') {
         this.landingAnimationPlaying = false;
       }
-      if (animation.key === 'player-attack') this.attacking = false;
+      if (animation.key === 'player-attack' || animation.key === 'player-skill') {
+        this.action = null;
+      }
     });
 
     this.setScale(1)
@@ -69,9 +72,11 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
   public update(): void {
     const body = this.body as Phaser.Physics.Arcade.Body;
-    if (!body || !this.cursors) return;
+    if (!body || !this.cursors || this.dead) return;
 
-    if (this.cursors.left?.isDown) {
+    if (this.action !== null) {
+      this.setVelocityX(0);
+    } else if (this.cursors.left?.isDown) {
       this.setVelocityX(-this.PLAYER_SPEED);
       this.setFlipX(true);
     } else if (this.cursors.right?.isDown) {
@@ -84,8 +89,11 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     if (this.cursors.up?.isDown && body.blocked.down) this.jump();
 
     const isGrounded = body.blocked.down;
-    if (this.attacking) {
-      // Keep the attack animation visible until it completes.
+    if (this.action !== null) {
+      // Keep the action animation visible until it completes.
+    } else if (this.cursors.down?.isDown && isGrounded) {
+      this.landingAnimationPlaying = false;
+      this.playAnimation('player-defend');
     } else if (!isGrounded) {
       this.landingAnimationPlaying = false;
       changeCharacterAnimation(this, body.velocity.y < 0 ? 'jump' : 'fall');
@@ -105,8 +113,35 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   }
 
   public attack(): void {
-    if (this.attacking || !this.scene.anims.exists('player-attack')) return;
-    this.attacking = true;
-    this.play('player-attack', true);
+    this.playAction('attack');
+  }
+
+  public skill(): void {
+    this.playAction('skill');
+  }
+
+  public die(): void {
+    if (this.dead || !this.scene.anims.exists('player-death')) return;
+    this.dead = true;
+    this.action = null;
+    this.setVelocity(0, 0);
+    const body = this.body;
+    if (body) body.enable = false;
+    this.play('player-death', true);
+  }
+
+  private playAction(action: 'attack' | 'skill'): void {
+    const animationKey = `player-${action}`;
+    if (this.dead || this.action !== null || !this.scene.anims.exists(animationKey)) return;
+    this.action = action;
+    this.landingAnimationPlaying = false;
+    this.setVelocityX(0);
+    this.play(animationKey, true);
+  }
+
+  private playAnimation(animationKey: string): void {
+    if (this.anims.currentAnim?.key !== animationKey) {
+      this.play(animationKey, true);
+    }
   }
 }

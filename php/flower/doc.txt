@@ -1,0 +1,23 @@
+flowers	花のデータ	
+名前	内容	タイプ
+id	花のid	int
+name	花の名前	varchar(100)
+upgrade_id	強化ＩＤ	int
+Game_image	ゲームの花画像のパス	varchar(255)
+Real_iamge	リアルな花画像のパス	varchar(255)
+skill_id	スキルの種類	int
+MP	花の精神力	int
+ATK	攻撃力ボーナス	int
+CRT＿BONUS	クリティカル率ボーナス	float
+CD＿BONUS	クリティカルダメージボーナス	int
+HP＿BONUS	HPボーナス	int
+EVA＿BONUS	回避率ボーナス	int
+DEF＿BONUS	防御力ボーナス	int
+VIT＿BONUS	回復力ボーナス	int
+RES_Fire	熱耐性	int
+RES_Water	水耐性	int
+RES_Wind	風耐性	int
+RES_Light	光耐性	int
+RES_Ground	土耐性	int
+explain	説明	text
+MP＿BONUS	MPボーナス	int
