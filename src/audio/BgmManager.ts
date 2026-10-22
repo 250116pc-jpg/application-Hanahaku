@@ -1,3 +1,4 @@
+import { DEFAULT_AUDIO_SETTINGS } from './AudioDefaults'
 import titleBgm from '../assets/audio/PathOfAdventure/PeriTune_Frosylva.mp3'
 import homeBgm from '../assets/audio/PathOfAdventure/PeriTune_Harbor_Morning_loop.mp3'
 import stageBgm from '../assets/audio/PathOfAdventure/Peritune_Ancient_Gust_loop.mp3'
@@ -57,9 +58,9 @@ function stateFor(scene: Phaser.Scene): AudioState {
 
   const state: AudioState = {
     settings: {
-      bgmVolume: validVolume(saved.bgmVolume, 0.5),
-      seVolume: validVolume(saved.seVolume, 0.7),
-      voiceVolume: validVolume(saved.voiceVolume, 1),
+      bgmVolume: validVolume(saved.bgmVolume, DEFAULT_AUDIO_SETTINGS.bgmVolume),
+      seVolume: validVolume(saved.seVolume, DEFAULT_AUDIO_SETTINGS.seVolume),
+      voiceVolume: validVolume(saved.voiceVolume, DEFAULT_AUDIO_SETTINGS.voiceVolume),
       isMuted: typeof saved.isMuted === 'boolean' ? saved.isMuted : false
     },
     currentKey: null,
@@ -133,9 +134,9 @@ export function loadAudioSettings(scene: Phaser.Scene): AudioSettings {
 export function applyAudioSettings(scene: Phaser.Scene, next: AudioSettings): void {
   const state = stateFor(scene)
   state.settings = {
-    bgmVolume: validVolume(next.bgmVolume, 0.5),
-    seVolume: validVolume(next.seVolume, 0.7),
-    voiceVolume: validVolume(next.voiceVolume, 1),
+    bgmVolume: validVolume(next.bgmVolume, DEFAULT_AUDIO_SETTINGS.bgmVolume),
+    seVolume: validVolume(next.seVolume, DEFAULT_AUDIO_SETTINGS.seVolume),
+    voiceVolume: validVolume(next.voiceVolume, DEFAULT_AUDIO_SETTINGS.voiceVolume),
     isMuted: Boolean(next.isMuted)
   }
   scene.sound.mute = state.settings.isMuted

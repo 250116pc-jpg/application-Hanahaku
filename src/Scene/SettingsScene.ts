@@ -1,3 +1,4 @@
+import { DEFAULT_AUDIO_SETTINGS } from '../audio/AudioDefaults';
 import Phaser from 'phaser';
 import { openSettingsPanel } from '../display/SettingsPanel';
 import { logout } from '../auth/Session';
@@ -8,6 +9,7 @@ import {
   applyAudioSettings,
   loadAudioSettings,
   saveAudioSettings,
+  type AudioSettings,
 } from '../audio/BgmManager';
 
 interface LoggedInUser {
@@ -22,11 +24,21 @@ export class SettingsScene extends Phaser.Scene {
   private voice!: SettingsVoice;
   private returnScene = 'HomeScene';
   private resumeOnClose = false;
-  private bgmVolume = 0.5;
-  private seVolume = 0.7;
-  private voiceVolume = 1;
+  private originalAudioSettings!: AudioSettings;
+  private bgmVolume = DEFAULT_AUDIO_SETTINGS.bgmVolume;
+  private seVolume = DEFAULT_AUDIO_SETTINGS.seVolume;
+  private voiceVolume = DEFAULT_AUDIO_SETTINGS.voiceVolume;
+  private bgmSliderFill!: Phaser.GameObjects.Rectangle;
+  private bgmSliderKnob!: Phaser.GameObjects.Arc;
   private voiceText!: Phaser.GameObjects.Text;
-  private isMuted = false;
+  private seSliderFill!: Phaser.GameObjects.Rectangle;
+  private seSliderKnob!: Phaser.GameObjects.Arc;
+  private voiceSliderFill!: Phaser.GameObjects.Rectangle;
+  private voiceSliderKnob!: Phaser.GameObjects.Arc;
+  private activeSliderUpdate: ((pointer: Phaser.Input.Pointer) => void) | null = null;
+  private activeSliderEnd: (() => void) | null = null;
+  private sliderInputInstalled = false;
+  private isMuted = DEFAULT_AUDIO_SETTINGS.isMuted;
 
   private bgmText!: Phaser.GameObjects.Text;
   private seText!: Phaser.GameObjects.Text;
@@ -60,6 +72,7 @@ export class SettingsScene extends Phaser.Scene {
 
     const audioSettings =
       loadAudioSettings(this);
+    this.originalAudioSettings = { ...audioSettings };
 
     this.bgmVolume =
       audioSettings.bgmVolume;
@@ -132,10 +145,10 @@ export class SettingsScene extends Phaser.Scene {
       500,
       '初期値に戻す',
       () => {
-        this.bgmVolume = 0.5;
-        this.seVolume = 0.7;
-        this.voiceVolume = 1;
-        this.isMuted = false;
+        this.bgmVolume = DEFAULT_AUDIO_SETTINGS.bgmVolume;
+        this.seVolume = DEFAULT_AUDIO_SETTINGS.seVolume;
+        this.voiceVolume = DEFAULT_AUDIO_SETTINGS.voiceVolume;
+        this.isMuted = DEFAULT_AUDIO_SETTINGS.isMuted;
 
         this.updateDisplay();
         this.setSpeech(
@@ -150,7 +163,7 @@ export class SettingsScene extends Phaser.Scene {
       620,
       '保存して戻る',
       () => {
-        this.closeSettings();
+        this.closeSettings(true);
       },
       280
     );
@@ -238,12 +251,12 @@ export class SettingsScene extends Phaser.Scene {
   private showGuideStep(index: number): void {
     this.clearGuide();
     const steps = [
-      { target: new Phaser.Geom.Rectangle(100, 160, 300, 165),
-        message: 'ここでBGMの音量を調整できます。\n＋と－を押して試してみましょう。' },
-      { target: new Phaser.Geom.Rectangle(100, 328, 300, 165),
-        message: 'ここではボタンなどの\n効果音の音量を調整できます。' },
-      { target: new Phaser.Geom.Rectangle(100, 490, 300, 120),
-        message: 'ずんだもんの声を調整できます。\n話している間はBGMが小さくなります。' },
+      { target: new Phaser.Geom.Rectangle(100, 160, 400, 165),
+        message: 'ここでBGMの音量を調整できます。\nスライダーを左右に動かしてみましょう。' },
+      { target: new Phaser.Geom.Rectangle(100, 328, 400, 165),
+        message: 'ここではスライダーを左右に動かして、\nボタンなどの効果音を調整できます。' },
+      { target: new Phaser.Geom.Rectangle(100, 490, 400, 120),
+        message: 'スライダーを左右に動かして、\nずんだもんの声を調整できます。\n話している間はBGMが小さくなります。' },
       { target: new Phaser.Geom.Rectangle(118, 610, 240, 85),
         message: 'ミュートを押すと音を消せます。\nもう一度押すと元に戻ります。' },
       { target: new Phaser.Geom.Rectangle(890, 355, 320, 90),
@@ -327,7 +340,7 @@ export class SettingsScene extends Phaser.Scene {
     button.on(
       'pointerdown',
       () => {
-        this.closeSettings();
+        this.closeSettings(false);
       }
     );
   }
@@ -340,53 +353,19 @@ export class SettingsScene extends Phaser.Scene {
       this.getTextStyle(32)
     );
 
-    this.createSmallButton(
-      145,
-      270,
-      '－',
-      () => {
-        this.bgmVolume =
-          Phaser.Math.Clamp(
-            this.bgmVolume - 0.1,
-            0,
-            1
-          );
-
-        this.updateDisplay();
-        this.setSpeech(
-          'BGMを小さくしたよ'
-        );
-      }
-    );
-
-    this.bgmText =
-      this.add
-        .text(
-          245,
-          270,
-          '',
-          this.getTextStyle(30)
-        )
-        .setOrigin(0.5);
-
-    this.createSmallButton(
-      345,
-      270,
-      '＋',
-      () => {
-        this.bgmVolume =
-          Phaser.Math.Clamp(
-            this.bgmVolume + 0.1,
-            0,
-            1
-          );
-
-        this.updateDisplay();
-        this.setSpeech(
-          'BGMを大きくしたよ'
-        );
-      }
-    );
+    let dragStartVolume = this.bgmVolume;
+    this.createVolumeSlider(270, this.bgmVolume, value => {
+      this.bgmVolume = value;
+      this.updateDisplay();
+    }, () => {
+      this.setSpeech(this.bgmVolume < dragStartVolume ? 'BGMを小さくしたよ' : 'BGMを大きくしたよ');
+    }, (fill, knob, text) => {
+      this.bgmSliderFill = fill;
+      this.bgmSliderKnob = knob;
+      this.bgmText = text;
+    }, () => {
+      dragStartVolume = this.bgmVolume;
+    });
   }
 
   private createSeControls(): void {
@@ -397,67 +376,117 @@ export class SettingsScene extends Phaser.Scene {
       this.getTextStyle(32)
     );
 
-    this.createSmallButton(
-      145,
-      435,
-      '－',
-      () => {
-        this.seVolume =
-          Phaser.Math.Clamp(
-            this.seVolume - 0.1,
-            0,
-            1
-          );
-
-        this.updateDisplay();
-        this.setSpeech(
-          '効果音を小さくしたよ'
-        );
-      }
-    );
-
-    this.seText =
-      this.add
-        .text(
-          245,
-          435,
-          '',
-          this.getTextStyle(30)
-        )
-        .setOrigin(0.5);
-
-    this.createSmallButton(
-      345,
-      435,
-      '＋',
-      () => {
-        this.seVolume =
-          Phaser.Math.Clamp(
-            this.seVolume + 0.1,
-            0,
-            1
-          );
-
-        this.updateDisplay();
-        this.setSpeech(
-          '効果音を大きくしたよ'
-        );
-      }
-    );
+    let dragStartVolume = this.seVolume;
+    this.createVolumeSlider(435, this.seVolume, value => {
+      this.seVolume = value;
+      this.updateDisplay();
+    }, () => {
+      this.setSpeech(this.seVolume < dragStartVolume ? '効果音を小さくしたよ' : '効果音を大きくしたよ');
+    }, (fill, knob, text) => {
+      this.seSliderFill = fill;
+      this.seSliderKnob = knob;
+      this.seText = text;
+    }, () => {
+      dragStartVolume = this.seVolume;
+    });
   }
 
   private createVoiceControls(): void {
     this.add.text(130, 495, '音声音量', this.getTextStyle(28));
-    this.voiceText = this.add.text(245, 570, '', this.getTextStyle(30)).setOrigin(0.5);
-    const adjust = (delta: number): void => {
-      this.voiceVolume = Phaser.Math.Clamp(Math.round((this.voiceVolume + delta) * 10) / 10, 0, 1);
-      this.voice.stop();
+    this.createVolumeSlider(570, this.voiceVolume, value => {
+      this.voiceVolume = value;
       this.updateDisplay();
+    }, () => {
       this.speechText.setText(`音声音量を${Math.round(this.voiceVolume * 100)}%にしたよ`);
       this.voice.speak('音量を変更できるよ');
+    }, (fill, knob, text) => {
+      this.voiceSliderFill = fill;
+      this.voiceSliderKnob = knob;
+      this.voiceText = text;
+    }, () => {
+      this.voice.stop();
+    });
+  }
+
+  private createVolumeSlider(
+    y: number,
+    initialValue: number,
+    onChange: (value: number) => void,
+    onEnd: () => void,
+    setDisplay: (
+      fill: Phaser.GameObjects.Rectangle,
+      knob: Phaser.GameObjects.Arc,
+      text: Phaser.GameObjects.Text
+    ) => void,
+    onStart?: () => void
+  ): void {
+    const sliderStartX = 160;
+    const sliderWidth = 200;
+    const updateFromPointer = (pointer: Phaser.Input.Pointer): void => {
+      const ratio = Phaser.Math.Clamp((pointer.worldX - sliderStartX) / sliderWidth, 0, 1);
+      onChange(Math.round(ratio * 100) / 100);
     };
-    this.createSmallButton(145, 570, '－', () => adjust(-0.1));
-    this.createSmallButton(345, 570, '＋', () => adjust(0.1));
+    this.add.rectangle(
+      sliderStartX + sliderWidth / 2,
+      y,
+      sliderWidth,
+      12,
+      0x718284
+    ).setStrokeStyle(1, 0x536878);
+    const fill = this.add.rectangle(
+      sliderStartX,
+      y,
+      sliderWidth * initialValue,
+      8,
+      0x86bd35
+    ).setOrigin(0, 0.5);
+    const knob = this.add.circle(
+      sliderStartX + sliderWidth * initialValue,
+      y,
+      13,
+      0xffdc70
+    ).setStrokeStyle(2, 0x536878).setDepth(fill.depth + 1);
+    const text = this.add.text(430, y, '', this.getTextStyle(26)).setOrigin(0.5);
+    const hitArea = this.add.rectangle(
+      sliderStartX + sliderWidth / 2,
+      y,
+      sliderWidth + 24,
+      44,
+      0xffffff,
+      0
+    ).setInteractive({ useHandCursor: true });
+
+    hitArea.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
+      onStart?.();
+      this.activeSliderUpdate = updateFromPointer;
+      this.activeSliderEnd = onEnd;
+      updateFromPointer(pointer);
+    });
+
+    if (this.sliderInputInstalled) {
+      setDisplay(fill, knob, text);
+      return;
+    }
+    this.sliderInputInstalled = true;
+    const onPointerMove = (pointer: Phaser.Input.Pointer): void => {
+      if (pointer.isDown) this.activeSliderUpdate?.(pointer);
+    };
+    const onPointerUp = (): void => {
+      const finish = this.activeSliderEnd;
+      this.activeSliderUpdate = null;
+      this.activeSliderEnd = null;
+      finish?.();
+    };
+    this.input.on('pointermove', onPointerMove);
+    this.input.on('pointerup', onPointerUp);
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      this.activeSliderUpdate = null;
+      this.activeSliderEnd = null;
+      this.sliderInputInstalled = false;
+      this.input.off('pointermove', onPointerMove);
+      this.input.off('pointerup', onPointerUp);
+    });
+    setDisplay(fill, knob, text);
   }
 
   private createMuteButton(): void {
@@ -547,44 +576,6 @@ export class SettingsScene extends Phaser.Scene {
         .setOrigin(0.5);
   }
 
-  private createSmallButton(
-    x: number,
-    y: number,
-    label: string,
-    onClick: () => void
-  ): Phaser.GameObjects.Text {
-    const button =
-      this.add
-        .text(
-          x,
-          y,
-          `[${label}]`,
-          {
-            ...this.getTextStyle(30),
-            backgroundColor: '#ffffff',
-            padding: {
-              top: 10,
-              bottom: 10,
-              left: 14,
-              right: 14,
-            },
-          }
-        )
-        .setOrigin(0.5)
-        .setInteractive({
-          useHandCursor: true,
-        });
-
-    button.on(
-      'pointerup',
-      () => {
-        onClick();
-      }
-    );
-
-    return button;
-  }
-
   private createLargeButton(
     x: number,
     y: number,
@@ -666,8 +657,14 @@ export class SettingsScene extends Phaser.Scene {
         this.seVolume * 100
       )}%`
     );
+    this.bgmSliderFill.setSize(200 * this.bgmVolume, 8);
+    this.bgmSliderKnob.setX(160 + 200 * this.bgmVolume);
+    this.seSliderFill.setSize(200 * this.seVolume, 8);
+    this.seSliderKnob.setX(160 + 200 * this.seVolume);
 
     this.voiceText.setText(`${Math.round(this.voiceVolume * 100)}%`);
+    this.voiceSliderFill.setSize(200 * this.voiceVolume, 8);
+    this.voiceSliderKnob.setX(160 + 200 * this.voiceVolume);
 
     this.muteText.setText(
       this.isMuted
@@ -675,18 +672,12 @@ export class SettingsScene extends Phaser.Scene {
         : 'ミュート'
     );
 
-    applyAudioSettings(
-      this,
-      {
-        bgmVolume:
-          this.bgmVolume,
-        seVolume:
-          this.seVolume,
-        voiceVolume: this.voiceVolume,
-        isMuted:
-          this.isMuted,
-      }
-    );
+    applyAudioSettings(this, {
+      bgmVolume: this.bgmVolume,
+      seVolume: this.seVolume,
+      voiceVolume: this.voiceVolume,
+      isMuted: this.isMuted,
+    });
   }
 
   private setSpeech(
@@ -713,9 +704,14 @@ export class SettingsScene extends Phaser.Scene {
     );
   }
 
-  private closeSettings(): void {
+  private closeSettings(saveChanges: boolean): void {
     this.clearGuide();
-    this.saveSettings();
+    if (saveChanges) {
+      this.saveSettings();
+    } else {
+      this.voice.stop();
+      applyAudioSettings(this, this.originalAudioSettings);
+    }
     if (this.resumeOnClose) {
       this.scene.resume(this.returnScene);
       this.scene.stop();
