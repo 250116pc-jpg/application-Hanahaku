@@ -1,4 +1,5 @@
 import Phaser from 'phaser'
+import { addCharacterImage } from '../../utils/characterImage'
 
 import type { CharacterData, Season } from '../test_data'
 import { getTextStyle } from '../../utils/ui'
@@ -71,7 +72,7 @@ export class EncyclopediaListView {
     this.scene.add.rectangle(x, y - 20, 130, 105, 0xeaf4fb).setStrokeStyle(1, 0x536878)
 
     if (registered) {
-      this.scene.add.image(x, y - 20, 'encyclopediaFlower').setScale(0.75)
+      addCharacterImage(this.scene, x, y - 20, character.id, 'encyclopediaFlower', 0.75, 100)
       this.scene.add.text(x, y + 67, character.name, this.textStyle(18)).setOrigin(0.5)
       card.setInteractive({ useHandCursor: true })
       card.on('pointerover', () => card.setFillStyle(0xeaf4fb))

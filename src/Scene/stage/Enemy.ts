@@ -112,6 +112,10 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     this.playVisual('enemy-hurt');
   }
 
+  public get isDefeated(): boolean {
+    return this.dead;
+  }
+
   private move(direction: number, speed: number): void {
     this.setVelocityX(direction * speed);
     this.setFlipX(direction < 0);

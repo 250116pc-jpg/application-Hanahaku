@@ -1,126 +1,94 @@
 import Phaser from 'phaser'
-
-import flowerImg from '../assets/flower.png'
-import { EncyclopediaListView } from './encyclopedia/EncyclopediaListView'
-import testData from './test_data'
-import type { CharacterData, Season } from './test_data'
-import { createStandardSceneFrame, getTextStyle } from '../utils/ui'
-//debug機能
-import { showDebugSceneName } from '../debug';
-import { SCENE_KEYS } from './sceneKeys';
-
-//--------------------------------------------------------------
-
-
-const BORDER_COLOR = 0x536878
-const PANEL_COLOR = 0xffffff
+import type { Season } from './test_data'
+import { createTextButton, getTextStyle } from '../utils/ui'
+import { prototypeFlowers, contractPreview } from './encyclopedia/contractPreview'
+import type { PrototypeFlower } from './encyclopedia/contractPreview'
+import { characterAnimations } from '../animation/animationData'
 
 export class EncyclopediaScene extends Phaser.Scene {
-  private selectedSeason: Season = '春'
-  private readonly registeredIds = new Set(
-    testData.formation.filter((id): id is number => id !== null)
-  )
-
-  constructor() {
-    super(SCENE_KEYS.ENCYCLOPEDIA)
-  }
-
-  preload(): void {
-    this.load.image('encyclopediaFlower', flowerImg)
-  }
-
-  create(): void {
-    this.showList()
-    showDebugSceneName(this);
-
-  }
-
-  private showList(): void {
-    this.resetScreen('← ホームへ', () => this.scene.start(SCENE_KEYS.HOME))
-
-    new EncyclopediaListView(
-      this,
-      testData.characters,
-      this.registeredIds,
-      season => {
-        this.selectedSeason = season
-        this.showList()
-      },
-      character => this.showDetail(character)
-    ).render(this.selectedSeason)
-  }
-
-  private showDetail(character: CharacterData): void {
-    this.resetScreen('← 一覧へ', () => this.showList())
-    this.createCharacterPanel(character)
-    this.createStatusPanel(character)
-    this.createBasicInfoPanel(character)
-    this.createAdditionalInfoPanel(character)
-  }
-
-  private resetScreen(backLabel: string, onBack: () => void): void {
-    this.children.each(child => {
-      if (child.input) child.disableInteractive(true)
-    })
-    this.input.setDefaultCursor('default')
-    this.children.removeAll(true)
-
-    createStandardSceneFrame(this, '図鑑', backLabel, onBack)
-  }
-
-  private createCharacterPanel(character: CharacterData): void {
-    this.add.rectangle(285, 270, 360, 340, PANEL_COLOR).setStrokeStyle(2, BORDER_COLOR)
-    this.add.image(285, 250, 'encyclopediaFlower').setScale(0.75)
-    this.add.text(285, 405, character.name, getTextStyle(26)).setOrigin(0.5)
-  }
-
-  private createStatusPanel(character: CharacterData): void {
-    this.add.rectangle(285, 555, 360, 190, PANEL_COLOR).setStrokeStyle(2, BORDER_COLOR)
-    this.add.text(135, 475, 'ステータス', getTextStyle(24))
-    this.add.text(155, 515, [
-      `HP    ${character.stats.hp}`,
-      `MP    ${character.stats.mp}`,
-      `ATK   ${character.stats.atk}`,
-      `DEF   ${character.stats.def}`,
-      `SPD   ${character.stats.speed}`
-    ].join('\n'), { ...getTextStyle(20), lineSpacing: 2 })
-  }
-
-  private createBasicInfoPanel(character: CharacterData): void {
-    this.add.rectangle(810, 235, 600, 270, PANEL_COLOR).setStrokeStyle(2, BORDER_COLOR)
-    this.add.text(545, 120, character.name, getTextStyle(32))
-    this.add.text(545, 170, [
-      `種族：${character.species}`,
-      `レア度：${'★'.repeat(character.rarity)}`,
-      `レベル：${character.level} / ${character.maxLevel}`,
-      `属性：${character.element}`,
-      `役割：${character.role}型`
-    ].join('\n'), { ...getTextStyle(21), lineSpacing: 5 })
-    this.add.text(545, 315, this.wrapJapaneseText(character.description, 25), {
-      ...getTextStyle(18),
-      color: '#444444',
-      lineSpacing: 4
-    })
-  }
-
-  private createAdditionalInfoPanel(character: CharacterData): void {
-    this.add.rectangle(810, 520, 600, 260, PANEL_COLOR).setStrokeStyle(2, BORDER_COLOR)
-    this.add.text(545, 405, '装備・親愛情報', getTextStyle(24))
-    this.add.text(565, 450, ['装備：初期装備', '親愛状態：仲良し'].join('\n'), {
-      ...getTextStyle(20),
-      lineSpacing: 6
-    })
-    this.add.text(545, 535, 'スキル一覧', getTextStyle(24))
-    this.add.text(565, 580, character.skills.map((skill, index) => {
-      return `スキル${index + 1}：${skill}`
-    }).join('\n'), { ...getTextStyle(20), lineSpacing: 6 })
-    this.add.text(1080, 610, `登録番号 ${String(character.id).padStart(3, '0')}`, {
-      ...getTextStyle(17),
-      color: '#555555'
-    }).setOrigin(1, 0)
-  }
-
-  private wrapJapaneseText(text: string, charactersPerLine: number): string {
-    return text.match(new RegExp(`.{1,${charactersPerLine}}`, 'g'))?.join('\n') ?? text
-  }
+ private season: Season = '夏'
+ private page = 0
+ constructor() { super('EncyclopediaScene') }
+ preload(): void {
+  for (const flower of prototypeFlowers) if (!this.textures.exists(flower.key)) this.load.image(flower.key,flower.url)
+  const player=characterAnimations.player.idle
+  this.load.spritesheet('contract-preview-player',player.image,{frameWidth:player.frameWidth,frameHeight:player.frameHeight})
+ }
+ create(): void { this.list() }
+ private text(x:number,y:number,value:string,size=22): Phaser.GameObjects.Text {
+  return this.add.text(x,y,value,{...getTextStyle(size),wordWrap:{width:620},lineSpacing:8})
+ }
+ private button(x:number,y:number,label:string,action:()=>void): void {
+  createTextButton(this,x,y,label,action,{fontSize:20,padding:{top:10,bottom:10,left:16,right:16}})
+ }
+ private frame(title:string): void {
+  this.children.each(child => { if (child.input) child.disableInteractive(true) })
+  this.children.removeAll(true)
+  this.cameras.main.setBackgroundColor('#edf4ec')
+  this.text(420,25,title,30)
+  this.text(270,75,'花契テスト：季節・能力値は仮設定。再読み込みでリセットされます。',17)
+  this.button(120,45,'← ホーム',()=>this.scene.start('HomeScene'))
+  this.button(1110,45,'キャラ詳細',()=>this.character())
+ }
+ private art(flower:PrototypeFlower,x:number,y:number,size:number,locked=false): void {
+  const image=this.add.image(x,y,flower.key)
+  image.setScale(size/Math.max(image.width,image.height))
+  if(locked) image.setTint(0x31433b).setAlpha(0.45)
+ }
+ private list(): void {
+  this.frame('季節の花図鑑')
+  const seasons:Season[]=['春','夏','秋','冬']
+  seasons.forEach((season,i)=>this.button(180+i*150,135,season===this.season?`【${season}】`:season,()=>{this.season=season;this.page=0;this.list()}))
+  this.text(790,120,`花契済み ${contractPreview.owned.size} / ${prototypeFlowers.length}`,21)
+  const flowers=prototypeFlowers.filter(f=>f.season===this.season)
+  const pages=Math.max(1,Math.ceil(flowers.length/8))
+  this.page=Math.min(this.page,pages-1)
+  flowers.slice(this.page*8,this.page*8+8).forEach((flower,i)=>{
+   const x=205+(i%4)*285, y=280+Math.floor(i/4)*215
+   const owned=contractPreview.owned.has(flower.id)
+   const card=this.add.rectangle(x,y,255,195,0xffffff).setStrokeStyle(2,owned?0x398363:0xaab5ae).setInteractive({useHandCursor:true})
+   card.on('pointerup',()=>this.detail(flower))
+   this.art(flower,x,y-18,125,!owned)
+   this.text(x-110,y+35,flower.name,20)
+   createTextButton(this,x,y+78,(contractPreview.equipped===flower.id?'編成中':owned?'花契済み':'未契約')+'・詳細',()=>this.detail(flower),{fontSize:16,padding:{top:3,bottom:3,left:10,right:10}})
+  })
+  if(this.page>0)this.button(420,650,'← 前のページ',()=>{this.page--;this.list()})
+  this.text(600,635,`${this.page+1} / ${pages}`,20)
+  if(this.page<pages-1)this.button(830,650,'次のページ →',()=>{this.page++;this.list()})
+  this.button(1100,650,'テストを初期化',()=>this.confirmReset())
+ }
+ private detail(flower:PrototypeFlower): void {
+  this.frame('花詳細')
+  const owned=contractPreview.owned.has(flower.id)
+  this.button(130,130,'← 花一覧',()=>this.list())
+  this.add.rectangle(300,370,400,410,0xffffff).setStrokeStyle(2,0x81a18e)
+  this.art(flower,300,330,310,!owned)
+  this.text(170,530,flower.name,28)
+  this.text(570,175,`${flower.name}　／　${flower.season}`,30)
+  this.text(570,240,owned?'花契済み：編成できます':'未契約：花契すると入手できます',24)
+  this.text(570,305,'MP：30\nATKボーナス：5\nスキル：試作スキル（効果は未実装）\n消費MP：プレイヤー5 ／ 花3',22)
+  this.text(570,470,'上記は表示確認用の共通値です。\n花自体にHPはありません。',18)
+  if(!owned)this.button(810,585,'花契する（テスト）',()=>{contractPreview.contract(flower.id);this.detail(flower)})
+  else if(contractPreview.equipped===flower.id)this.button(810,585,'編成から外す',()=>{contractPreview.equipped=null;this.detail(flower)})
+  else this.button(810,585,'この花を編成する',()=>{contractPreview.equip(flower.id);this.detail(flower)})
+ }
+ private character(): void {
+  this.frame('キャラ詳細（テスト）')
+  this.button(130,130,'← 花一覧',()=>this.list())
+  this.add.rectangle(300,350,400,350,0xffffff).setStrokeStyle(2,0x81a18e)
+  this.add.sprite(300,335,'contract-preview-player',0).setScale(3)
+  this.text(160,550,'プレイヤー Lv.1',28)
+  const flower=prototypeFlowers.find(f=>f.id===contractPreview.equipped)
+  this.text(570,175,'HP：100 ／ 100\nMP：50 ／ 50\nATK：'+(flower?'15（基本10 ＋ 花5）':'10'),26)
+  this.text(570,340,flower?`編成中の花：${flower.name}`:'編成中の花：なし',24)
+  if(flower){this.art(flower,710,455,155);this.button(960,455,'花詳細へ',()=>this.detail(flower))}
+  else this.text(570,405,'花一覧から花契し、花詳細で編成してください。',20)
+  this.text(570,575,'試作では花を1つ編成できます。\n本番の編成・所持データには保存されません。',18)
+ }
+ private confirmReset(): void {
+  this.frame('テスト状態を初期化')
+  this.text(300,260,'テストの花契状況と編成をすべて解除します。',26)
+  this.button(440,430,'戻る',()=>this.list())
+  this.button(800,430,'初期化する',()=>{contractPreview.reset();this.list()})
+ }
 }

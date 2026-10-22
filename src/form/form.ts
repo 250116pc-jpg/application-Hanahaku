@@ -1,4 +1,5 @@
 import Phaser from 'phaser'
+import { preloadCharacterImages } from '../utils/characterImage'
 import flowerImg from '../assets/flower.png'
 import testData from '../Scene/test_data'
 import type { CharacterData } from '../Scene/test_data'
@@ -42,6 +43,7 @@ export class FormScene extends Phaser.Scene {
    * アセットの事前ロード
    */
   preload(): void {
+    preloadCharacterImages(this)
     this.load.image('formFlower', flowerImg)
   }
 
