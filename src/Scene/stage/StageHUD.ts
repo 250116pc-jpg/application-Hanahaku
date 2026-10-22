@@ -4,6 +4,7 @@ import testData, { getFlowerSkill } from '../test_data.ts';
 import type { CharacterData } from '../test_data.ts';
 import { SCENE_KEYS } from '../sceneKeys';
 import type { CombatTarget, Player } from './Player';
+import { loadFlowerSkillStates, requestFlowerSkill, type FlowerSkillState } from './SkillApi.ts';
 import retreatButtonAsset from '../../assets/button/retreat_button.png';
 
 /** Screen-fixed controls and status display for the side-scrolling stage. */
@@ -17,9 +18,13 @@ export class StageHUD {
   private readonly flowerMp = new Map(testData.characters.map(character =>
     [character.id, character.stats.mp] as const
   ));
+  private readonly flowerMaxMp = new Map(testData.characters.map(character =>
+    [character.id, character.stats.mp] as const
+  ));
   private readonly flowerMpLabels: Array<Phaser.GameObjects.Text | undefined> = [];
   private readonly flowerMpBars: Array<Phaser.GameObjects.Rectangle | undefined> = [];
   private readonly flowerMpBarLayouts: Array<{ x: number; y: number; width: number } | undefined> = [];
+  private readonly flowerSkills = new Map<number, FlowerSkillState['skill']>();
   private retreatDialog: HTMLDivElement | null = null;
   private hpBar?: Phaser.GameObjects.Rectangle;
   private hpBarX = 0;
@@ -27,6 +32,7 @@ export class StageHUD {
   private hpBarWidth = 0;
   private hpBarHeight = 0;
   private skillNameText?: Phaser.GameObjects.Text;
+  private skillRequestPending = false;
 
   constructor(scene: Phaser.Scene, player?: Player, enemies: readonly CombatTarget[] = []) {
     this.scene = scene;
@@ -41,6 +47,7 @@ export class StageHUD {
     this.createPartyHud();
     this.createMovementPad();
     this.createActionButtons();
+    void this.initializeFlowerSkills();
   }
 
   public updateHealth(current: number, maximum: number): void {
@@ -342,31 +349,71 @@ export class StageHUD {
   private useSelectedFlowerSkill(): void {
     const formationId = testData.formation[this.selectedFlower];
     const flower = testData.characters.find(character => character.id === formationId);
-    if (!flower || !this.player) return;
-
-    const skill = getFlowerSkill(flower.role);
-    const currentMp = this.flowerMp.get(flower.id) ?? 0;
-    if (currentMp < skill.mpCost) {
-      this.skillNameText?.setText(`${skill.name}（MP不足）`);
+    if (!flower || !this.player || this.skillRequestPending) return;
+    if (!this.flowerSkills.has(flower.id)) {
+      this.skillNameText?.setText('スキルを読み込み中');
       return;
     }
-    if (!this.player.useFlowerSkill(skill.type, this.enemies)) return;
+    if (!this.player.reserveSkill()) return;
 
-    this.flowerMp.set(flower.id, currentMp - skill.mpCost);
-    this.updateFlowerMp(this.selectedFlower, flower);
-    this.updateSkillLabel();
+    this.skillRequestPending = true;
+    this.skillNameText?.setText('スキル確認中…');
+    void requestFlowerSkill(flower.id).then(result => {
+      if (result.flowerId !== flower.id) {
+        throw new Error('サーバーから別の花のスキルが返されました。');
+      }
+
+      this.flowerMp.set(flower.id, result.mp);
+      this.flowerSkills.set(flower.id, result.skill);
+      this.updateFlowerMp(this.selectedFlower, flower);
+      if (!this.player?.useFlowerSkill(result.skill, this.enemies)) {
+        this.skillNameText?.setText('スキル効果を反映できませんでした。');
+        return;
+      }
+      this.updateSkillLabel();
+    }).catch(error => {
+      this.player?.cancelReservedSkill();
+      const message = error instanceof Error ? error.message : 'スキルを使用できませんでした。';
+      this.skillNameText?.setText(message);
+      console.error('Flower skill request failed:', error);
+    }).finally(() => {
+      this.skillRequestPending = false;
+    });
   }
 
   private updateSkillLabel(): void {
     if (!this.skillNameText) return;
     const formationId = testData.formation[this.selectedFlower];
     const flower = testData.characters.find(character => character.id === formationId);
-    this.skillNameText.setText(flower ? getFlowerSkill(flower.role).name : '花を選択');
+    const skill = flower
+      ? this.flowerSkills.get(flower.id) ?? getFlowerSkill(flower.role)
+      : undefined;
+    this.skillNameText.setText(skill?.name ?? '花を選択');
+  }
+
+  private async initializeFlowerSkills(): Promise<void> {
+    if (this.skillNameText) this.skillNameText.setText('スキル読み込み中…');
+    try {
+      const states = await loadFlowerSkillStates();
+      states.forEach(state => {
+        this.flowerMp.set(state.flowerId, state.mp);
+        this.flowerMaxMp.set(state.flowerId, state.maxMp);
+        this.flowerSkills.set(state.flowerId, state.skill);
+        const formationIndex = testData.formation.indexOf(state.flowerId);
+        const flower = testData.characters.find(character => character.id === state.flowerId);
+        if (formationIndex >= 0 && flower) this.updateFlowerMp(formationIndex, flower);
+      });
+      this.updateSkillLabel();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'スキルデータを読み込めませんでした。';
+      this.skillNameText?.setText(message);
+      console.error('Flower skill state loading failed:', error);
+    }
   }
 
   private updateFlowerMp(index: number, flower: CharacterData): void {
     const currentMp = this.flowerMp.get(flower.id) ?? 0;
-    const maximumMp = flower.stats.mp;
+    const maximumMp = this.flowerMaxMp.get(flower.id) ?? flower.stats.mp;
     const label = this.flowerMpLabels[index];
     if (label) label.setText(`${currentMp}/${maximumMp}`);
 

@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { changeCharacterAnimation } from '../../animation/animation.ts';
-import type { FlowerSkillType } from '../test_data.ts';
+import type { ServerFlowerSkill } from './SkillApi.ts';
 
 export interface CombatTarget {
   readonly x: number;
@@ -135,28 +135,42 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.damageTargets(targets, 18, 125, false);
   }
 
-  public useFlowerSkill(skill: FlowerSkillType, targets: readonly CombatTarget[] = []): boolean {
-    switch (skill) {
+  public canUseSkill(): boolean {
+    return !this.dead && this.action === null;
+  }
+
+  public reserveSkill(): boolean {
+    if (!this.canUseSkill()) return false;
+    this.action = 'skillPending';
+    this.setVelocityX(0);
+    return true;
+  }
+
+  public cancelReservedSkill(): void {
+    if (this.action === 'skillPending') this.action = null;
+  }
+
+  public useFlowerSkill(skill: ServerFlowerSkill, targets: readonly CombatTarget[] = []): boolean {
+    if (!this.playSkillAnimation(skill.type === 'heal' ? 'player-drink' :
+      skill.type === 'defense' ? 'player-defend' : 'player-skill')) return false;
+
+    switch (skill.type) {
       case 'singleAttack':
-        if (!this.playAction('skill', 'player-skill')) return false;
-        this.showRange('front', 190, 0xff5f61);
-        this.damageTargets(targets, 45, 190, false);
+        this.showRange('front', skill.range, 0xff5f61);
+        this.damageTargets(targets, skill.damage, skill.range, false);
         break;
       case 'areaAttack':
-        if (!this.playAction('skill', 'player-skill')) return false;
-        this.showRange('radial', 190, 0xff5f61);
-        this.damageTargets(targets, 24, 190, true, true);
+        this.showRange('radial', skill.range, 0xff5f61);
+        this.damageTargets(targets, skill.damage, skill.range, true, true);
         break;
       case 'heal':
-        if (!this.playAction('skill', 'player-drink')) return false;
-        this.showRange('self', 72, 0x5de28c);
-        this.health = Math.min(this.maxHealth, this.health + 35);
+        this.showRange('self', skill.range, 0x5de28c);
+        this.health = Math.min(this.maxHealth, this.health + skill.healAmount);
         this.emit('health-changed', this.health, this.maxHealth);
         break;
       case 'defense':
-        if (!this.playAction('skill', 'player-defend')) return false;
-        this.showRange('self', 72, 0x62c9ff);
-        this.defenseUntil = this.scene.time.now + 5000;
+        this.showRange('self', skill.range, 0x62c9ff);
+        this.defenseUntil = this.scene.time.now + skill.defenseDurationMs;
         break;
     }
     return true;
@@ -199,6 +213,21 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   private playAction(action: string, animationKey: string): boolean {
     if (this.dead || this.action !== null || !this.scene.anims.exists(animationKey)) return false;
     this.action = action;
+    this.landingAnimationPlaying = false;
+    this.setVelocityX(0);
+    this.play(animationKey, true);
+    return true;
+  }
+
+  private playSkillAnimation(animationKey: string): boolean {
+    if (
+      !this.scene.anims.exists(animationKey) ||
+      (this.action !== 'skillPending' && this.action !== null) ||
+      this.dead
+    ) {
+      return false;
+    }
+    this.action = 'skill';
     this.landingAnimationPlaying = false;
     this.setVelocityX(0);
     this.play(animationKey, true);
