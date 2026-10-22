@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { getTextStyle } from '../../utils/ui/index.ts';
 import testData from '../test_data.ts';
 import { SCENE_KEYS } from '../sceneKeys';
-import type { Player } from './Player';
+import type { CombatTarget, Player } from './Player';
 import retreatButtonAsset from '../../assets/button/retreat_button.png';
 
 /** Screen-fixed controls and status display for the side-scrolling stage. */
@@ -10,13 +10,20 @@ export class StageHUD {
   private readonly depth = 2000;
   private readonly scene: Phaser.Scene;
   private readonly player?: Player;
+  private readonly enemies: readonly CombatTarget[];
   private selectedFlower = 0;
   private readonly partySelectionBorders: Phaser.GameObjects.Graphics[] = [];
   private retreatDialog: HTMLDivElement | null = null;
+  private hpBar?: Phaser.GameObjects.Rectangle;
+  private hpBarX = 0;
+  private hpBarY = 0;
+  private hpBarWidth = 0;
+  private hpBarHeight = 0;
 
-  constructor(scene: Phaser.Scene, player?: Player) {
+  constructor(scene: Phaser.Scene, player?: Player, enemies: readonly CombatTarget[] = []) {
     this.scene = scene;
     this.player = player;
+    this.enemies = enemies;
   }
 
   public create(stageId?: number): void {
@@ -26,6 +33,13 @@ export class StageHUD {
     this.createPartyHud();
     this.createMovementPad();
     this.createActionButtons();
+  }
+
+  public updateHealth(current: number, maximum: number): void {
+    if (!this.hpBar) return;
+    const width = this.hpBarWidth * Phaser.Math.Clamp(maximum > 0 ? current / maximum : 0, 0, 1);
+    this.hpBar.setSize(width, this.hpBarHeight)
+      .setPosition(this.hpBarX + width / 2, this.hpBarY + this.hpBarHeight / 2);
   }
 
   private createStatusPanel(): void {
@@ -40,7 +54,19 @@ export class StageHUD {
     this.panel(x, y, panelW, panelH, 14);
     this.text(x + 16, y + 10, `${leader.name}  Lv.${leader.level}`, compact ? 13 : 17, '#fff', 'bold');
     this.text(x + 16, y + 37, 'HP', 12, '#ff9bad', 'bold');
-    this.bar(x + 50, y + 40, panelW - (compact ? 66 : 88), 9, leader.stats.hp, leader.stats.hp, 0xf05b86);
+    this.hpBarX = x + 50;
+    this.hpBarY = y + 40;
+    this.hpBarWidth = panelW - (compact ? 66 : 88);
+    this.hpBarHeight = 9;
+    this.hpBar = this.bar(
+      this.hpBarX,
+      this.hpBarY,
+      this.hpBarWidth,
+      this.hpBarHeight,
+      this.player?.health ?? 100,
+      this.player?.maxHealth ?? 100,
+      0xf05b86
+    );
     this.text(x + 16, y + 59, 'MP', 12, '#7ee6fa', 'bold');
     this.bar(x + 50, y + 62, panelW - (compact ? 66 : 88), 9, leader.stats.mp, leader.stats.mp, 0x32bddb);
   }
@@ -258,9 +284,9 @@ export class StageHUD {
     const h = this.scene.scale.height;
     const baseX = w - 72;
     //攻撃
-    this.imageButton(baseX - 154, h - 94, 130, '', 'stage-attack', () => this.player?.attack());
+    this.imageButton(baseX - 154, h - 94, 130, '', 'stage-attack', () => this.player?.attack(this.enemies));
     //スキル
-    this.imageButton(baseX - 20, h - 172,  100, '', 'stage-skill', () => this.player?.skill());
+    this.imageButton(baseX - 20, h - 172,  100, '', 'stage-skill', () => this.player?.skill(this.enemies));
     //ジャンプ
     this.imageButton(baseX - 40, h - 64, 130, '', 'stage-jump', () => this.player?.jump());
   }
@@ -304,10 +330,13 @@ export class StageHUD {
     })).setScrollFactor(0).setDepth(this.depth + 1);
   }
 
-  private bar(x: number, y: number, w: number, h: number, value: number, max: number, color: number): void {
+  private bar(x: number, y: number, w: number, h: number, value: number, max: number, color: number): Phaser.GameObjects.Rectangle | undefined {
     this.scene.add.rectangle(x + w / 2, y + h / 2, w, h, 0x091521, 0.95).setScrollFactor(0).setDepth(this.depth + 1);
     const fill = w * Phaser.Math.Clamp(max > 0 ? value / max : 0, 0, 1);
-    if (fill > 0) this.scene.add.rectangle(x + fill / 2, y + h / 2, fill, h, color).setScrollFactor(0).setDepth(this.depth + 2);
+    if (fill <= 0) return undefined;
+    return this.scene.add.rectangle(x + fill / 2, y + h / 2, fill, h, color)
+      .setScrollFactor(0)
+      .setDepth(this.depth + 2);
   }
 
   private openInventory(): void {

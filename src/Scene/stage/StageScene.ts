@@ -8,23 +8,34 @@ import attackButton from '../../assets/button/attack_button.png';
 import jumpButton from '../../assets/button/jump_button.png';
 import skillButton from '../../assets/button/skill_button.png';
 import flowerIcon from '../../assets/flower.png';
+import enemyIdle from '../../assets/characters/enemy/Seeker_Lite/Spritesheets/Seeker_Void_Idle_30x30_24f.png';
+import enemyRun from '../../assets/characters/enemy/Seeker_Lite/Spritesheets/Seeker_Void_Run_30x30_10f.png';
+import enemyAttack from '../../assets/characters/enemy/Seeker_Lite/Spritesheets/Seeker_Void_Attack1_90x50_8f.png';
+import enemyHurt from '../../assets/characters/enemy/Seeker_Lite/Spritesheets/Seeker_Void_Hurt_55x80_9f.png';
+import enemyDeath from '../../assets/characters/enemy/Seeker_Lite/Spritesheets/Seeker_Void_Death_40x50_20f.png';
+import playerHurt from '../../assets/player/Red Cape Knight Character Asset/Player_Red sheets/Red_hurt.png';
 import { loadCharacterAnimation, createCharacterAnimation } from '../../animation/animation.ts';
 import { characterAnimations } from '../../animation/animationData.ts';
 
 // 分割したクラスのインポート
 import { Player } from './Player.ts';
+import { Enemy } from './Enemy.ts';
 import { StageHUD } from './StageHUD.ts';
 import { SCENE_KEYS } from '../sceneKeys';
 
 export class StageScene extends Phaser.Scene {
   private player!: Player;
   private hud!: StageHUD;
+  private enemies: Enemy[] = [];
 
   constructor() {
     super({ key: SCENE_KEYS.STAGE });
   }
 
   preload(): void {
+    const phpBaseUrl = (
+      import.meta.env.VITE_PHP_BASE_URL ?? 'http://localhost/php/application-Hanahaku-main/php'
+    ).replace(/\/$/, '');
     this.load.image('stage-terrain', terrainImg);
     this.load.image('stage-props', propsImg);
     this.load.image('stage-background', backgroundImg);
@@ -34,6 +45,12 @@ export class StageScene extends Phaser.Scene {
     this.load.image('stage-skill', skillButton);
     this.load.image('stage-flower', flowerIcon);
     this.load.tilemapTiledJSON('map', mapUrl);
+    this.load.json('stage-data-2', `${phpBaseUrl}/stage/data.php?id=2`);
+    this.load.spritesheet('stage-enemy-idle', enemyIdle, { frameWidth: 30, frameHeight: 30 });
+    this.load.spritesheet('stage-enemy-run', enemyRun, { frameWidth: 30, frameHeight: 30 });
+    this.load.spritesheet('stage-enemy-attack', enemyAttack, { frameWidth: 90, frameHeight: 50 });
+    this.load.spritesheet('stage-enemy-hurt', enemyHurt, { frameWidth: 55, frameHeight: 80 });
+    this.load.spritesheet('stage-enemy-death', enemyDeath, { frameWidth: 40, frameHeight: 50 });
 
     const playerData = characterAnimations.player;
     loadCharacterAnimation(this, 'player_run', playerData.run);
@@ -45,6 +62,13 @@ export class StageScene extends Phaser.Scene {
     loadCharacterAnimation(this, 'player_skill', playerData.skill);
     loadCharacterAnimation(this, 'player_defend', playerData.defend);
     loadCharacterAnimation(this, 'player_death', playerData.death);
+    loadCharacterAnimation(this, 'player_hurt', {
+      image: playerHurt,
+      frameWidth: 192,
+      frameHeight: 128,
+      frameCount: 5,
+      frameRate: 12
+    });
   }
 
   create(data: { stageId?: number } = {}): void {
@@ -61,6 +85,7 @@ export class StageScene extends Phaser.Scene {
     this.createMapDecorations(map);
 
     this.createPlayerAnimations();
+    this.createEnemyAnimation();
 
     const spawnObject = this.findPlayerSpawn(map);
     const spawnPosition = this.getSpawnPosition(spawnObject);
@@ -75,10 +100,11 @@ export class StageScene extends Phaser.Scene {
       this.player.adjustPosition(spawnObject);
     }
 
+    this.enemies = this.createEnemies(data.stageId ?? 2);
     this.setupWorld(map);
 
     // UI（HUD）の生成を StageHUD クラスに委譲
-    this.hud = new StageHUD(this, this.player);
+    this.hud = new StageHUD(this, this.player, this.enemies);
     this.hud.create(data.stageId);
   }
 
@@ -170,6 +196,57 @@ export class StageScene extends Phaser.Scene {
         action === 'land' || action === 'attack' || action === 'skill' || action === 'death' ? 0 : -1
       );
     }
+    createCharacterAnimation(this, 'player-hurt', 'player_hurt', 5, 12, 0);
+  }
+
+  private createEnemyAnimation(): void {
+    createCharacterAnimation(this, 'enemy-idle', 'stage-enemy-idle', 24, 8);
+    createCharacterAnimation(this, 'enemy-run', 'stage-enemy-run', 10, 10);
+    createCharacterAnimation(this, 'enemy-attack', 'stage-enemy-attack', 8, 10, 0);
+    createCharacterAnimation(this, 'enemy-hurt', 'stage-enemy-hurt', 9, 10, 0);
+    createCharacterAnimation(this, 'enemy-death', 'stage-enemy-death', 20, 10, 0);
+  }
+
+  private createEnemies(stageId: number): Enemy[] {
+    if (stageId !== 2) return [];
+
+    const stageData: unknown = this.cache.json.get('stage-data-2');
+    if (
+      typeof stageData !== 'object' ||
+      stageData === null ||
+      !('enemies' in stageData) ||
+      !Array.isArray(stageData.enemies) ||
+      stageData.enemies.length !== 3
+    ) {
+      console.error('ステージ1-2の敵データを読み込めません。php/stage/stage2.jsonを確認してください。');
+      this.add.text(24, 130, '敵データを読み込めませんでした。', {
+        color: '#ffb4a2',
+        fontSize: '18px',
+        backgroundColor: '#271b20',
+        padding: { x: 10, y: 6 }
+      }).setScrollFactor(0).setDepth(2000);
+      return [];
+    }
+
+    const enemies: Enemy[] = [];
+    for (const enemy of stageData.enemies) {
+      if (
+        typeof enemy !== 'object' ||
+        enemy === null ||
+        !('x' in enemy) ||
+        !('y' in enemy) ||
+        typeof enemy.x !== 'number' ||
+        typeof enemy.y !== 'number' ||
+        !Number.isFinite(enemy.x) ||
+        !Number.isFinite(enemy.y)
+      ) {
+        console.error('ステージ1-2の敵データに不正な座標があります。php/stage/stage2.jsonを確認してください。');
+        continue;
+      }
+
+      enemies.push(new Enemy(this, enemy.x, enemy.y, this.player));
+    }
+    return enemies;
   }
 
   // =========================
@@ -216,6 +293,10 @@ export class StageScene extends Phaser.Scene {
 
     if (layer) {
       this.physics.add.collider(this.player, layer);
+      this.enemies.forEach(enemy => {
+        this.physics.add.collider(enemy, layer);
+        this.physics.add.collider(this.player, enemy);
+      });
     }
   }
 
@@ -226,6 +307,8 @@ export class StageScene extends Phaser.Scene {
     // プレイヤーの更新処理を呼び出す
     if (this.player) {
       this.player.update();
+      this.enemies.forEach(enemy => enemy.update(this.time.now));
+      this.hud?.updateHealth(this.player.health, this.player.maxHealth);
     }
   }
 }

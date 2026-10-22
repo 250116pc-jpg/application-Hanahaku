@@ -1,14 +1,23 @@
 import Phaser from 'phaser';
 import { changeCharacterAnimation } from '../../animation/animation.ts';
 
+export interface CombatTarget {
+  readonly x: number;
+  readonly y: number;
+  receiveDamage(amount: number): void;
+}
+
 export class Player extends Phaser.Physics.Arcade.Sprite {
   private cursors: Phaser.Types.Input.Keyboard.CursorKeys | undefined;
   private readonly PLAYER_SPEED = 160;
   private readonly JUMP_POWER = 330;
   private wasGrounded = true;
   private landingAnimationPlaying = false;
-  private action: 'attack' | 'skill' | null = null;
+  private action: 'attack' | 'skill' | 'hurt' | null = null;
   private dead = false;
+  private invulnerableUntil = 0;
+  public readonly maxHealth = 100;
+  public health = this.maxHealth;
 
   constructor(scene: Phaser.Scene, x: number, y: number, cursors?: Phaser.Types.Input.Keyboard.CursorKeys) {
     super(scene, x, y, 'player_idle');
@@ -22,7 +31,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       if (animation.key === 'player-land') {
         this.landingAnimationPlaying = false;
       }
-      if (animation.key === 'player-attack' || animation.key === 'player-skill') {
+      if (['player-attack', 'player-skill', 'player-hurt'].includes(animation.key)) {
         this.action = null;
       }
     });
@@ -112,12 +121,36 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     if (body?.blocked.down) this.setVelocityY(-this.JUMP_POWER);
   }
 
-  public attack(): void {
-    this.playAction('attack');
+  public attack(targets: readonly CombatTarget[] = []): void {
+    if (!this.playAction('attack')) return;
+    this.damageTargets(targets, 18, 125, false);
   }
 
-  public skill(): void {
-    this.playAction('skill');
+  public skill(targets: readonly CombatTarget[] = []): void {
+    if (!this.playAction('skill')) return;
+    this.damageTargets(targets, 35, 180, true);
+  }
+
+  public receiveDamage(amount: number): void {
+    const now = this.scene.time.now;
+    if (this.dead || now < this.invulnerableUntil || amount <= 0) return;
+
+    const defending = this.cursors?.down?.isDown === true && (this.body as Phaser.Physics.Arcade.Body).blocked.down;
+    this.health = Math.max(0, this.health - Math.ceil(defending ? amount / 2 : amount));
+    this.invulnerableUntil = now + 700;
+    this.emit('health-changed', this.health, this.maxHealth);
+
+    if (this.health === 0) {
+      this.die();
+      return;
+    }
+
+    this.action = 'hurt';
+    this.landingAnimationPlaying = false;
+    this.setVelocityX(0);
+    this.play('player-hurt', true);
+    this.setTint(0xffaaaa);
+    this.scene.time.delayedCall(160, () => this.clearTint());
   }
 
   public die(): void {
@@ -130,13 +163,31 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.play('player-death', true);
   }
 
-  private playAction(action: 'attack' | 'skill'): void {
+  private playAction(action: 'attack' | 'skill'): boolean {
     const animationKey = `player-${action}`;
-    if (this.dead || this.action !== null || !this.scene.anims.exists(animationKey)) return;
+    if (this.dead || this.action !== null || !this.scene.anims.exists(animationKey)) return false;
     this.action = action;
     this.landingAnimationPlaying = false;
     this.setVelocityX(0);
     this.play(animationKey, true);
+    return true;
+  }
+
+  private damageTargets(
+    targets: readonly CombatTarget[],
+    damage: number,
+    range: number,
+    hitAll: boolean
+  ): void {
+    const direction = this.flipX ? -1 : 1;
+    const inRange = targets.filter(target => {
+      const distanceX = (target.x - this.x) * direction;
+      return distanceX >= -20 &&
+        distanceX <= range &&
+        Math.abs(target.y - this.y) <= 100;
+    });
+    const hits = hitAll ? inRange : inRange.slice(0, 1);
+    hits.forEach(target => target.receiveDamage(damage));
   }
 
   private playAnimation(animationKey: string): void {
