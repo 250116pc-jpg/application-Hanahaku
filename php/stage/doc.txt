@@ -1,0 +1,9 @@
+stages	ステージデータ		
+名前	内容	タイプ	いろいろ
+id	ステージid	int	PRIMARY、AI
+name	ステージの名前	text	
+description	説明	text	
+drop_items	報酬アイテムデータ	json	
+enemies	敵の出現データ	json	
+map_data	マップの地形データ	json	
+area_data	どこで出現するのかのデータ	json	
