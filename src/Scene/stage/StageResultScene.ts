@@ -1,0 +1,65 @@
+import Phaser from 'phaser';
+import { SCENE_KEYS } from '../sceneKeys';
+import { getTextStyle } from '../../utils/ui';
+import { showDebugSceneName } from '../../debug';
+
+interface StageResultData {
+  stageId: number;
+  victory: boolean;
+  reward: number;
+  coins: number;
+  persisted: 'server' | 'device';
+  saveError?: string;
+}
+
+export class StageResultScene extends Phaser.Scene {
+  constructor() { super(SCENE_KEYS.RESULT); }
+
+  create(data: StageResultData): void {
+    showDebugSceneName(this);
+    const { width, height } = this.scale;
+    this.add.rectangle(width / 2, height / 2, width, height, 0x0c1722, 1);
+    this.add.rectangle(width / 2, height / 2, width - 70, height - 70, 0x172a39, 1)
+      .setStrokeStyle(3, data.victory ? 0xeacb7b : 0x8e9cab);
+    this.add.text(width / 2, 145, data.victory ? 'ステージクリア！' : 'ゲームオーバー', getTextStyle(48, {
+      color: data.victory ? '#ffe59c' : '#d9e1e8', fontStyle: 'bold', align: 'center',
+    })).setOrigin(0.5);
+    this.add.text(width / 2, 225, `ステージ 1-${data.stageId}`, getTextStyle(26, { color: '#ffffff' })).setOrigin(0.5);
+
+    const summary = data.victory
+      ? `報酬　${data.reward} コイン\n所持コイン　${data.coins}`
+      : '今回の報酬はありません';
+    this.add.text(width / 2, 330, summary, getTextStyle(30, {
+      color: '#ffffff', align: 'center', lineSpacing: 18,
+    })).setOrigin(0.5);
+    this.add.text(width / 2, 405,
+      data.victory
+        ? data.persisted === 'server' ? '進行状況を保存しました' : 'この端末に進行状況を保存しました'
+        : 'ステージ選択画面から再挑戦できます',
+      getTextStyle(18, { color: data.victory ? data.persisted === 'server' ? '#a9e6c1' : '#ffd79a' : '#d9e1e8' })).setOrigin(0.5);
+    if (data.saveError && data.persisted === 'device') {
+      this.add.text(width / 2, 438, data.saveError, getTextStyle(15, { color: '#f2c6b8', align: 'center' })).setOrigin(0.5);
+    }
+
+    const buttonY = height - 105;
+    if (!data.victory) this.createButton(width / 2 - 220, buttonY, 'もう一度', 0x527c63, () => {
+      this.scene.start(SCENE_KEYS.STAGE, { stageId: data.stageId });
+    });
+    this.createButton(width / 2, buttonY, 'ステージ選択へ', 0x586f84, () => {
+      this.scene.start(SCENE_KEYS.SELECT_STAGE, { areaId: 1 });
+    });
+    this.createButton(width / 2 + 220, buttonY, 'ホームへ', 0x80683e, () => {
+      this.scene.start(SCENE_KEYS.HOME);
+    });
+  }
+
+  private createButton(x: number, y: number, label: string, color: number, onClick: () => void): void {
+    const button = this.add.container(x, y);
+    const bg = this.add.rectangle(0, 0, 190, 58, color, 1).setStrokeStyle(2, 0xf0d891);
+    const text = this.add.text(0, 0, label, getTextStyle(20, { color: '#ffffff', fontStyle: 'bold' })).setOrigin(0.5);
+    button.add([bg, text]).setSize(190, 58).setInteractive({ useHandCursor: true });
+    button.on('pointerover', () => button.setScale(1.04));
+    button.on('pointerout', () => button.setScale(1));
+    button.on('pointerup', onClick);
+  }
+}

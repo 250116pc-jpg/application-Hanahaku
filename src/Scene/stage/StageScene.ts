@@ -22,11 +22,14 @@ import { Player } from './Player.ts';
 import { Enemy } from './Enemy.ts';
 import { StageHUD } from './StageHUD.ts';
 import { SCENE_KEYS } from '../sceneKeys';
+import { completeStage } from './StageProgress';
 
 export class StageScene extends Phaser.Scene {
   private player!: Player;
   private hud!: StageHUD;
   private enemies: Enemy[] = [];
+  private stageId = 2;
+  private isEnding = false;
 
   constructor() {
     super({ key: SCENE_KEYS.STAGE });
@@ -73,6 +76,8 @@ export class StageScene extends Phaser.Scene {
   }
 
   create(data: { stageId?: number } = {}): void {
+    this.stageId = data.stageId ?? 2;
+    this.isEnding = false;
     this.physics.world.drawDebug = false;
     const map = this.createMap();
     if (!map) return;
@@ -101,7 +106,7 @@ export class StageScene extends Phaser.Scene {
       this.player.adjustPosition(spawnObject);
     }
 
-    this.enemies = this.createEnemies(data.stageId ?? 2);
+    this.enemies = this.createEnemies(this.stageId);
     this.setupWorld(map);
 
     // UI（HUD）の生成を StageHUD クラスに委譲
@@ -306,11 +311,47 @@ export class StageScene extends Phaser.Scene {
   // 更新処理
   // =========================
   update(): void {
-    // プレイヤーの更新処理を呼び出す
-    if (this.player) {
-      this.player.update();
-      this.enemies.forEach(enemy => enemy.update(this.time.now));
-      this.hud?.updateHealth(this.player.health, this.player.maxHealth);
+    if (!this.player || this.isEnding) return;
+    this.player.update();
+    this.enemies.forEach(enemy => enemy.update(this.time.now));
+    this.hud?.updateHealth(this.player.health, this.player.maxHealth);
+
+    if (this.player.health <= 0) {
+      this.finishStage(false);
+    } else if (this.enemies.length > 0 && this.enemies.every(enemy => enemy.isDefeated)) {
+      this.finishStage(true);
     }
+  }
+
+  private finishStage(victory: boolean): void {
+    if (this.isEnding) return;
+    this.isEnding = true;
+    this.physics.pause();
+    this.time.delayedCall(victory ? 250 : 700, () => {
+      void this.openResult(victory);
+    });
+  }
+
+  private async openResult(victory: boolean): Promise<void> {
+    if (victory) {
+      const completion = await completeStage(this.stageId);
+      this.scene.start(SCENE_KEYS.RESULT, {
+        stageId: this.stageId,
+        victory,
+        reward: completion.reward,
+        coins: completion.coins,
+        persisted: completion.persisted,
+        saveError: completion.saveError,
+      });
+      return;
+    }
+
+    this.scene.start(SCENE_KEYS.RESULT, {
+      stageId: this.stageId,
+      victory,
+      reward: 0,
+      coins: 0,
+      persisted: 'device',
+    });
   }
 }
