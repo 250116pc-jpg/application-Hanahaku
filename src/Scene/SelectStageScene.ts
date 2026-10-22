@@ -18,6 +18,7 @@ import { getTextStyle } from '../utils/ui';
 
 //debug機能
 import { showDebugSceneName } from '../debug';
+import { SCENE_KEYS } from './sceneKeys';
 
 //--------------------------------------------------------------
 
@@ -41,7 +42,7 @@ export class SelectStageScene extends Phaser.Scene {
   private isStageInfoOpen = false;
 
   constructor() {
-    super('SelectStageScene');
+    super(SCENE_KEYS.SELECT_STAGE);
   }
 
   // ========================================
@@ -208,7 +209,7 @@ export class SelectStageScene extends Phaser.Scene {
     container.on('pointerup', () => {
       drawButton(COLOR_HOVER);
       text.setY(0);
-      this.scene.start('AreaSelectScene');
+      this.scene.start(SCENE_KEYS.AREA_SELECT);
     });
   }
 
@@ -390,7 +391,7 @@ export class SelectStageScene extends Phaser.Scene {
 
     // ボタンのサイズも少し大きく (150x48 → 160x56)
     const formationBtn = createDialogButton(-120, popupH / 2 - 55, 160, 56, '編成', 0x536878, 0x6d8396, () => {
-      closePopup(() => scene.scene.start('FormScene'));
+      closePopup(() => scene.scene.start(SCENE_KEYS.FORM));
     });
 
     const startBtn = createDialogButton(120, popupH / 2 - 55, 160, 56, '出撃', 0x4c8c5a, 0x60ab72, () => {
@@ -399,9 +400,9 @@ export class SelectStageScene extends Phaser.Scene {
         const stageIndex = testData.stages.findIndex(item => item.id === stage.id);
         const stageType = this.stagePositions[stageIndex]?.type;
         if(stageType === 'battle') {
-          scene.scene.start('StageScene', { stageId: stage.id });
+          scene.scene.start(SCENE_KEYS.STAGE, { stageId: stage.id });
         } else if(stageType === 'story') {
-          scene.scene.start('StoryScene', {
+          scene.scene.start(SCENE_KEYS.STORY, {
             chapter: this.currentChapter,
             stage: stage.id
           });

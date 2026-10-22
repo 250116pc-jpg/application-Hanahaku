@@ -33,7 +33,8 @@ export function createCharacterAnimation(
   animationKey: string,
   textureKey: string,
   frameCount: number,
-  frameRate: number
+  frameRate: number,
+  repeat: number = -1
 ): void {
 
   // すでに存在する場合は作らない
@@ -54,7 +55,7 @@ export function createCharacterAnimation(
 
     frameRate: frameRate,
 
-    repeat: -1
+    repeat
   });
 }
 
@@ -83,9 +84,9 @@ export function createCharacterSprite(
 // アニメーション変更
 export function changeCharacterAnimation(
   player: Phaser.GameObjects.Sprite,
-  action: 'run' | 'idle'
+  action: 'run' | 'idle' | 'jump' | 'fall' | 'land'
 ): void {
-  const animationKey = action === 'run' ? 'player-run' : 'player-idle'
+  const animationKey = `player-${action}`;
 
   if (player.anims.currentAnim?.key !== animationKey) {
     player.play(animationKey)

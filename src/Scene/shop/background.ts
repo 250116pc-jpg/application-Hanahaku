@@ -3,8 +3,9 @@ export function createShopBackground(
   screenWidth: number,
   screenHeight: number
 ) {
-  scene.add.image(0, 50, 'panel', 9)
-    .setOrigin(0, 0)
-    .setDisplaySize(screenWidth + 560, screenHeight + 320)
-    .setPosition(-260, -160)
+  scene.add.image(screenWidth / 2, screenHeight / 2, 'shop-background')
+    .setDisplaySize(screenWidth, screenHeight)
+    .setDepth(-2);
+  scene.add.rectangle(screenWidth / 2, screenHeight / 2, screenWidth, screenHeight, 0x182b22, 0.48)
+    .setDepth(-1);
 }

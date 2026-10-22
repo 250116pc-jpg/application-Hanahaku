@@ -6,22 +6,23 @@ import { InventoryView } from './inventory/InventoryView'
 
 //debug機能
 import { showDebugSceneName } from '../debug';
+import { SCENE_KEYS } from './sceneKeys';
 
 //--------------------------------------------------------------
 
 export class InventoryScene extends Phaser.Scene {
-  private returnScene = 'TestScene'
+  private returnScene: string = SCENE_KEYS.TEST
   private selectedCategory: InventoryFilter = 'all'
   private selectedItem: InventoryItem | null = null
   private items: InventoryItem[] = []
   private view!: InventoryView
 
   constructor() {
-    super('InventoryScene')
+    super(SCENE_KEYS.INVENTORY)
   }
 
   init(data: { returnScene?: string }): void {
-    this.returnScene = data?.returnScene ?? 'TestScene'
+    this.returnScene = data?.returnScene ?? SCENE_KEYS.TEST
   }
 
   create(): void {
