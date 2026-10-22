@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { changeCharacterAnimation } from '../../animation/animation.ts';
+import type { FlowerSkillType } from '../test_data.ts';
 
 export interface CombatTarget {
   readonly x: number;
@@ -13,9 +14,10 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   private readonly JUMP_POWER = 330;
   private wasGrounded = true;
   private landingAnimationPlaying = false;
-  private action: 'attack' | 'skill' | 'hurt' | null = null;
+  private action: string | null = null;
   private dead = false;
   private invulnerableUntil = 0;
+  private defenseUntil = 0;
   public readonly maxHealth = 100;
   public health = this.maxHealth;
 
@@ -31,7 +33,13 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       if (animation.key === 'player-land') {
         this.landingAnimationPlaying = false;
       }
-      if (['player-attack', 'player-skill', 'player-hurt'].includes(animation.key)) {
+      if ([
+        'player-attack',
+        'player-skill',
+        'player-hurt',
+        'player-drink',
+        'player-defend'
+      ].includes(animation.key)) {
         this.action = null;
       }
     });
@@ -122,21 +130,46 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   }
 
   public attack(targets: readonly CombatTarget[] = []): void {
-    if (!this.playAction('attack')) return;
+    if (!this.playAction('attack', 'player-attack')) return;
+    this.showRange('front', 125, 0xffb347);
     this.damageTargets(targets, 18, 125, false);
   }
 
-  public skill(targets: readonly CombatTarget[] = []): void {
-    if (!this.playAction('skill')) return;
-    this.damageTargets(targets, 35, 180, true);
+  public useFlowerSkill(skill: FlowerSkillType, targets: readonly CombatTarget[] = []): boolean {
+    switch (skill) {
+      case 'singleAttack':
+        if (!this.playAction('skill', 'player-skill')) return false;
+        this.showRange('front', 190, 0xff5f61);
+        this.damageTargets(targets, 45, 190, false);
+        break;
+      case 'areaAttack':
+        if (!this.playAction('skill', 'player-skill')) return false;
+        this.showRange('radial', 190, 0xff5f61);
+        this.damageTargets(targets, 24, 190, true, true);
+        break;
+      case 'heal':
+        if (!this.playAction('skill', 'player-drink')) return false;
+        this.showRange('self', 72, 0x5de28c);
+        this.health = Math.min(this.maxHealth, this.health + 35);
+        this.emit('health-changed', this.health, this.maxHealth);
+        break;
+      case 'defense':
+        if (!this.playAction('skill', 'player-defend')) return false;
+        this.showRange('self', 72, 0x62c9ff);
+        this.defenseUntil = this.scene.time.now + 5000;
+        break;
+    }
+    return true;
   }
 
   public receiveDamage(amount: number): void {
     const now = this.scene.time.now;
     if (this.dead || now < this.invulnerableUntil || amount <= 0) return;
 
-    const defending = this.cursors?.down?.isDown === true && (this.body as Phaser.Physics.Arcade.Body).blocked.down;
-    this.health = Math.max(0, this.health - Math.ceil(defending ? amount / 2 : amount));
+    const defending = this.cursors?.down?.isDown === true &&
+      (this.body as Phaser.Physics.Arcade.Body).blocked.down;
+    const damageReduction = defending || now < this.defenseUntil ? 0.5 : 0;
+    this.health = Math.max(0, this.health - Math.ceil(amount * (1 - damageReduction)));
     this.invulnerableUntil = now + 700;
     this.emit('health-changed', this.health, this.maxHealth);
 
@@ -163,8 +196,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.play('player-death', true);
   }
 
-  private playAction(action: 'attack' | 'skill'): boolean {
-    const animationKey = `player-${action}`;
+  private playAction(action: string, animationKey: string): boolean {
     if (this.dead || this.action !== null || !this.scene.anims.exists(animationKey)) return false;
     this.action = action;
     this.landingAnimationPlaying = false;
@@ -177,17 +209,47 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     targets: readonly CombatTarget[],
     damage: number,
     range: number,
-    hitAll: boolean
+    hitAll: boolean,
+    radial = false
   ): void {
     const direction = this.flipX ? -1 : 1;
     const inRange = targets.filter(target => {
       const distanceX = (target.x - this.x) * direction;
-      return distanceX >= -20 &&
-        distanceX <= range &&
-        Math.abs(target.y - this.y) <= 100;
+      const distanceY = target.y - this.y;
+      return radial
+        ? Math.hypot(distanceX, distanceY) <= range
+        : distanceX >= -20 && distanceX <= range && Math.abs(distanceY) <= 100;
     });
     const hits = hitAll ? inRange : inRange.slice(0, 1);
     hits.forEach(target => target.receiveDamage(damage));
+  }
+
+  private showRange(shape: 'front' | 'radial' | 'self', range: number, color: number): void {
+    const indicator = this.scene.add.graphics()
+      .setDepth(4)
+      .setScrollFactor(1);
+    const fillColor = color;
+    const fillAlpha = 0.18;
+    indicator.fillStyle(fillColor, fillAlpha);
+    indicator.lineStyle(3, fillColor, 0.85);
+
+    if (shape === 'front') {
+      const direction = this.flipX ? -1 : 1;
+      const x = direction > 0 ? this.x : this.x - range;
+      indicator.fillRoundedRect(x, this.y - 100, range, 200, 22);
+      indicator.strokeRoundedRect(x, this.y - 100, range, 200, 22);
+    } else {
+      indicator.fillCircle(this.x, this.y - 40, range);
+      indicator.strokeCircle(this.x, this.y - 40, range);
+    }
+
+    this.scene.tweens.add({
+      targets: indicator,
+      alpha: 0,
+      delay: 300,
+      duration: 350,
+      onComplete: () => indicator.destroy()
+    });
   }
 
   private playAnimation(animationKey: string): void {

@@ -1,4 +1,13 @@
 export type Season = '春' | '夏' | '秋' | '冬'
+export type CharacterRole = '攻撃' | '回復' | '防御' | '補助'
+export type FlowerSkillType = 'singleAttack' | 'areaAttack' | 'heal' | 'defense'
+
+export type FlowerSkill = {
+  type: FlowerSkillType
+  name: string
+  description: string
+  mpCost: number
+}
 
 export type CharacterData = {
   id: number
@@ -8,7 +17,7 @@ export type CharacterData = {
   level: number
   maxLevel: number
   element: string
-  role: string
+  role: CharacterRole
   season: Season
   description: string
   stats: {
@@ -139,7 +148,38 @@ const characters: CharacterData[] = [
   createCharacter(16, 'ミモザ', 'ミモザ', 2, 11, '風', '回復', '冬', 580, 290, 84, 82, 115)
 ]
 
-const formation: Array<number | null> = [1, 3, 10, null]
+const formation: Array<number | null> = [1, 5, 3, 4]
+
+export function getFlowerSkill(role: CharacterRole): FlowerSkill {
+  const skills: Record<CharacterRole, FlowerSkill> = {
+    攻撃: {
+      type: 'singleAttack',
+      name: 'フラワースラッシュ',
+      description: '前方の敵1体に大ダメージ',
+      mpCost: 30
+    },
+    補助: {
+      type: 'areaAttack',
+      name: '花嵐',
+      description: '周囲の敵にダメージ',
+      mpCost: 30
+    },
+    回復: {
+      type: 'heal',
+      name: '花癒し',
+      description: '主人公のHPを回復',
+      mpCost: 30
+    },
+    防御: {
+      type: 'defense',
+      name: '花守り',
+      description: '5秒間、受けるダメージを軽減',
+      mpCost: 30
+    }
+  }
+  return skills[role]
+}
+
 const stages = [
   {
     id: 1,
@@ -241,7 +281,7 @@ function createCharacter(
   rarity: number,
   level: number,
   element: string,
-  role: string,
+  role: CharacterRole,
   season: Season,
   hp: number,
   mp: number,

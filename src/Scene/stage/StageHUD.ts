@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { getTextStyle } from '../../utils/ui/index.ts';
-import testData from '../test_data.ts';
+import testData, { getFlowerSkill } from '../test_data.ts';
+import type { CharacterData } from '../test_data.ts';
 import { SCENE_KEYS } from '../sceneKeys';
 import type { CombatTarget, Player } from './Player';
 import retreatButtonAsset from '../../assets/button/retreat_button.png';
@@ -13,12 +14,19 @@ export class StageHUD {
   private readonly enemies: readonly CombatTarget[];
   private selectedFlower = 0;
   private readonly partySelectionBorders: Phaser.GameObjects.Graphics[] = [];
+  private readonly flowerMp = new Map(testData.characters.map(character =>
+    [character.id, character.stats.mp] as const
+  ));
+  private readonly flowerMpLabels: Array<Phaser.GameObjects.Text | undefined> = [];
+  private readonly flowerMpBars: Array<Phaser.GameObjects.Rectangle | undefined> = [];
+  private readonly flowerMpBarLayouts: Array<{ x: number; y: number; width: number } | undefined> = [];
   private retreatDialog: HTMLDivElement | null = null;
   private hpBar?: Phaser.GameObjects.Rectangle;
   private hpBarX = 0;
   private hpBarY = 0;
   private hpBarWidth = 0;
   private hpBarHeight = 0;
+  private skillNameText?: Phaser.GameObjects.Text;
 
   constructor(scene: Phaser.Scene, player?: Player, enemies: readonly CombatTarget[] = []) {
     this.scene = scene;
@@ -233,6 +241,9 @@ export class StageHUD {
       this.partySelectionBorders.push(border);
       this.drawPartySelection(border, x, top, cardW, cardH, i === this.selectedFlower);
       if (!character) {
+        this.flowerMpLabels.push(undefined);
+        this.flowerMpBars.push(undefined);
+        this.flowerMpBarLayouts.push(undefined);
         this.text(x + cardW / 2, top + cardH / 2, '＋ 空き枠', 13, '#d4dce5', 'bold').setOrigin(0.5);
         continue;
       }
@@ -243,9 +254,20 @@ export class StageHUD {
         .setDisplaySize(36, 36).setScrollFactor(0).setDepth(this.depth + 1);
       this.text(x + 52, top + 18, character.name, Math.min(14, cardW / 7), '#fff', 'bold');
       this.text(x + 10, top + 54, 'MP', 10, '#b9e6ee', 'bold');
-      this.text(x + cardW - 10, top + 53, `${character.stats.mp}/${character.stats.mp}`, 10, '#f5f0e8')
-        .setOrigin(1, 0);
-      this.bar(x + 10, top + cardH - 24, cardW - 20, 8, character.stats.mp, character.stats.mp, 0x38c4dc);
+      const mpLabel = this.text(x + cardW - 10, top + 53, '', 10, '#f5f0e8').setOrigin(1, 0);
+      const mpBar = this.bar(
+        x + 10,
+        top + cardH - 24,
+        cardW - 20,
+        8,
+        this.flowerMp.get(character.id) ?? 0,
+        character.stats.mp,
+        0x38c4dc
+      );
+      this.flowerMpLabels.push(mpLabel);
+      this.flowerMpBars.push(mpBar);
+      this.flowerMpBarLayouts.push({ x: x + 10, y: top + cardH - 24, width: cardW - 20 });
+      this.updateFlowerMp(i, character);
     }
   }
 
@@ -260,6 +282,7 @@ export class StageHUD {
       const top = this.scene.scale.height - height - 18;
       this.drawPartySelection(border, left + i * (cardW + gap), top, cardW, height, i === index);
     });
+    this.updateSkillLabel();
   }
 
   private drawPartySelection(graphics: Phaser.GameObjects.Graphics, x: number, y: number, width: number, height: number, selected: boolean): void {
@@ -286,7 +309,9 @@ export class StageHUD {
     //攻撃
     this.imageButton(baseX - 154, h - 94, 130, '', 'stage-attack', () => this.player?.attack(this.enemies));
     //スキル
-    this.imageButton(baseX - 20, h - 172,  100, '', 'stage-skill', () => this.player?.skill(this.enemies));
+    this.imageButton(baseX - 20, h - 172, 100, '', 'stage-skill', () => this.useSelectedFlowerSkill());
+    this.skillNameText = this.text(baseX + 28, h - 230, '', 14, '#fff4e8', 'bold').setOrigin(0.5);
+    this.updateSkillLabel();
     //ジャンプ
     this.imageButton(baseX - 40, h - 64, 130, '', 'stage-jump', () => this.player?.jump());
   }
@@ -312,6 +337,45 @@ export class StageHUD {
       onClick();
     });
     hitArea.on('pointerupoutside', () => image.setScale(baseScale));
+  }
+
+  private useSelectedFlowerSkill(): void {
+    const formationId = testData.formation[this.selectedFlower];
+    const flower = testData.characters.find(character => character.id === formationId);
+    if (!flower || !this.player) return;
+
+    const skill = getFlowerSkill(flower.role);
+    const currentMp = this.flowerMp.get(flower.id) ?? 0;
+    if (currentMp < skill.mpCost) {
+      this.skillNameText?.setText(`${skill.name}（MP不足）`);
+      return;
+    }
+    if (!this.player.useFlowerSkill(skill.type, this.enemies)) return;
+
+    this.flowerMp.set(flower.id, currentMp - skill.mpCost);
+    this.updateFlowerMp(this.selectedFlower, flower);
+    this.updateSkillLabel();
+  }
+
+  private updateSkillLabel(): void {
+    if (!this.skillNameText) return;
+    const formationId = testData.formation[this.selectedFlower];
+    const flower = testData.characters.find(character => character.id === formationId);
+    this.skillNameText.setText(flower ? getFlowerSkill(flower.role).name : '花を選択');
+  }
+
+  private updateFlowerMp(index: number, flower: CharacterData): void {
+    const currentMp = this.flowerMp.get(flower.id) ?? 0;
+    const maximumMp = flower.stats.mp;
+    const label = this.flowerMpLabels[index];
+    if (label) label.setText(`${currentMp}/${maximumMp}`);
+
+    const bar = this.flowerMpBars[index];
+    const layout = this.flowerMpBarLayouts[index];
+    if (bar && layout) {
+      const fillWidth = layout.width * Phaser.Math.Clamp(maximumMp > 0 ? currentMp / maximumMp : 0, 0, 1);
+      bar.setSize(fillWidth, 8).setPosition(layout.x + fillWidth / 2, layout.y + 4);
+    }
   }
 
   private panel(x: number, y: number, w: number, h: number, radius: number, alpha = 0.94, highlight = false): void {

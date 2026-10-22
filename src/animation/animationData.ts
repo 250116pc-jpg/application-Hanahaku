@@ -8,6 +8,7 @@ import playerAttack from '../assets/player/Red Cape Knight Character Asset/Playe
 import playerSkill from '../assets/player/Red Cape Knight Character Asset/Player_Red sheets/Red_spin_attack.png'
 import playerDefend from '../assets/player/Red Cape Knight Character Asset/Player_Red sheets/Red_ducking.png'
 import playerDeath from '../assets/player/Red Cape Knight Character Asset/Player_Red sheets/Red_Death.png'
+import playerDrink from '../assets/player/Red Cape Knight Character Asset/Player_Red sheets/Red_drinking.png'
 
 
 export const characterAnimations = {
@@ -78,6 +79,13 @@ export const characterAnimations = {
       frameHeight: 128,
       frameCount: 6,
       frameRate: 8
+    },
+    drink: {
+      image: playerDrink,
+      frameWidth: 192,
+      frameHeight: 128,
+      frameCount: 5,
+      frameRate: 10
     }
   }
 };
