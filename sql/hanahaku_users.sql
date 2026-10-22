@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS `users` (
     `update_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新日',
     `HP` INT NULL COMMENT 'HP',
     `MP` INT NULL COMMENT 'MP',
-    `EVA` INT NULL COMMENT '回避率',
+    `EVA` FLOAT NULL COMMENT '回避率',
     `VIT` INT NULL COMMENT '回復力',
     `DEF` INT NULL COMMENT '防御力',
     `CRT` FLOAT NULL COMMENT 'クリティカル率',
@@ -29,6 +29,7 @@ CREATE TABLE IF NOT EXISTS `users` (
     `chara_data` JSON NULL COMMENT 'キャラのデータ状況',
     `stage_data` JSON NULL COMMENT 'ステージの攻略状況',
     PRIMARY KEY (`id`),
+    UNIQUE KEY users_email_unique (`email`),
     UNIQUE KEY users_google_sub_unique (`google_sub`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 -- XAMPPのMariaDB用。既存usersにも認証用の列・制約を追加する。

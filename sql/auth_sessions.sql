@@ -9,3 +9,4 @@ CREATE TABLE IF NOT EXISTS auth_sessions (
  INDEX auth_sessions_user_id (user_id),
  INDEX auth_sessions_expires_at (expires_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+ALTER TABLE auth_sessions MODIFY COLUMN user_id INT NOT NULL;
