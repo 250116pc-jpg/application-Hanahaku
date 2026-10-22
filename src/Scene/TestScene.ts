@@ -1,9 +1,10 @@
 import Phaser from 'phaser';
 import { getTextStyle, createTextButton, showRetreatDialog } from '../utils/ui/index.ts';
 import { showDebugSceneName } from '../debug';
+import { SCENE_KEYS } from './sceneKeys';
 export class TestScene extends Phaser.Scene {
   constructor() {
-    super('TestScene');
+    super(SCENE_KEYS.TEST);
   }
 
   create(): void {
@@ -29,10 +30,10 @@ export class TestScene extends Phaser.Scene {
     this.add.rectangle(195, 80, 200, 22, 0x16a9b5);
 
     // === ui.ts を使ったボタン生成（大幅削減） ===
-    createTextButton(this, 100, 130, '← 戻る', () => this.scene.start('HomeScene'), { fontSize: 25 });
+    createTextButton(this, 100, 130, '← 戻る', () => this.scene.start(SCENE_KEYS.HOME), { fontSize: 25 });
     createTextButton(this, 100, 220, 'バッグ', () => console.log('インベントリは後で実装します'), { fontSize: 25 });
     createTextButton(this, width - 120, 100, '撤退', () => {
-      showRetreatDialog(this, () => this.scene.start('HomeScene'));
+      showRetreatDialog(this, () => this.scene.start(SCENE_KEYS.HOME));
     }, { fontSize: 25 });
 
     // アクションサークル

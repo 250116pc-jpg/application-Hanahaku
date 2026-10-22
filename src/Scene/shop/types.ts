@@ -9,6 +9,5 @@ export type ShopItem = {
 }
 
 export type ItemDetailView = {
-  container: Phaser.GameObjects.Container
   show: (item: ShopItem) => void
 }

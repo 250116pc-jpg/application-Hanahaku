@@ -9,6 +9,7 @@ import {
 } from '../utils/ui';
 //debug機能
 import { showDebugSceneName } from '../debug';
+import { SCENE_KEYS } from './sceneKeys';
 
 //--------------------------------------------------------------
 
@@ -48,7 +49,7 @@ export class AreaSelectScene extends Phaser.Scene {
   private buttons: Phaser.GameObjects.Container[] = [];
 
   constructor() {
-    super('AreaSelectScene');
+    super(SCENE_KEYS.AREA_SELECT);
   }
 
   // 画像の読み込み
@@ -68,7 +69,7 @@ export class AreaSelectScene extends Phaser.Scene {
 
     // 戻るボタン
     createTextButton(this, 130, 60, '← 戻る', () => {
-      this.scene.start('HomeScene');
+      this.scene.start(SCENE_KEYS.HOME);
     }, {
       fontSize: 22,
       bgColor: '#ffffff',
@@ -111,7 +112,7 @@ export class AreaSelectScene extends Phaser.Scene {
       const area = this.areas.find((item) => item.id === this.selectedAreaId);
 
       if (area) {
-        this.scene.start('SelectStageScene', {
+        this.scene.start(SCENE_KEYS.SELECT_STAGE, {
           areaId: area.id,
           areaName: area.name
         });

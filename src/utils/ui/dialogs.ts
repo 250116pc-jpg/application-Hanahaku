@@ -1,6 +1,5 @@
 import Phaser from 'phaser';
 import { getTextStyle } from './styles';
-import { createRectButton } from './buttons';
 
 // 撤退確認ポップアップ共通化 (TestScene と StageScene で共通)
 export const showRetreatDialog = (
@@ -25,15 +24,27 @@ export const showRetreatDialog = (
   const warning = scene.add.text(width / 2, height / 2 - 20, '進行状況が失われます。', getTextStyle(24, { color: '#444444' }))
     .setOrigin(0.5).setScrollFactor(0);
 
-  // キャンセル時はコンテナごと破棄
-  const btnCancel = createRectButton(scene, width / 2 - 150, height / 2 + 90, 210, 70, 'キャンセル', () => container.destroy());
-  
-  const btnRetreat = createRectButton(scene, width / 2 + 150, height / 2 + 90, 210, 70, '撤退する', () => {
+  const createDialogButton = (x: number, label: string, onClick: () => void): void => {
+    const bg = scene.add.rectangle(x, height / 2 + 90, 210, 70, 0xffffff)
+      .setStrokeStyle(2, 0x333333)
+      .setInteractive({ useHandCursor: true });
+    const text = scene.add.text(x, height / 2 + 90, label, getTextStyle(24, { color: '#000000' }))
+      .setOrigin(0.5);
+
+    bg.on('pointerover', () => bg.setFillStyle(0xeaf4fb));
+    bg.on('pointerout', () => bg.setFillStyle(0xffffff));
+    bg.on('pointerdown', () => bg.setFillStyle(0xd5e8f5));
+    bg.on('pointerup', () => onClick());
+    container.add([bg, text]);
+  };
+
+  // Add the dimmer and popup first so the two buttons remain the topmost hit areas.
+  container.add([darkBg, popup, title, warning]);
+  createDialogButton(width / 2 - 150, 'キャンセル', () => container.destroy());
+  createDialogButton(width / 2 + 150, '撤退する', () => {
     container.destroy();
     onRetreat();
   });
-
-  container.add([darkBg, popup, title, warning, btnCancel, btnRetreat]);
   
   return container;
 };

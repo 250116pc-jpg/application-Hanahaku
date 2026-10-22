@@ -1,0 +1,18 @@
+export const SCENE_KEYS = {
+  TITLE: 'TitleScene',
+  LOGIN: 'LoginScene',
+  REGISTER: 'RegisterScene',
+  HOME: 'HomeScene',
+  SETTINGS: 'SettingsScene',
+  TRAINING: 'TrainingScene',
+  CHARACTER_DETAIL: 'CharacterDetailScene',
+  INVENTORY: 'InventoryScene',
+  STAGE: 'StageScene',
+  STORY: 'StoryScene',
+  AREA_SELECT: 'AreaSelectScene',
+  SELECT_STAGE: 'SelectStageScene',
+  ENCYCLOPEDIA: 'EncyclopediaScene',
+  FORM: 'FormScene',
+  SHOP: 'ShopScene',
+  TEST: 'TestScene',
+} as const;
