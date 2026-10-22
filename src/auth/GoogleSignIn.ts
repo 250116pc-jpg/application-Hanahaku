@@ -154,6 +154,7 @@ export function mountGoogleSignInButton(
     }
   };
 
+  let resizeObserver: ResizeObserver | undefined;
   void loadGoogleIdentityServices()
     .then(() => {
       if (!active || !window.google?.accounts.id) return;
@@ -172,17 +173,30 @@ export function mountGoogleSignInButton(
         initializedClientId = clientId;
       }
 
-      container.replaceChildren();
-      window.google.accounts.id.renderButton(container, {
+      let previousWidth = 0;
+      const render = (): void => {
+        if (!active || !window.google?.accounts.id) return;
+        const availableWidth = container.getBoundingClientRect().width;
+        if (availableWidth <= 0) return;
+        // Leave room for the Google iframe's own spacing.
+        const width = Math.min(360, Math.max(1, Math.floor(availableWidth) - 16));
+        if (width === previousWidth) return;
+        previousWidth = width;
+        container.replaceChildren();
+        window.google.accounts.id.renderButton(container, {
         type: 'standard',
         theme: 'outline',
         size: 'large',
         text: 'continue_with',
         shape: 'rectangular',
         logo_alignment: 'left',
-        width: 360,
+        width,
         locale: 'ja',
-      });
+        });
+      };
+      render();
+      resizeObserver = new ResizeObserver(render);
+      resizeObserver.observe(container);
     })
     .catch((error: unknown) => {
       if (active) {
@@ -192,6 +206,7 @@ export function mountGoogleSignInButton(
 
   return () => {
     active = false;
+    resizeObserver?.disconnect();
     credentialHandler = null;
   };
 }

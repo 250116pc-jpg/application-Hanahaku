@@ -1,7 +1,9 @@
 import Phaser from 'phaser';
 import { restoreSession } from '../auth/Session';
-import titleBackground from '../assets/background/background.png';
+import titleBackground from '../assets/background/title_background.png';
+import titleLogo from '../assets/background/title_logo.png';
 import settingsButtonImage from '../assets/ui/button1.png';
+import startButtonImage from '../assets/ui/title_stertbtn.png';
 import { createTextImageButton } from '../utils/ui/buttons';
 import { initializeAudio, preloadAudio, startBgm } from '../audio/BgmManager';
 
@@ -12,7 +14,9 @@ export class TitleScene extends Phaser.Scene {
 
   preload(): void {
     this.load.image('title_bg', titleBackground);
+    this.load.image('title-logo', titleLogo);
     this.load.image('title-settings-button', settingsButtonImage);
+    this.load.image('title-start-button', startButtonImage);
     preloadAudio(this);
   }
 
@@ -33,138 +37,72 @@ export class TitleScene extends Phaser.Scene {
     const bg = this.add.image(width / 2, height / 2, 'title_bg');
     bg.setDisplaySize(width, height);
 
-    createTextImageButton(this, width - 140, 75, 180, '設定', () => {
+    // ロゴは縦横比を保ったまま上部中央に表示する
+    const logo = this.add.image(width / 2, height / 3+80, 'title-logo');
+    logo.setScale(850 / logo.width);
+
+    const settingsButton = createTextImageButton(this, width - 140, 75, 180, '設定', () => {
       this.scene.launch('SettingsScene', {
         returnScene: 'TitleScene',
         resumeOnClose: true,
       });
       this.scene.pause();
     }, { key: 'title-settings-button', width: 180, height: 65 });
+    this.applyDisplayQuality(settingsButton);
 
-    const btnWidth = 240;
-    const btnHeight = 60;
-    const btnRadius = 30;
-
-    const btnGraphics = this.add.graphics();
-    const btnText = this.add.text(0, 0, 'スタート', {
-      fontSize: '28px',
-      color: '#ffffff',
-      fontFamily: 'sans-serif',
-      fontStyle: 'bold',
-    }).setOrigin(0.5);
-
-    const drawButton = (state: 'normal' | 'hover' | 'down') => {
-      btnGraphics.clear();
-
-      const faceColor =
-        state === 'hover'
-          ? 0xabdbf5
-          : state === 'down'
-            ? 0x7aa9d5
-            : 0x8ab9e5;
-
-      const edgeColor = 0x5c8ec4;
-
-      let yOffset = 0;
-
-      if (state === 'hover') {
-        yOffset = -2;
-      }
-
-      if (state === 'down') {
-        yOffset = 4;
-      }
-
-      btnGraphics.fillStyle(
-        0x000000,
-        state === 'down' ? 0.15 : 0.25
-      );
-
-      btnGraphics.fillRoundedRect(
-        -btnWidth / 2,
-        -btnHeight / 2 + 8,
-        btnWidth,
-        btnHeight,
-        btnRadius
-      );
-
-      btnGraphics.fillStyle(edgeColor, 1);
-
-      btnGraphics.fillRoundedRect(
-        -btnWidth / 2,
-        -btnHeight / 2 + 4,
-        btnWidth,
-        btnHeight,
-        btnRadius
-      );
-
-      btnGraphics.fillStyle(faceColor, 1);
-
-      btnGraphics.fillRoundedRect(
-        -btnWidth / 2,
-        -btnHeight / 2 + yOffset,
-        btnWidth,
-        btnHeight,
-        btnRadius
-      );
-
-      btnText.setY(yOffset);
-    };
-
-    drawButton('normal');
+    const buttonImage = this.add.image(0, 0, 'title-start-button');
+    const buttonScale = 360 / buttonImage.width;
+    buttonImage.setScale(buttonScale);
 
     const startButton = this.add.container(
       width / 2,
-      height / 2 + 170,
-      [btnGraphics, btnText]
+      height / 2 + 200,
+      [buttonImage]
     );
-
-    startButton.setSize(btnWidth, btnHeight);
-    startButton.setInteractive({
-      useHandCursor: true,
-    });
+    startButton.setSize(buttonImage.displayWidth, buttonImage.displayHeight);
+    startButton.setInteractive({ useHandCursor: true });
 
     startButton.on('pointerover', () => {
-      drawButton('hover');
+      buttonImage.clearTint();
 
       this.tweens.add({
         targets: startButton,
-        scale: 1.05,
-        duration: 100,
+        scale: 1.02,
+        duration: 20,
         ease: 'Sine.easeOut',
       });
     });
 
     startButton.on('pointerout', () => {
-      drawButton('normal');
+      buttonImage.clearTint();
 
       this.tweens.add({
         targets: startButton,
         scale: 1,
-        duration: 100,
+        duration: 20,
         ease: 'Sine.easeOut',
       });
     });
 
     startButton.on('pointerdown', () => {
-      drawButton('down');
+      buttonImage.setTint(0xcccccc);
 
       this.tweens.add({
         targets: startButton,
-        scale: 0.95,
-        duration: 50,
+        scale: 0.98,
+        duration: 20,
         ease: 'Sine.easeOut',
       });
     });
 
     startButton.on('pointerup', () => {
-      drawButton('normal');
+      buttonImage.clearTint();
       startBgm(this);
 
       this.tweens.add({
         targets: startButton,
         scale: 1,
-        duration: 100,
+        duration: 70,
         ease: 'Sine.easeOut',
         onComplete: () => {
           this.scene.start('LoginScene');
@@ -172,22 +110,28 @@ export class TitleScene extends Phaser.Scene {
       });
     });
 
-    const registerButton = this.add.text(
-      width / 2,
-      height / 2 + 250,
-      '新規ユーザー登録',
-      {
-        fontFamily: '"Yu Gothic", "Meiryo", sans-serif',
-        fontSize: '22px',
-        color: '#ffffff',
-        backgroundColor: '#536878',
-        padding: { left: 28, right: 28, top: 13, bottom: 13 },
-      }
-    ).setOrigin(0.5).setInteractive({ useHandCursor: true });
+  }
 
-    registerButton.on('pointerup', () => {
-      startBgm(this);
-      this.scene.start('RegisterScene');
+  /** タイトルの画像・文字・画面拡大を滑らかにする設定。 */
+  private applyDisplayQuality(settingsButton: Phaser.GameObjects.Container): void {
+    const filter = Phaser.Textures.FilterMode.LINEAR;
+    const imageKeys = ['title_bg', 'title-logo', 'title-settings-button', 'title-start-button'];
+    imageKeys.forEach(key => this.textures.get(key).setFilter(filter));
+
+    const textResolution = Math.max(2, window.devicePixelRatio || 1);
+    settingsButton.list.forEach(child => {
+      if (child instanceof Phaser.GameObjects.Text) {
+        child.setResolution(textResolution);
+        child.texture.setFilter(filter);
+      }
+    });
+
+    // Canvasは他シーンと共用するため、タイトル終了時に元の設定へ戻す。
+    const canvas = this.game.canvas;
+    const previousImageRendering = canvas.style.imageRendering;
+    canvas.style.imageRendering = 'auto';
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      canvas.style.imageRendering = previousImageRendering;
     });
   }
 }

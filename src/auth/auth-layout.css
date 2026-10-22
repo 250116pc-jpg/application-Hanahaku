@@ -32,8 +32,9 @@
 .auth-google-option { text-align: center; margin: 10px 0 0; font-size: 13px; }
 .auth-google-option summary { cursor: pointer; padding: 7px 0; }
 .flower-auth-form .google-signin-button.is-unavailable { width: 100%; }
-.flower-auth-form .google-auth-area { margin-top: 10px; overflow-x: auto; }
-.flower-auth-form .google-auth-hint { font-size: 12px; }
+.flower-auth-form .google-auth-area { margin-top: 10px; overflow-x: clip; }
+.flower-auth-form .google-auth-hint { font-size: 12px; overflow-wrap: anywhere; }
+.flower-auth-form .google-signin-button { width: 100%; min-width: 0; }
 .flower-auth-screen :focus-visible { outline: 3px solid #376a94; outline-offset: 3px; }
 @media (max-width: 480px) {
   .flower-auth-screen { padding: 18px 12px 72px; }
