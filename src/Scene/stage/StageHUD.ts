@@ -4,7 +4,7 @@ import testData, { getFlowerSkill } from '../test_data.ts';
 import type { CharacterData } from '../test_data.ts';
 import { SCENE_KEYS } from '../sceneKeys';
 import type { CombatTarget, Player } from './Player';
-import { loadFlowerSkillStates, requestFlowerSkill, type FlowerSkillState } from './SkillApi.ts';
+import { beginStageSkillStates, requestFlowerSkill, type FlowerSkillState } from './SkillApi.ts';
 import retreatButtonAsset from '../../assets/button/retreat_button.png';
 
 /** Screen-fixed controls and status display for the side-scrolling stage. */
@@ -47,7 +47,7 @@ export class StageHUD {
     this.createPartyHud();
     this.createMovementPad();
     this.createActionButtons();
-    void this.initializeFlowerSkills();
+    void this.initializeFlowerSkills(stageId ?? 2);
   }
 
   public updateHealth(current: number, maximum: number): void {
@@ -391,10 +391,10 @@ export class StageHUD {
     this.skillNameText.setText(skill?.name ?? '花を選択');
   }
 
-  private async initializeFlowerSkills(): Promise<void> {
+  private async initializeFlowerSkills(stageId: number): Promise<void> {
     if (this.skillNameText) this.skillNameText.setText('スキル読み込み中…');
     try {
-      const states = await loadFlowerSkillStates();
+      const states = await beginStageSkillStates(stageId);
       states.forEach(state => {
         this.flowerMp.set(state.flowerId, state.mp);
         this.flowerMaxMp.set(state.flowerId, state.maxMp);

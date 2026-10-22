@@ -26,7 +26,7 @@ function getPhpBaseUrl(): string {
 }
 
 async function postSkillRequest(
-  endpoint: 'state' | 'use',
+  endpoint: 'state' | 'begin' | 'use',
   body: Record<string, number> = {}
 ): Promise<unknown> {
   const response = await fetch(`${getPhpBaseUrl()}/skill/${endpoint}.php`, {
@@ -82,8 +82,8 @@ function parseSkill(value: unknown): ServerFlowerSkill {
   };
 }
 
-export async function loadFlowerSkillStates(): Promise<FlowerSkillState[]> {
-  const result = await postSkillRequest('state');
+export async function beginStageSkillStates(stageId: number): Promise<FlowerSkillState[]> {
+  const result = await postSkillRequest('begin', { stageId });
   if (typeof result !== 'object' || result === null || !('flowers' in result) || !Array.isArray(result.flowers)) {
     throw new Error('サーバーから不正なスキル状態が返されました。');
   }
