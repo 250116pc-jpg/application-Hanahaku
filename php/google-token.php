@@ -73,6 +73,7 @@ function googleFetchJwks(bool $forceRefresh = false): array
         }
     }
 
+    if (function_exists('curl_init')) {
     $curl = curl_init('https://www.googleapis.com/oauth2/v3/certs');
     if ($curl === false) {
         throw new RuntimeException('Google公開鍵を取得できませんでした。');
@@ -94,6 +95,18 @@ function googleFetchJwks(bool $forceRefresh = false): array
         throw new RuntimeException($error !== '' ? 'Googleへ接続できませんでした。' : 'Google公開鍵を取得できませんでした。');
     }
 
+    } else {
+        // Apache may lack cURL even when PHP CLI has it. Keep TLS verification enabled.
+        $context = stream_context_create([
+            'http' => ['timeout' => 10, 'follow_location' => 0, 'ignore_errors' => true],
+            'ssl' => ['verify_peer' => true, 'verify_peer_name' => true],
+        ]);
+        $body = @file_get_contents('https://www.googleapis.com/oauth2/v3/certs', false, $context);
+        $statusLine = $http_response_header[0] ?? '';
+        if (!is_string($body) || !preg_match('/^HTTP\/\S+ 200\b/', $statusLine)) {
+            throw new RuntimeException('Google公開鍵を取得できませんでした。PHPのHTTPS接続設定を確認してください。');
+        }
+    }
     $jwks = json_decode($body, true);
     if (!is_array($jwks) || !isset($jwks['keys']) || !is_array($jwks['keys'])) {
         throw new RuntimeException('Google公開鍵の応答が正しくありません。');
