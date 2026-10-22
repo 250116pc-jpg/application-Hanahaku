@@ -18,10 +18,10 @@
 .auth-password-field input { padding-right: 58px; }
 .flower-auth-screen button { font-family: inherit; cursor: pointer; }
 .flower-auth-form button[type="submit"], .auth-back {
-  display: block; border: 0; background: var(--auth-button) center / 100% 100% no-repeat;
+  display: block; border: 0; background: var(--auth-button) center / contain no-repeat;
   color: #fff3d5; text-shadow: 0 1px 2px #000; font-weight: bold; letter-spacing: .12em;
 }
-.flower-auth-form button[type="submit"] { width: 100%; height: 62px; margin: 8px auto; font-size: 22px; }
+.flower-auth-form button[type="submit"] { box-sizing: border-box; width: min(240px, 100%); height: auto; aspect-ratio: 798 / 226; padding: 0; margin: 8px auto; font-size: 22px; }
 .flower-auth-screen button:disabled { opacity: .55; cursor: wait; }
 .flower-auth-screen button:hover:not(:disabled) { filter: brightness(1.12); }
 .auth-back { position: fixed; bottom: 12px; left: 18px; width: 150px; height: 50px; font-size: 17px; }
