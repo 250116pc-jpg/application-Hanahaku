@@ -38,6 +38,7 @@ const config: Phaser.Types.Core.GameConfig = {
     createContainer: true
   },
   scene: [
+    ...(import.meta.env.DEV && new URLSearchParams(location.search).get('flower-test') === '1' ? [EncyclopediaScene] : []),
     TitleScene,
     LoginScene,
     RegisterScene,
@@ -51,7 +52,7 @@ const config: Phaser.Types.Core.GameConfig = {
     InventoryScene,
     AreaSelectScene,
     SelectStageScene,
-    EncyclopediaScene,
+    ...(import.meta.env.DEV && new URLSearchParams(location.search).get('flower-test') === '1' ? [] : [EncyclopediaScene]),
     FormScene,
     ShopScene,
   ],
