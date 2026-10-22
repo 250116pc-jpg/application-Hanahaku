@@ -4,9 +4,10 @@ import { preloadCharacterImages, addCharacterImage } from '../utils/characterIma
 import flowerImg from '../assets/flower.png'
 import testData from './test_data'
 import type { CharacterData } from './test_data'
-import { getTextStyle, createTextButton } from '../utils/ui'
+import { createStandardSceneFrame, getTextStyle, createTextButton } from '../utils/ui'
 //debug機能
 import { showDebugSceneName } from '../debug';
+import { SCENE_KEYS } from './sceneKeys';
 
 //--------------------------------------------------------------
 
@@ -21,16 +22,16 @@ type CharacterDetailSceneData = {
 
 export class CharacterDetailScene extends Phaser.Scene {
   private characterId = 1
-  private returnScene = 'TrainingScene'
+  private returnScene: string = SCENE_KEYS.TRAINING
   private returnLabel = '育成画面へ'
 
   constructor() {
-    super('CharacterDetailScene')
+    super(SCENE_KEYS.CHARACTER_DETAIL)
   }
 
   init(data: CharacterDetailSceneData): void {
     this.characterId = data.characterId ?? 1
-    this.returnScene = data.returnScene ?? 'TrainingScene'
+    this.returnScene = data.returnScene ?? SCENE_KEYS.TRAINING
     this.returnLabel = data.returnLabel ?? '育成画面へ'
   }
 
@@ -46,25 +47,14 @@ export class CharacterDetailScene extends Phaser.Scene {
     const height = this.scale.height
     const character = this.findCharacter()
 
-    this.cameras.main.setScroll(0, 0)
-    this.cameras.main.setBackgroundColor('#cfe3f5')
-
-    this.add.rectangle(width / 2, height / 2, 1180, 650, 0xcfe3f5)
-      .setStrokeStyle(3, BORDER_COLOR)
-
-    this.add.text(width / 2, 55, 'キャラ詳細', getTextStyle(34)).setOrigin(0.5)
-    this.createBackButton()
+    createStandardSceneFrame(this, 'キャラ詳細', `← ${this.returnLabel}`, () => {
+      this.scene.start(this.returnScene)
+    })
     this.createCharacterImage()
     this.createBasicInfo(character)
     this.createStatusInfo(character)
     this.createSkillInfo(character)
     this.createHomeButton(width, height)
-  }
-
-  private createBackButton(): void {
-    createTextButton(this, 150, 65, `← ${this.returnLabel}`, () => {
-      this.scene.start(this.returnScene)
-    }, { fontSize: 24, padding: { top: 10, bottom: 10, left: 18, right: 18 } })
   }
 
   private createCharacterImage(): void {
@@ -128,7 +118,7 @@ export class CharacterDetailScene extends Phaser.Scene {
 
   private createHomeButton(width: number, height: number): void {
     createTextButton(this, width - 140, height - 65, 'ホームへ', () => {
-      this.scene.start('HomeScene')
+      this.scene.start(SCENE_KEYS.HOME)
     }, { fontSize: 24, padding: { top: 10, bottom: 10, left: 18, right: 18 } })
   }
 

@@ -8,6 +8,7 @@ import { FormUI } from './FormUI'
 import { FormationManager } from './FormationManager'
 //debug機能
 import { showDebugSceneName } from '../debug';
+import { SCENE_KEYS } from '../Scene/sceneKeys';
 
 //--------------------------------------------------------------
 
@@ -35,7 +36,7 @@ export class FormScene extends Phaser.Scene {
   private totalPowerText!: Phaser.GameObjects.Text
 
   constructor() {
-    super('FormScene')
+    super(SCENE_KEYS.FORM)
   }
 
   /**
@@ -281,7 +282,7 @@ export class FormScene extends Phaser.Scene {
 
     // キャンセルボタン
     this.ui.createActionButton(840, 610, 145, 'キャンセル', false, () => {
-      this.scene.start('HomeScene')
+      this.scene.start(SCENE_KEYS.HOME)
     })
 
     // 詳細ボタン
@@ -292,7 +293,7 @@ export class FormScene extends Phaser.Scene {
     // 決定ボタン
     this.ui.createActionButton(1135, 610, 145, '決定', true, () => {
       this.saveFormation()
-      this.scene.start('HomeScene')
+      this.scene.start(SCENE_KEYS.HOME)
     })
   }
 
@@ -344,9 +345,9 @@ export class FormScene extends Phaser.Scene {
       return
     }
 
-    this.scene.start('CharacterDetailScene', {
+    this.scene.start(SCENE_KEYS.CHARACTER_DETAIL, {
       characterId: this.selectedCharacterId,
-      returnScene: 'FormScene',
+      returnScene: SCENE_KEYS.FORM,
       returnLabel: '編成画面へ'
     })
   }

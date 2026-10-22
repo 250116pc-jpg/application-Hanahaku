@@ -6,6 +6,7 @@ import { createBackground } from '../../background';
 import { getTextStyle } from '../../utils/ui';
 //debug機能
 import { showDebugSceneName } from '../../debug';
+import { SCENE_KEYS } from '../sceneKeys';
 
 //--------------------------------------------------------------
 
@@ -57,7 +58,7 @@ export class StoryScene extends Phaser.Scene {
   private currentChapter = 1;
 
   constructor() {
-    super('StoryScene');
+    super(SCENE_KEYS.STORY);
   }
 
   preload(): void {
@@ -73,7 +74,7 @@ export class StoryScene extends Phaser.Scene {
 
     if (!stageData) {
       console.error(`シナリオが見つかりません: chapter=${data.chapter}, stage=${data.stage}`);
-      this.scene.start('SelectStageScene', { areaId: data.chapter });
+      this.scene.start(SCENE_KEYS.SELECT_STAGE, { areaId: data.chapter });
       return;
     }
 
@@ -220,7 +221,7 @@ export class StoryScene extends Phaser.Scene {
     }
 
     // 次の画面へ
-    this.scene.start('SelectStageScene', { areaId: this.currentChapter });
+    this.scene.start(SCENE_KEYS.SELECT_STAGE, { areaId: this.currentChapter });
   }
 
   // ==================================================
@@ -234,7 +235,7 @@ export class StoryScene extends Phaser.Scene {
 
   private openExitPopup(): void {
     this.openConfirmPopup('シナリオを終了しますか？', () => {
-      this.scene.start('HomeScene');
+      this.scene.start(SCENE_KEYS.HOME);
     });
   }
 

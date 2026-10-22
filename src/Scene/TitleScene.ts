@@ -6,10 +6,11 @@ import settingsButtonImage from '../assets/ui/button1.png';
 import startButtonImage from '../assets/ui/title_stertbtn.png';
 import { createTextImageButton } from '../utils/ui/buttons';
 import { initializeAudio, preloadAudio, startBgm } from '../audio/BgmManager';
+import { SCENE_KEYS } from './sceneKeys';
 
 export class TitleScene extends Phaser.Scene {
   constructor() {
-    super('TitleScene');
+    super(SCENE_KEYS.TITLE);
   }
 
   preload(): void {
@@ -27,7 +28,7 @@ export class TitleScene extends Phaser.Scene {
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => { active = false; });
     void restoreSession().then(loggedIn => {
       if (!active) return;
-      if (loggedIn) this.scene.start('HomeScene');
+      if (loggedIn) this.scene.start(SCENE_KEYS.HOME);
     }).catch(() => {
       // Keep manual login available when offline or the server is unavailable.
     }).finally(() => { if (active) this.input.enabled = true; });
@@ -105,7 +106,7 @@ export class TitleScene extends Phaser.Scene {
         duration: 70,
         ease: 'Sine.easeOut',
         onComplete: () => {
-          this.scene.start('LoginScene');
+          this.scene.start(SCENE_KEYS.LOGIN);
         },
       });
     });

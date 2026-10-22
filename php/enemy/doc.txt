@@ -1,0 +1,18 @@
+enemy	敵キャラクターデータ
+名前	内容	タイプ
+id	敵キャラid	id
+name	キャラ名	text
+upgrade_id	強化id	int
+flower_id	花のID	int
+description	キャラの説明	text
+stages	登場するステージID一覧と出現率とレベルと数	json
+HP	HP	int
+MP	MP	int
+EVA	回避率	float
+VIT	回復力	int
+DEF	防御力	float
+CRT	クリティカル率	int
+CD	クリティカルダメージ	int
+LEVEL	レベル	int
+移動速度	MS	float
+攻撃速度	AS	float
