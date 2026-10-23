@@ -98,7 +98,7 @@ export class HomeScene extends Phaser.Scene {
 
   private createNavigationButtons(ui: Phaser.GameObjects.Container): void {
 
-    ui.add(createButton(this,1080,450,220,'ステージ\n選択',() => {
+    ui.add(createButton(this,1080,450,220,'エリア\n選択',() => {
         this.scene.start('AreaSelectScene')},{  key: 'button1',  width: 260,  height: 110
 
         }
