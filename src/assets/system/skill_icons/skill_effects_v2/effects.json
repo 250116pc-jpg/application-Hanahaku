@@ -1,0 +1,123 @@
+[
+  {
+    "key": "01_fire_slash",
+    "file": "sheets/01_fire_slash.png",
+    "frameWidth": 192,
+    "frameHeight": 192,
+    "frames": 12,
+    "frameRate": 16,
+    "loop": false,
+    "attribute": "熱",
+    "note": "軽い攻撃スキルを連打"
+  },
+  {
+    "key": "02_guard_buff",
+    "file": "sheets/02_guard_buff.png",
+    "frameWidth": 192,
+    "frameHeight": 192,
+    "frames": 12,
+    "frameRate": 16,
+    "loop": false,
+    "attribute": "無",
+    "note": "どっしり固いディフェンス"
+  },
+  {
+    "key": "03_sun_beam",
+    "file": "sheets/03_sun_beam.png",
+    "frameWidth": 192,
+    "frameHeight": 192,
+    "frames": 12,
+    "frameRate": 16,
+    "loop": false,
+    "attribute": "熱",
+    "note": "太陽の光線"
+  },
+  {
+    "key": "04_homing_orb",
+    "file": "sheets/04_homing_orb.png",
+    "frameWidth": 192,
+    "frameHeight": 192,
+    "frames": 12,
+    "frameRate": 16,
+    "loop": true,
+    "attribute": "熱",
+    "note": "扱いやすいバランス型(追尾弾)"
+  },
+  {
+    "key": "05_water_burst",
+    "file": "sheets/05_water_burst.png",
+    "frameWidth": 192,
+    "frameHeight": 192,
+    "frames": 12,
+    "frameRate": 16,
+    "loop": true,
+    "attribute": "水",
+    "note": "絶え間ない連続攻撃(水しぶき)"
+  },
+  {
+    "key": "06a_leaf_green",
+    "file": "sheets/06a_leaf_green.png",
+    "frameWidth": 192,
+    "frameHeight": 192,
+    "frames": 12,
+    "frameRate": 16,
+    "loop": true,
+    "attribute": "風",
+    "note": "紅葉(緑)"
+  },
+  {
+    "key": "06b_leaf_red",
+    "file": "sheets/06b_leaf_red.png",
+    "frameWidth": 192,
+    "frameHeight": 192,
+    "frames": 12,
+    "frameRate": 16,
+    "loop": true,
+    "attribute": "風",
+    "note": "紅葉(赤)"
+  },
+  {
+    "key": "07_fortify",
+    "file": "sheets/07_fortify.png",
+    "frameWidth": 192,
+    "frameHeight": 192,
+    "frames": 12,
+    "frameRate": 16,
+    "loop": true,
+    "attribute": "無",
+    "note": "トップクラスの耐久力"
+  },
+  {
+    "key": "08_debuff",
+    "file": "sheets/08_debuff.png",
+    "frameWidth": 192,
+    "frameHeight": 192,
+    "frames": 12,
+    "frameRate": 16,
+    "loop": true,
+    "attribute": "光",
+    "note": "デバフ"
+  },
+  {
+    "key": "09_heal",
+    "file": "sheets/09_heal.png",
+    "frameWidth": 192,
+    "frameHeight": 192,
+    "frames": 12,
+    "frameRate": 16,
+    "loop": true,
+    "attribute": "無",
+    "note": "回復"
+  },
+  {
+    "key": "10_stealth",
+    "file": "sheets/10_stealth.png",
+    "frameWidth": 192,
+    "frameHeight": 192,
+    "frames": 12,
+    "frameRate": 16,
+    "loop": false,
+    "attribute": "土",
+    "note": "隠密"
+  }
+]

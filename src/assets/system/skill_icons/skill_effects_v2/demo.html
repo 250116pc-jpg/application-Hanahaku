@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="ja"><head><meta charset="utf-8"><title>Skill FX demo</title>
+<style>body{margin:0;background:#1d1f27;color:#ddd;font-family:sans-serif}#ui{padding:8px}button{margin:2px;padding:6px 10px}</style>
+<script src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js"></script></head>
+<body><div id="ui"></div><div id="game"></div>
+<script>
+fetch('effects.json').then(r=>r.json()).then(list=>{
+  class Main extends Phaser.Scene{
+    preload(){ list.forEach(e=>this.load.spritesheet(e.key,e.file,{frameWidth:e.frameWidth,frameHeight:e.frameHeight})); }
+    create(){
+      list.forEach(e=>this.anims.create({key:e.key,frames:this.anims.generateFrameNumbers(e.key,{start:0,end:e.frames-1}),frameRate:e.frameRate,repeat:e.loop?-1:0}));
+      this.fx=null;
+      const ui=document.getElementById('ui');
+      list.forEach(e=>{const b=document.createElement('button');b.textContent=e.key+' ('+e.attribute+')';b.onclick=()=>this.play(e);ui.appendChild(b);});
+      this.play(list[0]);
+    }
+    play(e){
+      if(this.fx) this.fx.destroy();
+      this.fx=this.add.sprite(400,300,e.key).setScale(2);
+      this.fx.play(e.key);
+      if(!e.loop) this.fx.once('animationcomplete',()=>{ this.time.delayedCall(400,()=>this.play(e)); });
+    }
+  }
+  new Phaser.Game({type:Phaser.AUTO,width:800,height:600,parent:'game',backgroundColor:'#2d303a',pixelArt:true,scene:Main});
+});
+</script></body></html>
