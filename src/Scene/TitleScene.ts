@@ -4,7 +4,7 @@ import titleBackground from '../assets/background/title_background.png';
 import titleLogo from '../assets/background/title_logo.png';
 import settingsButtonImage from '../assets/ui/button1.png';
 import startButtonImage from '../assets/ui/title_stertbtn.png';
-import { createTextImageButton } from '../utils/ui/buttons';
+import { createTextImageButton, applySmoothDisplay } from '../utils/ui';
 import { initializeAudio, preloadAudio, startBgm } from '../audio/BgmManager';
 import { SCENE_KEYS } from './sceneKeys';
 
@@ -49,7 +49,7 @@ export class TitleScene extends Phaser.Scene {
       });
       this.scene.pause();
     }, { key: 'title-settings-button', width: 180, height: 65 });
-    this.applyDisplayQuality(settingsButton);
+    applySmoothDisplay(this, ['title_bg', 'title-logo', 'title-settings-button', 'title-start-button'], [settingsButton]);
 
     const buttonImage = this.add.image(0, 0, 'title-start-button');
     const buttonScale = 360 / buttonImage.width;
@@ -113,26 +113,4 @@ export class TitleScene extends Phaser.Scene {
 
   }
 
-  /** タイトルの画像・文字・画面拡大を滑らかにする設定。 */
-  private applyDisplayQuality(settingsButton: Phaser.GameObjects.Container): void {
-    const filter = Phaser.Textures.FilterMode.LINEAR;
-    const imageKeys = ['title_bg', 'title-logo', 'title-settings-button', 'title-start-button'];
-    imageKeys.forEach(key => this.textures.get(key).setFilter(filter));
-
-    const textResolution = Math.max(2, window.devicePixelRatio || 1);
-    settingsButton.list.forEach(child => {
-      if (child instanceof Phaser.GameObjects.Text) {
-        child.setResolution(textResolution);
-        child.texture.setFilter(filter);
-      }
-    });
-
-    // Canvasは他シーンと共用するため、タイトル終了時に元の設定へ戻す。
-    const canvas = this.game.canvas;
-    const previousImageRendering = canvas.style.imageRendering;
-    canvas.style.imageRendering = 'auto';
-    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
-      canvas.style.imageRendering = previousImageRendering;
-    });
-  }
 }

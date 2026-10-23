@@ -11,25 +11,33 @@ $userId = requireSkillUserId($pdo);
 
 try {
     initializeSkillStates($pdo, $userId);
-    $query = $pdo->prepare('SELECT flower_id, mp FROM player_skill_states WHERE user_id = ?');
+    $query = $pdo->prepare('SELECT flower_id, mp, cooldown_until FROM player_skill_states WHERE user_id = ?');
     $query->execute([$userId]);
     $storedStates = [];
     foreach ($query->fetchAll() as $row) {
-        $storedStates[(int)$row['flower_id']] = (int)$row['mp'];
+        $storedStates[(int)$row['flower_id']] = [
+            'mp' => (int)$row['mp'],
+            'cooldownUntil' => (int)$row['cooldown_until'] * 1000,
+        ];
     }
 
     $states = [];
+    $contractedIds = contractedFlowerIds($pdo, $userId);
     foreach (flowerSkillDefinitions() as $flowerId => $definition) {
+        if (!in_array($flowerId, $contractedIds, true)) {
+            continue;
+        }
         $states[] = [
             'flowerId' => $flowerId,
-            'mp' => $storedStates[$flowerId] ?? $definition['maxMp'],
+            'mp' => $storedStates[$flowerId]['mp'] ?? $definition['maxMp'],
+            'cooldownUntil' => $storedStates[$flowerId]['cooldownUntil'] ?? 0,
             'maxMp' => $definition['maxMp'],
-            'skill' => $definition['skill'],
+            'skill' => buildFlowerSkill($flowerId, 1, 1),
         ];
     }
 
     respond(['ok' => true, 'flowers' => $states]);
 } catch (PDOException $error) {
     error_log('Could not load skill states: ' . $error->getMessage());
-    respond(['ok' => false, 'error' => 'スキル状態を読み込めません。sql/player_skill_states.sqlを適用してください。'], 500);
+    respond(['ok' => false, 'error' => 'スキル・契約状態のテーブルを読み込めません。sql/skill_seed.sqlとsql/player_skill_states.sqlを適用してください。'], 500);
 }

@@ -13,33 +13,71 @@ $stageId = filter_var($body['stageId'] ?? null, FILTER_VALIDATE_INT);
 if ($stageId !== 2) {
     respond(['ok' => false, 'error' => 'このステージのスキル状態を初期化できません。'], 422);
 }
+$flowerStats = [];
+if (isset($body['flowers'])) {
+    if (!is_array($body['flowers']) || count($body['flowers']) > 16) {
+        respond(['ok' => false, 'error' => '花の戦闘データが正しくありません。'], 422);
+    }
+    foreach ($body['flowers'] as $flower) {
+        if (
+            !is_array($flower) ||
+            !isset($flower['flowerId'], $flower['level'], $flower['attackPower']) ||
+            !is_int($flower['flowerId']) ||
+            !is_int($flower['level']) ||
+            !is_int($flower['attackPower']) ||
+            $flower['level'] < 1 || $flower['level'] > 100 ||
+            $flower['attackPower'] < 1 || $flower['attackPower'] > 100000
+        ) {
+            respond(['ok' => false, 'error' => '花の戦闘データが正しくありません。'], 422);
+        }
+        $flowerStats[$flower['flowerId']] = [
+            'level' => $flower['level'],
+            'attackPower' => $flower['attackPower'],
+        ];
+    }
+}
 
 try {
     $pdo->beginTransaction();
     initializeSkillStates($pdo, $userId);
 
     $update = $pdo->prepare(
-        'UPDATE player_skill_states SET mp = ? WHERE user_id = ? AND flower_id = ?'
+        'UPDATE player_skill_states SET mp = ?, cooldown_until = 0 WHERE user_id = ? AND flower_id = ?'
     );
+    $contractedIds = contractedFlowerIds($pdo, $userId);
     foreach (flowerSkillDefinitions() as $flowerId => $definition) {
+        if (!in_array($flowerId, $contractedIds, true)) {
+            continue;
+        }
         $update->execute([$definition['maxMp'], $userId, $flowerId]);
     }
 
-    $query = $pdo->prepare('SELECT flower_id, mp FROM player_skill_states WHERE user_id = ?');
+    $query = $pdo->prepare('SELECT flower_id, mp, cooldown_until FROM player_skill_states WHERE user_id = ?');
     $query->execute([$userId]);
     $storedStates = [];
     foreach ($query->fetchAll() as $row) {
-        $storedStates[(int)$row['flower_id']] = (int)$row['mp'];
+        $storedStates[(int)$row['flower_id']] = [
+            'mp' => (int)$row['mp'],
+            'cooldownUntil' => (int)$row['cooldown_until'] * 1000,
+        ];
     }
     $pdo->commit();
 
     $states = [];
     foreach (flowerSkillDefinitions() as $flowerId => $definition) {
+        if (!in_array($flowerId, $contractedIds, true)) {
+            continue;
+        }
         $states[] = [
             'flowerId' => $flowerId,
-            'mp' => $storedStates[$flowerId] ?? $definition['maxMp'],
+            'mp' => $storedStates[$flowerId]['mp'] ?? $definition['maxMp'],
+            'cooldownUntil' => $storedStates[$flowerId]['cooldownUntil'] ?? 0,
             'maxMp' => $definition['maxMp'],
-            'skill' => $definition['skill'],
+            'skill' => buildFlowerSkill(
+                $flowerId,
+                $flowerStats[$flowerId]['level'] ?? 1,
+                $flowerStats[$flowerId]['attackPower'] ?? 1
+            ),
         ];
     }
 

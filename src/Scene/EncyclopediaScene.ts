@@ -1,3 +1,7 @@
+import questionSpring from '../assets/images/question spring.png'
+import questionSummer from '../assets/images/question summer.png'
+import questionFall from '../assets/images/question fall.png'
+import questionWinter from '../assets/images/question winnter.png'
 import Phaser from 'phaser'
 import type { Season } from './test_data'
 import { createTextButton, getTextStyle } from '../utils/ui'
@@ -5,16 +9,34 @@ import { prototypeFlowers, contractPreview } from './encyclopedia/contractPrevie
 import type { PrototypeFlower } from './encyclopedia/contractPreview'
 import { characterAnimations } from '../animation/animationData'
 
+const unknownFlowers: Record<Season, { key: string; url: string }> = {
+ '春': { key: 'flower-unknown-spring', url: questionSpring },
+ '夏': { key: 'flower-unknown-summer', url: questionSummer },
+ '秋': { key: 'flower-unknown-fall', url: questionFall },
+ '冬': { key: 'flower-unknown-winter', url: questionWinter },
+}
+
 export class EncyclopediaScene extends Phaser.Scene {
  private season: Season = '夏'
  private page = 0
  constructor() { super('EncyclopediaScene') }
  preload(): void {
+  for (const {key,url} of Object.values(unknownFlowers)) if (!this.textures.exists(key)) this.load.image(key,url)
   for (const flower of prototypeFlowers) if (!this.textures.exists(flower.key)) this.load.image(flower.key,flower.url)
+  for (const flower of prototypeFlowers) if (flower.realUrl && !this.textures.exists(flower.realKey)) this.load.image(flower.realKey,flower.realUrl)
   const player=characterAnimations.player.idle
   this.load.spritesheet('contract-preview-player',player.image,{frameWidth:player.frameWidth,frameHeight:player.frameHeight})
  }
- create(): void { this.list() }
+ create(): void {
+  // 春画像だけ横長なので、中央の正方形を使い左右の余白を除く。
+  const spring = this.textures.get(unknownFlowers['春'].key)
+  if (!spring.has('icon')) {
+   const source = spring.getSourceImage()
+   const side = Math.min(source.width, source.height)
+   spring.add('icon', 0, Math.floor((source.width-side)/2), Math.floor((source.height-side)/2), side, side)
+  }
+  this.list()
+ }
  private text(x:number,y:number,value:string,size=22): Phaser.GameObjects.Text {
   return this.add.text(x,y,value,{...getTextStyle(size),wordWrap:{width:620},lineSpacing:8})
  }
@@ -31,9 +53,8 @@ export class EncyclopediaScene extends Phaser.Scene {
   this.button(1110,45,'キャラ詳細',()=>this.character())
  }
  private art(flower:PrototypeFlower,x:number,y:number,size:number,locked=false): void {
-  const image=this.add.image(x,y,flower.key)
+  const image=this.add.image(x,y,locked?unknownFlowers[flower.season].key:flower.key,locked && flower.season==='春'?'icon':undefined)
   image.setScale(size/Math.max(image.width,image.height))
-  if(locked) image.setTint(0x31433b).setAlpha(0.45)
  }
  private list(): void {
   this.frame('季節の花図鑑')
@@ -49,7 +70,7 @@ export class EncyclopediaScene extends Phaser.Scene {
    const card=this.add.rectangle(x,y,255,195,0xffffff).setStrokeStyle(2,owned?0x398363:0xaab5ae).setInteractive({useHandCursor:true})
    card.on('pointerup',()=>this.detail(flower))
    this.art(flower,x,y-18,125,!owned)
-   this.text(x-110,y+35,flower.name,20)
+   this.text(x-110,y+35,owned?flower.name:'？？？',20)
    createTextButton(this,x,y+78,(contractPreview.equipped===flower.id?'編成中':owned?'花契済み':'未契約')+'・詳細',()=>this.detail(flower),{fontSize:16,padding:{top:3,bottom:3,left:10,right:10}})
   })
   if(this.page>0)this.button(420,650,'← 前のページ',()=>{this.page--;this.list()})
@@ -63,11 +84,17 @@ export class EncyclopediaScene extends Phaser.Scene {
   this.button(130,130,'← 花一覧',()=>this.list())
   this.add.rectangle(300,370,400,410,0xffffff).setStrokeStyle(2,0x81a18e)
   this.art(flower,300,330,310,!owned)
-  this.text(170,530,flower.name,28)
-  this.text(570,175,`${flower.name}　／　${flower.season}`,30)
+  if (owned && flower.realUrl) this.button(300,625,'実写 ／ イラスト',()=>{
+   const image=this.children.list.find(child=>child instanceof Phaser.GameObjects.Image && (child.texture.key===flower.key || child.texture.key===flower.realKey)) as Phaser.GameObjects.Image | undefined
+   if(image){ image.setTexture(image.texture.key===flower.key?flower.realKey:flower.key); image.setScale(310/Math.max(image.width,image.height)) }
+  })
+  this.text(170,530,owned?flower.name:'？？？',28)
+  this.text(570,175,`${owned?flower.name:'？？？'}　／　${flower.season}`,30)
   this.text(570,240,owned?'花契済み：編成できます':'未契約：花契すると入手できます',24)
-  this.text(570,305,'MP：30\nATKボーナス：5\nスキル：試作スキル（効果は未実装）\n消費MP：プレイヤー5 ／ 花3',22)
-  this.text(570,470,'上記は表示確認用の共通値です。\n花自体にHPはありません。',18)
+  this.text(570,295,`属性：${owned ? flower.element ?? '未設定' : '？？？'}`,22)
+  this.text(570,335,'花言葉',22)
+  this.text(570,370,!owned ? '花契すると花言葉がわかります。' : flower.hanakotoba.length ? flower.hanakotoba.map(word=>`「${word}」`).join(' ') : '未登録',20)
+  this.text(570,475,owned?'試作値：MP 30 ／ ATKボーナス 5\n花本体にHPはありません。スキル効果は未実装です。':'どんな花に出会えるか、花契して確かめよう。',18)
   if(!owned)this.button(810,585,'花契する（テスト）',()=>{contractPreview.contract(flower.id);this.detail(flower)})
   else if(contractPreview.equipped===flower.id)this.button(810,585,'編成から外す',()=>{contractPreview.equipped=null;this.detail(flower)})
   else this.button(810,585,'この花を編成する',()=>{contractPreview.equip(flower.id);this.detail(flower)})

@@ -1,3 +1,4 @@
+import { getShopItemImageKey } from '../shop/assets'
 import Phaser from 'phaser'
 
 import { getCategoryName } from './InventoryData'
@@ -151,10 +152,7 @@ export class InventoryView {
       .setInteractive({ useHandCursor: true })
     const imageArea = this.scene.add.rectangle(0, -30, 90, 80, 0xeaf4fb)
       .setStrokeStyle(1, BORDER_COLOR)
-    const imageText = this.scene.add.text(0, -30, '画像\n×？', {
-      ...getTextStyle(18),
-      align: 'center'
-    }).setOrigin(0.5)
+    const imageText = this.scene.add.image(0, -30, getShopItemImageKey(item.id)).setDisplaySize(64,64)
     const nameText = this.scene.add.text(0, 40, item.name, {
       ...getTextStyle(17),
       align: 'center'

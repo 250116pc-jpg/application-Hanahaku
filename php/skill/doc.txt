@@ -4,3 +4,11 @@ id	スキルid	id	PRIMARY、AI
 name	スキル名	text
 description	説明	text
 upgrade_data	スキルの内容	json
+
+sql/hanahaku_users.sqlとsql/hanahaku_flowers.sqlを適用した後、
+sql/skill_seed.sqlを実行して初期スキル・花と契約状態を登録する。
+このSQLは既存ユーザーに花ID 1〜10を契約済みとして追加する。
+sql/player_skill_states.sqlも適用する。
+スキルレベルの係数・戦闘効果はcommon.phpのbuildFlowerSkillで計算する。
+ステージ開始時にスキル状態と花の戦闘ステータスを一括取得し、
+戦闘中のMP・CTはクライアント内で更新する。発動ごとのDB通信は行わない。

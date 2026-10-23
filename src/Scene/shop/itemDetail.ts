@@ -8,7 +8,7 @@ const PANEL_HEIGHT = 532
 
 export function createItemDetail(
   scene: Phaser.Scene,
-  onPurchase: (item: ShopItem) => void
+  onPurchase: (item: ShopItem) => Promise<void>
 ): ItemDetailView {
   let currentItem: ShopItem | null = null
 
@@ -58,12 +58,18 @@ export function createItemDetail(
   })
   const buyButton = createTextButton(scene, PANEL_X, 630, '購入する', '#486a4f')
 
-  buyButton.on('pointerdown', () => {
-    if (!currentItem) return
-
-    currentItem.count = (currentItem.count ?? 0) + 1
-    countText.setText(formatCount(currentItem))
-    onPurchase(currentItem)
+  let buying=false
+  buyButton.on('pointerdown', async () => {
+    if (!currentItem || buying) return
+    buying=true
+    buyButton.setText('購入中…')
+    try {
+      await onPurchase(currentItem)
+      if(scene.sys.isActive() && currentItem) countText.setText(formatCount(currentItem))
+    } finally {
+      buying=false
+      if(scene.sys.isActive()) buyButton.setText('購入する')
+    }
   })
 
   return {

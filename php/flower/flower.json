@@ -1,0 +1,144 @@
+[
+  {
+    "id": 1,
+    "code": "zinia",
+    "name": "ジニア",
+    "Game_image": "src/assets/flowers/zinia.png",
+    "Real_image": "src/assets/realflowers/zinia.png",
+    "element": "熱",
+    "hanakotoba": [
+      "不在の友を思う",
+      "絆",
+      "幸福"
+    ],
+    "skill_id": 1
+  },
+  {
+    "id": 2,
+    "code": "suiren",
+    "name": "スイレン",
+    "Game_image": "src/assets/flowers/suiren.png",
+    "Real_image": "src/assets/realflowers/suiren.png",
+    "element": "無",
+    "hanakotoba": [
+      "清純な心",
+      "信頼",
+      "信仰",
+      "優しさ"
+    ],
+    "skill_id": 2
+  },
+  {
+    "id": 3,
+    "code": "sakura",
+    "name": "桜",
+    "Game_image": "src/assets/flowers/sakura.png",
+    "Real_image": "src/assets/realflowers/sakura.png",
+    "element": "光",
+    "hanakotoba": [
+      "精神美",
+      "純潔"
+    ],
+    "skill_id": 3
+  },
+  {
+    "id": 4,
+    "code": "sunflower",
+    "name": "ひまわり",
+    "Game_image": "src/assets/flowers/sunflower.png",
+    "Real_image": "src/assets/realflowers/himawari.png",
+    "element": "熱",
+    "hanakotoba": [
+      "あなただけを見つめる",
+      "憧れ",
+      "情熱"
+    ],
+    "skill_id": 4
+  },
+  {
+    "id": 5,
+    "code": "sarusuberi",
+    "name": "サルスベリ",
+    "Game_image": "src/assets/flowers/sarusuberi.png",
+    "Real_image": "src/assets/realflowers/sarusuberi.png",
+    "element": "熱",
+    "hanakotoba": [
+      "雄弁",
+      "愛嬌",
+      "不用意",
+      "あなたを信じる",
+      "潔白"
+    ],
+    "skill_id": 5
+  },
+  {
+    "id": 6,
+    "code": "mukuge",
+    "name": "ムクゲ",
+    "Game_image": "src/assets/flowers/mukuge.png",
+    "Real_image": "src/assets/realflowers/mukuge.png",
+    "element": "水",
+    "hanakotoba": [
+      "信念",
+      "繊細な美",
+      "デリケートな愛"
+    ],
+    "skill_id": 6
+  },
+  {
+    "id": 7,
+    "code": "kochia",
+    "name": "コキア",
+    "Game_image": "src/assets/flowers/kochia.png",
+    "Real_image": "src/assets/realflowers/kokia.png",
+    "element": "風",
+    "hanakotoba": [
+      "夫婦円満",
+      "恵まれた生活",
+      "あなたに全て打ち明けます"
+    ],
+    "skill_id": 7
+  },
+  {
+    "id": 8,
+    "code": "hasu",
+    "name": "ハス",
+    "Game_image": "src/assets/flowers/hasu.png",
+    "Real_image": "src/assets/realflowers/hasu.png",
+    "element": "無",
+    "hanakotoba": [
+      "清らかな心",
+      "神聖",
+      "沈着"
+    ],
+    "skill_id": 8
+  },
+  {
+    "id": 9,
+    "code": "rurimatsuri",
+    "name": "ルリマツリ",
+    "Game_image": "src/assets/flowers/rurimatsuri.png",
+    "Real_image": "src/assets/realflowers/rurimaturi.png",
+    "element": "光",
+    "hanakotoba": [
+      "いつも明るい",
+      "ひそかな情熱",
+      "同情（明るい心）"
+    ],
+    "skill_id": 9
+  },
+  {
+    "id": 10,
+    "code": "ajisai",
+    "name": "アジサイ",
+    "Game_image": "src/assets/flowers/ajisai.png",
+    "Real_image": "src/assets/realflowers/azisai.png",
+    "element": "無",
+    "hanakotoba": [
+      "家族",
+      "和気あいあい",
+      "移り気"
+    ],
+    "skill_id": 10
+  }
+]
