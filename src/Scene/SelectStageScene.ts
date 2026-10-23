@@ -1,23 +1,22 @@
 import Phaser from 'phaser';
 
 import testData from './test_data';
+import { AREA_STAGE_LAYOUTS, type StagePosition } from './stageSelectData';
+type StageData = typeof testData.stages[number];
 import { specialText, wait } from '../functions';
 import { createBackground } from '../background';
-import backgroundImg from '../assets/background/2.png';
-import bookImg from '../assets/images/stageIcons/717_1.png';
-import swordImg from '../assets/images/stageIcons/701_1.png';
+import backgroundImg from '../assets/ui/stageslect_back.png';
+import stageIcons from '../assets/ui/stageslect_icon.png';
 
 import {
   loadCharacterAnimation,
   createCharacterAnimation,
-  createCharacterSprite,
-  changeCharacterAnimation
+  createCharacterSprite
 } from '../animation/animation';
 import { characterAnimations } from '../animation/animationData';
-import { getTextStyle } from '../utils/ui';
+import { getTextStyle, preloadBackButton, createBackButton, applySmoothDisplay, smoothText } from '../utils/ui';
 
 //debug機能
-import { showDebugSceneName } from '../debug';
 import { SCENE_KEYS } from './sceneKeys';
 
 //--------------------------------------------------------------
@@ -28,13 +27,9 @@ interface SelectStageSceneData {
 }
 
 export class SelectStageScene extends Phaser.Scene {
-  private stagePositions = [
-      { id: 1, x: 150, y: 200, type: "story" },
-      { id: 2, x: 230, y: 460, type: "battle" },
-      { id: 3, x: 600, y: 260, type: "story" },
-      { id: 4, x: 740, y: 530, type: "battle" },
-      { id: 5, x: 1060, y: 520, type: "story" }
-    ];
+  private readonly stageRouteOffsetY = 40;
+  private stagePositions: StagePosition[] = [];
+  private stages: StageData[] = [];
   // プレイヤー
   private player!: Phaser.GameObjects.Sprite;
   private currentChapter = 1;
@@ -52,27 +47,34 @@ export class SelectStageScene extends Phaser.Scene {
     // 背景
     this.load.image('background', backgroundImg);
     // アイコン
-    this.load.image('book', bookImg);
-    this.load.image('sword', swordImg);
+    this.load.image('stage-icons', stageIcons);
+    preloadBackButton(this);
 
     // Playerのアニメーションデータ
     const playerData = characterAnimations.player;
 
     // 画像読み込み
-    loadCharacterAnimation(this, 'player_run', playerData.run);
-    loadCharacterAnimation(this, 'player_idle', playerData.idle);
+    loadCharacterAnimation(this, 'select-player-run', playerData.run);
+    loadCharacterAnimation(this, 'select-player-idle', playerData.idle);
   }
 
   // ========================================
   // create
   // ========================================
   create(data: SelectStageSceneData = {}): void {
-    this.currentChapter = data.areaId ?? 1;
+    this.currentChapter = AREA_STAGE_LAYOUTS[data.areaId ?? 1] ? (data.areaId ?? 1) : 1;
+    this.stagePositions = AREA_STAGE_LAYOUTS[this.currentChapter];
+    this.stages = this.stagePositions.map((position, index) => {
+      const prototype = testData.stages.find(stage => stage.id === position.id);
+      if (!prototype) throw new Error('Missing prototype stage: ' + position.id);
+      return { ...prototype, name: this.currentChapter + '-' + (index + 1) };
+    });
+    this.currentStageIndex = 0;
+    this.isMoving = false;
+    this.isStageInfoOpen = false;
+    this.prepareStageTextures();
 
-    const width = this.scale.width;
-    const height = this.scale.height;
 
-    showDebugSceneName(this);
 
     // ----------------------------------------
     // 背景
@@ -82,20 +84,22 @@ export class SelectStageScene extends Phaser.Scene {
     // ----------------------------------------
     // タイトル
     // ----------------------------------------
-    specialText(this, width / 2, height / 2 - 300, 55, 4, 'ステージ選択画面', '#000000', '#70f5cf');
 
     // ----------------------------------------
     // 戻るボタン
     // ----------------------------------------
-    this.createBackButton();
+    createBackButton(this,
+      { x: 120, y: 66, width: 180, height: 60, fontSize: 23, depth: 10 },
+      () => this.scene.start(SCENE_KEYS.AREA_SELECT)
+    );
 
 
     // ----------------------------------------
     // ステージ作成
     // ----------------------------------------
     this.stagePositions.forEach((position, index) => {
-      const stage = testData.stages[index];
-      const nextStage = testData.stages[index + 1];
+      const stage = this.stages[index];
+      const nextStage = this.stages[index + 1];
 
       if (!stage) return;
 
@@ -104,18 +108,13 @@ export class SelectStageScene extends Phaser.Scene {
         const nextPosition = this.stagePositions[index + 1];
 
         // 外側の黒い線
-        this.createLine(nextPosition.x, nextPosition.y, position.x, position.y, 25, 0x000000);
+        this.createLine(nextPosition.x, nextPosition.y, position.x, position.y);
         // 内側の白い線
-        this.createLine(nextPosition.x, nextPosition.y, position.x, position.y, 20, 0xdddddd);
       }
 
       // ステージボタン
-      this.createActionCircle(position.x, position.y, 100, stage.name);
-      if (position.type === 'story') {
-        this.add.image(position.x, position.y-10, 'book').setScale(3).setDepth(1);
-      }else if (position.type === 'battle') {
-        this.add.image(position.x, position.y-10, 'sword').setScale(3).setDepth(1);
-      }
+      this.createActionCircle(position.x, position.y, 110, stage.name);
+
     });
 
     // ----------------------------------------
@@ -124,93 +123,29 @@ export class SelectStageScene extends Phaser.Scene {
     const playerData = characterAnimations.player;
 
     // Run
-    createCharacterAnimation(this, 'player-run', 'player_run', playerData.run.frameCount, playerData.run.frameRate);
+    createCharacterAnimation(this, 'select-player-run', 'select-player-run', playerData.run.frameCount, playerData.run.frameRate);
     // Idle
-    createCharacterAnimation(this, 'player-idle', 'player_idle', playerData.idle.frameCount, playerData.idle.frameRate);
+    createCharacterAnimation(this, 'select-player-idle', 'select-player-idle', Math.min(playerData.idle.frameCount, this.textures.get('select-player-idle').frameTotal - 1), playerData.idle.frameRate);
 
     // ----------------------------------------
     // Player作成
     // ----------------------------------------
-    this.player = createCharacterSprite(this, this.stagePositions[this.currentStageIndex].x, this.stagePositions[this.currentStageIndex].y-50, 'player_idle', 'player-idle');
-    this.player.setScale(1).setDepth(2);
+    this.player = createCharacterSprite(this, this.stagePositions[this.currentStageIndex].x, this.stagePositions[this.currentStageIndex].y-50, 'select-player-idle', 'select-player-idle');
+    this.player.setScale(1.5).setDepth(2);
   }
 
   // ========================================
   // 戻るボタン
   // ========================================
-  private createBackButton(): void {
-    const x = 110;
-    const y = 80;
-    const width = 130;
-    const height = 48;
-    const radius = 10;
-
-    const container = this.add.container(x, y);
-    const bg = this.add.graphics();
-
-    const COLOR_NORMAL = 0xffffff;
-    const COLOR_HOVER  = 0xeaf4fb;
-    const COLOR_DOWN   = 0xd5e8f5;
-    const COLOR_BORDER = 0x536878;
-
-    const drawButton = (faceColor: number, isPressed: boolean = false) => {
-      bg.clear();
-      const offset = isPressed ? 2 : 0;
-
-      bg.fillStyle(0x000000, 0.15);
-      bg.fillRoundedRect(-width / 2, -height / 2 + 4, width, height, radius);
-
-      bg.fillStyle(faceColor, 1);
-      bg.fillRoundedRect(-width / 2, -height / 2 + offset, width, height, radius);
-
-      bg.lineStyle(2, COLOR_BORDER, 1);
-      bg.strokeRoundedRect(-width / 2, -height / 2 + offset, width, height, radius);
+  private prepareStageTextures(): void {
+    const texture = this.textures.get('stage-icons');
+    const frames: Record<string, [number, number, number, number]> = {
+      battle: [528, 318, 480, 255], story: [1020, 318, 480, 255], route: [75, 897, 1390, 55]
     };
-
-    drawButton(COLOR_NORMAL);
-
-    const text = this.add.text(0, 0, '← 戻る', {
-      ...getTextStyle(20), // チームのメソッドを使用してエラーを回避
-      color: '#536878',
-      fontStyle: 'bold',
-      padding: { top: 0, bottom: 0, left: 0, right: 0 }
-    }).setOrigin(0.5);
-
-    container.add([bg, text]);
-    container.setSize(width, height);
-    container.setInteractive({ useHandCursor: true });
-
-    container.on('pointerover', () => {
-      drawButton(COLOR_HOVER);
-      this.tweens.add({
-        targets: container,
-        scale: 1.02, // 拡大率を抑えめに
-        duration: 50, // 速度を速く
-        ease: 'Power1'
-      });
+    Object.entries(frames).forEach(([name, [x, y, width, height]]) => {
+      if (!texture.has(name)) texture.add(name, 0, x, y, width, height);
     });
-
-    container.on('pointerout', () => {
-      drawButton(COLOR_NORMAL);
-      text.setY(0);
-      this.tweens.add({
-        targets: container,
-        scale: 1.0,
-        duration: 50, // 速度を速く
-        ease: 'Power1'
-      });
-    });
-
-    container.on('pointerdown', () => {
-      drawButton(COLOR_DOWN, true);
-      text.setY(2);
-    });
-
-    container.on('pointerup', () => {
-      drawButton(COLOR_HOVER);
-      text.setY(0);
-      this.scene.start(SCENE_KEYS.AREA_SELECT);
-    });
+    applySmoothDisplay(this, ['stage-icons', 'background']);
   }
 
   // ========================================
@@ -218,7 +153,7 @@ export class SelectStageScene extends Phaser.Scene {
   // ========================================
   private openStageInfo(
     scene: Phaser.Scene,
-    stageLabel: string | typeof testData.stages[number]
+    stageLabel: string | StageData
   ): void {
     if (this.isStageInfoOpen) return;
 
@@ -238,7 +173,7 @@ export class SelectStageScene extends Phaser.Scene {
     const container = scene.add.container(width / 2, height / 2).setDepth(3000);
 
     const stage = typeof stageLabel === 'string'
-      ? testData.stages.find(stage => stage.name === stageLabel)
+      ? this.stages.find(stage => stage.name === stageLabel)
       : stageLabel;
       
     if (!stage) {
@@ -397,13 +332,13 @@ export class SelectStageScene extends Phaser.Scene {
     const startBtn = createDialogButton(120, popupH / 2 - 55, 160, 56, '出撃', 0x4c8c5a, 0x60ab72, () => {
       closePopup(() => {
         console.log(`ステージID: ${stage.id} で StageScene に遷移`);
-        const stageIndex = testData.stages.findIndex(item => item.id === stage.id);
+        const stageIndex = this.stages.findIndex(item => item.id === stage.id);
         const stageType = this.stagePositions[stageIndex]?.type;
         if(stageType === 'battle') {
           scene.scene.start(SCENE_KEYS.STAGE, { stageId: stage.id });
         } else if(stageType === 'story') {
           scene.scene.start(SCENE_KEYS.STORY, {
-            chapter: this.currentChapter,
+            chapter: 1,
             stage: stage.id
           });
         }
@@ -434,18 +369,15 @@ export class SelectStageScene extends Phaser.Scene {
   // ========================================
   private currentStageIndex: number = 0;
   private createActionCircle(x: number, y: number, diameter: number, label: string): void {
-    const circle = this.add.ellipse(x, y, diameter, diameter / 1.8, 0xffffff)
-      .setStrokeStyle(2, 0x333333)
-      .setInteractive({ useHandCursor: true });
-
-    // ステージ名
-    specialText(this, x, y + 50, 26, 4, label, '#ffffff', '#01070b');
-    
-    // マウスアクション
-    circle.on('pointerover', () => circle.setFillStyle(0xeeeeee));
-      circle.on('pointerout', () => circle.setFillStyle(0xffffff));
-      let targetIndex = this.stagePositions.findIndex(pos => pos.x === x && pos.y === y) ;
-    circle.on('pointerup', () => {
+    const targetIndex = this.stagePositions.findIndex(pos => pos.x === x && pos.y === y);
+    const button = this.add.image(x, y + this.stageRouteOffsetY, 'stage-icons', this.stagePositions[targetIndex].type)
+      .setDisplaySize(diameter, diameter * 255 / 480).setDepth(1).setInteractive({ useHandCursor: true });
+    const text = specialText(this, x, y + this.stageRouteOffsetY + 48, 27, 4, label, '#ffffff', '#01070b')
+      .setDepth(1);
+    smoothText(text);
+    button.on('pointerover', () => button.setTint(0xffe4b5));
+    button.on('pointerout', () => button.clearTint());
+    button.on('pointerup', () => {
       if (this.isMoving || this.isStageInfoOpen) return;
       this.movePlayerToStage(this.currentStageIndex, targetIndex);
     });
@@ -454,9 +386,10 @@ export class SelectStageScene extends Phaser.Scene {
   // ========================================
   // ステージ間の線
   // ========================================
-  private createLine(x1: number, y1: number, x2: number, y2: number, width: number, color: number): void {
-    const line = this.add.line(0, 0, x1, y1 + 5, x2, y2 + 5, color).setOrigin(0, 0);
-    line.setLineWidth(width);
+  private createLine(x1: number, y1: number, x2: number, y2: number): void {
+    this.add.image((x1 + x2) / 2, (y1 + y2) / 2 + this.stageRouteOffsetY + 5, 'stage-icons', 'route')
+      .setDisplaySize(Phaser.Math.Distance.Between(x1, y1, x2, y2), 20)
+      .setRotation(Phaser.Math.Angle.Between(x1, y1, x2, y2)).setDepth(0.5);
   }
 
   // ========================================
@@ -477,7 +410,7 @@ export class SelectStageScene extends Phaser.Scene {
   if (nowIndex === targetIndex) {
     this.openStageInfo(
       this,
-      testData.stages[targetIndex]
+      this.stages[targetIndex]
     );
     return;
   }
@@ -494,7 +427,8 @@ export class SelectStageScene extends Phaser.Scene {
   const targetStage = this.stagePositions[nextIndex];
 
   // 走る
-  changeCharacterAnimation(this.player, 'run');
+  this.player.setFlipX(targetStage.x < this.player.x);
+  this.player.play('select-player-run');
 
   // 1ステージ分移動
   this.tweens.add({
@@ -511,12 +445,12 @@ export class SelectStageScene extends Phaser.Scene {
       // 目的地に到着したか
       if (nextIndex === targetIndex) {
         this.currentStageIndex = targetIndex;
-        changeCharacterAnimation(this.player, 'idle');
+        this.player.play('select-player-idle');
 
         wait(this, 500).then(() => {
           this.openStageInfo(
             this,
-            testData.stages[targetIndex]
+            this.stages[targetIndex]
           );
           this.isMoving = false;
         });
