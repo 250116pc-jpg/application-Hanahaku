@@ -1,7 +1,8 @@
+import detailData from './flowerDetails.json'
 import flowerJson from '../../../php/flower/flower.json?raw'
 import type { Season } from '../test_data'
 
-export type PrototypeFlower = { id: number; name: string; season: Season; url: string; key: string; element: string | null; hanakotoba: string[]; realUrl?: string; realKey: string }
+export type PrototypeFlower = { id: number; code: string; name: string; season: Season; url: string; key: string; element: string | null; hanakotoba: string[]; realUrl?: string; realKey: string }
 const definitions: Array<[number, string, string, Season]> = [
  [10,'ajisai','アジサイ','夏'], [11,'asagao','アサガオ','夏'], [12,'blue_rose','青いバラ','春'],
  [13,'cosmos','コスモス','秋'], [14,'fuji','フジ','春'], [15,'gerbera','ガーベラ','春'],
@@ -20,6 +21,8 @@ const images = import.meta.glob('../../assets/flowers/*.png', { eager: true, que
 type FlowerEntry = { id: number; code: string; name: string; Game_image: string; Real_image: string; element: string | null; hanakotoba: string[]; skill_id: number }
 const catalog: FlowerEntry[] = JSON.parse(flowerJson)
 const realImages = import.meta.glob('../../assets/realflowers/*.png', { eager: true, query: '?url', import: 'default' }) as Record<string, string>
+const realFileNames: Record<string, string> = {"ajisai": "azisai", "asagao": "asagao", "blue_rose": "aobara", "cosmos": "kosumosu", "fuji": "huzi", "gerbera": "ga-bera", "hangesho": "hangesyou", "hasu": "hasu", "hibiscus": "haibisukasu", "higanbana": "higanbana", "kiku": "kiku", "kochia": "kokia", "lavender": "rabenda-", "marguerite": "ma-garetto", "marigold": "mari-go-dorudo", "mukuge": "mukuge", "nanohana": "nanohana", "nemunoki": "nemunoki", "poppy": "popi-", "red_rose": "akabara", "rurimatsuri": "rurimaturi", "sakura": "sakura", "sarusuberi": "sarusuberi", "shakuyaku": "syakuyaku", "suiren": "suiren", "suisen": "suisen", "sunflower": "himawari", "suzuran": "suzuran", "tanpopo": "tanpopo", "tsubaki": "tubaki", "tsutsuji": "tutuzi", "tulip": "cyu-rippu", "ume": "ume", "yuri": "yuri", "zinia": "zinia"}
+const wordsByCode = detailData as Record<string, { words: string[] }>
 const entries = new Map(catalog.map(entry => [entry.id, entry]))
 if (entries.size !== catalog.length) throw new Error('花データのIDが重複しています')
 for (const entry of catalog) {
@@ -30,18 +33,13 @@ export const prototypeFlowers: PrototypeFlower[] = definitions.map(([id,code,nam
  const entry=entries.get(id)
  const url=images[entry ? entry.Game_image.replace('src/assets/', '../../assets/') : `../../assets/flowers/${code}.png`]
  if (!url) throw new Error(`花画像が見つかりません: ${id}`)
- return {id,name:entry?.name ?? name,season,url,key:`contract-preview-${id}`,element:entry?.element ?? null,hanakotoba:entry?.hanakotoba ?? [],realUrl:entry ? realImages[entry.Real_image.replace('src/assets/', '../../assets/')] : undefined,realKey:`flower-real-${id}`}
+ return {id,code,name:entry?.name ?? name,season,url,key:`contract-preview-${id}`,element:entry?.element ?? null,hanakotoba:wordsByCode[code]?.words ?? entry?.hanakotoba ?? [],realUrl:entry ? realImages[entry.Real_image.replace('src/assets/', '../../assets/')] : realImages[`../../assets/realflowers/${realFileNames[code]}.png`],realKey:`flower-real-${id}`}
 })
 // Prototype-only ownership. Never writes to accounts, the DB, or real party data.
 export class ContractPreviewState {
  readonly owned = new Set<number>()
- equipped: number | null = null
  contract(id: number): void { if (prototypeFlowers.some(f => f.id===id)) this.owned.add(id) }
- equip(id: number): boolean {
-  if (!this.owned.has(id)) return false
-  this.equipped=id
-  return true
- }
- reset(): void { this.owned.clear(); this.equipped=null }
+
+ reset(): void { this.owned.clear() }
 }
 export const contractPreview = new ContractPreviewState()

@@ -1,0 +1,63 @@
+.flower-book-screen {
+  position: fixed; inset: 0; z-index: 30; display: grid; place-items: center;
+  padding: 16px; box-sizing: border-box; overflow: auto;
+  background: radial-gradient(ellipse at center, #526556ee, #152c25f5);
+  color: #233c45; font-family: "Yu Mincho", "MS PMincho", serif;
+}
+.flower-book {
+  box-sizing: border-box; width: min(1160px, 100%); max-height: calc(100dvh - 32px);
+  display: flex; flex-direction: column; position: relative;
+  border: 9px solid #223a3e; border-radius: 12px 18px 18px 12px;
+  outline: 2px solid #c1974e; box-shadow: 0 18px 55px #0008, inset 0 0 0 3px #c99d57;
+  background: linear-gradient(90deg, #e1c397 0%, #faf0d8 4%, #f7ecd5 47%, #d8bd93 49.4%, #ad8b5d 50%, #e1caa7 50.6%, #fbf1dc 53%, #f5e5c4 96%, #ceab77 100%);
+}
+.book-header, .book-footer { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 14px 26px; flex-shrink: 0; }
+.book-header { border-bottom: 1px solid #bca16c88; }
+.book-brand { letter-spacing: .15em; font-weight: bold; color: #23464b; font-size: 22px; }
+.book-tabs { display: flex; gap: 6px; }
+.book-tab { border: 1px solid #b39357; border-radius: 4px; background: #fff7e6; padding: 9px 18px; color: #3d4e49; font: bold 16px "Yu Mincho", serif; cursor: pointer; }
+.book-tab[aria-pressed="true"] { color: #fff0cf; background: #234449; border-color: #bd944f; box-shadow: inset 0 0 0 2px #234449, inset 0 0 0 3px #a8864d; }
+.book-spread { display: grid; grid-template-columns: 1fr 1fr; overflow-y: auto; min-height: 0; scrollbar-color: #b89a68 #f7ecd5; }
+.book-page { box-sizing: border-box; min-width: 0; padding: 12px 36px 10px; position: relative; }
+.book-left { border-right: 1px solid #97744944; }
+.book-flower-name { font-size: 27px; text-align: center; margin: 0 0 12px; letter-spacing: .12em; font-weight: 600; }
+.book-flower-name::before, .book-flower-name::after { content: ' ✧ '; color: #af8241; font-size: 18px; }
+.book-picture { height: clamp(155px, 30vh, 250px); max-width: 350px; margin: 0 auto 14px; padding: 8px; display: grid; place-items: center; border: 3px double #a27b42; outline: 1px solid #dbbd82; outline-offset: 3px; background: radial-gradient(ellipse, #fff9e9aa, #e8d1a733); box-shadow: 0 2px 8px #7c603522; }
+.book-picture img { width: 100%; height: 100%; min-height: 0; max-height: inherit; object-fit: contain; }
+.book-section { margin: 0 0 16px; }
+.book-ribbon { display: inline-block; font-size: 16px; font-weight: 500; letter-spacing: .12em; color: #ffedc7; background: #24464a; border: 3px double #c99c50; padding: 3px 18px; margin: 0 0 8px; box-shadow: 2px 2px 0 #bfa16855; }
+.book-section p { white-space: pre-line; overflow-wrap: anywhere; line-height: 1.65; font-size: 16px; margin: 2px 0 8px; }
+.book-section .book-note { font: 12px/1.5 "Yu Gothic", sans-serif; color: #73634a; }
+.book-stats { margin: 0; display: grid; grid-template-columns: repeat(3, 1fr); border: 1px solid #b99a65; padding: 8px 12px; background: #fff5df55; gap: 8px 14px; }
+.book-stats div { display: flex; justify-content: space-between; gap: 5px; font-size: 17px; }
+.book-stats dt { font-weight: bold; }
+.book-stats dd { margin: 0; font-variant-numeric: tabular-nums; }
+.book-skill-heading { display: flex; align-items: center; gap: 12px; }
+.book-skill-heading h3 { font-size: 19px; line-height: 1.5; margin: 0; overflow-wrap: anywhere; }
+.book-skill-icon, .book-skill-fallback { width: 56px; height: 56px; flex-shrink: 0; object-fit: contain; border: 2px solid #a17d42; background: #ede0be; padding: 3px; border-radius: 6px; box-sizing: border-box; }
+.book-skill-fallback { display: grid; place-items: center; font-size: 36px; color: #94704a; }
+.book-section .book-skill-meta { font-size: 14px; border-bottom: 1px solid #c4a16a; padding: 10px 0 6px; }
+.book-section .book-skill-description { font-size: 15px; }
+.book-resistances { display: flex; gap: 8px; flex-wrap: wrap; font-size: 15px; }
+.book-resistances span { padding: 4px 9px; border: 1px solid #c8ac7a; background: #fff7e355; }
+.book-footer { border-top: 1px solid #bca16c88; padding-top: 8px; padding-bottom: 8px; }
+.book-button { width: 180px; max-width: 100%; aspect-ratio: 798 / 226; border: 0; padding: 0; color: #fff2d6; background: var(--catalog-button) center / contain no-repeat; font: 16px "Yu Mincho", serif; cursor: pointer; text-shadow: 0 1px 2px #000; }
+.book-folio { color: #826c4d; font-size: 14px; letter-spacing: .08em; }
+.flower-book-screen button:hover { filter: brightness(1.12); }
+.flower-book-screen :focus-visible { outline: 3px solid #598a8d; outline-offset: 3px; }
+.book-empty { color: #78694e; text-align: center; }
+@media (max-width: 700px) {
+  .flower-book-screen { padding: 8px; }
+  .flower-book { max-height: calc(100dvh - 16px); border-width: 5px; background: #f8ecd2; }
+  .book-header { padding: 10px 12px; flex-wrap: wrap; }
+  .book-brand { font-size: 18px; }
+  .book-tabs { width: 100%; }
+  .book-tab { flex: 1; padding: 8px; }
+  .book-spread { grid-template-columns: 1fr; }
+  .book-page { padding: 16px 20px; }
+  .book-left { border-right: 0; border-bottom: 1px solid #bca16c88; }
+  .book-picture { height: 220px; }
+  .book-footer { padding: 8px; gap: 8px; }
+  .book-button { width: 150px; font-size: 14px; }
+  .book-folio { display: none; }
+}
