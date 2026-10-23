@@ -15,6 +15,8 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
   private readonly healthBar: Phaser.GameObjects.Rectangle;
   private health = this.maxHealth;
   private nextAttackAt = 0;
+  private attackSpeedSlowUntil = 0;
+  private attackSpeedSlowPercent = 0;
   private locked = false;
   private dead = false;
   private patrolDirection = -1;
@@ -112,6 +114,16 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     this.playVisual('enemy-hurt');
   }
 
+  public applyAttackSpeedSlow(percent: number, durationMs: number): void {
+    this.attackSpeedSlowPercent = Math.max(this.attackSpeedSlowPercent, percent);
+    this.attackSpeedSlowUntil = Math.max(this.attackSpeedSlowUntil, this.scene.time.now + durationMs);
+  }
+
+  public applyKnockback(direction: number): void {
+    if (this.dead || !Number.isFinite(direction)) return;
+    this.setVelocityX(Math.sign(direction) * 300);
+  }
+
   public get isDefeated(): boolean {
     return this.dead;
   }
@@ -124,7 +136,9 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
   }
 
   private attack(time: number): void {
-    this.nextAttackAt = time + 1100;
+    const slowPercent = time < this.attackSpeedSlowUntil ? this.attackSpeedSlowPercent : 0;
+    if (slowPercent === 0) this.attackSpeedSlowPercent = 0;
+    this.nextAttackAt = time + 1100 * (1 + slowPercent / 100);
     this.locked = true;
     this.setVelocityX(0);
     this.playVisual('enemy-attack');

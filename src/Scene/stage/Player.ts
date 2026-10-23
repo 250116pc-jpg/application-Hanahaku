@@ -6,6 +6,8 @@ export interface CombatTarget {
   readonly x: number;
   readonly y: number;
   receiveDamage(amount: number): void;
+  applyAttackSpeedSlow?(percent: number, durationMs: number): void;
+  applyKnockback?(direction: number): void;
 }
 
 export class Player extends Phaser.Physics.Arcade.Sprite {
@@ -18,7 +20,20 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   private dead = false;
   private invulnerableUntil = 0;
   private defenseUntil = 0;
-  public readonly maxHealth = 100;
+  private defenseBonusPercent = 0;
+  private attackBonusPercent = 0;
+  private attackBonusUntil = 0;
+  private evasionUntil = 0;
+  private evasionPercent = 0;
+  private chargeUntil = 0;
+  private continuousUntil = 0;
+  private mapleIsRed = false;
+  private readonly baseMaxHealth = 100;
+  private maxHealthBonus = 0;
+  private maxHealthBonusUntil = 0;
+  public get maxHealth(): number {
+    return this.baseMaxHealth + this.maxHealthBonus;
+  }
   public health = this.maxHealth;
 
   constructor(scene: Phaser.Scene, x: number, y: number, cursors?: Phaser.Types.Input.Keyboard.CursorKeys) {
@@ -130,13 +145,14 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   }
 
   public attack(targets: readonly CombatTarget[] = []): void {
+    if (this.scene.time.now < this.chargeUntil || this.scene.time.now < this.continuousUntil) return;
     if (!this.playAction('attack', 'player-attack')) return;
     this.showRange('front', 125, 0xffb347);
-    this.damageTargets(targets, 18, 125, false);
+    this.damageTargets(targets, this.applyAttackBonus(18), 125, false);
   }
 
   public canUseSkill(): boolean {
-    return !this.dead && this.action === null;
+    return !this.dead && this.action === null && this.scene.time.now >= this.chargeUntil;
   }
 
   public reserveSkill(): boolean {
@@ -152,25 +168,106 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
   public useFlowerSkill(skill: ServerFlowerSkill, targets: readonly CombatTarget[] = []): boolean {
     if (!this.playSkillAnimation(skill.type === 'heal' ? 'player-drink' :
-      skill.type === 'defense' ? 'player-defend' : 'player-skill')) return false;
+      ['defensiveRecovery', 'fortify'].includes(skill.type) ? 'player-defend' : 'player-skill')) return false;
 
     switch (skill.type) {
-      case 'singleAttack':
+      case 'multiHit':
         this.showRange('front', skill.range, 0xff5f61);
-        this.damageTargets(targets, skill.damage, skill.range, false);
+        for (let hit = 0; hit < skill.hitCount; hit++) {
+          this.damageTargets(targets, this.skillDamage(skill.damagePercent, skill.attackPower), skill.range, false);
+        }
         break;
-      case 'areaAttack':
+      case 'defensiveRecovery':
+        this.applyDefenseBuff(skill.defenseBonusPercent, skill.durationMs);
+        this.repeatUntil(skill.durationMs, skill.healIntervalMs, () => this.restoreHealth(
+          this.maxHealth * skill.healPercent / 100
+        ));
+        this.showRange('self', skill.range, 0x62c9ff);
+        break;
+      case 'charge':
+        this.chargeUntil = this.scene.time.now + skill.durationMs;
+        this.applyDefenseBuff(skill.defenseBonusPercent, skill.durationMs);
+        this.scene.time.delayedCall(skill.durationMs, () => {
+          if (!this.active || this.dead) return;
+          this.showRange('front', skill.range, 0xff5f61);
+          this.damageTargets(targets, this.skillDamage(skill.damagePercent, skill.attackPower), skill.range, false);
+        });
+        this.showRange('self', skill.range / 2, 0xffd166);
+        break;
+      case 'balanced':
+        this.applyTimedBuff(skill.attackBonusPercent, skill.defenseBonusPercent, skill.durationMs);
+        this.repeatUntil(skill.durationMs, skill.repeatIntervalMs, () => {
+          this.damageTargets(targets, this.skillDamage(skill.damagePercent, skill.attackPower), 10000, false, true);
+        });
+        this.showRange('self', skill.range, 0xffc968);
+        break;
+      case 'continuous':
+        this.applyTimedBuff(skill.attackBonusPercent, skill.defenseBonusPercent, skill.durationMs);
+        this.continuousUntil = this.scene.time.now + skill.durationMs;
+        this.repeatUntil(
+          skill.durationMs,
+          Math.max(100, Math.round(skill.repeatIntervalMs / (1 + skill.attackSpeedBonusPercent / 100))),
+          () => {
+          this.damageTargets(targets, this.skillDamage(skill.damagePercent, skill.attackPower), skill.range, false);
+          this.showRange('front', skill.range, 0xff5f61);
+          }
+        );
+        this.showRange('self', skill.range / 2, 0xffc968);
+        break;
+      case 'maple':
+        if (this.mapleIsRed) {
+          this.mapleIsRed = false;
+          skill.stages.forEach((stage, index) => {
+            this.scene.time.delayedCall(index * 450, () => {
+              if (!this.active || this.dead) return;
+              this.showRange('front', stage.range, 0xff5f61);
+              const hitTargets = this.getTargetsInRange(targets, stage.range, false);
+              hitTargets.slice(0, 1).forEach(target => {
+                target.receiveDamage(this.skillDamage(stage.damagePercent, skill.attackPower));
+                if (stage.knockback) target.applyKnockback?.(this.flipX ? -1 : 1);
+              });
+            });
+          });
+        } else {
+          this.mapleIsRed = true;
+          this.applyDefenseBuff(skill.defenseBonusPercent, skill.durationMs);
+          this.repeatUntil(skill.durationMs, skill.healIntervalMs, () => this.restoreHealth(
+            this.maxHealth * skill.healPercent / 100
+          ));
+          this.showRange('self', skill.range, 0x65c66d);
+        }
+        break;
+      case 'fortify': {
+        const bonusHealth = Math.round(this.baseMaxHealth * skill.maxHealthBonusPercent / 100);
+        this.maxHealthBonus = bonusHealth;
+        this.maxHealthBonusUntil = this.scene.time.now + skill.durationMs;
+        this.health = Math.min(this.maxHealth, this.health + bonusHealth);
+        this.applyTimedBuff(skill.attackBonusPercent, skill.defenseBonusPercent, skill.durationMs);
+        this.scheduleAfter(skill.durationMs, () => {
+          if (this.scene.time.now >= this.maxHealthBonusUntil) {
+            this.maxHealthBonus = 0;
+            this.health = Math.min(this.health, this.maxHealth);
+            this.emit('health-changed', this.health, this.maxHealth);
+          }
+        });
+        this.emit('health-changed', this.health, this.maxHealth);
+        this.showRange('self', skill.range, 0x62c9ff);
+        break;
+      }
+      case 'slowAttack':
         this.showRange('radial', skill.range, 0xff5f61);
-        this.damageTargets(targets, skill.damage, skill.range, true, true);
+        this.damageTargets(targets, this.skillDamage(skill.damagePercent, skill.attackPower), skill.range, true, true);
+        targets.forEach(target => target.applyAttackSpeedSlow?.(skill.slowPercent, skill.durationMs));
         break;
       case 'heal':
         this.showRange('self', skill.range, 0x5de28c);
-        this.health = Math.min(this.maxHealth, this.health + skill.healAmount);
-        this.emit('health-changed', this.health, this.maxHealth);
+        this.restoreHealth(this.maxHealth * skill.healPercent / 100);
         break;
-      case 'defense':
-        this.showRange('self', skill.range, 0x62c9ff);
-        this.defenseUntil = this.scene.time.now + skill.defenseDurationMs;
+      case 'evasion':
+        this.showRange('front', skill.range, 0xff5f61);
+        this.damageTargets(targets, this.skillDamage(skill.damagePercent, skill.attackPower), skill.range, false);
+        this.evasionUntil = this.scene.time.now + skill.durationMs;
+        this.evasionPercent = skill.evasionPercent;
         break;
     }
     return true;
@@ -179,11 +276,13 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   public receiveDamage(amount: number): void {
     const now = this.scene.time.now;
     if (this.dead || now < this.invulnerableUntil || amount <= 0) return;
+    if (now < this.evasionUntil && Math.random() * 100 < this.evasionPercent) return;
 
     const defending = this.cursors?.down?.isDown === true &&
       (this.body as Phaser.Physics.Arcade.Body).blocked.down;
-    const damageReduction = defending || now < this.defenseUntil ? 0.5 : 0;
-    this.health = Math.max(0, this.health - Math.ceil(amount * (1 - damageReduction)));
+    const activeDefenseBonus = now < this.defenseUntil ? this.defenseBonusPercent : 0;
+    const damageMultiplier = defending ? 0.5 : Math.max(0.1, 1 - activeDefenseBonus / 100);
+    this.health = Math.max(0, this.health - Math.ceil(amount * damageMultiplier));
     this.invulnerableUntil = now + 700;
     this.emit('health-changed', this.health, this.maxHealth);
 
@@ -241,16 +340,71 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     hitAll: boolean,
     radial = false
   ): void {
+    this.getTargetsInRange(targets, range, radial).slice(0, hitAll ? undefined : 1)
+      .forEach(target => target.receiveDamage(damage));
+  }
+
+  private getTargetsInRange(
+    targets: readonly CombatTarget[],
+    range: number,
+    radial: boolean
+  ): CombatTarget[] {
     const direction = this.flipX ? -1 : 1;
-    const inRange = targets.filter(target => {
+    return targets.filter(target => {
       const distanceX = (target.x - this.x) * direction;
       const distanceY = target.y - this.y;
       return radial
         ? Math.hypot(distanceX, distanceY) <= range
         : distanceX >= -20 && distanceX <= range && Math.abs(distanceY) <= 100;
     });
-    const hits = hitAll ? inRange : inRange.slice(0, 1);
-    hits.forEach(target => target.receiveDamage(damage));
+  }
+
+  private skillDamage(percent: number, attackPower: number): number {
+    return Math.max(1, Math.round(attackPower * percent / 100));
+  }
+
+  private applyAttackBonus(damage: number): number {
+    const bonus = this.scene.time.now < this.attackBonusUntil ? this.attackBonusPercent : 0;
+    return Math.max(1, Math.round(damage * (1 + bonus / 100)));
+  }
+
+  private applyTimedBuff(attackPercent: number, defensePercent: number, durationMs: number): void {
+    this.attackBonusPercent = attackPercent;
+    this.attackBonusUntil = this.scene.time.now + durationMs;
+    this.applyDefenseBuff(defensePercent, durationMs);
+    this.scheduleAfter(durationMs, () => {
+      if (this.scene.time.now >= this.attackBonusUntil) this.attackBonusPercent = 0;
+    });
+  }
+
+  private applyDefenseBuff(defensePercent: number, durationMs: number): void {
+    this.defenseBonusPercent = defensePercent;
+    this.defenseUntil = this.scene.time.now + durationMs;
+    this.scheduleAfter(durationMs, () => {
+      if (this.scene.time.now >= this.defenseUntil) this.defenseBonusPercent = 0;
+    });
+  }
+
+  private repeatUntil(durationMs: number, intervalMs: number, effect: () => void): void {
+    if (intervalMs <= 0) return;
+    const endsAt = this.scene.time.now + durationMs;
+    const repeat = (): void => {
+      if (!this.active || this.dead || this.scene.time.now >= endsAt) return;
+      effect();
+      this.scene.time.delayedCall(intervalMs, repeat);
+    };
+    this.scene.time.delayedCall(intervalMs, repeat);
+  }
+
+  private scheduleAfter(delayMs: number, effect: () => void): void {
+    this.scene.time.delayedCall(delayMs, () => {
+      if (this.active && !this.dead) effect();
+    });
+  }
+
+  private restoreHealth(amount: number): void {
+    this.health = Math.min(this.maxHealth, this.health + Math.max(0, Math.round(amount)));
+    this.emit('health-changed', this.health, this.maxHealth);
   }
 
   private showRange(shape: 'front' | 'radial' | 'self', range: number, color: number): void {

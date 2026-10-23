@@ -4,8 +4,12 @@ CREATE TABLE IF NOT EXISTS player_skill_states (
   user_id INT NOT NULL,
   flower_id INT UNSIGNED NOT NULL,
   mp INT UNSIGNED NOT NULL,
+  cooldown_until BIGINT UNSIGNED NOT NULL DEFAULT 0,
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (user_id, flower_id),
   CONSTRAINT player_skill_states_user_fk
     FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+ALTER TABLE player_skill_states
+  ADD COLUMN IF NOT EXISTS cooldown_until BIGINT UNSIGNED NOT NULL DEFAULT 0;

@@ -8,6 +8,16 @@ import attackButton from '../../assets/button/attack_button.png';
 import jumpButton from '../../assets/button/jump_button.png';
 import skillButton from '../../assets/button/skill_button.png';
 import flowerIcon from '../../assets/flower.png';
+import skillIcon01 from '../../assets/system/skill/icons/icon_01.png';
+import skillIcon02 from '../../assets/system/skill/icons/icon_02.png';
+import skillIcon03 from '../../assets/system/skill/icons/icon_03.png';
+import skillIcon04 from '../../assets/system/skill/icons/icon_04.png';
+import skillIcon05 from '../../assets/system/skill/icons/icon_05.png';
+import skillIcon06 from '../../assets/system/skill/icons/icon_06.png';
+import skillIcon07 from '../../assets/system/skill/icons/icon_07.png';
+import skillIcon08 from '../../assets/system/skill/icons/icon_08.png';
+import skillIcon09 from '../../assets/system/skill/icons/icon_09.png';
+import skillIcon10 from '../../assets/system/skill/icons/icon_10.png';
 import enemyIdle from '../../assets/characters/enemy/Seeker_Lite/Spritesheets/Seeker_Void_Idle_30x30_24f.png';
 import enemyRun from '../../assets/characters/enemy/Seeker_Lite/Spritesheets/Seeker_Void_Run_30x30_10f.png';
 import enemyAttack from '../../assets/characters/enemy/Seeker_Lite/Spritesheets/Seeker_Void_Attack1_90x50_8f.png';
@@ -47,6 +57,10 @@ export class StageScene extends Phaser.Scene {
     this.load.image('stage-jump', jumpButton);
     this.load.image('stage-skill', skillButton);
     this.load.image('stage-flower', flowerIcon);
+    [
+      skillIcon01, skillIcon02, skillIcon03, skillIcon04, skillIcon05,
+      skillIcon06, skillIcon07, skillIcon08, skillIcon09, skillIcon10
+    ].forEach((icon, index) => this.load.image(`flower-skill-${index + 1}`, icon));
     this.load.tilemapTiledJSON('map', mapUrl);
     this.load.json('stage-data-2', `${phpBaseUrl}/stage/data.php?id=2`);
     this.load.spritesheet('stage-enemy-idle', enemyIdle, { frameWidth: 30, frameHeight: 30 });

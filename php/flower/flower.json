@@ -1,6 +1,6 @@
 [
   {
-    "id": "zinia",
+    "id": "1",
     "name": "ジニア",
     "Game_image": "src/assets/flowers/zinia.png",
     "Real_image": "src/assets/realflowers/zinia.png",
@@ -9,10 +9,11 @@
       "不在の友を思う",
       "絆",
       "幸福"
-    ]
+    ],
+    "skill_id": "1"
   },
   {
-    "id": "suiren",
+    "id": "2",
     "name": "スイレン",
     "Game_image": "src/assets/flowers/suiren.png",
     "Real_image": "src/assets/realflowers/suiren.png",
@@ -22,10 +23,11 @@
       "信頼",
       "信仰",
       "優しさ"
-    ]
+    ],
+    "skill_id": "2"
   },
   {
-    "id": "sakura",
+    "id": "3",
     "name": "桜",
     "Game_image": "src/assets/flowers/sakura.png",
     "Real_image": "src/assets/realflowers/sakura.png",
@@ -33,10 +35,11 @@
     "hanakotoba": [
       "精神美",
       "純潔"
-    ]
+    ],
+    "skill_id": "3"
   },
   {
-    "id": "sunflower",
+    "id": "4",
     "name": "ひまわり",
     "Game_image": "src/assets/flowers/sunflower.png",
     "Real_image": "src/assets/realflowers/himawari.png",
@@ -45,10 +48,11 @@
       "あなただけを見つめる",
       "憧れ",
       "情熱"
-    ]
+    ],
+    "skill_id": "4"
   },
   {
-    "id": "sarusuberi",
+    "id": "5",
     "name": "サルスベリ",
     "Game_image": "src/assets/flowers/sarusuberi.png",
     "Real_image": "src/assets/realflowers/sarusuberi.png",
@@ -59,10 +63,11 @@
       "不用意",
       "あなたを信じる",
       "潔白"
-    ]
+    ],
+    "skill_id": "5"
   },
   {
-    "id": "mukuge",
+    "id": "6",
     "name": "ムクゲ",
     "Game_image": "src/assets/flowers/mukuge.png",
     "Real_image": "src/assets/realflowers/mukuge.png",
@@ -71,10 +76,11 @@
       "信念",
       "繊細な美",
       "デリケートな愛"
-    ]
+    ],
+    "skill_id": "6"
   },
   {
-    "id": "kochia",
+    "id": "7",
     "name": "コキア",
     "Game_image": "src/assets/flowers/kochia.png",
     "Real_image": "src/assets/realflowers/kokia.png",
@@ -83,10 +89,11 @@
       "夫婦円満",
       "恵まれた生活",
       "あなたに全て打ち明けます"
-    ]
+    ],
+    "skill_id": "7"
   },
   {
-    "id": "hasu",
+    "id": "8",
     "name": "ハス",
     "Game_image": "src/assets/flowers/hasu.png",
     "Real_image": "src/assets/realflowers/hasu.png",
@@ -95,10 +102,11 @@
       "清らかな心",
       "神聖",
       "沈着"
-    ]
+    ],
+    "skill_id": "8"
   },
   {
-    "id": "rurimatsuri",
+    "id": "9",
     "name": "ルリマツリ",
     "Game_image": "src/assets/flowers/rurimatsuri.png",
     "Real_image": "src/assets/realflowers/rurimaturi.png",
@@ -107,10 +115,11 @@
       "いつも明るい",
       "ひそかな情熱",
       "同情（明るい心）"
-    ]
+    ],
+    "skill_id": "9"
   },
   {
-    "id": "ajisai",
+    "id": "10",
     "name": "アジサイ",
     "Game_image": "src/assets/flowers/ajisai.png",
     "Real_image": "src/assets/realflowers/azisai.png",
@@ -119,6 +128,7 @@
       "家族",
       "和気あいあい",
       "移り気"
-    ]
+    ],
+    "skill_id": "10"
   }
 ]
