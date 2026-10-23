@@ -1,231 +1,151 @@
-import Phaser from 'phaser';
-
-import mapImg from '../assets/images/map.png';
-import { specialText } from '../functions';
-import {
-  createMapSelectionButton,
-  createSelectionDetailPanel,
-  createTextButton
-} from '../utils/ui';
-//debug機能
-import { showDebugSceneName } from '../debug';
+﻿import Phaser from 'phaser';
+import backgroundImage from '../assets/ui/eria_back.png';
+import buttonImage from '../assets/ui/eria_btn.png';
+import { preloadBackButton, createBackButton, applySmoothDisplay, smoothText, getHeadingTextStyle, FONT_FAMILY } from '../utils/ui';
 import { SCENE_KEYS } from './sceneKeys';
 
-//--------------------------------------------------------------
+type AreaInfo = { id: number; name: string; description: string; x: number; y: number; unlocked: boolean; difficulty: string };
 
-// エリア情報
-type AreaInfo = {
-  id: number;
-  name: string;
-  description: string;
-  x: number;
-  y: number;
-  unlocked: boolean;
-  difficulty: string;
+// 【素材の切り出し】配列は元画像上の [左端X, 上端Y, 幅, 高さ]。
+// openは緑の解放済み、lockedは黒いロック付きの番号ボタン。
+const FRAMES: Record<string, [number, number, number, number]> = {
+  'open-1': [80, 40, 245, 240], 'open-2': [355, 40, 245, 240],
+  'open-3': [630, 40, 245, 240], 'open-4': [905, 40, 245, 240],
+  'open-5': [1180, 40, 245, 240], 'open-6': [1450, 40, 245, 240],
+  'locked-1': [80, 285, 245, 240], 'locked-2': [355, 285, 245, 240],
+  'locked-3': [630, 285, 245, 240], 'locked-4': [905, 285, 245, 240],
+  'locked-5': [1180, 285, 245, 240], 'locked-6': [1450, 285, 245, 240],
+  location: [480, 530, 820, 180], confirm: [845, 710, 810, 170],
 };
 
 export class AreaSelectScene extends Phaser.Scene {
-  // エリア一覧
+  // 【エリア情報】配置座標は背景の1672×941基準。解放状態は再読み込みでリセット。
   private readonly areas: AreaInfo[] = [
-    { id: 1, name: 'Village 1', description: '開けた花畑の入り口。', x: 210, y: 280, unlocked: true, difficulty: 'Easy' },
-    { id: 2, name: 'Village 2', description: '小さな広場と整備された道。', x: 520, y: 360, unlocked: true, difficulty: 'Easy' },
-    { id: 3, name: 'Village 3', description: '南側の静かなエリア。', x: 360, y: 430, unlocked: true, difficulty: 'Normal' },
-    { id: 4, name: 'Village 4', description: '森の中の連戦区域。', x: 400, y: 500, unlocked: true, difficulty: 'Normal' },
-    { id: 5, name: 'Village 5', description: '奥地に広がる危険域。', x: 560, y: 590, unlocked: false, difficulty: 'Hard' },
-    { id: 6, name: 'Village 6', description: '最終防衛地点。', x: 600, y: 320, unlocked: false, difficulty: 'Hard' }
+    { id: 1, name: 'Village 1', description: '開けた花畑の入り口。', x: 303, y: 333, unlocked: false, difficulty: 'Easy' },
+    { id: 2, name: 'Village 2', description: '小さな広場と整備された道。', x: 575, y: 330, unlocked: false, difficulty: 'Easy' },
+    { id: 3, name: 'Village 3', description: '南側の静かなエリア。', x: 451, y: 450, unlocked: false, difficulty: 'Normal' },
+    { id: 4, name: 'Village 4', description: '森の中の連戦区域。', x: 735, y: 442, unlocked: false, difficulty: 'Normal' },
+    { id: 5, name: 'Village 5', description: '奥地に広がる危険域。', x: 763, y: 714, unlocked: false, difficulty: 'Hard' },
+    { id: 6, name: 'Village 6', description: '最終防衛地点。', x: 976, y: 680, unlocked: false, difficulty: 'Hard' },
   ];
-
-  // 現在選択されているエリア
   private selectedAreaId = 1;
-
-  // エリア詳細に表示するテキスト
+  private layout!: Phaser.GameObjects.Container;
   private areaNameText!: Phaser.GameObjects.Text;
   private areaDescText!: Phaser.GameObjects.Text;
+  private difficultyText!: Phaser.GameObjects.Text;
+  private noticeText!: Phaser.GameObjects.Text;
+  private statusText!: Phaser.GameObjects.Text;
+  private statusBackground!: Phaser.GameObjects.Rectangle;
+  private selectionRing!: Phaser.GameObjects.Arc;
+  private markers: Phaser.GameObjects.Image[] = [];
+  private confirmButton!: Phaser.GameObjects.Image;
 
-  // 選択中エリアのマーカー
-  private selectedMarker!: Phaser.GameObjects.Arc;
+  constructor() { super(SCENE_KEYS.AREA_SELECT); }
 
-  // 地図上のエリアボタン
-  private buttons: Phaser.GameObjects.Container[] = [];
-
-  constructor() {
-    super(SCENE_KEYS.AREA_SELECT);
-  }
-
-  // 画像の読み込み
+  // 【画像の読み込み】元の画像を加工せずフレームとして切り出して使う。
   preload(): void {
-    this.load.image('areaMap', mapImg);
+    this.load.image('area-background', backgroundImage);
+    this.load.image('area-buttons', buttonImage);
+    preloadBackButton(this);
   }
 
-  // 画面の作成
   create(): void {
-    showDebugSceneName(this);
-    
-    const width = this.scale.width;
-    const height = this.scale.height;
+    this.prepareTextures();
+    // 【画面全体の配置】背景とUIの縦横比を保ち、ゲーム画面に収める。
+    const scale = Math.min(this.scale.width / 1672, this.scale.height / 941);
+    this.layout = this.add.container((this.scale.width - 1672 * scale) / 2, (this.scale.height - 941 * scale) / 2).setScale(scale);
+    this.layout.add(this.add.image(0, 0, 'area-background').setOrigin(0));
+    this.selectionRing = this.add.circle(0, 0, 41, 0xffdb70, 0).setStrokeStyle(5, 0xffdf7c);
+    this.layout.add(this.selectionRing);
 
-    // 背景
-    this.add.rectangle(width / 2, height / 2, width, height, 0xeef3ea);
-
-    // 戻るボタン
-    createTextButton(this, 130, 60, '← 戻る', () => {
-      this.scene.start(SCENE_KEYS.HOME);
-    }, {
-      fontSize: 22,
-      bgColor: '#ffffff',
-      hoverColor: '#f2f2f2',
-      downColor: '#dfe3e6',
-      padding: { top: 10, bottom: 10, left: 18, right: 18 }
+    // 【数字ボタン】ロック状態でも選択できる。選択と解放は別々に扱う。
+    this.markers = this.areas.map(area => {
+      const marker = this.add.image(area.x, area.y, 'area-buttons', `locked-${area.id}`)
+        .setDisplaySize(82, 80).setInteractive({ useHandCursor: true });
+      marker.on('pointerdown', () => this.selectArea(area.id));
+      this.layout.add(marker);
+      return marker;
     });
 
-    // 画面タイトル
-    const header = specialText(this, width / 2, 70, 32, 4, 'エリア選択画面', '#20313d', '#ffffff');
-    header.setDepth(10);
+    // 【右側の詳細】引数は中心X・中心Y・文字・文字サイズ・色・折り返し幅。
+    this.areaNameText = this.addLabel(1355, 330, '', 58);
+    this.statusBackground = this.add.rectangle(1355, 392, 184, 40, 0x555555).setStrokeStyle(3, 0xc7a25b);
+    this.layout.add(this.statusBackground);
+    this.statusText = this.addLabel(1355, 392, '', 27, '#fff8df');
+    this.areaDescText = this.addLabel(1355, 520, '', 29, '#241c13', 390).setFontFamily(FONT_FAMILY);
+    this.difficultyText = this.addLabel(1430, 620, '', 30).setFontFamily(FONT_FAMILY);
+    this.addLabel(1238, 620, '❀ 難易度', 27).setFontFamily(FONT_FAMILY);
+    this.noticeText = this.addLabel(1340, 150, '', 18, '#6a3c19', 370).setFontFamily(FONT_FAMILY);
 
-    // 説明文
-    this.add.text(width / 2, 118, '地図上のエリアを選んで出撃先を決めてください。', {
-      fontFamily: '"Yu Gothic", "Meiryo", sans-serif',
-      fontSize: '20px',
-      color: '#404f59',
-      fontStyle: 'bold'
-    }).setOrigin(0.5);
-
-    // 位置情報を使ったエリア検索ボタン
-    createTextButton(this, width - 230, 130, '位置情報を使用してエリア検索', () => {
-      this.searchNearestArea();
-    }, {
-      fontSize: 18,
-      bgColor: '#dfeef7',
-      hoverColor: '#cfe4f4',
-      downColor: '#bed8ef',
-      padding: { top: 12, bottom: 12, left: 20, right: 20 }
+    // 【操作ボタン】位置・サイズは背景素材の座標基準。戻る画像はログインと共通。
+    this.addImageButton('location', 1340, 105, 380, 97, () => this.checkCurrentLocation());
+    this.layout.add(createBackButton(this,
+      { x: 185, y: 885, width: 260, height: 74, fontSize: 30 },
+      () => this.scene.start(SCENE_KEYS.HOME)
+    ));
+    this.confirmButton = this.addImageButton('confirm', 1355, 714, 455, 96, () => {
+      const area = this.areas.find(item => item.id === this.selectedAreaId);
+      if (area?.unlocked) this.scene.start(SCENE_KEYS.SELECT_STAGE, { areaId: area.id, areaName: area.name });
     });
+    this.selectArea(this.selectedAreaId);
+  }
 
-    // 地図を表示
-    this.drawMap(width / 1.5, height);
-
-    // 地図上にエリアボタンを作成
-    this.createAreaButtons();
-
-    // 選択中エリアの詳細パネルを作成
-    const panel = createSelectionDetailPanel(this, width * 0.79, height * 0.74, () => {
-      const area = this.areas.find((item) => item.id === this.selectedAreaId);
-
-      if (area) {
-        this.scene.start(SCENE_KEYS.SELECT_STAGE, {
-          areaId: area.id,
-          areaName: area.name
-        });
-      }
+  // 【画像と画質】各部品の切り出し範囲を登録。Canvasは退出時に元の設定へ戻す。
+  private prepareTextures(): void {
+    const texture = this.textures.get('area-buttons');
+    Object.entries(FRAMES).forEach(([name, [x, y, width, height]]) => {
+      if (!texture.has(name)) texture.add(name, 0, x, y, width, height);
     });
-
-    // 詳細パネルの各要素を保存
-    this.areaNameText = panel.name;
-    this.areaDescText = panel.description;
-    this.selectedMarker = panel.marker;
-
-    // 初期選択エリアを設定
-    this.selectArea(this.selectedAreaId, false);
+    applySmoothDisplay(this, ['area-buttons', 'area-background']);
+  }
+ 
+  // 【文字の配置】書体・色の基本設定はutils/ui/styles.tsを使用する。
+  private addLabel(x: number, y: number, text: string, size: number, color = '#171710', wrapWidth?: number): Phaser.GameObjects.Text {
+    const label = smoothText(this.add.text(x, y, text, getHeadingTextStyle(size, {
+      color, wordWrap: wrapWidth ? { width: wrapWidth } : undefined
+    })).setOrigin(0.5));
+    this.layout.add(label);
+    return label;
   }
 
-  // 地図を表示する
-  private drawMap(width: number, height: number): void {
-    // 地図画像
-    const map = this.add.image(width / 2, height / 2 + 30, 'areaMap')
-      .setDisplaySize(width * 0.9, height * 0.68)
-      .setDepth(0);
-
-    map.setAlpha(0.97);
-
-    // 地図の枠線
-    this.add.rectangle(width / 2, height / 2 + 30, width * 0.9, height * 0.68, 0x000000, 0)
-      .setStrokeStyle(4, 0x7a968f, 1)
-      .setDepth(1);
+  private addImageButton(frame: string, x: number, y: number, width: number, height: number, onClick: () => void): Phaser.GameObjects.Image {
+    const button = this.add.image(x, y, 'area-buttons', frame).setDisplaySize(width, height).setInteractive({ useHandCursor: true });
+    button.on('pointerover', () => button.setTint(0xffe6ba));
+    button.on('pointerout', () => button.clearTint());
+    button.on('pointerdown', onClick);
+    this.layout.add(button);
+    return button;
   }
 
-  // 地図上にエリア選択ボタンを作成する
-  private createAreaButtons(): void {
-    this.buttons = this.areas.map((area) => {
-      const isSelected = area.id === this.selectedAreaId;
+  // 【現在地確認】位置情報判定を追加する入口。
+  private checkCurrentLocation(): void {
+    const area = this.areas.find(item => item.id === this.selectedAreaId);
+    if (!area) return;
+    // TODO: ここで位置情報を取得し、選択中エリアの座標・許容距離と照合する。
+    // 現地にいると判定できた場合だけ以下を実行する。現在は確認用の仮解放。
+    area.unlocked = true;
+    this.selectArea(area.id);
+    this.noticeText.setText(`エリア ${area.id} を仮解放しました。`);
+  }
 
-      const button = createMapSelectionButton(
-        this,
-        area.x,
-        area.y,
-        String(area.id),
-        isSelected,
-        area.unlocked,
-        () => {
-          this.selectArea(area.id, true);
-        }
-      );
-
-      return button;
+  // 【選択表示の更新】詳細・解放状態・遷移可否・番号画像をまとめて更新。
+  private selectArea(id: number): void {
+    const area = this.areas.find(item => item.id === id);
+    if (!area) return;
+    this.selectedAreaId = id;
+    this.areaNameText.setText(`エリア ${id}`);
+    this.areaDescText.setText(area.description);
+    this.difficultyText.setText(area.difficulty);
+    this.statusText.setText(area.unlocked ? '解放済み' : '未解放');
+    this.statusBackground.setFillStyle(area.unlocked ? 0x087e86 : 0x555555);
+    this.noticeText.setText(area.unlocked ? '' : '選択後、「現在地を確認」で仮解放できます。');
+    this.confirmButton.clearTint().setAlpha(area.unlocked ? 1 : 0.45);
+    if (area.unlocked) this.confirmButton.setInteractive({ useHandCursor: true });
+    else this.confirmButton.disableInteractive();
+    this.selectionRing.setPosition(area.x, area.y);
+    this.markers.forEach((marker, index) => {
+      const item = this.areas[index];
+      marker.setFrame(`${item.unlocked ? 'open' : 'locked'}-${item.id}`).setAlpha(item.id !== id ? 0.85 : 1);
     });
-  }
-
-  // エリアボタンの見た目を更新する
-  private updateButtonStyles(): void {
-    this.buttons.forEach((container) => {
-      // ボタン内の円と番号を取得
-      const circle = container.list[0] as Phaser.GameObjects.Arc;
-      const label = container.list[1] as Phaser.GameObjects.Text;
-
-      // 番号から対応するエリアを取得
-      const area = this.areas.find((item) => item.id === Number(label.text));
-
-      if (!area) return;
-
-      // 選択中かどうか
-      const isSelected = area.id === this.selectedAreaId;
-
-      // エリアの解放状態と選択状態によって色を変更
-      const fillColor = area.unlocked ? (isSelected ? 0x6fc7a8 : 0x8ed3b2) : 0xbebebe;
-      const ringColor = area.unlocked ? (isSelected ? 0x1e5e49 : 0x2c4f65) : 0x777777;
-
-      circle.setFillStyle(fillColor);
-      circle.setStrokeStyle(4, ringColor);
-
-      // 未解放エリアは文字色を薄くする
-      label.setColor(area.unlocked ? '#ffffff' : '#f0f0f0');
-
-      // 選択中のボタンを少し大きくする
-      container.setScale(isSelected ? 1.08 : 1);
-    });
-  }
-
-  // 現在位置に最も近いエリアを検索する
-  private searchNearestArea(): void {
-    // まだ実装しないかなあ
-  }
-
-  // エリアを選択する
-  private selectArea(areaId: number, animate: boolean): void {
-    const area = this.areas.find((item) => item.id === areaId);
-
-    // 存在しないエリア、または未解放エリアは選択できない
-    if (!area || !area.unlocked) return;
-
-    // 選択中エリアを更新
-    this.selectedAreaId = areaId;
-
-    // 詳細パネルを更新
-    this.areaNameText.setText(area.name);
-    this.areaDescText.setText(`${area.description} / ${area.difficulty}`);
-
-    // 地図上のボタンの見た目を更新
-    this.updateButtonStyles();
-
-    // 選択時にマーカーを少し拡大する
-    if (animate) {
-      this.tweens.add({
-        targets: this.selectedMarker,
-        scaleX: 1.1,
-        scaleY: 1.1,
-        duration: 140,
-        yoyo: true,
-        ease: 'Sine.easeInOut'
-      });
-    }
   }
 }
