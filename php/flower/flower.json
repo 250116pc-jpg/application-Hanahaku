@@ -1,0 +1,124 @@
+[
+  {
+    "id": "zinia",
+    "name": "ジニア",
+    "Game_image": "src/assets/flowers/zinia.png",
+    "Real_image": "src/assets/realflowers/zinia.png",
+    "element": null,
+    "hanakotoba": [
+      "不在の友を思う",
+      "絆",
+      "幸福"
+    ]
+  },
+  {
+    "id": "suiren",
+    "name": "スイレン",
+    "Game_image": "src/assets/flowers/suiren.png",
+    "Real_image": "src/assets/realflowers/suiren.png",
+    "element": null,
+    "hanakotoba": [
+      "清純な心",
+      "信頼",
+      "信仰",
+      "優しさ"
+    ]
+  },
+  {
+    "id": "sakura",
+    "name": "桜",
+    "Game_image": "src/assets/flowers/sakura.png",
+    "Real_image": "src/assets/realflowers/sakura.png",
+    "element": null,
+    "hanakotoba": [
+      "精神美",
+      "純潔"
+    ]
+  },
+  {
+    "id": "sunflower",
+    "name": "ひまわり",
+    "Game_image": "src/assets/flowers/sunflower.png",
+    "Real_image": "src/assets/realflowers/himawari.png",
+    "element": null,
+    "hanakotoba": [
+      "あなただけを見つめる",
+      "憧れ",
+      "情熱"
+    ]
+  },
+  {
+    "id": "sarusuberi",
+    "name": "サルスベリ",
+    "Game_image": "src/assets/flowers/sarusuberi.png",
+    "Real_image": "src/assets/realflowers/sarusuberi.png",
+    "element": null,
+    "hanakotoba": [
+      "雄弁",
+      "愛嬌",
+      "不用意",
+      "あなたを信じる",
+      "潔白"
+    ]
+  },
+  {
+    "id": "mukuge",
+    "name": "ムクゲ",
+    "Game_image": "src/assets/flowers/mukuge.png",
+    "Real_image": "src/assets/realflowers/mukuge.png",
+    "element": null,
+    "hanakotoba": [
+      "信念",
+      "繊細な美",
+      "デリケートな愛"
+    ]
+  },
+  {
+    "id": "kochia",
+    "name": "コキア",
+    "Game_image": "src/assets/flowers/kochia.png",
+    "Real_image": "src/assets/realflowers/kokia.png",
+    "element": null,
+    "hanakotoba": [
+      "夫婦円満",
+      "恵まれた生活",
+      "あなたに全て打ち明けます"
+    ]
+  },
+  {
+    "id": "hasu",
+    "name": "ハス",
+    "Game_image": "src/assets/flowers/hasu.png",
+    "Real_image": "src/assets/realflowers/hasu.png",
+    "element": null,
+    "hanakotoba": [
+      "清らかな心",
+      "神聖",
+      "沈着"
+    ]
+  },
+  {
+    "id": "rurimatsuri",
+    "name": "ルリマツリ",
+    "Game_image": "src/assets/flowers/rurimatsuri.png",
+    "Real_image": "src/assets/realflowers/rurimaturi.png",
+    "element": null,
+    "hanakotoba": [
+      "いつも明るい",
+      "ひそかな情熱",
+      "同情（明るい心）"
+    ]
+  },
+  {
+    "id": "ajisai",
+    "name": "アジサイ",
+    "Game_image": "src/assets/flowers/ajisai.png",
+    "Real_image": "src/assets/realflowers/azisai.png",
+    "element": null,
+    "hanakotoba": [
+      "家族",
+      "和気あいあい",
+      "移り気"
+    ]
+  }
+]

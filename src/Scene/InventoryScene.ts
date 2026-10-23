@@ -1,6 +1,7 @@
 import Phaser from 'phaser'
 
-import { createMockItems } from './inventory/InventoryData'
+import { shopCatalog, requestShop } from './shop/ShopApi'
+import { preloadShopAssets } from './shop/assets'
 import type { InventoryFilter, InventoryItem } from './inventory/InventoryData'
 import { InventoryView } from './inventory/InventoryView'
 
@@ -25,9 +26,11 @@ export class InventoryScene extends Phaser.Scene {
     this.returnScene = data?.returnScene ?? SCENE_KEYS.TEST
   }
 
+  preload(): void { preloadShopAssets(this) }
+
   create(): void {
     showDebugSceneName(this);
-    this.items = createMockItems()
+    this.items = []
     this.selectedCategory = 'all'
     this.selectedItem = null
 
@@ -39,6 +42,15 @@ export class InventoryScene extends Phaser.Scene {
     })
     this.view.create()
     this.refresh()
+    void requestShop().then(state=>{
+      if(!this.sys.isActive())return
+      this.items=Object.entries(state.items).filter(([,count])=>count>0).map(([id,count])=>{
+        const product=shopCatalog.find(item=>item.id===Number(id))
+        return {id:Number(id),name:product?.name ?? `アイテム ${id}`,category:product?.category ?? 'important',effect:product?.description ?? '詳細未登録',count,usable:false}
+      })
+      this.refresh()
+      if(!this.items.length)this.view.showMessage('所持アイテムはありません')
+    }).catch(error=>{if(this.sys.isActive())this.view.showMessage(error instanceof Error?error.message:'読み込みに失敗しました')})
   }
 
   private closeInventory(): void {
@@ -81,8 +93,6 @@ export class InventoryScene extends Phaser.Scene {
       return
     }
 
-    item.count--
-    this.view.showMessage(`${item.name}を使用しました`)
-    this.refresh()
+    this.view.showMessage('アイテムの使用効果は準備中です')
   }
 }

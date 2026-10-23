@@ -1,4 +1,4 @@
-import testData from '../test_data'
+import { shopCatalog, requestShop } from './ShopApi'
 import { createShopBackground } from './background'
 import { createItemDetail } from './itemDetail'
 import { createShopItemList, getMaxShopScroll, SHOP_LIST_BOUNDS } from './itemList'
@@ -20,7 +20,7 @@ export class ShopScene extends Phaser.Scene {
   }
 
   create(): void {
-    const shopItems = testData.shopItems as ShopItem[]
+    const shopItems: ShopItem[] = shopCatalog.map(item=>({...item,count:0}))
     const screenWidth = this.scale.width
     const screenHeight = this.scale.height
 
@@ -32,22 +32,35 @@ export class ShopScene extends Phaser.Scene {
     this.createListPanel()
     const shopContainer = this.add.container(0, 0)
     const countLabels = new Map<number, Phaser.GameObjects.Text>()
-    const itemDetail = createItemDetail(this, item => {
-      countLabels.get(item.id)?.setText(`所持数  ${item.count ?? 0}`)
+    const status=this.add.text(960,30,'所持品を確認中…',{fontSize:'18px',color:'#ffffff',wordWrap:{width:300}}).setDepth(100)
+    let ready=false
+    let selected: ShopItem | undefined
+    const applyState=(state: Awaited<ReturnType<typeof requestShop>>) => {
+      for(const item of shopItems){item.count=state.items[String(item.id)] ?? 0;countLabels.get(item.id)?.setText(`所持数  ${item.count}`)}
+      status.setText(`所持コイン：${state.coin.toLocaleString()} G`)
+      if(selected) itemDetail.show(selected)
+    }
+    const itemDetail = createItemDetail(this, async item => {
+      if(!ready){ status.setText('ログイン・所持品の読み込みを確認してください'); return }
+      try {
+        const state=await requestShop('buy',item.id)
+        if(this.sys.isActive()) applyState(state)
+      } catch(error) { if(this.sys.isActive()) status.setText(error instanceof Error?error.message:'購入できませんでした。') }
     })
+    void requestShop().then(state=>{if(this.sys.isActive()){ready=true;applyState(state)}}).catch(error=>{if(this.sys.isActive())status.setText(error instanceof Error?error.message:'読み込みに失敗しました')})
     createShopItemList(
       this,
       shopContainer,
       shopItems,
       countLabels,
-      item => itemDetail.show(item)
+      item => { selected=item; itemDetail.show(item) }
     )
     this.applyItemListMask(shopContainer)
     const disposeScroll = enableShopScroll(this, shopContainer, getMaxShopScroll(shopItems.length))
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, disposeScroll)
 
     const firstItem = shopItems[0]
-    if (firstItem) itemDetail.show(firstItem)
+    if (firstItem) { selected=firstItem; itemDetail.show(firstItem) }
   }
 
   private createShopkeeper(): void {
