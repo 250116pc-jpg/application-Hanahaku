@@ -33,7 +33,6 @@ export class AreaSelectScene extends Phaser.Scene {
   private areaNameText!: Phaser.GameObjects.Text;
   private areaDescText!: Phaser.GameObjects.Text;
   private difficultyText!: Phaser.GameObjects.Text;
-  private noticeText!: Phaser.GameObjects.Text;
   private statusText!: Phaser.GameObjects.Text;
   private statusBackground!: Phaser.GameObjects.Rectangle;
   private selectionRing!: Phaser.GameObjects.Arc;
@@ -75,7 +74,6 @@ export class AreaSelectScene extends Phaser.Scene {
     this.areaDescText = this.addLabel(1355, 520, '', 29, '#241c13', 390).setFontFamily(FONT_FAMILY);
     this.difficultyText = this.addLabel(1430, 620, '', 30).setFontFamily(FONT_FAMILY);
     this.addLabel(1238, 620, '❀ 難易度', 27).setFontFamily(FONT_FAMILY);
-    this.noticeText = this.addLabel(1340, 150, '', 18, '#6a3c19', 370).setFontFamily(FONT_FAMILY);
 
     // 【操作ボタン】位置・サイズは背景素材の座標基準。戻る画像はログインと共通。
     this.addImageButton('location', 1340, 105, 380, 97, () => this.checkCurrentLocation());
@@ -125,7 +123,6 @@ export class AreaSelectScene extends Phaser.Scene {
     // 現地にいると判定できた場合だけ以下を実行する。現在は確認用の仮解放。
     area.unlocked = true;
     this.selectArea(area.id);
-    this.noticeText.setText(`エリア ${area.id} を仮解放しました。`);
   }
 
   // 【選択表示の更新】詳細・解放状態・遷移可否・番号画像をまとめて更新。
@@ -138,7 +135,6 @@ export class AreaSelectScene extends Phaser.Scene {
     this.difficultyText.setText(area.difficulty);
     this.statusText.setText(area.unlocked ? '解放済み' : '未解放');
     this.statusBackground.setFillStyle(area.unlocked ? 0x087e86 : 0x555555);
-    this.noticeText.setText(area.unlocked ? '' : '選択後、「現在地を確認」で仮解放できます。');
     this.confirmButton.clearTint().setAlpha(area.unlocked ? 1 : 0.45);
     if (area.unlocked) this.confirmButton.setInteractive({ useHandCursor: true });
     else this.confirmButton.disableInteractive();
