@@ -17,18 +17,13 @@ const definitions: Array<[number, string, string, Season]> = [
  [35,'yuri','ユリ','夏'], [1,'zinia','ジニア','夏']
 ]
 const images = import.meta.glob('../../assets/flowers/*.png', { eager: true, query: '?url', import: 'default' }) as Record<string, string>
-type FlowerEntry = { id: number; code: string; name: string; Game_image: string; Real_image: string; element: string | null; hanakotoba: string[] }
+type FlowerEntry = { id: number; code: string; name: string; Game_image: string; Real_image: string; element: string | null; hanakotoba: string[]; skill_id: number }
 const catalog: FlowerEntry[] = JSON.parse(flowerJson)
 const realImages = import.meta.glob('../../assets/realflowers/*.png', { eager: true, query: '?url', import: 'default' }) as Record<string, string>
-const databaseFlowerIds: Record<string, string> = {
- '1':'zinia','2':'suiren','3':'sakura','4':'sunflower','5':'sarusuberi',
- '6':'mukuge','7':'kochia','8':'hasu','9':'rurimatsuri','10':'ajisai'
-}
-const catalogId = (id: string): string => databaseFlowerIds[id] ?? id
-const entries = new Map(catalog.map(entry => [catalogId(entry.id), entry]))
+const entries = new Map(catalog.map(entry => [entry.id, entry]))
 if (entries.size !== catalog.length) throw new Error('花データのIDが重複しています')
 for (const entry of catalog) {
- if (!definitions.some(([id]) => id === catalogId(entry.id)) || !Array.isArray(entry.hanakotoba) || !entry.hanakotoba.every(word => typeof word === 'string')) throw new Error(`花データが正しくありません: ${entry.id}`)
+ if (!definitions.some(([id]) => id === entry.id) || !Array.isArray(entry.hanakotoba) || !entry.hanakotoba.every(word => typeof word === 'string')) throw new Error(`花データが正しくありません: ${entry.id}`)
  if (!images[entry.Game_image.replace('src/assets/', '../../assets/')] || !realImages[entry.Real_image.replace('src/assets/', '../../assets/')]) throw new Error(`花画像が見つかりません: ${entry.id}`)
 }
 export const prototypeFlowers: PrototypeFlower[] = definitions.map(([id,code,name,season]) => {
