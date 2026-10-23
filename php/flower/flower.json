@@ -4,7 +4,7 @@
     "name": "ジニア",
     "Game_image": "src/assets/flowers/zinia.png",
     "Real_image": "src/assets/realflowers/zinia.png",
-    "element": null,
+    "element": "熱",
     "hanakotoba": [
       "不在の友を思う",
       "絆",
@@ -16,7 +16,7 @@
     "name": "スイレン",
     "Game_image": "src/assets/flowers/suiren.png",
     "Real_image": "src/assets/realflowers/suiren.png",
-    "element": null,
+    "element": "無",
     "hanakotoba": [
       "清純な心",
       "信頼",
@@ -29,7 +29,7 @@
     "name": "桜",
     "Game_image": "src/assets/flowers/sakura.png",
     "Real_image": "src/assets/realflowers/sakura.png",
-    "element": null,
+    "element": "光",
     "hanakotoba": [
       "精神美",
       "純潔"
@@ -40,7 +40,7 @@
     "name": "ひまわり",
     "Game_image": "src/assets/flowers/sunflower.png",
     "Real_image": "src/assets/realflowers/himawari.png",
-    "element": null,
+    "element": "熱",
     "hanakotoba": [
       "あなただけを見つめる",
       "憧れ",
@@ -52,7 +52,7 @@
     "name": "サルスベリ",
     "Game_image": "src/assets/flowers/sarusuberi.png",
     "Real_image": "src/assets/realflowers/sarusuberi.png",
-    "element": null,
+    "element": "熱",
     "hanakotoba": [
       "雄弁",
       "愛嬌",
@@ -66,7 +66,7 @@
     "name": "ムクゲ",
     "Game_image": "src/assets/flowers/mukuge.png",
     "Real_image": "src/assets/realflowers/mukuge.png",
-    "element": null,
+    "element": "水",
     "hanakotoba": [
       "信念",
       "繊細な美",
@@ -78,7 +78,7 @@
     "name": "コキア",
     "Game_image": "src/assets/flowers/kochia.png",
     "Real_image": "src/assets/realflowers/kokia.png",
-    "element": null,
+    "element": "風",
     "hanakotoba": [
       "夫婦円満",
       "恵まれた生活",
@@ -90,7 +90,7 @@
     "name": "ハス",
     "Game_image": "src/assets/flowers/hasu.png",
     "Real_image": "src/assets/realflowers/hasu.png",
-    "element": null,
+    "element": "無",
     "hanakotoba": [
       "清らかな心",
       "神聖",
@@ -102,7 +102,7 @@
     "name": "ルリマツリ",
     "Game_image": "src/assets/flowers/rurimatsuri.png",
     "Real_image": "src/assets/realflowers/rurimaturi.png",
-    "element": null,
+    "element": "光",
     "hanakotoba": [
       "いつも明るい",
       "ひそかな情熱",
@@ -114,7 +114,7 @@
     "name": "アジサイ",
     "Game_image": "src/assets/flowers/ajisai.png",
     "Real_image": "src/assets/realflowers/azisai.png",
-    "element": null,
+    "element": "無",
     "hanakotoba": [
       "家族",
       "和気あいあい",
