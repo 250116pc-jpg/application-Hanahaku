@@ -1,3 +1,4 @@
+import { getPhpBaseUrl } from '../../auth/PhpBaseUrl';
 import Phaser from 'phaser';
 import mapUrl from '../../assets/stage/Cainos/cainos_stage.tmj?url';
 import terrainImg from '../../assets/stage/Cainos/Pixel Art Platformer - Village Props/Texture/TX Tileset Ground.png';
@@ -46,9 +47,7 @@ export class StageScene extends Phaser.Scene {
   }
 
   preload(): void {
-    const phpBaseUrl = (
-      import.meta.env.VITE_PHP_BASE_URL ?? 'http://localhost/php/application-Hanahaku-main/php'
-    ).replace(/\/$/, '');
+    const phpBaseUrl = getPhpBaseUrl();
     this.load.image('stage-terrain', terrainImg);
     this.load.image('stage-props', propsImg);
     this.load.image('stage-background', backgroundImg);

@@ -1,3 +1,4 @@
+import { getPhpBaseUrl } from '../../auth/PhpBaseUrl';
 import type { FlowerSkillType } from '../test_data.ts';
 
 export interface FlowerSkillStage {
@@ -40,12 +41,7 @@ export interface FlowerSkillState {
   skill: ServerFlowerSkill;
 }
 
-function getPhpBaseUrl(): string {
-  return (
-    import.meta.env.VITE_PHP_BASE_URL ??
-    'http://localhost/php/application-Hanahaku-main/php'
-  ).replace(/\/$/, '');
-}
+
 
 async function postSkillRequest(
   endpoint: 'state' | 'begin' | 'use',

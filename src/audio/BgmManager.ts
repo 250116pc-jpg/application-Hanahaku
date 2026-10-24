@@ -96,6 +96,20 @@ export function initializeAudio(scene: Phaser.Scene): void {
   if (state.installed) return
   state.installed = true
 
+  // DOM overlays do not emit Phaser input events. Resume inside a real gesture,
+  // including the first tap after Safari has interrupted the audio context.
+  const resumeOnGesture = (event: Event): void => {
+    if (event.isTrusted) resumeAudioFromGesture(scene)
+  }
+  for (const event of ['pointerup', 'touchend', 'keydown']) {
+    document.addEventListener(event, resumeOnGesture, { capture: true, passive: true })
+  }
+  scene.game.events.once(Phaser.Core.Events.DESTROY, () => {
+    for (const event of ['pointerup', 'touchend', 'keydown']) {
+      document.removeEventListener(event, resumeOnGesture, true)
+    }
+  })
+
   for (const target of scene.game.scene.scenes) {
     target.events.on(Phaser.Scenes.Events.CREATE, () => {
       const key = sceneBgmKey(target)
@@ -103,7 +117,7 @@ export function initializeAudio(scene: Phaser.Scene): void {
 
       target.input.on(Phaser.Input.Events.GAMEOBJECT_DOWN, () => {
         const webAudio = target.sound as Phaser.Sound.WebAudioSoundManager
-        const wasSuspended = webAudio.context?.state === 'suspended'
+        const wasSuspended = !!webAudio.context && webAudio.context.state !== 'running'
         resumeAudioFromGesture(target)
         if (target.sound.locked || wasSuspended) {
           state.pendingClick = true
@@ -177,7 +191,7 @@ function waitForUnlock(scene: Phaser.Scene, state: AudioState): void {
 export function resumeAudioFromGesture(scene: Phaser.Scene): void {
   const state = stateFor(scene)
   const webAudio = scene.sound as Phaser.Sound.WebAudioSoundManager
-  if (webAudio.context?.state === 'suspended') {
+  if (webAudio.context && webAudio.context.state !== 'running' && webAudio.context.state !== 'closed') {
     void webAudio.context.resume().then(() => playPending(scene, state)).catch(() => {
       // 次のタップまたはPhaserのunlockedイベントで再試行する。
     })

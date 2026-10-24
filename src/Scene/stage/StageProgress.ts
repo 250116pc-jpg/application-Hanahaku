@@ -1,3 +1,4 @@
+import { getPhpBaseUrl } from '../../auth/PhpBaseUrl';
 export interface StageProgress {
   completedStageIds: number[];
   coins: number;
@@ -9,9 +10,7 @@ export interface StageCompletion extends StageProgress {
   saveError?: string;
 }
 
-function getPhpBaseUrl(): string {
-  return (import.meta.env.VITE_PHP_BASE_URL ?? 'http://localhost/php/application-Hanahaku-main/php').replace(/\/$/, '');
-}
+
 
 function localProgressKey(): string {
   let userKey = 'guest';

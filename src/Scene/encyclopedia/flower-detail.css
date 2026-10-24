@@ -1,11 +1,11 @@
 .flower-book-screen {
   position: fixed; inset: 0; z-index: 30; display: grid; place-items: center;
-  padding: 16px; box-sizing: border-box; overflow: auto;
+  padding: 12px; box-sizing: border-box; overflow: hidden;
   background: radial-gradient(ellipse at center, #526556ee, #152c25f5);
   color: #233c45; font-family: "Yu Mincho", "MS PMincho", serif;
 }
 .flower-book {
-  box-sizing: border-box; width: min(1160px, 100%); max-height: calc(100dvh - 32px);
+  box-sizing: border-box; width: 100%; height: calc(100dvh - 24px); max-height: calc(100dvh - 24px);
   display: flex; flex-direction: column; position: relative;
   border: 9px solid #223a3e; border-radius: 12px 18px 18px 12px;
   outline: 2px solid #c1974e; box-shadow: 0 18px 55px #0008, inset 0 0 0 3px #c99d57;
@@ -17,7 +17,7 @@
 .book-tabs { display: flex; gap: 6px; }
 .book-tab { border: 1px solid #b39357; border-radius: 4px; background: #fff7e6; padding: 9px 18px; color: #3d4e49; font: bold 16px "Yu Mincho", serif; cursor: pointer; }
 .book-tab[aria-pressed="true"] { color: #fff0cf; background: #234449; border-color: #bd944f; box-shadow: inset 0 0 0 2px #234449, inset 0 0 0 3px #a8864d; }
-.book-spread { display: grid; grid-template-columns: 1fr 1fr; overflow-y: auto; min-height: 0; scrollbar-color: #b89a68 #f7ecd5; }
+.book-spread { display: grid; grid-template-columns: 1fr 1fr; flex: 1; overflow-y: auto; min-height: 0; scrollbar-color: #b89a68 #f7ecd5; }
 .book-page { box-sizing: border-box; min-width: 0; padding: 12px 36px 10px; position: relative; }
 .book-left { border-right: 1px solid #97744944; }
 .book-flower-name { font-size: 27px; text-align: center; margin: 0 0 12px; letter-spacing: .12em; font-weight: 600; }
@@ -40,13 +40,13 @@
 .book-section .book-skill-description { font-size: 15px; }
 .book-resistances { display: flex; gap: 8px; flex-wrap: wrap; font-size: 15px; }
 .book-resistances span { padding: 4px 9px; border: 1px solid #c8ac7a; background: #fff7e355; }
-.book-footer { border-top: 1px solid #bca16c88; padding-top: 8px; padding-bottom: 8px; }
-.book-button { width: 180px; max-width: 100%; aspect-ratio: 798 / 226; border: 0; padding: 0; color: #fff2d6; background: var(--catalog-button) center / contain no-repeat; font: 16px "Yu Mincho", serif; cursor: pointer; text-shadow: 0 1px 2px #000; }
-.book-folio { color: #826c4d; font-size: 14px; letter-spacing: .08em; }
+.book-footer { justify-content: center; position: relative; border-top: 1px solid #bca16c88; padding-top: 8px; padding-bottom: 8px; }
+.book-button { width: 208px; min-height: 52px; max-width: 100%; aspect-ratio: 798 / 226; border: 0; padding: 0; color: #fff2d6; background: var(--catalog-button) center / contain no-repeat; font: 16px "Yu Mincho", serif; cursor: pointer; text-shadow: 0 1px 2px #000; }
+.book-folio { display: none; color: #826c4d; font-size: 14px; letter-spacing: .08em; }
 .flower-book-screen button:hover { filter: brightness(1.12); }
 .flower-book-screen :focus-visible { outline: 3px solid #598a8d; outline-offset: 3px; }
 .book-empty { color: #78694e; text-align: center; }
-@media (max-width: 700px) {
+@media (max-width: 700px) and (orientation: portrait) {
   .flower-book-screen { padding: 8px; }
   .flower-book { max-height: calc(100dvh - 16px); border-width: 5px; background: #f8ecd2; }
   .book-header { padding: 10px 12px; flex-wrap: wrap; }
@@ -60,4 +60,47 @@
   .book-footer { padding: 8px; gap: 8px; }
   .book-button { width: 150px; font-size: 14px; }
   .book-folio { display: none; }
+}
+
+/* Landscape phones keep the spread, with controls always visible below it. */
+@media (orientation: landscape) and (max-height: 600px) {
+  .flower-book-screen { padding: max(4px, env(safe-area-inset-top)) max(6px, env(safe-area-inset-right)) max(4px, env(safe-area-inset-bottom)) max(6px, env(safe-area-inset-left)); }
+  .flower-book { height: calc(100dvh - 8px - env(safe-area-inset-top) - env(safe-area-inset-bottom)); max-height: calc(100dvh - 8px - env(safe-area-inset-top) - env(safe-area-inset-bottom)); border-width: 4px; border-radius: 8px; }
+  .book-header { padding: 4px 14px; gap: 8px; }
+  .book-brand { font-size: 18px; }
+  .book-tab { min-height: 44px; padding: 6px 14px; }
+  .book-page { padding: 10px 18px; }
+  .book-flower-name { font-size: 21px; margin-bottom: 10px; }
+  .book-picture { height: 135px; max-width: 260px; }
+  .book-footer { padding: 2px 12px; gap: 16px; }
+  .book-footer .book-button { width: 188px; min-height: 50px; font-size: 16px; }
+  .book-stats { grid-template-columns: repeat(2, 1fr); }
+}
+@media (min-width: 1400px) and (min-height: 700px) {
+  .book-page { padding: 24px clamp(28px, 4vw, 76px); }
+  .book-picture { height: clamp(250px, 38vh, 430px); max-width: 520px; }
+  .book-section p { font-size: 18px; }
+  .book-flower-name { font-size: 32px; }
+}
+
+/* Browser bars leave very little height on landscape phones. Put navigation
+   beside the content so neither toolbar covers the pages. */
+@media (orientation: landscape) and (max-height: 480px) {
+  .flower-book { display: grid; grid-template-columns: 132px minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto; background: #f8ecd2; }
+  .book-header { grid-column: 1; grid-row: 1; padding: 6px; flex-direction: column; justify-content: flex-start; gap: 4px; border-bottom: 0; min-height: 0; overflow-y: auto; }
+  .book-brand { display: none; }
+  .book-tabs { width: 100%; flex-direction: column; gap: 6px; }
+  .book-tab { width: 100%; min-height: 44px; padding: 6px 3px; font-size: 15px; }
+  .book-footer { grid-column: 1; grid-row: 2; flex-direction: column; padding: 4px; gap: 4px; border-top: 0; }
+  .book-footer .book-button { width: 124px; min-height: 44px; aspect-ratio: auto; font-size: 14px; border: 1px solid #b39357; border-radius: 4px; background: #24464a; }
+  .book-spread { grid-column: 2; grid-row: 1 / 3; display: block; border-left: 2px solid #ba9966; overscroll-behavior: contain; touch-action: pan-y; }
+  .book-page { padding: 12px 16px; }
+  .book-left { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 8px 16px; align-items: start; border-right: 0; border-bottom: 1px solid #bca16c88; }
+  .book-flower-name { grid-column: 1 / -1; font-size: 20px; margin: 0; text-align: left; }
+  .book-picture { box-sizing: border-box; width: 112px; height: 112px; padding: 4px; margin: 4px 0; }
+  .book-left .book-section { min-width: 0; margin: 0; }
+  .book-ribbon { font-size: 15px; padding: 3px 8px; letter-spacing: .03em; }
+  .book-section p, .book-section .book-skill-description { font-size: 16px; line-height: 1.6; }
+  .book-stats { padding: 6px; gap: 6px; }
+  .book-stats div { font-size: 16px; }
 }
