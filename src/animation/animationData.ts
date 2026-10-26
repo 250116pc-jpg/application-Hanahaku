@@ -1,14 +1,14 @@
 
-import playerIdle from '../assets/player/Red Cape Knight Character Asset/Player_Red sheets/Red_idle.png'
-import playerRun from '../assets/player/Red Cape Knight Character Asset/Player_Red sheets/Red_Running.png'
-import playerJump from '../assets/player/Red Cape Knight Character Asset/Player_Red sheets/Red_jumping.png'
-import playerFall from '../assets/player/Red Cape Knight Character Asset/Player_Red sheets/Red_falling.png'
-import playerLand from '../assets/player/Red Cape Knight Character Asset/Player_Red sheets/Red_landing.png'
-import playerAttack from '../assets/player/Red Cape Knight Character Asset/Player_Red sheets/Red_attack_1.png'
-import playerSkill from '../assets/player/Red Cape Knight Character Asset/Player_Red sheets/Red_spin_attack.png'
-import playerDefend from '../assets/player/Red Cape Knight Character Asset/Player_Red sheets/Red_ducking.png'
-import playerDeath from '../assets/player/Red Cape Knight Character Asset/Player_Red sheets/Red_Death.png'
-import playerDrink from '../assets/player/Red Cape Knight Character Asset/Player_Red sheets/Red_drinking.png'
+import playerIdle from '../assets/characters/player/Red Cape Knight Character Asset/Player_Red sheets/Red_idle.png'
+import playerRun from '../assets/characters/player/Red Cape Knight Character Asset/Player_Red sheets/Red_Running.png'
+import playerJump from '../assets/characters/player/Red Cape Knight Character Asset/Player_Red sheets/Red_jumping.png'
+import playerFall from '../assets/characters/player/Red Cape Knight Character Asset/Player_Red sheets/Red_falling.png'
+import playerLand from '../assets/characters/player/Red Cape Knight Character Asset/Player_Red sheets/Red_landing.png'
+import playerAttack from '../assets/characters/player/Red Cape Knight Character Asset/Player_Red sheets/Red_attack_1.png'
+import playerSkill from '../assets/characters/player/Red Cape Knight Character Asset/Player_Red sheets/Red_spin_attack.png'
+import playerDefend from '../assets/characters/player/Red Cape Knight Character Asset/Player_Red sheets/Red_ducking.png'
+import playerDeath from '../assets/characters/player/Red Cape Knight Character Asset/Player_Red sheets/Red_Death.png'
+import playerDrink from '../assets/characters/player/Red Cape Knight Character Asset/Player_Red sheets/Red_drinking.png'
 
 
 export const characterAnimations = {

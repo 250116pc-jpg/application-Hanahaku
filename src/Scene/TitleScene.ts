@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { restoreSession } from '../auth/Session';
-import titleBackground from '../assets/background/title_background.png';
-import titleLogo from '../assets/background/title_logo.png';
+import titleBackground from '../assets/images/background/title_background.png';
+import titleLogo from '../assets/images/background/title_logo.png';
 import settingsButtonImage from '../assets/ui/button1.png';
 import startButtonImage from '../assets/ui/title_stertbtn.png';
 import { createTextImageButton, applySmoothDisplay } from '../utils/ui';

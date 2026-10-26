@@ -1,15 +1,15 @@
-﻿import win from '../assets/player/Red Cape Knight Character Asset/Player_Red sheets/Red_win.png';
-import run from '../assets/player/Red Cape Knight Character Asset/Player_Red sheets/Red_Running.png';
-import jump from '../assets/player/Red Cape Knight Character Asset/Player_Red sheets/Red_jumping.png';
-import fall from '../assets/player/Red Cape Knight Character Asset/Player_Red sheets/Red_falling.png';
-import land from '../assets/player/Red Cape Knight Character Asset/Player_Red sheets/Red_landing.png';
-import idle from '../assets/player/Red Cape Knight Character Asset/Player_Red sheets/Red_idle.png';
-import attack1 from '../assets/player/Red Cape Knight Character Asset/Player_Red sheets/Red_attack_1.png';
-import attack2 from '../assets/player/Red Cape Knight Character Asset/Player_Red sheets/Red_attack_2.png';
-import dashAttack from '../assets/player/Red Cape Knight Character Asset/Player_Red sheets/Red_attack_3_Dash.png';
-import downwardAttack from '../assets/player/Red Cape Knight Character Asset/Player_Red sheets/Red_attack_downwards.png';
-import duckingAttack from '../assets/player/Red Cape Knight Character Asset/Player_Red sheets/Red_ducking_attack.png';
-import spinAttack from '../assets/player/Red Cape Knight Character Asset/Player_Red sheets/Red_spin_attack.png';
+import win from '../assets/characters/player/Red Cape Knight Character Asset/Player_Red sheets/Red_win.png';
+import run from '../assets/characters/player/Red Cape Knight Character Asset/Player_Red sheets/Red_Running.png';
+import jump from '../assets/characters/player/Red Cape Knight Character Asset/Player_Red sheets/Red_jumping.png';
+import fall from '../assets/characters/player/Red Cape Knight Character Asset/Player_Red sheets/Red_falling.png';
+import land from '../assets/characters/player/Red Cape Knight Character Asset/Player_Red sheets/Red_landing.png';
+import idle from '../assets/characters/player/Red Cape Knight Character Asset/Player_Red sheets/Red_idle.png';
+import attack1 from '../assets/characters/player/Red Cape Knight Character Asset/Player_Red sheets/Red_attack_1.png';
+import attack2 from '../assets/characters/player/Red Cape Knight Character Asset/Player_Red sheets/Red_attack_2.png';
+import dashAttack from '../assets/characters/player/Red Cape Knight Character Asset/Player_Red sheets/Red_attack_3_Dash.png';
+import downwardAttack from '../assets/characters/player/Red Cape Knight Character Asset/Player_Red sheets/Red_attack_downwards.png';
+import duckingAttack from '../assets/characters/player/Red Cape Knight Character Asset/Player_Red sheets/Red_ducking_attack.png';
+import spinAttack from '../assets/characters/player/Red Cape Knight Character Asset/Player_Red sheets/Red_spin_attack.png';
 
 // ホーム専用。attackが付く画像を個別に読み込み、戦闘用の定義とは分離する。
 // 1コマ192×128。frameRateで速度、repeatで繰り返し回数を調整する。
@@ -52,4 +52,3 @@ export const homeClickActions = [
   ...homeSingleAttacks.map(attack => ({ kind: 'attack' as const, attack })),
   ...homeAttackCombos.map(combo => ({ kind: 'combo' as const, comboKey: combo.key })),
 ] as const;
-

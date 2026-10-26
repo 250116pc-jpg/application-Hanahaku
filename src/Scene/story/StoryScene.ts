@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 
-import backImg from '../../assets/background/story/1.jpg';
+import backImg from '../../assets/images/background/story/1.jpg';
 import story_data from "../../scenario_data/story_data.json"
 import { createBackground } from '../../background';
 import { getTextStyle } from '../../utils/ui';

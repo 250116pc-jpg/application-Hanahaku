@@ -16,10 +16,10 @@ const definitions: Array<[number, string, string, Season]> = [
  [32,'tsutsuji','ツツジ','春'], [33,'tulip','チューリップ','春'], [34,'ume','ウメ','冬'],
  [35,'yuri','ユリ','夏'], [1,'zinia','ジニア','夏']
 ]
-const images = import.meta.glob('../../assets/flowers/*.png', { eager: true, query: '?url', import: 'default' }) as Record<string, string>
+const images = import.meta.glob('../../assets/images/pixel_flowers/*.png', { eager: true, query: '?url', import: 'default' }) as Record<string, string>
 type FlowerEntry = { id: number; code: string; name: string; Game_image: string; Real_image: string; element: string | null; hanakotoba: string[]; skill_id: number }
 const catalog: FlowerEntry[] = JSON.parse(flowerJson)
-const realImages = import.meta.glob('../../assets/realflowers/*.png', { eager: true, query: '?url', import: 'default' }) as Record<string, string>
+const realImages = import.meta.glob('../../assets/images/real_flowers/*.png', { eager: true, query: '?url', import: 'default' }) as Record<string, string>
 const entries = new Map(catalog.map(entry => [entry.id, entry]))
 if (entries.size !== catalog.length) throw new Error('花データのIDが重複しています')
 for (const entry of catalog) {
@@ -28,7 +28,7 @@ for (const entry of catalog) {
 }
 export const prototypeFlowers: PrototypeFlower[] = definitions.map(([id,code,name,season]) => {
  const entry=entries.get(id)
- const url=images[entry ? entry.Game_image.replace('src/assets/', '../../assets/') : `../../assets/flowers/${code}.png`]
+ const url=images[entry ? entry.Game_image.replace('src/assets/', '../../assets/') : `../../assets/images/pixel_flowers/${code}.png`]
  if (!url) throw new Error(`花画像が見つかりません: ${id}`)
  return {id,name:entry?.name ?? name,season,url,key:`contract-preview-${id}`,element:entry?.element ?? null,hanakotoba:entry?.hanakotoba ?? [],realUrl:entry ? realImages[entry.Real_image.replace('src/assets/', '../../assets/')] : undefined,realKey:`flower-real-${id}`}
 })
