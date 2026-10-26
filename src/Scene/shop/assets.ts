@@ -1,5 +1,5 @@
 import backgroundImage from '../../assets/images/background/2.png';
-import shopkeeperImage from '../../assets/characters/004/004_3.png';
+import shopkeeperImage from '../../assets/characters/1003/1003_3.png';
 import redPotionImage from '../../assets/images/items/asset_075.png';
 import bluePotionImage from '../../assets/images/items/asset_076.png';
 import greenPotionImage from '../../assets/images/items/asset_078.png';
