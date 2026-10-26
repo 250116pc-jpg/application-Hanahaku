@@ -23,7 +23,7 @@
     "date" : "2024-06-01"ーーー日付
 
   }
-
+//👆hanakotobaがdoc.txtに追加してるからデフォにない奴だから、↓のも入れてもいいと思ってる。入れて問題ないならいれたい。001~2.json）
 図鑑追加項目（flower.json）
 origin	起源	text
 habitat	咲いている場所	text
