@@ -1,746 +1,156 @@
-import { DEFAULT_AUDIO_SETTINGS } from '../audio/AudioDefaults';
 import Phaser from 'phaser';
-import { openSettingsPanel } from '../display/SettingsPanel';
-import { logout } from '../auth/Session';
+import { DEFAULT_AUDIO_SETTINGS } from '../audio/AudioDefaults';
+import { applyAudioSettings, loadAudioSettings, saveAudioSettings } from '../audio/BgmManager';
 import { preloadSettingsVoice, SettingsVoice } from '../audio/SettingsVoice';
+import { loadDisplaySettings, saveDisplaySettings, type DisplaySettings } from '../display/DisplaySettings';
+import { logout } from '../auth/Session';
+import '../display/SettingsScene.css';
 
-const reactionImages = import.meta.glob('../assets/setting/*.png', { eager: true, query: '?url', import: 'default' }) as Record<string, string>;
-const reactionFiles = {
-  bgmUp: 'BGM音量上げずんだ.png', bgmDown: 'BGM下げずんだ.png',
-  seUp: 'SE上げずんだ.png', seDown: 'SE下げずんだ.png',
-  voiceUp: '音声音量上げずんだ.png', voiceDown: '音声音量下げずんだ.png',
-  reset: '初期値ずんだ.png',
-  mute: 'ミュートずんだ.png', unmute: 'ミュート解除ずんだ.png',
-} as const;
-import {
-  applyAudioSettings,
-  loadAudioSettings,
-  saveAudioSettings,
-  type AudioSettings,
-} from '../audio/BgmManager';
-
-interface LoggedInUser {
-  id: number;
-  name: string;
-  email: string;
-}
+const reactions = import.meta.glob('../assets/setting/*.png', { eager: true, query: '?url', import: 'default' }) as Record<string, string>;
 
 export class SettingsScene extends Phaser.Scene {
-  private readonly guideStorageKey = 'hanahakuSettingsGuideSeen';
-  private guideObjects: Phaser.GameObjects.GameObject[] = [];
-  private voice!: SettingsVoice;
-  private character!: Phaser.GameObjects.Image;
   private returnScene = 'HomeScene';
   private resumeOnClose = false;
-  private originalAudioSettings!: AudioSettings;
-  private bgmVolume = DEFAULT_AUDIO_SETTINGS.bgmVolume;
-  private seVolume = DEFAULT_AUDIO_SETTINGS.seVolume;
-  private voiceVolume = DEFAULT_AUDIO_SETTINGS.voiceVolume;
-  private bgmSliderFill!: Phaser.GameObjects.Graphics;
-  private bgmSliderKnob!: Phaser.GameObjects.Arc;
-  private voiceText!: Phaser.GameObjects.Text;
-  private seSliderFill!: Phaser.GameObjects.Graphics;
-  private seSliderKnob!: Phaser.GameObjects.Arc;
-  private voiceSliderFill!: Phaser.GameObjects.Graphics;
-  private voiceSliderKnob!: Phaser.GameObjects.Arc;
-  private activeSliderUpdate: ((pointer: Phaser.Input.Pointer) => void) | null = null;
-  private activeSliderEnd: (() => void) | null = null;
-  private sliderInputInstalled = false;
-  private isMuted = DEFAULT_AUDIO_SETTINGS.isMuted;
-
-  private bgmText!: Phaser.GameObjects.Text;
-  private seText!: Phaser.GameObjects.Text;
-  private muteText!: Phaser.GameObjects.Text;
-  private speechText!: Phaser.GameObjects.Text;
-
-  constructor() {
-    super('SettingsScene');
-  }
-
+  constructor() { super('SettingsScene'); }
   init(data: { returnScene?: string; resumeOnClose?: boolean } = {}): void {
     this.returnScene = data.returnScene ?? 'HomeScene';
     this.resumeOnClose = data.resumeOnClose ?? false;
   }
-
-  preload(): void {
-    preloadSettingsVoice(this);
-    for (const [reaction, file] of Object.entries(reactionFiles)) {
-      const url = reactionImages[`../assets/setting/${file}`];
-      if (!url) throw new Error(`設定画像が見つかりません: ${file}`);
-      if (!this.textures.exists(`settings-${reaction}`)) this.load.image(`settings-${reaction}`, url);
-    }
-  }
-
+  preload(): void { preloadSettingsVoice(this); }
   create(): void {
-    this.voice = new SettingsVoice(this);
-    const width = this.scale.width;
-    const height = this.scale.height;
-
-    this.cameras.main.setScroll(20, 0);
-    this.cameras.main.setBackgroundColor('#cfe3f5');
-
-    const audioSettings =
-      loadAudioSettings(this);
-    this.originalAudioSettings = { ...audioSettings };
-
-    this.bgmVolume =
-      audioSettings.bgmVolume;
-
-    this.seVolume =
-      audioSettings.seVolume;
-
-    this.isMuted =
-      audioSettings.isMuted;
-    this.voiceVolume = audioSettings.voiceVolume;
-
-    this.add
-      .rectangle(
-        width / 2,
-        height / 2,
-        width - 40,
-        height - 40,
-        0xcfe3f5
-      )
-      .setStrokeStyle(
-        3,
-        0x536878
-      );
-
-    this.add
-      .text(
-        width - 145,
-        60,
-        '設定',
-        this.getTextStyle(38)
-      )
-      .setOrigin(0.5);
-
-    this.createLoggedInUserInfo();
-    let loggingOut = false;
-    this.createLargeButton(1085, 305, 'ログアウト', () => {
-      if (loggingOut) return;
-      loggingOut = true;
-      this.input.enabled = false;
-      void logout().then(() => {
-        // Stop paused gameplay as well, so another user cannot resume it.
-        for (const scene of this.scene.manager.getScenes(false)) {
-          if (scene !== this) this.scene.stop(scene.scene.key);
-        }
-        this.scene.start('LoginScene');
-      }).catch(() => {
-        this.setSpeech('ログアウトできません。接続を確認して再度お試しください。');
-      }).finally(() => { loggingOut = false; this.input.enabled = true; });
-    }, 240);
-
-    this.createLargeButton(1050, 400, '画面設定・クレジット', () => openSettingsPanel(this), 300);
-    this.createBackButton();
-    this.createBgmControls();
-    this.createSeControls();
-    this.createVoiceControls();
-    this.createMuteButton();
-    this.createSpeechBubble();
-
-    this.character = this.add.image(750, 470, 'settings-unmute');
-    this.showReaction(this.isMuted ? 'mute' : 'unmute');
-
-    this.createLargeButton(
-      1050,
-      500,
-      '初期値に戻す',
-      () => {
-        this.bgmVolume = DEFAULT_AUDIO_SETTINGS.bgmVolume;
-        this.seVolume = DEFAULT_AUDIO_SETTINGS.seVolume;
-        this.voiceVolume = DEFAULT_AUDIO_SETTINGS.voiceVolume;
-        this.isMuted = DEFAULT_AUDIO_SETTINGS.isMuted;
-        this.showReaction('reset');
-
-        this.updateDisplay();
-        this.setSpeech(
-          '最初の設定に戻したよ'
-        );
-      },
-      280
-    );
-
-    this.createLargeButton(
-      1050,
-      620,
-      '保存して戻る',
-      () => {
-        this.closeSettings(true);
-      },
-      280
-    );
-
-    this.createLargeButton(730, 65, '操作ガイド', () => this.startGuide(), 200);
-
-    this.updateDisplay();
-
-    this.add.text(640, 690, '音声：VOICEVOX:ずんだもん', {
-      ...this.getTextStyle(16), color: '#334455'
-    }).setOrigin(0.5);
-    this.voice.speak('音量を変更できるよ');
-
-    if (this.returnScene === 'HomeScene' && !this.hasSeenGuide()) {
-      this.time.delayedCall(0, () => this.startGuide());
-    }
-  }
-
-  private showReaction(reaction: keyof typeof reactionFiles): void {
-    this.character.setTexture(`settings-${reaction}`);
-    this.character.setScale(Math.min(280 / this.character.width, 350 / this.character.height));
-  }
-
-  private createLoggedInUserInfo(): void {
-    const user = this.loadLoggedInUser();
-    const panel = this.add
-      .rectangle(1085, 190, 250, 130, 0xffffff, 0.94)
-      .setStrokeStyle(2, 0xd8aa45);
-    const label = user
-      ? `ログイン中\n${user.name}\n${user.email}`
-      : 'ユーザー情報\n未ログイン';
-    const text = this.add
-      .text(1085, 190, label, {
-        ...this.getTextStyle(16),
-        align: 'center',
-        lineSpacing: 4,
-        wordWrap: { width: 225, useAdvancedWrap: true },
-      })
-      .setOrigin(0.5);
-
-    panel.setDepth(1);
-    text.setDepth(2);
-  }
-
-  private loadLoggedInUser(): LoggedInUser | null {
+    const voice = new SettingsVoice(this);
+    const original = { ...loadAudioSettings(this) };
+    let audio = { ...original };
+    const display = { ...loadDisplaySettings() };
+    let displayChanged = false;
+    let finished = false;
+    const root = document.createElement('section');
+    root.className = 'garden-settings';
+    root.setAttribute('aria-label', '設定');
+    root.innerHTML = `
+      <div class="settings-shell">
+        <header><button type="button" data-back aria-label="変更を取り消して戻る">←</button><h1>設定</h1><span>花と過ごす、心地よい時間</span></header>
+        <div class="settings-body">
+          <main>
+            <section data-page="sound"><h2>♫ サウンド</h2>
+              <div class="sound-layout"><div class="sound-controls">
+                ${[['bgmVolume','BGM音量'],['seVolume','SE音量'],['voiceVolume','音声音量']].map(([key,label]) => `<label class="volume-row" for="settings-${key}"><span>${label}</span><input id="settings-${key}" data-volume="${key}" type="range" min="0" max="100" step="1"><output for="settings-${key}"></output></label>`).join('')}
+                <label class="mute-row"><input type="checkbox" data-mute role="switch"><span>ミュート</span></label>
+              </div><aside class="settings-mascot"><p data-speech aria-live="polite">音量を調整できるよ</p><img alt="ずんだもん" data-reaction><small>音声：VOICEVOX:ずんだもん</small></aside></div>
+            </section>
+            <section data-page="display" hidden><h2>▣ 画面設定</h2>
+              <label class="display-row">最大FPS<select data-fps><option value="30">30 FPS</option><option value="60">60 FPS（標準）</option><option value="120">120 FPS</option></select></label>
+              <p>画面更新の上限です。実際のFPSは端末によって異なります。</p>
+              <label class="display-row">画質<select data-quality><option value="crisp">標準：くっきり</option><option value="smooth">なめらか</option></select></label>
+              <p>画面設定は保存後、次回の再読み込みから反映されます。</p>
+            </section>
+            <section data-page="guide" hidden><h2>✥ 操作ガイド</h2>
+              <h3>音量を調整する</h3><p>つまみを左右に動かすと音量を試せます。「ミュート」で全体の音を切り替えます。音声の再生中はBGMが小さくなります。</p>
+              <h3>設定を残す</h3><p>「保存して戻る」で変更を保存します。左上の矢印で戻ると、今回の変更を取り消します。</p>
+              <h3>初期値に戻す</h3><p>サウンドはBGM${Math.round(DEFAULT_AUDIO_SETTINGS.bgmVolume * 100)}％・SE${Math.round(DEFAULT_AUDIO_SETTINGS.seVolume * 100)}％・音声${Math.round(DEFAULT_AUDIO_SETTINGS.voiceVolume * 100)}％、ミュート解除に戻ります。画面設定は60 FPS・標準に戻ります。保存すると確定します。</p>
+              <h3>アカウントを切り替える</h3><p>「アカウント」のログアウトを押し、確認画面で決定してください。</p>
+            </section>
+            <section data-page="credits" hidden><h2>▤ クレジット</h2><h3>フラワーリンク -Flower link-</h3><p>制作：Aチーム（中村・武田・斎藤）</p><h3>音声</h3><p>VOICEVOX:ずんだもん</p><h3>BGM</h3><p>PeriTune<br>Frosylva / Harbor Morning / Ancient Gust</p><h3>効果音</h3><p>OtoLogic</p><h3>画像・制作支援</h3><p>ChatGPT / Gemini / 三日月アルペジオ / AutoSprite</p><h3>ゲームエンジン</h3><p>Phaser</p></section>
+            <section data-page="account" hidden><h2>♙ アカウント</h2><p data-user></p><p>ログアウトするとログイン画面へ戻ります。</p><button type="button" data-logout>ログアウト…</button></section>
+          </main>
+          <nav aria-label="設定カテゴリ">${[['sound','♫','サウンド'],['display','▣','画面設定'],['guide','✥','操作ガイド'],['credits','▤','クレジット'],['account','♙','アカウント']].map(([key,icon,label]) => `<button type="button" data-tab="${key}" aria-pressed="${key==='sound'}"><span>${icon}</span> ${label}</button>`).join('')}</nav>
+        </div>
+        <footer><span data-status role="status"></span><button type="button" data-reset>初期値に戻す</button><button type="button" data-save>保存して戻る</button></footer>
+      </div>`;
+    const get = <T extends HTMLElement>(selector: string): T => root.querySelector<T>(selector)!;
+    const status = get('[data-status]');
+    const reaction = (file: string): void => { get<HTMLImageElement>('[data-reaction]').src = reactions[`../assets/setting/${file}.png`] ?? ''; };
+    const speech = (message: string): void => { get('[data-speech]').textContent = message; voice.speak(message); };
+    const refresh = (): void => {
+      root.querySelectorAll<HTMLInputElement>('[data-volume]').forEach(input => {
+        const key = input.dataset.volume as 'bgmVolume' | 'seVolume' | 'voiceVolume';
+        input.value = String(Math.round(audio[key] * 100));
+        input.style.setProperty('--volume', `${input.value}%`);
+        input.nextElementSibling!.textContent = `${input.value}%`;
+      });
+      get<HTMLInputElement>('[data-mute]').checked = audio.isMuted;
+      get<HTMLSelectElement>('[data-fps]').value = String(display.maxFps);
+      get<HTMLSelectElement>('[data-quality]').value = display.quality;
+      applyAudioSettings(this, audio);
+    };
+    root.querySelectorAll<HTMLInputElement>('[data-volume]').forEach(input => {
+      const key = input.dataset.volume as 'bgmVolume' | 'seVolume' | 'voiceVolume';
+      let previous = audio[key];
+      input.addEventListener('input', () => {
+        const next = Number(input.value)/100;
+        const up = next >= audio[key];
+        reaction(key === 'bgmVolume' ? (up ? 'BGM音量上げずんだ' : 'BGM下げずんだ') : key === 'seVolume' ? (up ? 'SE上げずんだ' : 'SE下げずんだ') : (up ? '音声音量上げずんだ' : '音声音量下げずんだ'));
+        audio[key] = next; refresh();
+      });
+      input.addEventListener('change', () => {
+        speech(key === 'voiceVolume' ? '音声の音量を変更したよ' : `${key === 'bgmVolume' ? 'BGM' : '効果音'}を${audio[key] < previous ? '小さく' : '大きく'}したよ`);
+        previous = audio[key];
+      });
+    });
+    get<HTMLInputElement>('[data-mute]').addEventListener('change', event => {
+      audio.isMuted = (event.target as HTMLInputElement).checked; refresh();
+      reaction(audio.isMuted ? 'ミュートずんだ' : 'ミュート解除ずんだ');
+      speech(audio.isMuted ? '音を消したよ' : '音を戻したよ');
+    });
+    get<HTMLSelectElement>('[data-fps]').addEventListener('change', event => { display.maxFps = Number((event.target as HTMLSelectElement).value) as DisplaySettings['maxFps']; displayChanged = true; });
+    get<HTMLSelectElement>('[data-quality]').addEventListener('change', event => { display.quality = (event.target as HTMLSelectElement).value as DisplaySettings['quality']; displayChanged = true; });
+    let page = 'sound';
+    root.querySelectorAll<HTMLButtonElement>('[data-tab]').forEach(button => button.addEventListener('click', () => {
+      page = button.dataset.tab!;
+      root.querySelectorAll<HTMLElement>('[data-page]').forEach(section => { section.hidden = section.dataset.page !== page; });
+      root.querySelectorAll('[data-tab]').forEach(tab => tab.setAttribute('aria-pressed', String(tab === button)));
+      get('main').scrollTop = 0;
+      get<HTMLButtonElement>('[data-reset]').hidden = page !== 'sound' && page !== 'display';
+      status.textContent = '';
+    }));
+    get('[data-reset]').addEventListener('click', () => {
+      if (page === 'display') { display.maxFps = 60; display.quality = 'crisp'; displayChanged = true; }
+      else { audio = { ...DEFAULT_AUDIO_SETTINGS }; reaction('初期値ずんだ'); }
+      refresh(); speech('最初の設定に戻したよ'); status.textContent = '保存すると確定します';
+    });
+    const close = (save: boolean): void => {
+      if (save && displayChanged && !saveDisplaySettings(display)) { status.textContent = '保存できませんでした。ブラウザの保存設定を確認してください。'; return; }
+      if (save) saveAudioSettings(this, audio);
+      else applyAudioSettings(this, original);
+      finished = true;
+      voice.stop();
+      if (this.resumeOnClose) { this.scene.resume(this.returnScene); this.scene.stop(); }
+      else this.scene.start(this.returnScene);
+    };
+    get('[data-back]').addEventListener('click', () => close(false));
+    get('[data-save]').addEventListener('click', () => close(true));
     try {
-      const value = localStorage.getItem('hanahakuCurrentUser');
-      if (!value) return null;
-
-      const user = JSON.parse(value) as Partial<LoggedInUser>;
-      if (
-        typeof user.id !== 'number' ||
-        typeof user.name !== 'string' ||
-        typeof user.email !== 'string'
-      ) {
-        return null;
-      }
-
-      return user as LoggedInUser;
-    } catch {
-      return null;
-    }
-  }
-
-  private hasSeenGuide(): boolean {
-    if (this.registry.get(this.guideStorageKey) === true) return true;
-    try {
-      return localStorage.getItem(this.guideStorageKey) === '1';
-    } catch {
-      return false;
-    }
-  }
-
-  private startGuide(): void {
-    if (this.guideObjects.length > 0) return;
-    this.registry.set(this.guideStorageKey, true);
-    try {
-      localStorage.setItem(this.guideStorageKey, '1');
-    } catch {
-      // 保存できなくても今回のガイドは表示する。
-    }
-    this.showGuideStep(0);
-  }
-
-  private clearGuide(): void {
-    this.guideObjects.forEach(object => object.destroy());
-    this.guideObjects = [];
-  }
-
-  private showGuideStep(index: number): void {
-    this.clearGuide();
-    const steps = [
-      { target: new Phaser.Geom.Rectangle(100, 160, 400, 165),
-        message: 'ここでBGMの音量を調整できます。\nスライダーを左右に動かしてみましょう。' },
-      { target: new Phaser.Geom.Rectangle(100, 328, 400, 165),
-        message: 'ここではスライダーを左右に動かして、\nボタンなどの効果音を調整できます。' },
-      { target: new Phaser.Geom.Rectangle(100, 490, 400, 120),
-        message: 'スライダーを左右に動かして、\nずんだもんの声を調整できます。\n話している間はBGMが小さくなります。' },
-      { target: new Phaser.Geom.Rectangle(118, 610, 240, 85),
-        message: 'ミュートを押すと音を消せます。\nもう一度押すと元に戻ります。' },
-      { target: new Phaser.Geom.Rectangle(890, 355, 320, 90),
-        message: '「画面設定・クレジット」から、\n最大FPSと画質を変更できます。\n保存後、再読み込みすると反映されます。' },
-      { target: new Phaser.Geom.Rectangle(890, 355, 320, 90),
-        message: '同じ画面の「クレジットを見る」で、\n制作チームや使用した素材・音声の\n情報を確認できます。' },
-      { target: new Phaser.Geom.Rectangle(900, 458, 300, 85),
-        message: 'BGM50%、SE70%、音声100%に戻し、\nミュートも解除します。' },
-      { target: new Phaser.Geom.Rectangle(955, 260, 260, 90),
-        message: '「ログアウト」を押すと、\nログイン状態を解除してログイン画面へ戻ります。\n別のアカウントに切り替えるときに使います。' },
-      { target: new Phaser.Geom.Rectangle(900, 578, 300, 85),
-        message: '「保存して戻る」を押すと、\n変更した音量が次回も残ります。' }
-    ];
-    if (index >= steps.length) return;
-
-    const { target, message } = steps[index];
-    // Keep the guide beside right-hand controls rather than covering them.
-    const panelOffsetX = target.x >= 850 ? -440 : 0;
-    const right = this.scale.width + 40;
-    const bottom = this.scale.height;
-    const dim = (x: number, y: number, width: number, height: number) => {
-      if (width <= 0 || height <= 0) return;
-      this.guideObjects.push(this.add.rectangle(x, y, width, height, 0x000000, 0.48)
-        .setOrigin(0).setDepth(5000).setInteractive());
-    };
-    dim(0, 0, right, target.y);
-    dim(0, target.y, target.x, target.height);
-    dim(target.right, target.y, right - target.right, target.height);
-    dim(0, target.bottom, right, bottom - target.bottom);
-
-    this.guideObjects.push(this.add.graphics().setDepth(5001)
-      .lineStyle(4, 0xffdc70, 1)
-      .strokeRoundedRect(target.x - 4, target.y - 4, target.width + 8, target.height + 8, 12));
-    this.guideObjects.push(this.add.rectangle(850 + panelOffsetX, 350, 620, 240, 0xffffff, 0.98)
-      .setStrokeStyle(3, 0x536878).setDepth(5002).setInteractive());
-    this.guideObjects.push(this.add.text(565 + panelOffsetX, 247, `操作ガイド  ${index + 1} / ${steps.length}`,
-      { ...this.getTextStyle(25), fontStyle: 'bold' }).setDepth(5003));
-    this.guideObjects.push(this.add.text(565 + panelOffsetX, 295, message,
-      { ...this.getTextStyle(23), wordWrap: { width: 550 } }).setDepth(5003));
-
-    const skip = this.add.text(710 + panelOffsetX, 432, 'スキップ', {
-      ...this.getTextStyle(23), backgroundColor: '#e7edf2',
-      padding: { left: 22, right: 22, top: 12, bottom: 12 }
-    }).setOrigin(0.5).setDepth(5004).setInteractive({ useHandCursor: true });
-    skip.on('pointerup', () => this.clearGuide());
-    this.guideObjects.push(skip);
-
-    const next = this.add.text(1010 + panelOffsetX, 432, index === steps.length - 1 ? '完了' : '次へ', {
-      ...this.getTextStyle(23), backgroundColor: '#ffdc70',
-      padding: { left: 28, right: 28, top: 12, bottom: 12 }
-    }).setOrigin(0.5).setDepth(5004).setInteractive({ useHandCursor: true });
-    next.on('pointerup', () => index === steps.length - 1
-      ? this.clearGuide()
-      : this.showGuideStep(index + 1));
-    this.guideObjects.push(next);
-  }
-
-  private createBackButton(): void {
-    const button =
-      this.add
-        .text(
-          80,
-          65,
-          '←',
-          {
-            ...this.getTextStyle(52),
-            backgroundColor: '#ffffff',
-            padding: {
-              top: 4,
-              bottom: 8,
-              left: 20,
-              right: 20,
-            },
-          }
-        )
-        .setOrigin(0.5)
-        .setInteractive({
-          useHandCursor: true,
-        });
-
-    button.on(
-      'pointerdown',
-      () => {
-        this.closeSettings(false);
-      }
-    );
-  }
-
-  private createBgmControls(): void {
-    this.add.text(
-      130,
-      185,
-      'BGM音量',
-      this.getTextStyle(32)
-    );
-
-    let dragStartVolume = this.bgmVolume;
-    this.createVolumeSlider(270, this.bgmVolume, value => {
-      if (value !== this.bgmVolume) this.showReaction(value > this.bgmVolume ? 'bgmUp' : 'bgmDown');
-      this.bgmVolume = value;
-      this.updateDisplay();
-    }, () => {
-      this.setSpeech(this.bgmVolume < dragStartVolume ? 'BGMを小さくしたよ' : 'BGMを大きくしたよ');
-    }, (fill, knob, text) => {
-      this.bgmSliderFill = fill;
-      this.bgmSliderKnob = knob;
-      this.bgmText = text;
-    }, () => {
-      dragStartVolume = this.bgmVolume;
+      const user = JSON.parse(localStorage.getItem('hanahakuCurrentUser') ?? 'null');
+      get('[data-user]').textContent = user ? `ログイン中：${user.name}\n${user.email}` : '未ログイン';
+    } catch { get('[data-user]').textContent = 'ユーザー情報を取得できませんでした。'; }
+    let confirmation: HTMLDialogElement | null = null;
+    get('[data-logout]').addEventListener('click', () => {
+      if (confirmation) return;
+      const dialog = document.createElement('dialog'); confirmation = dialog;
+      dialog.className = 'garden-logout-confirm';
+      dialog.setAttribute('aria-labelledby','logout-heading');
+      dialog.innerHTML = '<h2 id="logout-heading">ログアウトしますか？</h2><p>保存していない設定は取り消されます。</p><p data-error role="alert"></p><div><button type="button" data-cancel autofocus>キャンセル</button><button type="button" data-confirm>ログアウトする</button></div>';
+      let busy = false;
+      dialog.addEventListener('cancel', event => { if (busy) event.preventDefault(); });
+      dialog.addEventListener('close', () => { dialog.remove(); confirmation = null; get('[data-logout]').focus(); });
+      dialog.querySelector('[data-cancel]')!.addEventListener('click', () => dialog.close());
+      dialog.querySelector('[data-confirm]')!.addEventListener('click', () => {
+        if (busy) return; busy = true;
+        dialog.querySelectorAll('button').forEach(button => { button.disabled = true; });
+        void logout().then(() => {
+          applyAudioSettings(this, original); finished = true;
+          for (const scene of this.scene.manager.getScenes(false)) if (scene !== this) this.scene.stop(scene.scene.key);
+          this.scene.start('LoginScene');
+        }).catch(() => { dialog.querySelector('[data-error]')!.textContent = 'ログアウトできませんでした。接続を確認して再度お試しください。'; })
+          .finally(() => { busy = false; dialog.querySelectorAll('button').forEach(button => { button.disabled = false; }); });
+      });
+      document.body.append(dialog); dialog.showModal();
     });
-  }
-
-  private createSeControls(): void {
-    this.add.text(
-      130,
-      350,
-      'SE音量',
-      this.getTextStyle(32)
-    );
-
-    let dragStartVolume = this.seVolume;
-    this.createVolumeSlider(435, this.seVolume, value => {
-      if (value !== this.seVolume) this.showReaction(value > this.seVolume ? 'seUp' : 'seDown');
-      this.seVolume = value;
-      this.updateDisplay();
-    }, () => {
-      this.setSpeech(this.seVolume < dragStartVolume ? '効果音を小さくしたよ' : '効果音を大きくしたよ');
-    }, (fill, knob, text) => {
-      this.seSliderFill = fill;
-      this.seSliderKnob = knob;
-      this.seText = text;
-    }, () => {
-      dragStartVolume = this.seVolume;
-    });
-  }
-
-  private createVoiceControls(): void {
-    this.add.text(130, 495, '音声音量', this.getTextStyle(28));
-    this.createVolumeSlider(570, this.voiceVolume, value => {
-      if (value !== this.voiceVolume) this.showReaction(value > this.voiceVolume ? 'voiceUp' : 'voiceDown');
-      this.voiceVolume = value;
-      this.updateDisplay();
-    }, () => {
-      this.speechText.setText(`音声音量を${Math.round(this.voiceVolume * 100)}%にしたよ`);
-      this.voice.speak('音量を変更できるよ');
-    }, (fill, knob, text) => {
-      this.voiceSliderFill = fill;
-      this.voiceSliderKnob = knob;
-      this.voiceText = text;
-    }, () => {
-      this.voice.stop();
-    });
-  }
-
-  private createVolumeSlider(
-    y: number,
-    initialValue: number,
-    onChange: (value: number) => void,
-    onEnd: () => void,
-    setDisplay: (
-      fill: Phaser.GameObjects.Graphics,
-      knob: Phaser.GameObjects.Arc,
-      text: Phaser.GameObjects.Text
-    ) => void,
-    onStart?: () => void
-  ): void {
-    const sliderStartX = 160;
-    const sliderWidth = 200;
-    const updateFromPointer = (pointer: Phaser.Input.Pointer): void => {
-      const ratio = Phaser.Math.Clamp((pointer.worldX - sliderStartX) / sliderWidth, 0, 1);
-      onChange(Math.round(ratio * 100) / 100);
-    };
-    // Soft, rounded track with a generous touch target kept separate from the artwork.
-    this.add.graphics()
-      .fillStyle(0xffffff, 0.65)
-      .fillRoundedRect(sliderStartX - 12, y - 18, sliderWidth + 24, 36, 18)
-      .fillStyle(0xd4e2dd, 1)
-      .fillRoundedRect(sliderStartX, y - 5, sliderWidth, 10, 5);
-    const fill = this.add.graphics().setPosition(sliderStartX, y);
-    this.drawSliderFill(fill, initialValue);
-    const knob = this.add.circle(
-      sliderStartX + sliderWidth * initialValue, y, 12, 0xffffff
-    ).setStrokeStyle(3, 0x5a9277).setDepth(fill.depth + 1);
-    this.add.graphics()
-      .fillStyle(0xffffff, 0.82)
-      .fillRoundedRect(394, y - 20, 72, 40, 14)
-      .lineStyle(1, 0xb5cfc2, 0.7)
-      .strokeRoundedRect(394, y - 20, 72, 40, 14);
-    const text = this.add.text(430, y, '', {
-      ...this.getTextStyle(22), color: '#35644f', fontStyle: 'bold',
-    }).setOrigin(0.5);
-    const hitArea = this.add.rectangle(
-      sliderStartX + sliderWidth / 2,
-      y,
-      sliderWidth + 24,
-      44,
-      0xffffff,
-      0
-    ).setInteractive({ useHandCursor: true });
-
-    hitArea.on('pointerover', () => knob.setFillStyle(0xf0faf4));
-    hitArea.on('pointerout', () => knob.setFillStyle(0xffffff));
-    hitArea.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
-      onStart?.();
-      this.activeSliderUpdate = updateFromPointer;
-      knob.setScale(1.18).setStrokeStyle(3, 0x397658);
-      this.activeSliderEnd = () => {
-        knob.setScale(1).setStrokeStyle(3, 0x5a9277);
-        onEnd();
-      };
-      updateFromPointer(pointer);
-    });
-
-    if (this.sliderInputInstalled) {
-      setDisplay(fill, knob, text);
-      return;
-    }
-    this.sliderInputInstalled = true;
-    const onPointerMove = (pointer: Phaser.Input.Pointer): void => {
-      if (pointer.isDown) this.activeSliderUpdate?.(pointer);
-    };
-    const onPointerUp = (): void => {
-      const finish = this.activeSliderEnd;
-      this.activeSliderUpdate = null;
-      this.activeSliderEnd = null;
-      finish?.();
-    };
-    this.input.on('pointermove', onPointerMove);
-    this.input.on('pointerup', onPointerUp);
+    document.body.append(root);
+    refresh(); reaction(audio.isMuted ? 'ミュートずんだ' : 'ミュート解除ずんだ'); voice.speak('音量を変更できるよ');
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
-      this.activeSliderUpdate = null;
-      this.activeSliderEnd = null;
-      this.sliderInputInstalled = false;
-      this.input.off('pointermove', onPointerMove);
-      this.input.off('pointerup', onPointerUp);
+      if (!finished) applyAudioSettings(this, original);
+      confirmation?.remove(); root.remove(); voice.stop();
     });
-    setDisplay(fill, knob, text);
-  }
-
-  private drawSliderFill(fill: Phaser.GameObjects.Graphics, value: number): void {
-    const width = 200 * Phaser.Math.Clamp(value, 0, 1);
-    fill.clear();
-    if (width > 0) {
-      fill.fillStyle(0x71ac8c, 1).fillRoundedRect(0, -5, width, 10, Math.min(5, width / 2));
-    }
-  }
-  private createMuteButton(): void {
-    this.muteText =
-      this.add
-        .text(
-          130,
-          630,
-          '',
-          {
-            ...this.getTextStyle(28),
-            backgroundColor: '#ffffff',
-            padding: {
-              top: 13,
-              bottom: 13,
-              left: 20,
-              right: 20,
-            },
-          }
-        )
-        .setInteractive({
-          useHandCursor: true,
-        });
-
-    this.muteText.on(
-      'pointerdown',
-      () => {
-        this.isMuted =
-          !this.isMuted;
-        this.showReaction(this.isMuted ? 'mute' : 'unmute');
-
-        this.updateDisplay();
-
-        this.setSpeech(
-          this.isMuted
-            ? '音を消したよ'
-            : '音を戻したよ'
-        );
-      }
-    );
-  }
-
-  private createSpeechBubble(): void {
-    this.add
-      .ellipse(
-        750,
-        190,
-        380,
-        170,
-        0xffffff
-      )
-      .setStrokeStyle(
-        3,
-        0x536878
-      );
-
-    this.add
-      .triangle(
-        665,
-        295,
-        0,
-        0,
-        90,
-        0,
-        30,
-        75,
-        0xffffff
-      )
-      .setStrokeStyle(
-        3,
-        0x536878
-      );
-
-    this.speechText =
-      this.add
-        .text(
-          750,
-          190,
-          '音量を変更できるよ',
-          {
-            ...this.getTextStyle(28),
-            align: 'center',
-            wordWrap: {
-              width: 300,
-            },
-          }
-        )
-        .setOrigin(0.5);
-  }
-
-  private createLargeButton(
-    x: number,
-    y: number,
-    label: string,
-    onClick: () => void,
-    buttonWidth: number
-  ): void {
-    const background =
-      this.add
-        .rectangle(
-          0,
-          0,
-          buttonWidth,
-          70,
-          0xffffff
-        )
-        .setStrokeStyle(
-          2,
-          0x333333
-        )
-        .setInteractive({
-          useHandCursor: true,
-        });
-
-    const text =
-      this.add
-        .text(
-          0,
-          0,
-          label,
-          this.getTextStyle(26)
-        )
-        .setOrigin(0.5);
-
-    this.add.container(
-      x,
-      y,
-      [
-        background,
-        text,
-      ]
-    );
-
-    background.on(
-      'pointerup',
-      () => {
-        onClick();
-      }
-    );
-  }
-
-  private getTextStyle(
-    fontSize: number
-  ): Phaser.Types.GameObjects.Text.TextStyle {
-    return {
-      fontFamily:
-        '"Yu Gothic", "Meiryo", sans-serif',
-      fontSize:
-        `${fontSize}px`,
-      color: '#000000',
-      padding: {
-        top: 8,
-        bottom: 8,
-        left: 6,
-        right: 6,
-      },
-    };
-  }
-
-  private updateDisplay(): void {
-    this.bgmText.setText(
-      `${Math.round(
-        this.bgmVolume * 100
-      )}%`
-    );
-
-    this.seText.setText(
-      `${Math.round(
-        this.seVolume * 100
-      )}%`
-    );
-    this.drawSliderFill(this.bgmSliderFill, this.bgmVolume);
-    this.bgmSliderKnob.setX(160 + 200 * this.bgmVolume);
-    this.drawSliderFill(this.seSliderFill, this.seVolume);
-    this.seSliderKnob.setX(160 + 200 * this.seVolume);
-
-    this.voiceText.setText(`${Math.round(this.voiceVolume * 100)}%`);
-    this.drawSliderFill(this.voiceSliderFill, this.voiceVolume);
-    this.voiceSliderKnob.setX(160 + 200 * this.voiceVolume);
-
-    this.muteText.setText(
-      this.isMuted
-        ? 'ミュート解除'
-        : 'ミュート'
-    );
-
-    applyAudioSettings(this, {
-      bgmVolume: this.bgmVolume,
-      seVolume: this.seVolume,
-      voiceVolume: this.voiceVolume,
-      isMuted: this.isMuted,
-    });
-  }
-
-  private setSpeech(
-    message: string
-  ): void {
-    this.speechText.setText(
-      message
-    );
-    this.voice.speak(message);
-  }
-
-  private saveSettings(): void {
-    saveAudioSettings(
-      this,
-      {
-        bgmVolume:
-          this.bgmVolume,
-        seVolume:
-          this.seVolume,
-        voiceVolume: this.voiceVolume,
-        isMuted:
-          this.isMuted,
-      }
-    );
-  }
-
-  private closeSettings(saveChanges: boolean): void {
-    this.clearGuide();
-    if (saveChanges) {
-      this.saveSettings();
-    } else {
-      this.voice.stop();
-      applyAudioSettings(this, this.originalAudioSettings);
-    }
-    if (this.resumeOnClose) {
-      this.scene.resume(this.returnScene);
-      this.scene.stop();
-    } else {
-      this.scene.start(this.returnScene);
-    }
   }
 }

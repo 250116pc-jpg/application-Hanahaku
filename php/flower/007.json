@@ -1,0 +1,27 @@
+{
+    "id": 7,
+    "eng": "kochia",
+    "name": "コキア",
+    "enhance_id": 4,
+    "skill_id": 7,
+    "element": 3,
+    "status_bonus": {
+        "hp": 10,
+        "mp": 22,
+        "atk": 7,
+        "def": 4,
+        "cd": 4
+    },
+    "hanakotoba": [
+        "夫婦円満",
+        "恵まれた生活",
+        "あなたに全て打ち明けます"
+    ],
+    "path": "kochia.png",
+    "real_path": "kokia.png",
+    "description": "",
+    "date": "",
+    "origin": "",
+    "habitat": "",
+    "features": ""
+}
