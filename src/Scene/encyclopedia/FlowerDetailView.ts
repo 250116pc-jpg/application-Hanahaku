@@ -4,7 +4,7 @@ import buttonImage from '../../assets/ui/button1.png'
 import './flower-detail.css'
 
 type Skill = { name: string; description: string; descriptionLevel1?: string; mp: number | null; cooldown: number | null; element: string; category: string; icon: string }
-type Details = { stats: Record<string, string>; resistances: Record<string, string>; words: string[]; skill: Skill | null; origin: string; habitat: string; features: string }
+type Details = { stats: Record<string, string>; resistances: Record<string, string>; words?: string[]; skill: Skill | null; origin?: string; habitat?: string; features?: string }
 const details = detailsJson as Record<string, Details>
 const icons = import.meta.glob('../../assets/skill/*.png', { eager: true, query: '?url', import: 'default' }) as Record<string, string>
 
@@ -94,11 +94,11 @@ export function mountFlowerDetail(flower: PrototypeFlower, options: {
       }
       resistance.append(list); right.append(resistance)
     } else {
-      const words = data?.words.length ? data.words : flower.hanakotoba
+      const words = flower.hanakotoba
       section(left, '花言葉', words.length ? words.map(w => `「${w}」`).join('　') : '花言葉は未登録です。')
-      section(right, '起源', data?.origin || 'この花の起源は、まだ登録されていません。')
-      section(right, '咲いている場所', data?.habitat || 'この花の生育場所は、まだ登録されていません。')
-      section(right, '特徴', data?.features || 'この花の特徴は、まだ登録されていません。')
+      section(right, '起源', (flower.origin ?? data?.origin) || 'この花の起源は、まだ登録されていません。')
+      section(right, '咲いている場所', (flower.habitat ?? data?.habitat) || 'この花の生育場所は、まだ登録されていません。')
+      section(right, '特徴', (flower.features ?? data?.features) || 'この花の特徴は、まだ登録されていません。')
     }
     spread.append(left, right)
     const footer = node('footer', 'book-footer')

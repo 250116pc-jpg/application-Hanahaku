@@ -4,7 +4,7 @@ id	花のid	int
 name	花の名前	varchar(100)
 upgrade_id	強化ＩＤ	int
 Game_image	ゲームの花画像のパス	varchar(255)
-Real_iamge	リアルな花画像のパス	varchar(255)
+Real_image	リアルな花画像のパス	varchar(255)
 skill_id	スキルの種類	int
 MP	花の精神力	int
 ATK	攻撃力ボーナス	int
@@ -21,3 +21,7 @@ RES_Light	光耐性	int
 RES_Ground	土耐性	int
 explain	説明	text
 MP＿BONUS	MPボーナス	int
+hanakotoba	花言葉（複数登録可能）	文字列の配列（JSON）
+origin	起源	text
+habitat	咲いている場所	text
+features	特徴	text
