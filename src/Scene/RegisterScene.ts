@@ -101,7 +101,7 @@ export class RegisterScene extends Phaser.Scene {
       try {
         const phpBaseUrl = (
           import.meta.env.VITE_PHP_BASE_URL ??
-          'http://localhost/php/application-Hanahaku-main/php'
+          'http://localhost/php/アプリケーション開発/application-Hanahaku/php'
         )
           .replace(/\/$/, '');
         const response = await fetch(`${phpBaseUrl}/register.php`, {

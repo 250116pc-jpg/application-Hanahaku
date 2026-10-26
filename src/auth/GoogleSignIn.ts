@@ -83,7 +83,7 @@ function loadGoogleIdentityServices(): Promise<void> {
 function getPhpBaseUrl(): string {
   return (
     import.meta.env.VITE_PHP_BASE_URL ??
-    'http://localhost/php/application-Hanahaku-main/php'
+    'http://localhost/php/アプリケーション開発/application-Hanahaku/php'
   ).replace(/\/$/, '');
 }
 
