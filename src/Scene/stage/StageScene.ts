@@ -4,10 +4,10 @@ import mapUrl from '../../assets/stage/Cainos/cainos_stage.tmj?url';
 import terrainImg from '../../assets/stage/Cainos/Pixel Art Platformer - Village Props/Texture/TX Tileset Ground.png';
 import propsImg from '../../assets/stage/Cainos/Pixel Art Platformer - Village Props/Texture/TX Village Props.png';
 import backgroundImg from '../../assets/stage/flower_ruins/flower_ruins_background.png';
-import bagButton from '../../assets/button/bag_button.png';
-import attackButton from '../../assets/button/attack_button.png';
-import jumpButton from '../../assets/button/jump_button.png';
-import skillButton from '../../assets/button/skill_button.png';
+import bagButton from '../../assets/ui/button/bag_button.png';
+import attackButton from '../../assets/ui/button/attack_button.png';
+import jumpButton from '../../assets/ui/button/jump_button.png';
+import skillButton from '../../assets/ui/button/skill_button.png';
 import flowerIcon from '../../assets/flower.png';
 import skillIcon01 from '../../assets/system/skill/icons/icon_01.png';
 import skillIcon02 from '../../assets/system/skill/icons/icon_02.png';
@@ -24,7 +24,7 @@ import enemyRun from '../../assets/characters/enemy/Seeker_Lite/Spritesheets/See
 import enemyAttack from '../../assets/characters/enemy/Seeker_Lite/Spritesheets/Seeker_Void_Attack1_90x50_8f.png';
 import enemyHurt from '../../assets/characters/enemy/Seeker_Lite/Spritesheets/Seeker_Void_Hurt_55x80_9f.png';
 import enemyDeath from '../../assets/characters/enemy/Seeker_Lite/Spritesheets/Seeker_Void_Death_40x50_20f.png';
-import playerHurt from '../../assets/player/Red Cape Knight Character Asset/Player_Red sheets/Red_hurt.png';
+import playerHurt from '../../assets/characters/player/Red Cape Knight Character Asset/Player_Red sheets/Red_hurt.png';
 import { loadCharacterAnimation, createCharacterAnimation } from '../../animation/animation.ts';
 import { characterAnimations } from '../../animation/animationData.ts';
 

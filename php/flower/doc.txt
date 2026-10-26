@@ -1,27 +1,30 @@
-flowers	花のデータ
-名前	内容	タイプ
-id	花のid	int
-name	花の名前	varchar(100)
-upgrade_id	強化ＩＤ	int
-Game_image	ゲームの花画像のパス	varchar(255)
-Real_image	リアルな花画像のパス	varchar(255)
-skill_id	スキルの種類	int
-MP	花の精神力	int
-ATK	攻撃力ボーナス	int
-CRT＿BONUS	クリティカル率ボーナス	float
-CD＿BONUS	クリティカルダメージボーナス	int
-HP＿BONUS	HPボーナス	int
-EVA＿BONUS	回避率ボーナス	int
-DEF＿BONUS	防御力ボーナス	int
-VIT＿BONUS	回復力ボーナス	int
-RES_Fire	熱耐性	int
-RES_Water	水耐性	int
-RES_Wind	風耐性	int
-RES_Light	光耐性	int
-RES_Ground	土耐性	int
-explain	説明	text
-MP＿BONUS	MPボーナス	int
-hanakotoba	花言葉（複数登録可能）	文字列の配列（JSON）
+{
+    "id": 2,          ーーーID
+    "eng": "swirlen", ーーー英語
+    "name": "スイレン",ーーー表示名
+    "enhance_id": 1,ーーー強化ID（1~6）
+    "skill_id": 2,ーーースキルID
+    "element": 2,ーーー属性ID（1~6）
+
+    "status_bonus":{ーーーボーナス
+        "hp": 10,
+        "mp": 2,
+        "atk": 5,
+        "def": 3,
+        "cd": 1
+    },
+    "hanakotoba": [ーーー花言葉
+      "不在の友を思う",
+      "絆",
+      "幸福"
+    ],
+
+    "description": "ジニアは、鮮やかな色彩と長い花期で知られる花です。花言葉は「不在の友を思う」「絆」「幸福」で、友情や愛情を象徴します。庭園や花壇に植えることで、明るく元気な雰囲気を演出します。",
+    "date" : "2024-06-01"ーーー日付
+
+  }
+
+図鑑追加項目（flower.json）
 origin	起源	text
 habitat	咲いている場所	text
 features	特徴	text

@@ -5,7 +5,7 @@ import type { CharacterData } from '../test_data.ts';
 import { SCENE_KEYS } from '../sceneKeys';
 import type { CombatTarget, Player } from './Player';
 import { beginStageSkillStates, type FlowerSkillState } from './SkillApi.ts';
-import retreatButtonAsset from '../../assets/button/retreat_button.png';
+import retreatButtonAsset from '../../assets/ui/button/retreat_button.png';
 
 /** Screen-fixed controls and status display for the side-scrolling stage. */
 export class StageHUD {

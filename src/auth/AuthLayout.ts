@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import buttonImage from '../assets/ui/button1.png';
-import backgroundImage from '../assets/background/auth-meadow.png';
+import backgroundImage from '../assets/images/background/auth-meadow.png';
 import './auth-layout.css';
 
 // Native inputs remain usable with touch keyboards and browser password managers.

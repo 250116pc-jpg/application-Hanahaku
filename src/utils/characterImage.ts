@@ -1,5 +1,5 @@
 import Phaser from 'phaser'
-import sunflower from '../assets/flowers/sunflower.png'
+import sunflower from '../assets/images/pixel_flowers/sunflower.png'
 
 // Prototype character 1 uses the new sunflower art. Other flowers keep their placeholder.
 export function preloadCharacterImages(scene: Phaser.Scene): void {

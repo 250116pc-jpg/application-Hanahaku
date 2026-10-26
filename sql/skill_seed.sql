@@ -17,16 +17,16 @@ ON DUPLICATE KEY UPDATE
   upgrade_data = VALUES(upgrade_data);
 
 INSERT INTO flowers (id, name, Game_image, Real_image, skill_id) VALUES
-  (1, 'ジニア', 'src/assets/flowers/zinia.png', 'src/assets/realflowers/zinia.png', 1),
-  (2, 'スイレン', 'src/assets/flowers/suiren.png', 'src/assets/realflowers/suiren.png', 2),
-  (3, '桜', 'src/assets/flowers/sakura.png', 'src/assets/realflowers/sakura.png', 3),
-  (4, 'ひまわり', 'src/assets/flowers/sunflower.png', 'src/assets/realflowers/himawari.png', 4),
-  (5, 'サルスベリ', 'src/assets/flowers/sarusuberi.png', 'src/assets/realflowers/sarusuberi.png', 5),
-  (6, 'ムクゲ', 'src/assets/flowers/mukuge.png', 'src/assets/realflowers/mukuge.png', 6),
-  (7, 'コキア', 'src/assets/flowers/kochia.png', 'src/assets/realflowers/kokia.png', 7),
-  (8, 'ハス', 'src/assets/flowers/hasu.png', 'src/assets/realflowers/hasu.png', 8),
-  (9, 'ルリマツリ', 'src/assets/flowers/rurimatsuri.png', 'src/assets/realflowers/rurimaturi.png', 9),
-  (10, 'アジサイ', 'src/assets/flowers/ajisai.png', 'src/assets/realflowers/azisai.png', 10)
+  (1, 'ジニア', 'src/assets/images/pixel_flowers/zinia.png', 'src/assets/images/real_flowers/zinia.png', 1),
+  (2, 'スイレン', 'src/assets/images/pixel_flowers/suiren.png', 'src/assets/images/real_flowers/suiren.png', 2),
+  (3, '桜', 'src/assets/images/pixel_flowers/sakura.png', 'src/assets/images/real_flowers/sakura.png', 3),
+  (4, 'ひまわり', 'src/assets/images/pixel_flowers/sunflower.png', 'src/assets/images/real_flowers/himawari.png', 4),
+  (5, 'サルスベリ', 'src/assets/images/pixel_flowers/sarusuberi.png', 'src/assets/images/real_flowers/sarusuberi.png', 5),
+  (6, 'ムクゲ', 'src/assets/images/pixel_flowers/mukuge.png', 'src/assets/images/real_flowers/mukuge.png', 6),
+  (7, 'コキア', 'src/assets/images/pixel_flowers/kochia.png', 'src/assets/images/real_flowers/kokia.png', 7),
+  (8, 'ハス', 'src/assets/images/pixel_flowers/hasu.png', 'src/assets/images/real_flowers/hasu.png', 8),
+  (9, 'ルリマツリ', 'src/assets/images/pixel_flowers/rurimatsuri.png', 'src/assets/images/real_flowers/rurimaturi.png', 9),
+  (10, 'アジサイ', 'src/assets/images/pixel_flowers/ajisai.png', 'src/assets/images/real_flowers/azisai.png', 10)
 ON DUPLICATE KEY UPDATE
   name = VALUES(name),
   Game_image = VALUES(Game_image),

@@ -1,10 +1,10 @@
 import Phaser from 'phaser'
 
 // アセットのインポート（実際のファイルパスに合わせて調整してください）
-import bg1Img from '../assets/background/home_image1.png'
-import bg2Img from '../assets/background/home_image2.png'
-import bg3Img from '../assets/background/home_image3.png'
-import bg4Img from '../assets/background/home_image4.png'
+import bg1Img from '../assets/images/background/home_image1.png'
+import bg2Img from '../assets/images/background/home_image2.png'
+import bg3Img from '../assets/images/background/home_image3.png'
+import bg4Img from '../assets/images/background/home_image4.png'
 import btn1Img from '../assets/ui/button1.png'
 import { loadCharacterAnimation, createCharacterAnimation, createCharacterSprite } from '../animation/animation'
 import { homeAnimationData, homeAttackCombos, homeAnimationNames, homeClickActions, type HomeAttackName } from '../animation/homeAnimationData'

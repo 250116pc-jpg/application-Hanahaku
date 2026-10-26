@@ -1,15 +1,15 @@
-import backgroundImage from '../../assets/background/2.png';
+import backgroundImage from '../../assets/images/background/2.png';
 import shopkeeperImage from '../../assets/characters/004/004_3.png';
-import redPotionImage from '../../assets/images/hanahaku_assets_v2/items/asset_075.png';
-import bluePotionImage from '../../assets/images/hanahaku_assets_v2/items/asset_076.png';
-import greenPotionImage from '../../assets/images/hanahaku_assets_v2/items/asset_078.png';
-import blueCrystalImage from '../../assets/images/hanahaku_assets_v2/items/asset_080.png';
-import leafImage from '../../assets/images/hanahaku_assets_v2/items/asset_079.png';
-import sproutImage from '../../assets/images/hanahaku_assets_v2/items/asset_077.png';
-import flowerImage from '../../assets/images/hanahaku_assets_v2/items/asset_087.png';
-import seedImage from '../../assets/images/hanahaku_assets_v2/items/asset_088.png';
-import featherImage from '../../assets/images/hanahaku_assets_v2/items/asset_089.png';
-import crystalImage from '../../assets/images/hanahaku_assets_v2/items/asset_091.png';
+import redPotionImage from '../../assets/images/items/asset_075.png';
+import bluePotionImage from '../../assets/images/items/asset_076.png';
+import greenPotionImage from '../../assets/images/items/asset_078.png';
+import blueCrystalImage from '../../assets/images/items/asset_080.png';
+import leafImage from '../../assets/images/items/asset_079.png';
+import sproutImage from '../../assets/images/items/asset_077.png';
+import flowerImage from '../../assets/images/items/asset_087.png';
+import seedImage from '../../assets/images/items/asset_088.png';
+import featherImage from '../../assets/images/items/asset_089.png';
+import crystalImage from '../../assets/images/items/asset_091.png';
 
 export const SHOP_BACKGROUND_KEY = 'shop-background';
 
