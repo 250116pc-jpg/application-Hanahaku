@@ -4,7 +4,7 @@
     "name": "桜",
     "enhance_id": 2,
     "skill_id": 3,
-    "element": 3,
+    "element": 1,
     "status_bonus": {
         "hp": 13,
         "mp": 28,

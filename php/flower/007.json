@@ -4,7 +4,7 @@
     "name": "コキア",
     "enhance_id": 4,
     "skill_id": 7,
-    "element": 3,
+    "element": 6,
     "status_bonus": {
         "hp": 10,
         "mp": 22,

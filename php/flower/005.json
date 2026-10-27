@@ -4,7 +4,7 @@
     "name": "サルスベリ",
     "enhance_id": 1,
     "skill_id": 5,
-    "element": 3,
+    "element": 2,
     "status_bonus": {
         "hp": 12,
         "mp": 18,

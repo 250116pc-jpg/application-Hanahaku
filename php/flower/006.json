@@ -4,7 +4,7 @@
     "name": "ムクゲ",
     "enhance_id": 4,
     "skill_id": 6,
-    "element": 4,
+    "element": 3,
     "status_bonus": {
         "hp": 11,
         "mp": 15,

@@ -4,7 +4,7 @@
     "name": "スイレン",
     "enhance_id": 3,
     "skill_id": 2,
-    "element": 2,
+    "element": 6,
     "status_bonus": {
         "hp": 15,
         "mp": 24,
