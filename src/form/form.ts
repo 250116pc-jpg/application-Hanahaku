@@ -8,6 +8,7 @@ import { FormationManager } from './FormationManager'
 import { createTextButton } from '../utils/ui'
 import { showDebugSceneName } from '../debug'
 import { SCENE_KEYS } from '../Scene/sceneKeys'
+import { loadFormation, saveFormation } from './formationStorage'
 
 type FormationData = { characters: CharacterData[]; formation: Array<number | null> }
 const formationData = JSON.parse(rawFormationData) as FormationData
@@ -41,6 +42,7 @@ export class FormScene extends Phaser.Scene {
 
   create(): void {
     showDebugSceneName(this)
+    formationData.formation = loadFormation()
     this.ui = new FormUI(this)
     this.formationManager = new FormationManager(formationData.characters, formationData.formation)
     const formation = this.formationManager.getFormation()
@@ -71,7 +73,9 @@ export class FormScene extends Phaser.Scene {
     this.statusText = this.add.text(790, 587, 'カードを選ぶと編成に追加できます', { fontFamily: '"Yu Gothic", "Meiryo", sans-serif', fontSize: '14px', color: '#e7dfc8' })
     this.ui.createActionButton(860, 660, 150, '詳細', false, () => this.openCharacterDetail())
     this.ui.createActionButton(1030, 660, 170, '編成を決定', true, () => {
-      formationData.formation.splice(0, formationData.formation.length, ...this.formationManager.getFormation())
+      const formation = this.formationManager.getFormation()
+      formationData.formation.splice(0, formationData.formation.length, ...formation)
+      saveFormation(formation)
       this.scene.start(SCENE_KEYS.HOME)
     })
     this.refreshTopControls()

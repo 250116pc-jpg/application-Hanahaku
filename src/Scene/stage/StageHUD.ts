@@ -5,6 +5,7 @@ import type { CharacterData } from '../test_data.ts';
 import { SCENE_KEYS } from '../sceneKeys';
 import type { CombatTarget, Player } from './Player';
 import { beginStageSkillStates, type FlowerSkillState } from './SkillApi.ts';
+import { loadFormation } from '../../form/formationStorage.ts';
 import retreatButtonAsset from '../../assets/ui/button/retreat_button.png';
 import rawSkillDefinitions from '../../../php/skill/skills.json?raw';
 import rawStatusDefinitions from '../../../php/skill/statuses.json?raw';
@@ -24,6 +25,7 @@ export class StageHUD {
   private readonly scene: Phaser.Scene;
   private readonly player?: Player;
   private readonly enemies: readonly CombatTarget[];
+  private readonly formation = loadFormation();
   private selectedFlower = 0;
   private readonly partySelectionBorders: Phaser.GameObjects.Graphics[] = [];
   private readonly partyStatusContainers: Array<Phaser.GameObjects.Container | undefined> = [];
@@ -74,7 +76,7 @@ export class StageHUD {
   }
 
   private createStatusPanel(): void {
-    const leader = testData.characters.find(c => c.id === testData.formation[0]);
+    const leader = testData.characters.find(c => c.id === this.formation[0]);
     if (!leader) return;
     const w = this.scene.scale.width;
     const compact = w < 760;
@@ -246,7 +248,7 @@ export class StageHUD {
   }
 
   private createPartyHud(): void {
-    const formation = testData.formation;
+    const formation = this.formation;
     const width = this.scene.scale.width;
     const height = this.scene.scale.height;
     const gap = 10;
@@ -426,7 +428,7 @@ export class StageHUD {
   }
 
   private useSelectedFlowerSkill(index = this.selectedFlower): void {
-    const formationId = testData.formation[index];
+    const formationId = this.formation[index];
     const flower = testData.characters.find(character => character.id === formationId);
     if (!flower || !this.player) return;
     const cooldownUntil = this.flowerCooldownUntil.get(flower.id) ?? 0;
@@ -518,7 +520,7 @@ export class StageHUD {
 
   private updateSkillLabel(): void {
     if (!this.skillNameText) return;
-    const formationId = testData.formation[this.selectedFlower];
+    const formationId = this.formation[this.selectedFlower];
     const flower = testData.characters.find(character => character.id === formationId);
     const skill = flower
       ? this.flowerSkills.get(flower.id) ?? getFlowerSkill(flower.id)
@@ -546,7 +548,7 @@ export class StageHUD {
         this.flowerCooldownUntil.set(state.flowerId, state.cooldownUntil);
         this.flowerSkills.set(state.flowerId, state.skill);
         this.flowerCooldownDuration.set(state.flowerId, state.skill.cooldownSeconds * 1000);
-        const formationIndex = testData.formation.indexOf(state.flowerId);
+        const formationIndex = this.formation.indexOf(state.flowerId);
         const flower = testData.characters.find(character => character.id === state.flowerId);
         if (formationIndex >= 0 && flower) this.updateFlowerMp(formationIndex, flower);
       });
@@ -563,7 +565,7 @@ export class StageHUD {
     this.flowerCooldownOverlays.forEach((overlay, index) => {
       const center = this.flowerSkillIconCenters[index];
       if (!overlay || !center) return;
-      const flowerId = testData.formation[index];
+      const flowerId = this.formation[index];
       if (typeof flowerId !== 'number') return;
       const remaining = (this.flowerCooldownUntil.get(flowerId) ?? 0) - now;
       const duration = this.flowerCooldownDuration.get(flowerId) ?? 0;

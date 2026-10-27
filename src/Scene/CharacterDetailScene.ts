@@ -5,6 +5,7 @@ import flowerImg from '../assets/flower.png'
 import testData from './test_data'
 import type { CharacterData } from './test_data'
 import { createStandardSceneFrame, getTextStyle, createTextButton } from '../utils/ui'
+import rawSkillDefinitions from '../../php/skill/skills.json?raw'
 //debug機能
 import { showDebugSceneName } from '../debug';
 import { SCENE_KEYS } from './sceneKeys';
@@ -18,6 +19,41 @@ type CharacterDetailSceneData = {
   characterId?: number
   returnScene?: string
   returnLabel?: string
+}
+
+type SkillDefinition = {
+  id: number
+  name: string
+  description: string
+  element: string
+  mpCost: number
+  cooldownSeconds: number
+}
+
+const skillDefinitions = (JSON.parse(rawSkillDefinitions) as { skills: SkillDefinition[] }).skills
+
+// Phaser の日本語自動折り返しに依存せず、表示幅に収まる位置へ改行を入れる。
+function forceWrapJapaneseText(value: string, maxCharacters = 20): string {
+  const lines: string[] = []
+  let line = ''
+
+  for (const character of value) {
+    if (character === '\n') {
+      lines.push(line)
+      line = ''
+      continue
+    }
+
+    line += character
+    const length = [...line].length
+    if (/[。！？]/.test(character) || length >= maxCharacters) {
+      lines.push(line)
+      line = ''
+    }
+  }
+
+  if (line) lines.push(line)
+  return lines.join('\n')
 }
 
 export class CharacterDetailScene extends Phaser.Scene {
@@ -102,17 +138,37 @@ export class CharacterDetailScene extends Phaser.Scene {
       .setStrokeStyle(2, BORDER_COLOR)
 
     this.add.text(550, 365, 'スキル', getTextStyle(26))
-    this.add.text(550, 410, character.skills.map((skill, index) => {
-      return `スキル${index + 1}: ${skill}`
-    }).join('\n'), {
-      ...getTextStyle(22),
-      lineSpacing: 8
-    })
+    let y = 405
+    character.skills.forEach((skillName, index) => {
+      const definition = skillDefinitions.find(skill => skill.name === skillName)
+        ?? skillDefinitions.find(skill => skill.id === character.id)
+      this.add.text(550, y, `スキル${index + 1}: ${definition?.name ?? skillName}`, {
+        ...getTextStyle(20),
+        padding: { top: 0, bottom: 0, left: 0, right: 0 },
+        fontStyle: 'bold'
+      })
+      y += 27
 
-    this.add.text(550, 500, character.description, {
-      ...getTextStyle(20),
-      wordWrap: { width: 430 },
-      lineSpacing: 8
+      if (!definition) {
+        const fallback = this.add.text(550, y, forceWrapJapaneseText(character.description), {
+          ...getTextStyle(17), padding: { top: 0, bottom: 0, left: 0, right: 0 }, lineSpacing: 3
+        })
+        y += fallback.height + 8
+        return
+      }
+
+      this.add.text(550, y, `属性 ${definition.element}　消費MP ${definition.mpCost}　CT ${definition.cooldownSeconds}秒`, {
+        ...getTextStyle(15),
+        padding: { top: 0, bottom: 0, left: 0, right: 0 },
+        color: '#52616b'
+      })
+      y += 22
+      const description = this.add.text(550, y, forceWrapJapaneseText(definition.description), {
+        ...getTextStyle(17),
+        padding: { top: 0, bottom: 0, left: 0, right: 0 },
+        lineSpacing: 3
+      })
+      y += description.height + 8
     })
   }
 
