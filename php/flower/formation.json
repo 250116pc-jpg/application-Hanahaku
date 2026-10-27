@@ -1,0 +1,15 @@
+{
+  "formation": [1, 2, 3, 4],
+  "characters": [
+    {"id":1,"code":"zinia","name":"ジニア","species":"ジニア","rarity":3,"level":1,"maxLevel":40,"element":"熱","role":"攻撃","season":"夏","description":"鮮やかな花を咲かせる、攻撃が得意な花です。","stats":{"hp":820,"mp":230,"atk":156,"def":102,"speed":98},"skills":["軽い攻撃スキルを連打"]},
+    {"id":2,"code":"suiren","name":"スイレン","species":"スイレン","rarity":2,"level":1,"maxLevel":30,"element":"無","role":"防御","season":"夏","description":"水辺に咲く、防御が得意な花です。","stats":{"hp":900,"mp":180,"atk":75,"def":140,"speed":70},"skills":["どっしり固いディフェンス"]},
+    {"id":3,"code":"sakura","name":"桜","species":"サクラ","rarity":2,"level":1,"maxLevel":30,"element":"光","role":"攻撃","season":"春","description":"春を彩る、攻撃が得意な花です。","stats":{"hp":700,"mp":310,"atk":148,"def":90,"speed":116},"skills":["太陽の光線的な一発どかんタイプ"]},
+    {"id":4,"code":"sunflower","name":"ひまわり","species":"ヒマワリ","rarity":3,"level":1,"maxLevel":40,"element":"熱","role":"補助","season":"夏","description":"太陽に向かって咲く、仲間の補助が得意な花です。","stats":{"hp":650,"mp":160,"atk":142,"def":80,"speed":105},"skills":["扱いやすいバランス型"]},
+    {"id":5,"code":"sarusuberi","name":"サルスベリ","species":"サルスベリ","rarity":1,"level":1,"maxLevel":20,"element":"熱","role":"攻撃","season":"夏","description":"夏に長く花を咲かせる、攻撃が得意な花です。","stats":{"hp":540,"mp":210,"atk":90,"def":74,"speed":120},"skills":["絶え間ない連続攻撃スキル"]},
+    {"id":6,"code":"mukuge","name":"ムクゲ","species":"ムクゲ","rarity":2,"level":1,"maxLevel":30,"element":"水","role":"補助","season":"夏","description":"夏に咲く、仲間の補助が得意な花です。","stats":{"hp":560,"mp":260,"atk":80,"def":76,"speed":112},"skills":["紅葉"]},
+    {"id":7,"code":"kochia","name":"コキア","species":"コキア","rarity":1,"level":1,"maxLevel":20,"element":"風","role":"防御","season":"秋","description":"季節とともに色づく、防御が得意な花です。","stats":{"hp":500,"mp":240,"atk":72,"def":68,"speed":130},"skills":["トップクラスの耐久力"]},
+    {"id":8,"code":"hasu","name":"ハス","species":"ハス","rarity":1,"level":1,"maxLevel":20,"element":"無","role":"補助","season":"夏","description":"水辺に咲く、仲間の補助が得意な花です。","stats":{"hp":520,"mp":220,"atk":78,"def":70,"speed":118},"skills":["デバフ"]},
+    {"id":9,"code":"rurimatsuri","name":"ルリマツリ","species":"ルリマツリ","rarity":2,"level":1,"maxLevel":30,"element":"光","role":"回復","season":"夏","description":"青い花を咲かせる、回復が得意な花です。","stats":{"hp":590,"mp":190,"atk":82,"def":88,"speed":91},"skills":["回復"]},
+    {"id":10,"code":"ajisai","name":"アジサイ","species":"アジサイ","rarity":3,"level":1,"maxLevel":40,"element":"無","role":"補助","season":"夏","description":"色とりどりの花を咲かせる、仲間の補助が得意な花です。","stats":{"hp":880,"mp":240,"atk":128,"def":76,"speed":108},"skills":["隠密系"]}
+  ]
+}

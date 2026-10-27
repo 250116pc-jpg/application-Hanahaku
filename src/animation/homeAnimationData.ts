@@ -15,7 +15,7 @@ import spinAttack from '../assets/characters/player/Red Cape Knight Character As
 // 1コマ192×128。frameRateで速度、repeatで繰り返し回数を調整する。
 export const homeAnimationData = {
   // 待機中だけのピース動作。クリック時の抽選候補には含めない。
-  win: { image: win, frameWidth: 192, frameHeight: 128, frameCount: 5, frameRate: 6, repeat: 0 },
+  win: { image: win, frameWidth: 192, frameHeight: 128, frameCount: 5, frameRate: 8, repeat: 0, yoyo: true },
   run: { image: run, frameWidth: 192, frameHeight: 128, frameCount: 9, frameRate: 9, repeat: -1 },
   jump: { image: jump, frameWidth: 192, frameHeight: 128, frameCount: 4, frameRate: 10, repeat: 0 },
   fall: { image: fall, frameWidth: 192, frameHeight: 128, frameCount: 4, frameRate: 8, repeat: 0 },

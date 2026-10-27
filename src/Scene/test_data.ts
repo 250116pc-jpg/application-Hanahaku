@@ -21,6 +21,7 @@ export type FlowerSkill = {
 
 export type CharacterData = {
   id: number
+  code?: string
   name: string
   species: string
   rarity: number

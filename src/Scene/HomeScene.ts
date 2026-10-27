@@ -6,7 +6,7 @@ import bg2Img from '../assets/images/background/home_image2.png'
 import bg3Img from '../assets/images/background/home_image3.png'
 import bg4Img from '../assets/images/background/home_image4.png'
 import btn1Img from '../assets/ui/button1.png'
-import { loadCharacterAnimation, createCharacterAnimation, createCharacterSprite } from '../animation/animation'
+import { loadCharacterAnimation, createCharacterSprite } from '../animation/animation'
 import { homeAnimationData, homeAttackCombos, homeAnimationNames, homeClickActions, type HomeAttackName } from '../animation/homeAnimationData'
 
 import { createButton } from './HomeScene/buttons'
@@ -68,7 +68,15 @@ export class HomeScene extends Phaser.Scene {
       const data = homeAnimationData[action]
       // 共通定義に余分なコマ数があっても、実画像の範囲内に収める。
       const frameCount = Math.min(data.frameCount, this.textures.get(key).frameTotal - 1)
-      createCharacterAnimation(this, key, key, frameCount, data.frameRate, data.repeat)
+      if (!this.anims.exists(key)) {
+        this.anims.create({
+          key,
+          frames: this.anims.generateFrameNumbers(key, { start: 0, end: frameCount - 1 }),
+          frameRate: data.frameRate,
+          repeat: data.repeat,
+          yoyo: 'yoyo' in data && data.yoyo === true
+        })
+      }
     })
     const player = createCharacterSprite(this, 420 * scaleX, 390 * scaleY, 'home-player-idle', 'home-player-idle')
     player.setScale(2.25)

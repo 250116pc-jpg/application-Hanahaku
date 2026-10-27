@@ -1,0 +1,209 @@
+{
+  "skills": [
+    {
+      "id": 1,
+      "name": "軽い攻撃スキルを連打",
+      "description": "攻撃力の100+level×20%で3+level回攻撃する。",
+      "type": "multiHit",
+      "element": "熱",
+      "category": "攻撃",
+      "icon": "icon_01",
+      "statusIds": [],
+      "maxMp": 230,
+      "mpCost": 25,
+      "cooldownSeconds": 20,
+      "effect": {
+        "damagePercent": { "base": 100, "perLevel": 20 },
+        "hitCount": { "base": 3, "perLevel": 1 },
+        "range": 190,
+        "area": [[0, 0, 0, 0, 0], [1, 2, 2, 2, 2], [0, 0, 0, 0, 0]]
+      }
+    },
+    {
+      "id": 2,
+      "name": "どっしり固いディフェンス",
+      "description": "15秒間、防御力を15+level×3%上昇させ、5秒ごとに自身のHPの5+level%を回復する。",
+      "type": "defensiveRecovery",
+      "element": "無",
+      "category": "強化・回復",
+      "icon": "icon_02",
+      "statusIds": ["def_up", "hp_regen"],
+      "maxMp": 180,
+      "mpCost": 26,
+      "cooldownSeconds": 28,
+      "effect": {
+        "durationMs": 15000,
+        "defenseBonusPercent": { "base": 15, "perLevel": 3 },
+        "healPercent": { "base": 5, "perLevel": 1 },
+        "healIntervalMs": 5000,
+        "range": 190
+      }
+    },
+    {
+      "id": 3,
+      "name": "太陽の光線的な一発どかんタイプ",
+      "description": "3秒間通常攻撃ができなくなり、防御力が-20+level×4%。3秒後、攻撃力の300+level×15%で攻撃する。",
+      "type": "charge",
+      "element": "熱",
+      "category": "攻撃",
+      "icon": "icon_03",
+      "statusIds": ["def_down"],
+      "maxMp": 310,
+      "mpCost": 28,
+      "cooldownSeconds": 30,
+      "effect": {
+        "durationMs": 3000,
+        "defenseBonusPercent": { "base": -20, "perLevel": 4 },
+        "damagePercent": { "base": 300, "perLevel": 15 },
+        "range": 190
+      }
+    },
+    {
+      "id": 4,
+      "name": "扱いやすいバランス型",
+      "description": "15+level秒間、攻撃力を15+level×5%、防御力を10%上げる。3秒ごとに攻撃力の15+level%の追尾弾を放つ。",
+      "type": "balanced",
+      "element": "熱",
+      "category": "攻撃・強化",
+      "icon": "icon_04",
+      "statusIds": ["atk_up", "def_up"],
+      "maxMp": 160,
+      "mpCost": 30,
+      "cooldownSeconds": 34,
+      "effect": {
+        "durationMs": { "base": 15000, "perLevel": 1000 },
+        "attackBonusPercent": { "base": 15, "perLevel": 5 },
+        "defenseBonusPercent": 10,
+        "damagePercent": { "base": 15, "perLevel": 1 },
+        "repeatIntervalMs": 3000,
+        "range": 190
+      }
+    },
+    {
+      "id": 5,
+      "name": "絶え間ない連続攻撃スキル",
+      "description": "20秒間、攻撃速度を30+level×2%、攻撃力を10+level×5%上げ、防御力を15%下げる。1秒ごとに攻撃力の150+level×10%で攻撃する。",
+      "type": "continuous",
+      "element": "水",
+      "category": "攻撃・強化",
+      "icon": "icon_05",
+      "statusIds": ["atk_up", "def_down"],
+      "maxMp": 210,
+      "mpCost": 33,
+      "cooldownSeconds": 31,
+      "effect": {
+        "durationMs": 20000,
+        "attackBonusPercent": { "base": 10, "perLevel": 5 },
+        "defenseBonusPercent": -15,
+        "attackSpeedBonusPercent": { "base": 30, "perLevel": 2 },
+        "damagePercent": { "base": 150, "perLevel": 10 },
+        "repeatIntervalMs": 1000,
+        "range": 190
+      }
+    },
+    {
+      "id": 6,
+      "name": "紅葉",
+      "description": "緑形態では20秒間、防御力が30+スキルLv×3%上昇し、毎秒最大HPのスキルLv×1%を回復する。次の発動で赤形態に切り替わり、攻撃力100+Lv×10%、140+Lv×20%、180+Lv×30%の三段攻撃を行う。三段目は敵を吹き飛ばし、各段に10+スキルLv×2%の確率で衰退を付与する。",
+      "type": "maple",
+      "element": "風",
+      "category": "攻撃・変化・強化・回復",
+      "icon": "icon_06",
+      "statusIds": ["def_up", "hp_regen"],
+      "maxMp": 260,
+      "mpCost": 42,
+      "cooldownSeconds": 33,
+      "effect": {
+        "durationMs": 20000,
+        "defenseBonusPercent": { "base": 30, "perLevel": 3 },
+        "healPercent": { "base": 0, "perLevel": 1 },
+        "healIntervalMs": 1000,
+        "range": 200,
+        "stages": [
+          { "damagePercent": { "base": 100, "perLevel": 10 }, "range": 120, "knockback": false },
+          { "damagePercent": { "base": 140, "perLevel": 20 }, "range": 160, "knockback": false },
+          { "damagePercent": { "base": 180, "perLevel": 30 }, "range": 200, "knockback": true }
+        ],
+        "witherChancePercent": { "base": 10, "perLevel": 2 }
+      }
+    },
+    {
+      "id": 7,
+      "name": "トップクラスの耐久力",
+      "description": "35+level×2秒間、最大HPと現在HPを75+level×15%上げ、防御力を10+level×5%上げる。攻撃力は10+level×5%下がる。",
+      "type": "fortify",
+      "element": "無",
+      "category": "強化",
+      "icon": "icon_07",
+      "statusIds": ["hp_max", "def_up", "atk_down"],
+      "maxMp": 240,
+      "mpCost": 45,
+      "cooldownSeconds": 60,
+      "effect": {
+        "durationMs": { "base": 35000, "perLevel": 2000 },
+        "maxHealthBonusPercent": { "base": 75, "perLevel": 15 },
+        "healPercent": { "base": 75, "perLevel": 15 },
+        "defenseBonusPercent": { "base": 10, "perLevel": 5 },
+        "attackBonusPercent": { "base": -10, "perLevel": -5 },
+        "range": 190
+      }
+    },
+    {
+      "id": 8,
+      "name": "デバフ（被ダメアップや鈍足）とか",
+      "description": "攻撃力の80+level×10%で攻撃し、12+level秒間、敵全体の攻撃速度を20%下げる。",
+      "type": "slowAttack",
+      "element": "光",
+      "category": "攻撃・弱化",
+      "icon": "icon_08",
+      "statusIds": ["attack_speed_down"],
+      "maxMp": 220,
+      "mpCost": 30,
+      "cooldownSeconds": 36,
+      "effect": {
+        "damagePercent": { "base": 80, "perLevel": 10 },
+        "durationMs": { "base": 12000, "perLevel": 1000 },
+        "slowPercent": 20,
+        "range": 10000
+      }
+    },
+    {
+      "id": 9,
+      "name": "回復。",
+      "description": "回復力の80+level×15%で回復する。",
+      "type": "heal",
+      "element": "無",
+      "category": "回復",
+      "icon": "icon_09",
+      "statusIds": [],
+      "maxMp": 190,
+      "mpCost": 30,
+      "cooldownSeconds": 22,
+      "effect": {
+        "healPercent": { "base": 80, "perLevel": 15 },
+        "range": 190
+      }
+    },
+    {
+      "id": 10,
+      "name": "隠密系",
+      "description": "攻撃力の100+スキルLv×10%で1回攻撃し、15秒間、回避率を30%上げる。通常攻撃時に5+スキルLv×1%の確率で10秒間の毒を付与する設計だが、毒付与処理は未実装。",
+      "type": "evasion",
+      "element": "土",
+      "category": "攻撃・強化・弱化",
+      "icon": "icon_10",
+      "statusIds": ["eva_up"],
+      "maxMp": 240,
+      "mpCost": 31,
+      "cooldownSeconds": 35,
+      "effect": {
+        "damagePercent": { "base": 100, "perLevel": 10 },
+        "durationMs": 15000,
+        "evasionPercent": 30,
+        "range": 190,
+        "basicAttackPoisonChancePercent": { "base": 5, "perLevel": 1 },
+        "poisonDurationMs": 10000
+      }
+    }
+  ]
+}

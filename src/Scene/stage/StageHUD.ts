@@ -5,7 +5,19 @@ import type { CharacterData } from '../test_data.ts';
 import { SCENE_KEYS } from '../sceneKeys';
 import type { CombatTarget, Player } from './Player';
 import { beginStageSkillStates, type FlowerSkillState } from './SkillApi.ts';
+import { loadFormation } from '../../form/formationStorage.ts';
 import retreatButtonAsset from '../../assets/ui/button/retreat_button.png';
+import rawSkillDefinitions from '../../../php/skill/skills.json?raw';
+import rawStatusDefinitions from '../../../php/skill/statuses.json?raw';
+
+type StatusDefinition = { id: string; icon: string; tone: string };
+type SkillDefinition = { id: number; statusIds?: string[] };
+const statusDefinitions = new Map<string, StatusDefinition>(
+  (JSON.parse(rawStatusDefinitions) as { statuses: StatusDefinition[] }).statuses.map(status => [status.id, status])
+);
+const skillStatusIds = new Map<number, string[]>(
+  (JSON.parse(rawSkillDefinitions) as { skills: SkillDefinition[] }).skills.map(skill => [skill.id, skill.statusIds ?? []])
+);
 
 /** Screen-fixed controls and status display for the side-scrolling stage. */
 export class StageHUD {
@@ -13,8 +25,11 @@ export class StageHUD {
   private readonly scene: Phaser.Scene;
   private readonly player?: Player;
   private readonly enemies: readonly CombatTarget[];
+  private readonly formation = loadFormation();
   private selectedFlower = 0;
   private readonly partySelectionBorders: Phaser.GameObjects.Graphics[] = [];
+  private readonly partyStatusContainers: Array<Phaser.GameObjects.Container | undefined> = [];
+  private readonly partyStatusUntil = Array.from({ length: 4 }, () => new Map<string, number>());
   private readonly flowerMp = new Map(testData.characters.map(character =>
     [character.id, character.stats.mp] as const
   ));
@@ -26,6 +41,9 @@ export class StageHUD {
   private readonly flowerMpBarLayouts: Array<{ x: number; y: number; width: number } | undefined> = [];
   private readonly flowerSkills = new Map<number, FlowerSkillState['skill']>();
   private readonly flowerCooldownUntil = new Map<number, number>();
+  private readonly flowerCooldownDuration = new Map<number, number>();
+  private readonly flowerCooldownOverlays: Array<Phaser.GameObjects.Graphics | undefined> = [];
+  private readonly flowerSkillIconCenters: Array<{ x: number; y: number } | undefined> = [];
   private retreatDialog: HTMLDivElement | null = null;
   private hpBar?: Phaser.GameObjects.Rectangle;
   private hpBarX = 0;
@@ -33,7 +51,6 @@ export class StageHUD {
   private hpBarWidth = 0;
   private hpBarHeight = 0;
   private skillNameText?: Phaser.GameObjects.Text;
-  private skillIcon?: Phaser.GameObjects.Image;
 
   constructor(scene: Phaser.Scene, player?: Player, enemies: readonly CombatTarget[] = []) {
     this.scene = scene;
@@ -59,7 +76,7 @@ export class StageHUD {
   }
 
   private createStatusPanel(): void {
-    const leader = testData.characters.find(c => c.id === testData.formation[0]);
+    const leader = testData.characters.find(c => c.id === this.formation[0]);
     if (!leader) return;
     const w = this.scene.scale.width;
     const compact = w < 760;
@@ -231,20 +248,19 @@ export class StageHUD {
   }
 
   private createPartyHud(): void {
-    const formation = testData.formation;
+    const formation = this.formation;
     const width = this.scene.scale.width;
     const height = this.scene.scale.height;
     const gap = 10;
-    const totalW = Math.min(width * 0.48, 620);
+    const totalW = Math.min(width * 0.72, 750);
     const cardW = (totalW - gap * 3) / 4;
-    const cardH = Math.min(130, Math.max(92, height * 0.145));
-    const left = (width - totalW) / 2;
+    const cardH = 150;
+    const left = Math.max(16, Math.min(220, width - totalW - 16));
     const top = height - cardH - 18;
 
     for (let i = 0; i < 4; i++) {
       const x = left + i * (cardW + gap);
       const character = testData.characters.find(c => c.id === formation[i]);
-      this.panel(x, top, cardW, cardH, 11, 0.92);
       const border = this.scene.add.graphics().setScrollFactor(0).setDepth(this.depth + 2);
       this.partySelectionBorders.push(border);
       this.drawPartySelection(border, x, top, cardW, cardH, i === this.selectedFlower);
@@ -252,23 +268,21 @@ export class StageHUD {
         this.flowerMpLabels.push(undefined);
         this.flowerMpBars.push(undefined);
         this.flowerMpBarLayouts.push(undefined);
-        this.text(x + cardW / 2, top + cardH / 2, '＋ 空き枠', 13, '#d4dce5', 'bold').setOrigin(0.5);
+        this.partyStatusContainers.push(undefined);
+        this.flowerCooldownOverlays.push(undefined);
+        this.flowerSkillIconCenters.push(undefined);
+        this.text(x + cardW / 2, top + cardH / 2, '＋ 空き枠', 16, '#d4dce5', 'bold').setOrigin(0.5);
         continue;
       }
-      this.scene.add.zone(x + cardW / 2, top + cardH / 2, cardW, cardH)
-        .setScrollFactor(0).setDepth(this.depth + 10).setInteractive({ useHandCursor: true })
-        .on('pointerdown', () => this.selectFlower(i, cardH));
-      this.scene.add.image(x + 27, top + 29, 'stage-flower')
-        .setDisplaySize(36, 36).setScrollFactor(0).setDepth(this.depth + 1);
-      this.scene.add.image(x + cardW - 18, top + 18, `flower-skill-${character.id}`)
-        .setDisplaySize(25, 25).setScrollFactor(0).setDepth(this.depth + 2);
-      this.text(x + 52, top + 18, character.name, Math.min(14, cardW / 7), '#fff', 'bold');
-      this.text(x + 10, top + 54, 'MP', 10, '#b9e6ee', 'bold');
-      const mpLabel = this.text(x + cardW - 10, top + 53, '', 10, '#f5f0e8').setOrigin(1, 0);
+      this.text(x + 8, top + 4, `${character.name}  Lv.${character.level}`, Math.min(16, cardW / 10), '#fff4e8', 'bold')
+        .setStroke('#111923', 5);
+      this.text(x + 8, top + 27, 'MP', 12, '#b9e6ee', 'bold').setStroke('#111923', 4);
+      const mpLabel = this.text(x + cardW - 8, top + 27, '', 12, '#f5f0e8').setOrigin(1, 0)
+        .setStroke('#111923', 4);
       const mpBar = this.bar(
-        x + 10,
-        top + cardH - 24,
-        cardW - 20,
+        x + 8,
+        top + 49,
+        cardW - 16,
         8,
         this.flowerMp.get(character.id) ?? 0,
         character.stats.mp,
@@ -276,7 +290,27 @@ export class StageHUD {
       );
       this.flowerMpLabels.push(mpLabel);
       this.flowerMpBars.push(mpBar);
-      this.flowerMpBarLayouts.push({ x: x + 10, y: top + cardH - 24, width: cardW - 20 });
+      this.flowerMpBarLayouts.push({ x: x + 8, y: top + 49, width: cardW - 16 });
+      this.scene.add.image(x + 53, top + 108, `stage-flower-${character.id}`)
+        .setDisplaySize(86, 86).setScrollFactor(0).setDepth(this.depth + 2);
+      const skillX = x + cardW - 39;
+      const skillY = top + cardH - 38;
+      this.scene.add.rectangle(skillX, skillY, 72, 72, 0x101923, 0.96)
+        .setStrokeStyle(2, 0xe0c184, 1).setScrollFactor(0).setDepth(this.depth + 3);
+      this.scene.add.image(skillX, skillY, `flower-skill-${character.id}`)
+        .setDisplaySize(64, 64).setScrollFactor(0).setDepth(this.depth + 4);
+      const cooldownOverlay = this.scene.add.graphics().setScrollFactor(0).setDepth(this.depth + 5);
+      this.flowerCooldownOverlays.push(cooldownOverlay);
+      this.flowerSkillIconCenters.push({ x: skillX, y: skillY });
+      this.scene.add.zone(skillX, skillY, 72, 72)
+        .setScrollFactor(0).setDepth(this.depth + 10).setInteractive({ useHandCursor: true })
+        .on('pointerdown', () => {
+          this.selectFlower(i, cardH);
+          this.useSelectedFlowerSkill(i);
+        });
+      const statusContainer = this.scene.add.container(x + 8, top + 76)
+        .setScrollFactor(0).setDepth(this.depth + 5);
+      this.partyStatusContainers.push(statusContainer);
       this.updateFlowerMp(i, character);
     }
   }
@@ -286,9 +320,9 @@ export class StageHUD {
     this.partySelectionBorders.forEach((border, i) => {
       // Card positions are evenly spaced; derive each border rectangle from its index.
       const gap = 10;
-      const totalW = Math.min(this.scene.scale.width * 0.48, 620);
+      const totalW = Math.min(this.scene.scale.width * 0.72, 750);
       const cardW = (totalW - gap * 3) / 4;
-      const left = (this.scene.scale.width - totalW) / 2;
+      const left = Math.max(16, Math.min(220, this.scene.scale.width - totalW - 16));
       const top = this.scene.scale.height - height - 18;
       this.drawPartySelection(border, left + i * (cardW + gap), top, cardW, height, i === index);
     });
@@ -298,6 +332,50 @@ export class StageHUD {
   private drawPartySelection(graphics: Phaser.GameObjects.Graphics, x: number, y: number, width: number, height: number, selected: boolean): void {
     graphics.clear();
     if (selected) graphics.lineStyle(2, 0xffc968, 0.98).strokeRoundedRect(x, y, width, height, 11);
+  }
+
+  private setPartyStatuses(index: number, statusIds: string[], durationMs: number): void {
+    if (durationMs <= 0) return;
+    const untilByStatus = this.partyStatusUntil[index];
+    statusIds.forEach(statusId => untilByStatus.set(statusId, Date.now() + durationMs));
+    this.renderPartyStatuses(index);
+    this.scene.time.delayedCall(durationMs + 30, () => this.renderPartyStatuses(index));
+  }
+
+  private renderPartyStatuses(index: number): void {
+    const container = this.partyStatusContainers[index];
+    const untilByStatus = this.partyStatusUntil[index];
+    if (!container) return;
+    container.removeAll(true);
+    for (const [statusId, until] of untilByStatus) {
+      if (until <= Date.now()) untilByStatus.delete(statusId);
+    }
+    const active = [...untilByStatus.keys()];
+    active.forEach((statusId, slot) => {
+      const definition = statusDefinitions.get(statusId);
+      if (!definition) return;
+      const tint = this.getStatusTint(definition.tone);
+      const x = slot * 27;
+      const badge = this.scene.add.rectangle(x + 11, 0, 24, 24, tint, 0.9)
+        .setStrokeStyle(2, 0xffecd0, 0.95);
+      const iconName = definition.icon.replace('{stack}', '1');
+      const icon = this.scene.add.image(x + 11, 0, `status-${iconName}`).setDisplaySize(20, 20);
+      container.add([badge, icon]);
+    });
+  }
+
+  private getStatusTint(tone: string): number {
+    switch (tone) {
+      case 'buff': return 0xc94f53;
+      case 'debuff': return 0x3978be;
+      case 'poison': return 0x54934c;
+      case 'weak': return 0x836bb0;
+      case 'silence': return 0x587b9e;
+      case 'faint': return 0x687381;
+      case 'decline': return 0x947349;
+      case 'stone': return 0x81848b;
+      default: return 0x77699d;
+    }
   }
 
   private createMovementPad(): void {
@@ -318,13 +396,10 @@ export class StageHUD {
     const baseX = w - 72;
     //攻撃
     this.imageButton(baseX - 154, h - 94, 130, '', 'stage-attack', () => this.player?.attack(this.enemies));
-    //スキル
-    this.imageButton(baseX - 20, h - 172, 100, '', 'stage-skill', () => this.useSelectedFlowerSkill());
+    // Flower cards are the skill buttons; this label reports the selected flower's skill state.
     this.skillNameText = this.text(baseX + 28, h - 230, '', 14, '#fff4e8', 'bold').setOrigin(0.5);
-    this.skillIcon = this.scene.add.image(baseX - 20, h - 172, 'flower-skill-1')
-      .setDisplaySize(34, 34).setScrollFactor(0).setDepth(this.depth + 4);
     this.updateSkillLabel();
-    this.scene.time.addEvent({ delay: 1000, loop: true, callback: () => this.updateSkillLabel() });
+    this.scene.time.addEvent({ delay: 50, loop: true, callback: () => this.updateSkillLabel() });
     //ジャンプ
     this.imageButton(baseX - 40, h - 64, 130, '', 'stage-jump', () => this.player?.jump());
   }
@@ -352,8 +427,8 @@ export class StageHUD {
     hitArea.on('pointerupoutside', () => image.setScale(baseScale));
   }
 
-  private useSelectedFlowerSkill(): void {
-    const formationId = testData.formation[this.selectedFlower];
+  private useSelectedFlowerSkill(index = this.selectedFlower): void {
+    const formationId = this.formation[index];
     const flower = testData.characters.find(character => character.id === formationId);
     if (!flower || !this.player) return;
     const cooldownUntil = this.flowerCooldownUntil.get(flower.id) ?? 0;
@@ -379,34 +454,82 @@ export class StageHUD {
 
     this.flowerMp.set(flower.id, currentMp - skill.mpCost);
     this.flowerCooldownUntil.set(flower.id, Date.now() + skill.cooldownSeconds * 1000);
-    this.updateFlowerMp(this.selectedFlower, flower);
+    this.flowerCooldownDuration.set(flower.id, skill.cooldownSeconds * 1000);
+    this.updateFlowerMp(index, flower);
     if (!this.player.useFlowerSkill(skill, this.enemies)) {
       this.player.cancelReservedSkill();
       this.flowerMp.set(flower.id, currentMp);
       this.flowerCooldownUntil.set(flower.id, cooldownUntil);
-      this.updateFlowerMp(this.selectedFlower, flower);
+      this.updateFlowerMp(index, flower);
       this.skillNameText?.setText('スキル効果を反映できませんでした。');
       return;
     }
+    this.playSkillEffect(skill);
+    const duration = skill.durationMs || 1500;
+    const appliedStatuses = skillStatusIds.get(flower.id) ?? [];
+    this.setPartyStatuses(index, appliedStatuses, duration);
     this.updateSkillLabel();
+  }
+
+  private playSkillEffect(skill: FlowerSkillState['skill']): void {
+    if (!this.player) return;
+    const sheetByType: Record<string, string> = {
+      multiHit: '01_fire_slash', defensiveRecovery: '02_guard_buff', charge: '03_sun_beam',
+      balanced: '04_homing_orb', continuous: '05_water_burst', maple: '06a_leaf_green',
+      fortify: '07_fortify', slowAttack: '08_debuff', heal: '09_heal', evasion: '10_stealth',
+    };
+    const sheet = sheetByType[skill.type];
+    const animationKey = sheet ? `skill-effect-${sheet}` : '';
+    if (!sheet || !this.scene.anims.exists(animationKey)) return;
+
+    const selfCast = ['defensiveRecovery', 'fortify', 'heal', 'evasion', 'balanced', 'continuous'].includes(skill.type);
+    // Skill 8 targets every visible enemy; the others show their impact on the front target.
+    const targets = skill.type === 'slowAttack'
+      ? this.enemies.map(enemy => ({ x: enemy.x, y: enemy.y }))
+      : selfCast
+        ? [
+          { x: this.player.x, y: this.player.y },
+          ...(skill.type === 'evasion' && this.enemies[0]
+            ? [{ x: this.enemies[0].x, y: this.enemies[0].y }]
+            : []),
+        ]
+        : this.enemies.length > 0
+          ? [{ x: this.enemies[0].x, y: this.enemies[0].y }]
+          : [{ x: this.player.x, y: this.player.y }];
+    const size = skill.type === 'slowAttack' ? 240 : skill.type === 'charge' ? 250 : 208;
+    targets.forEach((target, index) => {
+      const spawn = (): void => {
+        const effect = this.scene.add.sprite(target.x, target.y - 22, `skill-effect-${sheet}`)
+          .setOrigin(0.5)
+          .setDisplaySize(size, size)
+          .setScrollFactor(1)
+          .setDepth(20)
+          .play(animationKey);
+        effect.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => effect.destroy());
+      };
+      if (skill.type === 'multiHit') {
+        Array.from({ length: Math.max(1, skill.hitCount) }, (_, hit) => hit * 160)
+          .forEach(delay => this.scene.time.delayedCall(delay, spawn));
+      } else if (skill.type === 'slowAttack') {
+        this.scene.time.delayedCall(index * 45, spawn);
+      } else {
+        spawn();
+      }
+    });
   }
 
   private updateSkillLabel(): void {
     if (!this.skillNameText) return;
-    const formationId = testData.formation[this.selectedFlower];
+    const formationId = this.formation[this.selectedFlower];
     const flower = testData.characters.find(character => character.id === formationId);
     const skill = flower
       ? this.flowerSkills.get(flower.id) ?? getFlowerSkill(flower.id)
       : undefined;
     this.skillNameText.setText(skill?.name ?? '花を選択');
+    this.updateCooldownOverlays();
     const cooldownUntil = flower ? this.flowerCooldownUntil.get(flower.id) ?? 0 : 0;
     if (cooldownUntil > Date.now()) {
       this.skillNameText.setText(`${skill?.name ?? 'スキル'} ${Math.ceil((cooldownUntil - Date.now()) / 1000)}秒`);
-    }
-    if (flower && skill && this.scene.textures.exists(`flower-skill-${flower.id}`)) {
-      this.skillIcon?.setTexture(`flower-skill-${flower.id}`).setVisible(true);
-    } else {
-      this.skillIcon?.setVisible(false);
     }
   }
 
@@ -424,7 +547,8 @@ export class StageHUD {
         this.flowerMaxMp.set(state.flowerId, state.maxMp);
         this.flowerCooldownUntil.set(state.flowerId, state.cooldownUntil);
         this.flowerSkills.set(state.flowerId, state.skill);
-        const formationIndex = testData.formation.indexOf(state.flowerId);
+        this.flowerCooldownDuration.set(state.flowerId, state.skill.cooldownSeconds * 1000);
+        const formationIndex = this.formation.indexOf(state.flowerId);
         const flower = testData.characters.find(character => character.id === state.flowerId);
         if (formationIndex >= 0 && flower) this.updateFlowerMp(formationIndex, flower);
       });
@@ -434,6 +558,25 @@ export class StageHUD {
       this.skillNameText?.setText(message);
       console.error('Flower skill state loading failed:', error);
     }
+  }
+
+  private updateCooldownOverlays(): void {
+    const now = Date.now();
+    this.flowerCooldownOverlays.forEach((overlay, index) => {
+      const center = this.flowerSkillIconCenters[index];
+      if (!overlay || !center) return;
+      const flowerId = this.formation[index];
+      if (typeof flowerId !== 'number') return;
+      const remaining = (this.flowerCooldownUntil.get(flowerId) ?? 0) - now;
+      const duration = this.flowerCooldownDuration.get(flowerId) ?? 0;
+      const progress = duration > 0 ? Phaser.Math.Clamp(remaining / duration, 0, 1) : 0;
+      overlay.clear();
+      if (progress > 0) {
+        // A dark cover recedes from the top as the skill becomes ready.
+        overlay.fillStyle(0x07101b, 0.7);
+        overlay.fillRect(center.x - 32, center.y - 32, 64, 64 * progress);
+      }
+    });
   }
 
   private updateFlowerMp(index: number, flower: CharacterData): void {

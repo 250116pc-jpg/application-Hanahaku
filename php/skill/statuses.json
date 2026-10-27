@@ -1,0 +1,180 @@
+{
+  "statuses": [
+    {
+      "id": "hp_max",
+      "name": "HP増強",
+      "kind": "buff",
+      "icon": "buff_hp_max",
+      "tone": "buff"
+    },
+    {
+      "id": "mp_regen",
+      "name": "MP継続回復",
+      "kind": "buff",
+      "icon": "buff_mp_regen",
+      "tone": "buff"
+    },
+    {
+      "id": "hp_regen",
+      "name": "HP継続回復",
+      "kind": "buff",
+      "icon": "buff_hp_regen",
+      "tone": "buff"
+    },
+    {
+      "id": "def_up",
+      "name": "物理防御力増加",
+      "kind": "buff",
+      "icon": "buff_def_up",
+      "tone": "buff"
+    },
+    {
+      "id": "mdef_up",
+      "name": "魔法防御力増加",
+      "kind": "buff",
+      "icon": "buff_mdef_up",
+      "tone": "buff"
+    },
+    {
+      "id": "atk_up",
+      "name": "物理攻撃力強化",
+      "kind": "buff",
+      "icon": "buff_atk_up",
+      "tone": "buff"
+    },
+    {
+      "id": "matk_up",
+      "name": "魔法攻撃力強化",
+      "kind": "buff",
+      "icon": "buff_matk_up",
+      "tone": "buff"
+    },
+    {
+      "id": "crit_up",
+      "name": "クリティカル率増加",
+      "kind": "buff",
+      "icon": "buff_crit_up",
+      "tone": "buff"
+    },
+    {
+      "id": "eva_up",
+      "name": "回避率増加",
+      "kind": "buff",
+      "icon": "buff_eva_up",
+      "tone": "buff"
+    },
+    {
+      "id": "move_up",
+      "name": "移動速度増加",
+      "kind": "buff",
+      "icon": "buff_move_up",
+      "tone": "buff"
+    },
+    {
+      "id": "fall_slow",
+      "name": "落下速度低下",
+      "kind": "buff",
+      "icon": "buff_fall_slow",
+      "tone": "buff"
+    },
+    {
+      "id": "atk_down",
+      "name": "物理攻撃力低下",
+      "kind": "debuff",
+      "icon": "debuff_atk_down",
+      "tone": "debuff"
+    },
+    {
+      "id": "matk_down",
+      "name": "魔法攻撃力低下",
+      "kind": "debuff",
+      "icon": "debuff_matk_down",
+      "tone": "debuff"
+    },
+    {
+      "id": "def_down",
+      "name": "物理防御力低下",
+      "kind": "debuff",
+      "icon": "debuff_def_down",
+      "tone": "debuff"
+    },
+    {
+      "id": "mdef_down",
+      "name": "魔法防御力低下",
+      "kind": "debuff",
+      "icon": "debuff_mdef_down",
+      "tone": "debuff"
+    },
+    {
+      "id": "crit_down",
+      "name": "クリティカル率低下",
+      "kind": "debuff",
+      "icon": "debuff_crit_down",
+      "tone": "debuff"
+    },
+    {
+      "id": "eva_down",
+      "name": "回避率低下",
+      "kind": "debuff",
+      "icon": "debuff_eva_down",
+      "tone": "debuff"
+    },
+    {
+      "id": "move_down",
+      "name": "移動速度低下",
+      "kind": "debuff",
+      "icon": "debuff_move_down",
+      "tone": "debuff"
+    },
+    {
+      "id": "attack_speed_down",
+      "name": "攻撃速度低下",
+      "kind": "debuff",
+      "icon": "debuff_atk_down",
+      "tone": "debuff"
+    },
+    {
+      "id": "weak",
+      "name": "衰弱",
+      "kind": "ailment",
+      "icon": "ailment_weak",
+      "tone": "weak"
+    },
+    {
+      "id": "silence",
+      "name": "沈黙",
+      "kind": "ailment",
+      "icon": "ailment_silence",
+      "tone": "silence"
+    },
+    {
+      "id": "faint",
+      "name": "失神",
+      "kind": "ailment",
+      "icon": "ailment_faint",
+      "tone": "faint"
+    },
+    {
+      "id": "decline",
+      "name": "衰退",
+      "kind": "ailment",
+      "icon": "ailment_decline_{stack}",
+      "tone": "decline",
+      "maxStacks": 5
+    },
+    {
+      "id": "stone",
+      "name": "石化",
+      "kind": "ailment",
+      "icon": "ailment_stone",
+      "tone": "stone"
+    },
+    {
+      "id": "poison",
+      "name": "毒",
+      "kind": "ailment",
+      "icon": "ailment_poison",
+      "tone": "poison"
+    }
+  ]
+}
