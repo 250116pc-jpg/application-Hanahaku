@@ -6,6 +6,8 @@ import './flower-detail.css'
 type Skill = { name: string; description: string; descriptionLevel1?: string; mp: number | null; cooldown: number | null; element: string; category: string; icon: string }
 type Details = { stats: Record<string, string>; resistances: Record<string, string>; words?: string[]; skill: Skill | null; origin?: string; habitat?: string; features?: string }
 const details = detailsJson as Record<string, Details>
+// Updated skill PDF IDs; encyclopedia only, independent of the battle API's older IDs.
+const skillCodes: Record<number, string> = {1:'zinia',2:'suiren',3:'hangesho',4:'sunflower',5:'sarusuberi',6:'mukuge',7:'kochia',8:'hasu',9:'rurimatsuri',10:'ajisai',13:'sakura'}
 const icons = import.meta.glob('../../assets/skill/*.png', { eager: true, query: '?url', import: 'default' }) as Record<string, string>
 
 function node<K extends keyof HTMLElementTagNameMap>(tag: K, className = '', text = ''): HTMLElementTagNameMap[K] {
@@ -67,12 +69,14 @@ export function mountFlowerDetail(flower: PrototypeFlower, options: {
       const stats = node('section', 'book-section'); stats.append(node('h3', 'book-ribbon', '主人公への初期補正'))
       const dl = node('dl', 'book-stats')
       for (const key of ['HP', 'MP', 'EXP', 'ATK', 'DEF', 'CD']) {
-        const item = node('div'); const value = data?.stats[key]
+        const item = node('div')
+        const bonus = flower.statusBonus?.[key.toLowerCase()]
+        const value = flower.statusBonus ? (bonus === undefined ? undefined : `${bonus}${key === 'EXP' ? '%' : ''}`) : data?.stats[key]
         item.append(node('dt', '', key), node('dd', '', value ? `+${value}` : '未登録')); dl.append(item)
       }
       stats.append(dl); left.append(stats)
       section(right, '花の情報', `季節：${flower.season}　／　属性：${flower.element ?? '未登録'}\n契約状態：契約済み`)
-      const skill = data?.skill
+      const skill = flower.skillId === undefined ? data?.skill : details[skillCodes[flower.skillId]]?.skill
       const skills = node('section', 'book-section'); skills.append(node('h3', 'book-ribbon', 'スキル'))
       if (skill) {
         const heading = node('div', 'book-skill-heading')

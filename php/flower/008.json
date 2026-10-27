@@ -4,7 +4,7 @@
     "name": "ハス",
     "enhance_id": 3,
     "skill_id": 8,
-    "element": 4,
+    "element": 6,
     "status_bonus": {
         "hp": 22,
         "mp": 30,
