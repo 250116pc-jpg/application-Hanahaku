@@ -1,11 +1,10 @@
 import Phaser from 'phaser'
-import { addCharacterImage } from '../utils/characterImage'
 import type { CharacterData } from '../Scene/test_data'
 import { getTextStyle } from '../utils/ui'
 
-const BORDER = 0x8aa4c8
-const CARD_BORDER = 0x9a65ca
-const SELECTED_FILL = 0x4c4265
+const BORDER = 0xb68b4d
+const CARD_BORDER = 0xb68b4d
+const SELECTED_FILL = 0xe5eddb
 
 export class FormUI {
 
@@ -25,15 +24,15 @@ export class FormUI {
     inFormation: boolean,
     selected: boolean,
     onClick: () => void,
-    scale = 1
+    scale = 1,
+    textureKey = 'formFlower'
   ): Phaser.GameObjects.Container {
-    console.log('カード作成:', character.name)
-    const width = 112 * scale
-    const height = 95 * scale
+    const width = 128 * scale
+    const height = 112 * scale
 
     const container = this.scene.add.container(x, y)
 
-    const fill = selected ? SELECTED_FILL : 0xffffff
+    const fill = selected ? SELECTED_FILL : 0xfff8e9
 
     const background = this.scene.add.rectangle(
       0, 0,
@@ -42,39 +41,37 @@ export class FormUI {
       fill
     )
       .setOrigin(0, 0)
-      .setStrokeStyle(3, CARD_BORDER)
+      .setStrokeStyle(selected ? 4 : 2, selected ? 0x557649 : CARD_BORDER)
       .setInteractive({ useHandCursor: true })
 
     const power = this.getPower(character)
 
     const powerText = this.scene.add.text(
-      7 * scale,
+      8 * scale,
       5 * scale,
-      `戦力${power}`,
+      `戦力 ${power.toLocaleString()}`,
       this.textStyle(
         13 * scale,
-        selected ? '#ffffff' : '#374151'
+        '#52685a'
       )
     )
 
-    const image = addCharacterImage(
-      this.scene, width / 2, 43 * scale, character.id,
-      'formFlower', 0.18 * scale, 42 * scale
-    )
+    const image = this.scene.add.image(width / 2, 44 * scale, textureKey)
+      .setScale((44 * scale) / Math.max(this.scene.textures.get(textureKey).getSourceImage().width, this.scene.textures.get(textureKey).getSourceImage().height))
 
     const nameText = this.scene.add.text(
       8 * scale,
-      66 * scale,
+      70 * scale,
       character.name,
       this.textStyle(
         14 * scale,
-        selected ? '#ffffff' : '#111827'
+        '#263b31'
       )
     )
 
     const stars = this.scene.add.text(
       8 * scale,
-      80 * scale,
+      91 * scale,
       '★'.repeat(character.rarity),
       this.textStyle(14 * scale, '#ffd230')
     )
@@ -142,16 +139,16 @@ return container
 
     const background = this.scene.add.rectangle(
       0, 0,
-      96, 82,
-      selected ? 0xe7f0ff : 0xffffff
+      128, 112,
+      selected ? 0xe5eddb : 0xfff8e9
     )
       .setOrigin(0, 0)
-      .setStrokeStyle(3, CARD_BORDER)
+      .setStrokeStyle(selected ? 3 : 2, selected ? 0x557649 : CARD_BORDER)
       .setInteractive({ useHandCursor: true })
 
     const text = this.scene.add.text(
-      48,
-      41,
+      64,
+      56,
       '空き',
       this.textStyle(18, '#6b7280')
     ).setOrigin(0.5)
@@ -183,7 +180,7 @@ return container
       x, y,
       width,
       32,
-      active ? 0xe9f2ff : 0xffffff
+      active ? 0x557649 : 0xfff8e9
     )
       .setStrokeStyle(2, BORDER)
       .setInteractive({ useHandCursor: true })
@@ -192,7 +189,7 @@ return container
       x,
       y,
       label,
-      this.textStyle(17, '#27364a')
+      this.textStyle(16, active ? '#fff8e9' : '#263b31')
     ).setOrigin(0.5)
 
     background.on('pointerdown', () => {
@@ -218,8 +215,8 @@ createActionButton(
   onClick: () => void
 ): void {
 
-  const fill = primary ? 0x4a8df0 : 0xffffff
-  const color = primary ? '#ffffff' : '#1f2937'
+  const fill = primary ? 0x557649 : 0xfff8e9
+  const color = primary ? '#ffffff' : '#263b31'
 
   const button = this.scene.add.rectangle(
     x, y,
