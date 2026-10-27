@@ -30,6 +30,15 @@ export class InventoryScene extends Phaser.Scene {
 
   create(): void {
     showDebugSceneName(this);
+    // An overlay must not outlive the scene that opened it (retreat, results, etc.).
+    const owner = this.scene.manager.keys[this.returnScene]
+    const stopWithOwner = (): void => { this.scene.stop() }
+    owner?.events.once(Phaser.Scenes.Events.SHUTDOWN, stopWithOwner)
+    let active = true
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      active = false
+      owner?.events.off(Phaser.Scenes.Events.SHUTDOWN, stopWithOwner)
+    })
     this.items = []
     this.selectedCategory = 'all'
     this.selectedItem = null
@@ -43,14 +52,14 @@ export class InventoryScene extends Phaser.Scene {
     this.view.create()
     this.refresh()
     void requestShop().then(state=>{
-      if(!this.sys.isActive())return
+      if(!active || !this.sys.isActive())return
       this.items=Object.entries(state.items).filter(([,count])=>count>0).map(([id,count])=>{
         const product=shopCatalog.find(item=>item.id===Number(id))
         return {id:Number(id),name:product?.name ?? `アイテム ${id}`,category:product?.category ?? 'important',effect:product?.description ?? '詳細未登録',count,usable:false}
       })
       this.refresh()
       if(!this.items.length)this.view.showMessage('所持アイテムはありません')
-    }).catch(error=>{if(this.sys.isActive())this.view.showMessage(error instanceof Error?error.message:'読み込みに失敗しました')})
+    }).catch(error=>{if(active && this.sys.isActive())this.view.showMessage(error instanceof Error?error.message:'読み込みに失敗しました')})
   }
 
   private closeInventory(): void {
