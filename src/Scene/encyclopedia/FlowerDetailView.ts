@@ -6,8 +6,8 @@ import './flower-detail.css'
 type Skill = { name: string; description: string; descriptionLevel1?: string; mp: number | null; cooldown: number | null; element: string; category: string; icon: string }
 type Details = { stats: Record<string, string>; resistances: Record<string, string>; words?: string[]; skill: Skill | null; origin?: string; habitat?: string; features?: string }
 const details = detailsJson as Record<string, Details>
-// Updated skill PDF IDs; encyclopedia only, independent of the battle API's older IDs.
-const skillCodes: Record<number, string> = {1:'zinia',2:'suiren',3:'hangesho',4:'sunflower',5:'sarusuberi',6:'mukuge',7:'kochia',8:'hasu',9:'rurimatsuri',10:'ajisai',13:'sakura'}
+// Skill IDs follow php/skill/skills.json; flower IDs are independent.
+const skillCodes: Record<number, string> = {1:'zinia',2:'suiren',3:'sunflower',4:'sarusuberi',5:'mukuge',6:'kochia',7:'hasu',8:'rurimatsuri',9:'ajisai',10:'hangesho',13:'sakura'}
 const icons = import.meta.glob('../../assets/skill/*.png', { eager: true, query: '?url', import: 'default' }) as Record<string, string>
 
 function node<K extends keyof HTMLElementTagNameMap>(tag: K, className = '', text = ''): HTMLElementTagNameMap[K] {

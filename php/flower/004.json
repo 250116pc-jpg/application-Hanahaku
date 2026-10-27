@@ -3,7 +3,7 @@
     "eng": "sunflower",
     "name": "ひまわり",
     "enhance_id": 2,
-    "skill_id": 4,
+    "skill_id": 3,
     "element": 1,
     "status_bonus": {
         "hp": 14,

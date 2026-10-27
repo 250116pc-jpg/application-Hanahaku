@@ -3,7 +3,7 @@
     "eng": "hangesho",
     "name": "ハンゲショウ",
     "enhance_id": 4,
-    "skill_id": 3,
+    "skill_id": 10,
     "element": 5,
     "status_bonus": {
         "hp": 10,
