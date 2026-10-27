@@ -68,10 +68,10 @@ export function mountFlowerDetail(flower: PrototypeFlower, options: {
     } else if (page === 'ability') {
       const stats = node('section', 'book-section'); stats.append(node('h3', 'book-ribbon', '主人公への初期補正'))
       const dl = node('dl', 'book-stats')
-      for (const key of ['HP', 'MP', 'EXP', 'ATK', 'DEF', 'CD']) {
+      for (const key of ['HP', 'MP', 'ATK', 'DEF', 'CD']) {
         const item = node('div')
         const bonus = flower.statusBonus?.[key.toLowerCase()]
-        const value = flower.statusBonus ? (bonus === undefined ? undefined : `${bonus}${key === 'EXP' ? '%' : ''}`) : data?.stats[key]
+        const value = flower.statusBonus ? (bonus === undefined ? undefined : String(bonus)) : data?.stats[key]
         item.append(node('dt', '', key), node('dd', '', value ? `+${value}` : '未登録')); dl.append(item)
       }
       stats.append(dl); left.append(stats)

@@ -8,7 +8,6 @@
     "status_bonus": {
         "hp": 22,
         "mp": 30,
-        "exp": 5,
         "atk": 3,
         "def": 9,
         "cd": 4
