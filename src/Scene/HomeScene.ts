@@ -45,6 +45,8 @@ export class HomeScene extends Phaser.Scene {
 
     const width = this.scale.width
     const height = this.scale.height
+    const scaleX = width / 1280
+    const scaleY = height / 720
 
     // 1. ホームに戻るたびに背景を1→2→3→4→1の順で切り替える
     const bgIndex = this.registry.get('bgIndex') ?? 0
@@ -68,7 +70,7 @@ export class HomeScene extends Phaser.Scene {
       const frameCount = Math.min(data.frameCount, this.textures.get(key).frameTotal - 1)
       createCharacterAnimation(this, key, key, frameCount, data.frameRate, data.repeat)
     })
-    const player = createCharacterSprite(this, 420, 390, 'home-player-idle', 'home-player-idle')
+    const player = createCharacterSprite(this, 420 * scaleX, 390 * scaleY, 'home-player-idle', 'home-player-idle')
     player.setScale(2.25)
     ui.add(player)
     player.setInteractive({ useHandCursor: true })
@@ -157,7 +159,7 @@ export class HomeScene extends Phaser.Scene {
     })
 
     // 3. ナビゲーションボタンの配置
-    this.createNavigationButtons(ui)
+    this.createNavigationButtons(ui, scaleX, scaleY)
   }
 
   // 単発・コンボ共通。回転攻撃だけ上昇→落下→着地を追加する。
@@ -202,35 +204,35 @@ export class HomeScene extends Phaser.Scene {
     player.play(key)
   }
 
-  private createNavigationButtons(ui: Phaser.GameObjects.Container): void {
+  private createNavigationButtons(ui: Phaser.GameObjects.Container, scaleX: number, scaleY: number): void {
 
-    ui.add(createButton(this,1080,450,220,'エリア\n選択',() => {
+    ui.add(createButton(this,1080 * scaleX,450 * scaleY,220,'エリア\n選択',() => {
         this.scene.start('AreaSelectScene')},{  key: 'button1',  width: 260,  height: 110
 
         }
     ))
-    ui.add(createButton(this, 510, 630, 200, '育成',() => {
+    ui.add(createButton(this, 510 * scaleX, 630 * scaleY, 200, '育成',() => {
         this.scene.start('TrainingScene')},{  key: 'button1',  width: 200,  height: 100
 
         }
     ))
-    ui.add(createButton(this, 740, 630, 200, '編成',() => {
+    ui.add(createButton(this, 740 * scaleX, 630 * scaleY, 200, '編成',() => {
         this.scene.start('FormScene')},{  key: 'button1',  width: 200,  height: 100
 
         }
     ))
-    ui.add(createButton(this, 970, 630, 200, '図鑑',() => {
+    ui.add(createButton(this, 970 * scaleX, 630 * scaleY, 200, '図鑑',() => {
         this.scene.start('EncyclopediaScene')},{  key: 'button1',  width: 200,  height: 100
 
         }
     ))
 
-    ui.add(createButton(this, 1200, 630, 200, 'ショップ',() => {
+    ui.add(createButton(this, 1200 * scaleX, 630 * scaleY, 200, 'ショップ',() => {
         this.scene.start('ShopScene')},{  key: 'button1',  width: 200,  height: 100
 
         }
     ))
-    ui.add(createButton(this, 1220, 70, 180, '設定',() => {
+    ui.add(createButton(this, 1220 * scaleX, 70 * scaleY, 180, '設定',() => {
         this.scene.start('SettingsScene')},{  key: 'button1',  width: 150,  height: 80
 
         }
