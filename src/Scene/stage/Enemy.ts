@@ -13,6 +13,9 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
   private readonly visual: Phaser.GameObjects.Sprite;
   private readonly healthBarBackground: Phaser.GameObjects.Rectangle;
   private readonly healthBar: Phaser.GameObjects.Rectangle;
+  private statusIconPlate?: Phaser.GameObjects.Arc;
+  private statusIcon?: Phaser.GameObjects.Image;
+  private statusIconUntil = 0;
   private health = this.maxHealth;
   private nextAttackAt = 0;
   private attackSpeedSlowUntil = 0;
@@ -117,6 +120,32 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
   public applyAttackSpeedSlow(percent: number, durationMs: number): void {
     this.attackSpeedSlowPercent = Math.max(this.attackSpeedSlowPercent, percent);
     this.attackSpeedSlowUntil = Math.max(this.attackSpeedSlowUntil, this.scene.time.now + durationMs);
+    this.applyStatusIcon('debuff_atk_down', durationMs);
+  }
+
+  public applyStatusIcon(iconKey: string, durationMs: number): void {
+    if (this.dead || durationMs <= 0 || !this.scene.textures.exists(`status-${iconKey}`)) return;
+    this.statusIconUntil = Math.max(this.statusIconUntil, this.scene.time.now + durationMs);
+    if (!this.statusIcon?.active) {
+      this.statusIconPlate = this.scene.add.circle(this.x + 36, this.y - 96, 17, 0x3978be, 0.9)
+        .setStrokeStyle(2, 0xd9ecff, 0.95)
+        .setDepth(12);
+      this.statusIcon = this.scene.add.image(this.x + 36, this.y - 96, `status-${iconKey}`)
+        .setDisplaySize(28, 28)
+        .setDepth(13);
+    } else {
+      this.statusIcon.setTexture(`status-${iconKey}`).setVisible(true);
+    }
+    const expiresAt = this.statusIconUntil;
+    const remaining = Math.max(0, expiresAt - this.scene.time.now);
+    this.scene.time.delayedCall(remaining + 30, () => {
+      if (this.statusIcon?.active && this.statusIconUntil <= expiresAt && this.scene.time.now >= this.statusIconUntil) {
+        this.statusIcon.destroy();
+        this.statusIcon = undefined;
+        this.statusIconPlate?.destroy();
+        this.statusIconPlate = undefined;
+      }
+    });
   }
 
   public applyKnockback(direction: number): void {
@@ -180,6 +209,8 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
         this.x - 22 + 22 * this.health / this.maxHealth,
         barY
       );
+    this.statusIconPlate?.setPosition(this.x + 36, barY);
+    this.statusIcon?.setPosition(this.x + 36, barY);
   }
 
   private updateHealthBar(): void {
@@ -192,6 +223,8 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     this.visual.destroy();
     this.healthBarBackground.destroy();
     this.healthBar.destroy();
+    this.statusIcon?.destroy();
+    this.statusIconPlate?.destroy();
     super.destroy(fromScene);
   }
 }

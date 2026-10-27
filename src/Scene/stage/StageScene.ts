@@ -34,6 +34,20 @@ import { StageHUD } from './StageHUD.ts';
 import { SCENE_KEYS } from '../sceneKeys';
 import { completeStage } from './StageProgress';
 
+const flowerCodes: Record<number, string> = {
+  1: 'zinia', 2: 'suiren', 3: 'sakura', 4: 'sunflower', 5: 'sarusuberi',
+  6: 'mukuge', 7: 'kochia', 8: 'hasu', 9: 'rurimatsuri', 10: 'ajisai',
+};
+const pixelFlowerUrls = import.meta.glob('../../assets/images/pixel_flowers/*.png', {
+  eager: true, query: '?url', import: 'default',
+}) as Record<string, string>;
+const skillEffectUrls = import.meta.glob('../../assets/system/skill/skill_effects_v2/sheets/*.png', {
+  eager: true, query: '?url', import: 'default',
+}) as Record<string, string>;
+const statusIconUrls = import.meta.glob('../../assets/images/status/*.png', {
+  eager: true, query: '?url', import: 'default',
+}) as Record<string, string>;
+
 export class StageScene extends Phaser.Scene {
   private player!: Player;
   private hud!: StageHUD;
@@ -57,6 +71,18 @@ export class StageScene extends Phaser.Scene {
     this.load.image('stage-jump', jumpButton);
     this.load.image('stage-skill', skillButton);
     this.load.image('stage-flower', flowerIcon);
+    Object.entries(flowerCodes).forEach(([id, code]) => {
+      const image = pixelFlowerUrls[`../../assets/images/pixel_flowers/${code}.png`];
+      if (image) this.load.image(`stage-flower-${id}`, image);
+    });
+    Object.entries(skillEffectUrls).forEach(([path, image]) => {
+      const key = path.split('/').pop()?.replace(/\.png$/i, '');
+      if (key) this.load.spritesheet(`skill-effect-${key}`, image, { frameWidth: 192, frameHeight: 192 });
+    });
+    Object.entries(statusIconUrls).forEach(([path, image]) => {
+      const key = path.split('/').pop()?.replace(/\.png$/i, '');
+      if (key) this.load.image(`status-${key}`, image);
+    });
     [
       skillIcon01, skillIcon02, skillIcon03, skillIcon04, skillIcon05,
       skillIcon06, skillIcon07, skillIcon08, skillIcon09, skillIcon10
@@ -92,6 +118,7 @@ export class StageScene extends Phaser.Scene {
   create(data: { stageId?: number } = {}): void {
     this.stageId = data.stageId ?? 2;
     this.isEnding = false;
+    this.createSkillEffectAnimations();
     this.physics.world.drawDebug = false;
     const map = this.createMap();
     if (!map) return;
@@ -126,6 +153,22 @@ export class StageScene extends Phaser.Scene {
     // UI（HUD）の生成を StageHUD クラスに委譲
     this.hud = new StageHUD(this, this.player, this.enemies);
     this.hud.create(data.stageId);
+  }
+
+  private createSkillEffectAnimations(): void {
+    Object.keys(skillEffectUrls).forEach(path => {
+      const sheet = path.split('/').pop()?.replace(/\.png$/i, '');
+      if (!sheet) return;
+      const texture = `skill-effect-${sheet}`;
+      const animation = `skill-effect-${sheet}`;
+      if (this.anims.exists(animation) || !this.textures.exists(texture)) return;
+      this.anims.create({
+        key: animation,
+        frames: this.anims.generateFrameNumbers(texture, { start: 0, end: 11 }),
+        frameRate: 16,
+        repeat: 0,
+      });
+    });
   }
 
   // =========================

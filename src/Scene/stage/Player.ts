@@ -2,11 +2,15 @@ import Phaser from 'phaser';
 import { changeCharacterAnimation } from '../../animation/animation.ts';
 import type { ServerFlowerSkill } from './SkillApi.ts';
 
+const BUFF_EFFECT_COLOR = 0xff5964;
+const DEBUFF_EFFECT_COLOR = 0x4a93d1;
+
 export interface CombatTarget {
   readonly x: number;
   readonly y: number;
   receiveDamage(amount: number): void;
   applyAttackSpeedSlow?(percent: number, durationMs: number): void;
+  applyStatusIcon?(iconKey: string, durationMs: number): void;
   applyKnockback?(direction: number): void;
 }
 
@@ -182,7 +186,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
         this.repeatUntil(skill.durationMs, skill.healIntervalMs, () => this.restoreHealth(
           this.maxHealth * skill.healPercent / 100
         ));
-        this.showRange('self', skill.range, 0x62c9ff);
+        this.showRange('self', skill.range, BUFF_EFFECT_COLOR);
         break;
       case 'charge':
         this.chargeUntil = this.scene.time.now + skill.durationMs;
@@ -192,14 +196,14 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
           this.showRange('front', skill.range, 0xff5f61);
           this.damageTargets(targets, this.skillDamage(skill.damagePercent, skill.attackPower), skill.range, false);
         });
-        this.showRange('self', skill.range / 2, 0xffd166);
+        this.showRange('self', skill.range / 2, DEBUFF_EFFECT_COLOR);
         break;
       case 'balanced':
         this.applyTimedBuff(skill.attackBonusPercent, skill.defenseBonusPercent, skill.durationMs);
         this.repeatUntil(skill.durationMs, skill.repeatIntervalMs, () => {
           this.damageTargets(targets, this.skillDamage(skill.damagePercent, skill.attackPower), 10000, false, true);
         });
-        this.showRange('self', skill.range, 0xffc968);
+        this.showRange('self', skill.range, BUFF_EFFECT_COLOR);
         break;
       case 'continuous':
         this.applyTimedBuff(skill.attackBonusPercent, skill.defenseBonusPercent, skill.durationMs);
@@ -212,7 +216,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
           this.showRange('front', skill.range, 0xff5f61);
           }
         );
-        this.showRange('self', skill.range / 2, 0xffc968);
+        this.showRange('self', skill.range / 2, BUFF_EFFECT_COLOR);
         break;
       case 'maple':
         if (this.mapleIsRed) {
@@ -234,7 +238,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
           this.repeatUntil(skill.durationMs, skill.healIntervalMs, () => this.restoreHealth(
             this.maxHealth * skill.healPercent / 100
           ));
-          this.showRange('self', skill.range, 0x65c66d);
+          this.showRange('self', skill.range, BUFF_EFFECT_COLOR);
         }
         break;
       case 'fortify': {
@@ -251,16 +255,16 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
           }
         });
         this.emit('health-changed', this.health, this.maxHealth);
-        this.showRange('self', skill.range, 0x62c9ff);
+        this.showRange('self', skill.range, BUFF_EFFECT_COLOR);
         break;
       }
       case 'slowAttack':
-        this.showRange('radial', skill.range, 0xff5f61);
+        this.showRange('radial', skill.range, DEBUFF_EFFECT_COLOR);
         this.damageTargets(targets, this.skillDamage(skill.damagePercent, skill.attackPower), skill.range, true, true);
         targets.forEach(target => target.applyAttackSpeedSlow?.(skill.slowPercent, skill.durationMs));
         break;
       case 'heal':
-        this.showRange('self', skill.range, 0x5de28c);
+        this.showRange('self', skill.range, BUFF_EFFECT_COLOR);
         this.restoreHealth(this.maxHealth * skill.healPercent / 100);
         break;
       case 'evasion':
