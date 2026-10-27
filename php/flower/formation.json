@@ -1,15 +1,240 @@
 {
-  "formation": [1, 2, 3, 4],
+  "formation": [
+    1,
+    2,
+    3,
+    4
+  ],
   "characters": [
-    {"id":1,"code":"zinia","name":"ジニア","species":"ジニア","rarity":3,"level":1,"maxLevel":40,"element":"熱","role":"攻撃","season":"夏","description":"鮮やかな花を咲かせる、攻撃が得意な花です。","stats":{"hp":820,"mp":230,"atk":156,"def":102,"speed":98},"skills":["軽い攻撃スキルを連打"]},
-    {"id":2,"code":"suiren","name":"スイレン","species":"スイレン","rarity":2,"level":1,"maxLevel":30,"element":"無","role":"防御","season":"夏","description":"水辺に咲く、防御が得意な花です。","stats":{"hp":900,"mp":180,"atk":75,"def":140,"speed":70},"skills":["どっしり固いディフェンス"]},
-    {"id":3,"code":"sakura","name":"桜","species":"サクラ","rarity":2,"level":1,"maxLevel":30,"element":"光","role":"攻撃","season":"春","description":"春を彩る、攻撃が得意な花です。","stats":{"hp":700,"mp":310,"atk":148,"def":90,"speed":116},"skills":["太陽の光線的な一発どかんタイプ"]},
-    {"id":4,"code":"sunflower","name":"ひまわり","species":"ヒマワリ","rarity":3,"level":1,"maxLevel":40,"element":"熱","role":"補助","season":"夏","description":"太陽に向かって咲く、仲間の補助が得意な花です。","stats":{"hp":650,"mp":160,"atk":142,"def":80,"speed":105},"skills":["扱いやすいバランス型"]},
-    {"id":5,"code":"sarusuberi","name":"サルスベリ","species":"サルスベリ","rarity":1,"level":1,"maxLevel":20,"element":"熱","role":"攻撃","season":"夏","description":"夏に長く花を咲かせる、攻撃が得意な花です。","stats":{"hp":540,"mp":210,"atk":90,"def":74,"speed":120},"skills":["絶え間ない連続攻撃スキル"]},
-    {"id":6,"code":"mukuge","name":"ムクゲ","species":"ムクゲ","rarity":2,"level":1,"maxLevel":30,"element":"水","role":"補助","season":"夏","description":"夏に咲く、仲間の補助が得意な花です。","stats":{"hp":560,"mp":260,"atk":80,"def":76,"speed":112},"skills":["紅葉"]},
-    {"id":7,"code":"kochia","name":"コキア","species":"コキア","rarity":1,"level":1,"maxLevel":20,"element":"風","role":"防御","season":"秋","description":"季節とともに色づく、防御が得意な花です。","stats":{"hp":500,"mp":240,"atk":72,"def":68,"speed":130},"skills":["トップクラスの耐久力"]},
-    {"id":8,"code":"hasu","name":"ハス","species":"ハス","rarity":1,"level":1,"maxLevel":20,"element":"無","role":"補助","season":"夏","description":"水辺に咲く、仲間の補助が得意な花です。","stats":{"hp":520,"mp":220,"atk":78,"def":70,"speed":118},"skills":["デバフ"]},
-    {"id":9,"code":"rurimatsuri","name":"ルリマツリ","species":"ルリマツリ","rarity":2,"level":1,"maxLevel":30,"element":"光","role":"回復","season":"夏","description":"青い花を咲かせる、回復が得意な花です。","stats":{"hp":590,"mp":190,"atk":82,"def":88,"speed":91},"skills":["回復"]},
-    {"id":10,"code":"ajisai","name":"アジサイ","species":"アジサイ","rarity":3,"level":1,"maxLevel":40,"element":"無","role":"補助","season":"夏","description":"色とりどりの花を咲かせる、仲間の補助が得意な花です。","stats":{"hp":880,"mp":240,"atk":128,"def":76,"speed":108},"skills":["隠密系"]}
+    {
+      "id": 1,
+      "code": "zinia",
+      "name": "ジニア",
+      "species": "ジニア",
+      "rarity": 3,
+      "level": 1,
+      "maxLevel": 40,
+      "element": "熱",
+      "role": "攻撃",
+      "season": "夏",
+      "description": "初夏から晩秋（6月〜11月頃）にかけて、非常に長い期間にわたって咲き続けるのが最大の特長です。そのため和名では「百日草（ヒャクニチソウ）」と呼ばれます。花の色が豊富で、赤、ピンク、黄、白、オレンジ、緑などがあり、一重咲きからダリアのような八重咲きまで、形やサイズのバリエーションがとても豊かです。",
+      "stats": {
+        "hp": 820,
+        "mp": 230,
+        "atk": 156,
+        "def": 102,
+        "speed": 98
+      },
+      "skills": [
+        "軽い攻撃スキルを連打"
+      ]
+    },
+    {
+      "id": 2,
+      "code": "suiren",
+      "name": "スイレン",
+      "species": "スイレン",
+      "rarity": 2,
+      "level": 1,
+      "maxLevel": 30,
+      "element": "無",
+      "role": "防御",
+      "season": "夏",
+      "description": "5月から10月頃にかけて、水面に浮かぶように美しい花を咲かせます。日中に花が開き、夕方になると眠るように花を閉じる（閉じる姿が「睡（ねむ）る」を連想させる）ことが「睡蓮」という名前の由来です。葉には深い切れ込みがあり、水面にぴったりと浮かぶのが、水面から高く茎を伸ばすハス（蓮）との大きな違いです。",
+      "stats": {
+        "hp": 900,
+        "mp": 180,
+        "atk": 75,
+        "def": 140,
+        "speed": 70
+      },
+      "skills": [
+        "どっしり固いディフェンス"
+      ]
+    },
+    {
+      "id": 3,
+      "code": "sunflower",
+      "name": "ひまわり",
+      "species": "ひまわり",
+      "rarity": 2,
+      "level": 1,
+      "maxLevel": 30,
+      "element": "熱",
+      "role": "攻撃",
+      "season": "夏",
+      "description": "太陽のように大きく明るい花が特徴です。太陽の方向を向いて咲く姿から、明るさや前向きなイメージで愛される花です。",
+      "stats": {
+        "hp": 700,
+        "mp": 310,
+        "atk": 148,
+        "def": 90,
+        "speed": 116
+      },
+      "skills": [
+        "太陽の光線的な一発どかんタイプ"
+      ]
+    },
+    {
+      "id": 4,
+      "code": "sarusuberi",
+      "name": "サルスベリ",
+      "species": "サルスベリ",
+      "rarity": 3,
+      "level": 1,
+      "maxLevel": 40,
+      "element": "熱",
+      "role": "補助",
+      "season": "夏",
+      "description": "夏から秋にかけて（7月〜10月頃）約100日間もピンクや白の鮮やかな花を咲かせるのが特徴です。幹の皮が剥がれ落ちてツルツルしており、「猿も滑って落ちる」ということからその名がつきました。",
+      "stats": {
+        "hp": 650,
+        "mp": 160,
+        "atk": 142,
+        "def": 80,
+        "speed": 105
+      },
+      "skills": [
+        "扱いやすいバランス型"
+      ]
+    },
+    {
+      "id": 5,
+      "code": "mukuge",
+      "name": "ムクゲ",
+      "species": "ムクゲ",
+      "rarity": 1,
+      "level": 1,
+      "maxLevel": 20,
+      "element": "水",
+      "role": "攻撃",
+      "season": "夏",
+      "description": "夏から秋（7月〜10月頃）にかけて、白、ピンク、紫などの美しい花を次々と咲かせます。朝に開花して夕方にはしぼんでしまう「一日花（いちにちばな）」ですが、新しい蕾が毎日次々と開花するため、絶え間なく咲き続けているように見えるのが大きな特徴です。",
+      "stats": {
+        "hp": 540,
+        "mp": 210,
+        "atk": 90,
+        "def": 74,
+        "speed": 120
+      },
+      "skills": [
+        "絶え間ない連続攻撃スキル"
+      ]
+    },
+    {
+      "id": 6,
+      "code": "kochia",
+      "name": "コキア",
+      "species": "コキア",
+      "rarity": 2,
+      "level": 1,
+      "maxLevel": 30,
+      "element": "風",
+      "role": "補助",
+      "season": "秋",
+      "description": "丸々と可愛らしい球状の形に育つのが特徴の植物です。夏の間は鮮やかで瑞々しい緑色の姿をしており、秋（9月〜10月頃）になると一斉に真っ赤に紅葉します。その美しく色鮮やかな景観が多くの観光客を魅了し、秋の風物詩として広く親しまれています。",
+      "stats": {
+        "hp": 560,
+        "mp": 260,
+        "atk": 80,
+        "def": 76,
+        "speed": 112
+      },
+      "skills": [
+        "紅葉"
+      ]
+    },
+    {
+      "id": 7,
+      "code": "hasu",
+      "name": "ハス",
+      "species": "ハス",
+      "rarity": 1,
+      "level": 1,
+      "maxLevel": 20,
+      "element": "無",
+      "role": "防御",
+      "season": "夏",
+      "description": "7月〜8月頃の早朝に、水面から高く茎を伸ばしてピンクや白の大きな花を咲かせます。花は午前中に満開になり、午後には閉じてしまい、これを3〜4日繰り返して散っていきます。水を弾く「ロータス効果」を持つ円形の大きな葉や、地下にできる肥大した茎（レンコン）も大きな特徴です。",
+      "stats": {
+        "hp": 500,
+        "mp": 240,
+        "atk": 72,
+        "def": 68,
+        "speed": 130
+      },
+      "skills": [
+        "トップクラスの耐久力"
+      ]
+    },
+    {
+      "id": 8,
+      "code": "rurimatsuri",
+      "name": "ルリマツリ",
+      "species": "ルリマツリ",
+      "rarity": 1,
+      "level": 1,
+      "maxLevel": 20,
+      "element": "光",
+      "role": "補助",
+      "season": "夏",
+      "description": "初夏から晩秋（5月〜11月頃）にかけて、涼しげな青や空色の花を次々と咲かせます。花びらの形が「マツリ（ジャスミン）」に似ており、瑠璃（るり）色の花を咲かせることからその名がつきました。半ツル性の植物で、枝を長く伸ばしながら、その先端に手毬（てまり）のような形でまとまって開花するのが大きな特徴です。",
+      "stats": {
+        "hp": 520,
+        "mp": 220,
+        "atk": 78,
+        "def": 70,
+        "speed": 118
+      },
+      "skills": [
+        "デバフ（被ダメアップや鈍足）とか"
+      ]
+    },
+    {
+      "id": 9,
+      "code": "ajisai",
+      "name": "アジサイ",
+      "species": "アジサイ",
+      "rarity": 2,
+      "level": 1,
+      "maxLevel": 30,
+      "element": "無",
+      "role": "回復",
+      "season": "夏",
+      "description": "梅雨の時期（6月〜7月頃）に、青、紫、ピンク、白などの手毬状の花を咲かせます。最大の特徴は、土壌の酸性度によって花の色が変わる点です。土が酸性なら「青色」、アルカリ性なら「ピンク色」に変化します。また、花びらのように見える部分は実は「萼（がく）」と呼ばれる葉が変化したもので、本当の花は中心にある小さな粒のような部分です。",
+      "stats": {
+        "hp": 590,
+        "mp": 190,
+        "atk": 82,
+        "def": 88,
+        "speed": 91
+      },
+      "skills": [
+        "回復。"
+      ]
+    },
+    {
+      "id": 10,
+      "code": "hangesho",
+      "name": "ハンゲショウ",
+      "species": "ハンゲショウ",
+      "rarity": 3,
+      "level": 1,
+      "maxLevel": 40,
+      "element": "土",
+      "role": "補助",
+      "season": "夏",
+      "description": "夏（6月〜7月頃）に、葉の表面が半分ほど白く変化する不思議な植物です。まるで白い化粧をしたように見えることから「半化粧」、または雑節の「半夏生」の時期に咲くことからその名がつきました。花自体は白く小さく、紐のような形でひっそりと咲きます。",
+      "stats": {
+        "hp": 880,
+        "mp": 240,
+        "atk": 128,
+        "def": 76,
+        "speed": 108
+      },
+      "skills": [
+        "隠密系"
+      ]
+    }
   ]
 }

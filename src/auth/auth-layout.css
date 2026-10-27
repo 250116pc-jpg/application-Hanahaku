@@ -41,3 +41,35 @@
   .flower-auth-panel { padding: 22px 18px 16px; }
 }
 @media (max-height: 600px) { .flower-auth-screen { padding-top: 16px; } .flower-auth-panel { margin: 0; } }
+
+/* Compact forms retain full-sized inputs and scroll above the mobile keyboard. */
+@media (max-width: 600px) {
+  .flower-auth-screen { padding: 10px 10px 12px; }
+  .flower-auth-panel { padding: 14px 18px 12px; flex-shrink: 0; }
+  .flower-auth-panel h1 { font-size: 25px; }
+  .auth-flourish { margin-bottom: 6px; padding-bottom: 2px; }
+  .flower-auth-form label { margin-top: 8px; }
+  .flower-auth-form input { height: 44px; }
+  .flower-auth-form button[type="submit"] { width: 200px; min-height: 50px; margin: 6px auto; font-size: 19px; }
+  .auth-google-option { margin-top: 4px; }
+  .auth-google-option summary { min-height: 44px; box-sizing: border-box; padding: 12px 0; }
+  .flower-auth-form .google-auth-area { margin-top: 2px; }
+  .auth-route-link { margin-top: 4px; min-height: 44px; }
+  .auth-back { position: static; flex-shrink: 0; margin: 10px auto 0; }
+}
+@media (orientation: landscape) and (max-height: 600px) {
+  .flower-auth-screen { padding: 8px 12px; }
+  .flower-auth-panel { width: min(760px, 100%); padding: 10px 22px; }
+  .flower-auth-panel h1 { font-size: 23px; }
+  .auth-flourish { margin: 0 auto 4px; padding: 0; }
+  .flower-auth-form { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); column-gap: 24px; }
+  .flower-auth-form > label, .flower-auth-form > .auth-password-field, .flower-auth-form > button[type="submit"] { grid-column: 1; }
+  .flower-auth-form > .auth-google-option { grid-column: 2; grid-row: 1 / 6; align-self: center; }
+  .flower-auth-form > .register-message { grid-column: 1 / -1; }
+  .flower-auth-form label { margin-top: 4px; }
+  .flower-auth-form button[type="submit"] { width: 190px; min-height: 50px; font-size: 18px; margin: 4px auto; }
+  .auth-route-link { margin-top: 2px; min-height: 44px; }
+  .auth-back { position: static; flex-shrink: 0; margin: 8px auto 0; }
+}
+
+.flower-auth-form .google-signin-button.is-unavailable + .google-auth-hint { display: none; }

@@ -1,3 +1,5 @@
+import formationData from '../../../php/flower/formation.json';
+import { getPhpBaseUrl } from '../../auth/PhpBaseUrl';
 import Phaser from 'phaser';
 import mapUrl from '../../assets/stage/Cainos/cainos_stage.tmj?url';
 import terrainImg from '../../assets/stage/Cainos/Pixel Art Platformer - Village Props/Texture/TX Tileset Ground.png';
@@ -34,10 +36,7 @@ import { StageHUD } from './StageHUD.ts';
 import { SCENE_KEYS } from '../sceneKeys';
 import { completeStage } from './StageProgress';
 
-const flowerCodes: Record<number, string> = {
-  1: 'zinia', 2: 'suiren', 3: 'sakura', 4: 'sunflower', 5: 'sarusuberi',
-  6: 'mukuge', 7: 'kochia', 8: 'hasu', 9: 'rurimatsuri', 10: 'ajisai',
-};
+const flowerCodes: Record<number, string> = Object.fromEntries(formationData.characters.map(flower => [flower.id, flower.code]));
 const pixelFlowerUrls = import.meta.glob('../../assets/images/pixel_flowers/*.png', {
   eager: true, query: '?url', import: 'default',
 }) as Record<string, string>;
@@ -60,9 +59,7 @@ export class StageScene extends Phaser.Scene {
   }
 
   preload(): void {
-    const phpBaseUrl = (
-      import.meta.env.VITE_PHP_BASE_URL ?? 'http://localhost/php/アプリケーション開発/application-Hanahaku/php'
-    ).replace(/\/$/, '');
+    const phpBaseUrl = getPhpBaseUrl();
     this.load.image('stage-terrain', terrainImg);
     this.load.image('stage-props', propsImg);
     this.load.image('stage-background', backgroundImg);

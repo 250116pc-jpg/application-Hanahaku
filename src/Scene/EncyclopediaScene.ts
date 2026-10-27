@@ -7,7 +7,7 @@ import type { Season } from './test_data'
 import { createTextButton, getTextStyle } from '../utils/ui'
 import { prototypeFlowers, contractPreview } from './encyclopedia/contractPreview'
 import type { PrototypeFlower } from './encyclopedia/contractPreview'
-import { characterAnimations } from '../animation/animationData'
+import { mountFlowerDetail } from './encyclopedia/FlowerDetailView'
 
 const unknownFlowers: Record<Season, { key: string; url: string }> = {
  '春': { key: 'flower-unknown-spring', url: questionSpring },
@@ -19,15 +19,15 @@ const unknownFlowers: Record<Season, { key: string; url: string }> = {
 export class EncyclopediaScene extends Phaser.Scene {
  private season: Season = '夏'
  private page = 0
+ private detailCleanup: (() => void) | null = null
  constructor() { super('EncyclopediaScene') }
  preload(): void {
   for (const {key,url} of Object.values(unknownFlowers)) if (!this.textures.exists(key)) this.load.image(key,url)
   for (const flower of prototypeFlowers) if (!this.textures.exists(flower.key)) this.load.image(flower.key,flower.url)
   for (const flower of prototypeFlowers) if (flower.realUrl && !this.textures.exists(flower.realKey)) this.load.image(flower.realKey,flower.realUrl)
-  const player=characterAnimations.player.idle
-  this.load.spritesheet('contract-preview-player',player.image,{frameWidth:player.frameWidth,frameHeight:player.frameHeight})
  }
  create(): void {
+  this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.closeDetail())
   // 春画像だけ横長なので、中央の正方形を使い左右の余白を除く。
   const spring = this.textures.get(unknownFlowers['春'].key)
   if (!spring.has('icon')) {
@@ -48,9 +48,8 @@ export class EncyclopediaScene extends Phaser.Scene {
   this.children.removeAll(true)
   this.cameras.main.setBackgroundColor('#edf4ec')
   this.text(420,25,title,30)
-  this.text(270,75,'花契テスト：季節・能力値は仮設定。再読み込みでリセットされます。',17)
+  this.text(270,75,'花を選ぶと詳細を表示します。テストの花契状態は再読み込みでリセットされます。',17)
   this.button(120,45,'← ホーム',()=>this.scene.start('HomeScene'))
-  this.button(1110,45,'キャラ詳細',()=>this.character())
  }
  private art(flower:PrototypeFlower,x:number,y:number,size:number,locked=false): void {
   const image=this.add.image(x,y,locked?unknownFlowers[flower.season].key:flower.key,locked && flower.season==='春'?'icon':undefined)
@@ -71,50 +70,32 @@ export class EncyclopediaScene extends Phaser.Scene {
    card.on('pointerup',()=>this.detail(flower))
    this.art(flower,x,y-18,125,!owned)
    this.text(x-110,y+35,owned?flower.name:'？？？',20)
-   createTextButton(this,x,y+78,(contractPreview.equipped===flower.id?'編成中':owned?'花契済み':'未契約')+'・詳細',()=>this.detail(flower),{fontSize:16,padding:{top:3,bottom:3,left:10,right:10}})
+   createTextButton(this,x,y+78,(owned?'花契済み':'未契約')+'・詳細',()=>this.detail(flower),{fontSize:16,padding:{top:3,bottom:3,left:10,right:10}})
   })
   if(this.page>0)this.button(420,650,'← 前のページ',()=>{this.page--;this.list()})
   this.text(600,635,`${this.page+1} / ${pages}`,20)
   if(this.page<pages-1)this.button(830,650,'次のページ →',()=>{this.page++;this.list()})
   this.button(1100,650,'テストを初期化',()=>this.confirmReset())
  }
- private detail(flower:PrototypeFlower): void {
-  this.frame('花詳細')
-  const owned=contractPreview.owned.has(flower.id)
-  this.button(130,130,'← 花一覧',()=>this.list())
-  this.add.rectangle(300,370,400,410,0xffffff).setStrokeStyle(2,0x81a18e)
-  this.art(flower,300,330,310,!owned)
-  if (owned && flower.realUrl) this.button(300,625,'実写 ／ イラスト',()=>{
-   const image=this.children.list.find(child=>child instanceof Phaser.GameObjects.Image && (child.texture.key===flower.key || child.texture.key===flower.realKey)) as Phaser.GameObjects.Image | undefined
-   if(image){ image.setTexture(image.texture.key===flower.key?flower.realKey:flower.key); image.setScale(310/Math.max(image.width,image.height)) }
-  })
-  this.text(170,530,owned?flower.name:'？？？',28)
-  this.text(570,175,`${owned?flower.name:'？？？'}　／　${flower.season}`,30)
-  this.text(570,240,owned?'花契済み：編成できます':'未契約：花契すると入手できます',24)
-  this.text(570,295,`属性：${owned ? flower.element ?? '未設定' : '？？？'}`,22)
-  this.text(570,335,'花言葉',22)
-  this.text(570,370,!owned ? '花契すると花言葉がわかります。' : flower.hanakotoba.length ? flower.hanakotoba.map(word=>`「${word}」`).join(' ') : '未登録',20)
-  this.text(570,475,owned?'試作値：MP 30 ／ ATKボーナス 5\n花本体にHPはありません。スキル効果は未実装です。':'どんな花に出会えるか、花契して確かめよう。',18)
-  if(!owned)this.button(810,585,'花契する（テスト）',()=>{contractPreview.contract(flower.id);this.detail(flower)})
-  else if(contractPreview.equipped===flower.id)this.button(810,585,'編成から外す',()=>{contractPreview.equipped=null;this.detail(flower)})
-  else this.button(810,585,'この花を編成する',()=>{contractPreview.equip(flower.id);this.detail(flower)})
+ private closeDetail(): void {
+  this.detailCleanup?.()
+  this.detailCleanup = null
+  this.input.enabled = true
  }
- private character(): void {
-  this.frame('キャラ詳細（テスト）')
-  this.button(130,130,'← 花一覧',()=>this.list())
-  this.add.rectangle(300,350,400,350,0xffffff).setStrokeStyle(2,0x81a18e)
-  this.add.sprite(300,335,'contract-preview-player',0).setScale(3)
-  this.text(160,550,'プレイヤー Lv.1',28)
-  const flower=prototypeFlowers.find(f=>f.id===contractPreview.equipped)
-  this.text(570,175,'HP：100 ／ 100\nMP：50 ／ 50\nATK：'+(flower?'15（基本10 ＋ 花5）':'10'),26)
-  this.text(570,340,flower?`編成中の花：${flower.name}`:'編成中の花：なし',24)
-  if(flower){this.art(flower,710,455,155);this.button(960,455,'花詳細へ',()=>this.detail(flower))}
-  else this.text(570,405,'花一覧から花契し、花詳細で編成してください。',20)
-  this.text(570,575,'試作では花を1つ編成できます。\n本番の編成・所持データには保存されません。',18)
+ private detail(flower:PrototypeFlower): void {
+  this.closeDetail()
+  this.input.enabled = false
+  this.detailCleanup = mountFlowerDetail(flower, {
+   owned: contractPreview.owned.has(flower.id),
+   unknownUrl: unknownFlowers[flower.season].url,
+   onClose: () => { this.closeDetail(); this.list() },
+   onHome: () => { this.closeDetail(); this.scene.start('HomeScene') },
+   onContract: () => contractPreview.contract(flower.id),
+  })
  }
  private confirmReset(): void {
   this.frame('テスト状態を初期化')
-  this.text(300,260,'テストの花契状況と編成をすべて解除します。',26)
+  this.text(300,260,'テストの花契状況をすべて解除します。',26)
   this.button(440,430,'戻る',()=>this.list())
   this.button(800,430,'初期化する',()=>{contractPreview.reset();this.list()})
  }

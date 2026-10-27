@@ -1,10 +1,11 @@
+import { getPhpBaseUrl } from './PhpBaseUrl';
 import { saveCurrentUser, type AuthenticatedUser } from './GoogleSignIn';
 
 function clearUser(): void {
   try { localStorage.removeItem('hanahakuCurrentUser'); } catch { /* Storage may be unavailable. */ }
 }
 async function request(endpoint: string): Promise<{ ok: boolean; user?: AuthenticatedUser | null; error?: string }> {
-  const base = (import.meta.env.VITE_PHP_BASE_URL ?? 'http://localhost/php/アプリケーション開発/application-Hanahaku/php').replace(/\/$/, '');
+  const base = getPhpBaseUrl();
   const controller = new AbortController();
   const timeout = window.setTimeout(() => controller.abort(), 8000);
   try {

@@ -1,0 +1,1178 @@
+{
+  "zinia": {
+    "source": "花データ!A18:L18",
+    "stats": {
+      "HP": "10",
+      "MP": "15",
+      "EXP": "5%",
+      "ATK": "5",
+      "DEF": "6",
+      "CD": "1"
+    },
+    "resistances": {
+      "熱": "26",
+      "水": "0",
+      "風": "12",
+      "光": "15",
+      "土": "20"
+    },
+    "skill": {
+      "name": "軽い攻撃スキルを連打",
+      "description": "100+スキルLv*20%の攻撃力で攻撃3+スキルLv回",
+      "mp": 25.0,
+      "cooldown": 20.0,
+      "element": "熱",
+      "category": "攻撃",
+      "icon": "multi-hit",
+      "source": "スキルデータ!B5:H5",
+      "descriptionLevel1": "攻撃力の120%で4回攻撃します。"
+    }
+  },
+  "suiren": {
+    "source": "花データ!A19:L19",
+    "stats": {
+      "HP": "15",
+      "MP": "24",
+      "EXP": "5%",
+      "ATK": "4",
+      "DEF": "7",
+      "CD": "4"
+    },
+    "resistances": {
+      "熱": "0",
+      "水": "40",
+      "風": "20",
+      "光": "0",
+      "土": "0"
+    },
+    "skill": {
+      "name": "どっしり固いディフェンス",
+      "description": "15秒間、防御力を15+スキルLv*3%上昇させる\n5秒ごとに体力を自身のHPの5+スキルLv*1%回復させる",
+      "mp": 26.0,
+      "cooldown": 28.0,
+      "element": "無",
+      "category": "強化・回復",
+      "icon": "defensive-recovery",
+      "source": "スキルデータ!B6:H6",
+      "descriptionLevel1": "15秒間、防御力が18%上昇します。\n5秒ごとに自身のHPの6%を回復します。"
+    }
+  },
+  "sakura": {
+    "source": "花データ!A20:L20",
+    "stats": {
+      "HP": "13",
+      "MP": "28",
+      "EXP": "5%",
+      "ATK": "10",
+      "DEF": "3",
+      "CD": "5"
+    },
+    "resistances": {
+      "熱": "0",
+      "水": "0",
+      "風": "20",
+      "光": "18",
+      "土": "10"
+    },
+    "skill": {
+      "name": "花吹雪が舞う画面全体攻撃とか",
+      "description": "画面内の敵全体に攻撃力の300%の攻撃１回、60秒間攻撃力が+15%、",
+      "mp": 30.0,
+      "cooldown": 30.0,
+      "element": "光",
+      "category": "",
+      "icon": "",
+      "source": "スキルデータ!B17:H17"
+    }
+  },
+  "sunflower": {
+    "source": "花データ!A21:L21",
+    "stats": {
+      "HP": "14",
+      "MP": "15",
+      "EXP": "5%",
+      "ATK": "9",
+      "DEF": "3",
+      "CD": "5"
+    },
+    "resistances": {
+      "熱": "35",
+      "水": "0",
+      "風": "0",
+      "光": "20",
+      "土": "5"
+    },
+    "skill": {
+      "name": "太陽の光線的な一発どかんタイプ",
+      "description": "3秒間通常攻撃不可\n防御力-20+スキルLv*4%、3秒後に攻撃力の300+スキルLv*15％で攻撃",
+      "mp": 28.0,
+      "cooldown": 30.0,
+      "element": "熱",
+      "category": "攻撃",
+      "icon": "solar-burst",
+      "source": "スキルデータ!B7:H7",
+      "descriptionLevel1": "3秒間、通常攻撃ができなくなり、防御力が16%低下します。\n3秒後に攻撃力の315%で攻撃します。"
+    },
+    "descriptionSource": "ユーザー添付の図鑑詳細画面参考画像（ひまわり）"
+  },
+  "sarusuberi": {
+    "source": "花データ!A22:L22",
+    "stats": {
+      "HP": "12",
+      "MP": "18",
+      "EXP": "5%",
+      "ATK": "6",
+      "DEF": "5",
+      "CD": "2"
+    },
+    "resistances": {
+      "熱": "30",
+      "水": "0",
+      "風": "15",
+      "光": "10",
+      "土": "25"
+    },
+    "skill": {
+      "name": "扱いやすいバランス型",
+      "description": "15+スキルLv*1秒間攻撃力＋15+スキルLv*5%, 防御力+10%、\n攻撃力の15+スキルLv*1%の追尾弾を3秒ごとに放つ",
+      "mp": 30.0,
+      "cooldown": 34.0,
+      "element": "熱",
+      "category": "攻撃・強化",
+      "icon": "balanced-boost",
+      "source": "スキルデータ!B8:H8",
+      "descriptionLevel1": "16秒間、攻撃力が20%、防御力が10%上昇します。\n3秒ごとに、攻撃力の16%の追尾弾を放ちます。"
+    }
+  },
+  "mukuge": {
+    "source": "花データ!A23:L23",
+    "stats": {
+      "HP": "11",
+      "MP": "15",
+      "EXP": "5%",
+      "ATK": "6",
+      "DEF": "5",
+      "CD": "1"
+    },
+    "resistances": {
+      "熱": "6",
+      "水": "30",
+      "風": "10",
+      "光": "0",
+      "土": "8"
+    },
+    "skill": {
+      "name": "絶え間ない連続攻撃スキル",
+      "description": "20秒間攻撃速度＋30+スキルLv*2%と攻撃力＋10+スキルLv*5％防御力-15%\n発動中1秒ごとに攻撃力の150+スキルLv*10%の攻撃を繰り返して通常攻撃不可",
+      "mp": 33.0,
+      "cooldown": 31.0,
+      "element": "水",
+      "category": "攻撃・強化",
+      "icon": "continuous-strike",
+      "source": "スキルデータ!B9:H9",
+      "descriptionLevel1": "20秒間、攻撃速度が32%、攻撃力が15%上昇し、防御力が15%低下します。\n発動中は通常攻撃ができず、毎秒、攻撃力の160%で攻撃します。"
+    }
+  },
+  "kochia": {
+    "source": "花データ!A24:L24",
+    "stats": {
+      "HP": "10",
+      "MP": "22",
+      "EXP": "5%",
+      "ATK": "7",
+      "DEF": "4",
+      "CD": "4"
+    },
+    "resistances": {
+      "熱": "弱",
+      "水": "ー",
+      "風": "45",
+      "光": "ー",
+      "土": "ー"
+    },
+    "skill": {
+      "name": "スキルで緑から赤に変化（紅葉）それによってバランス型から攻撃型に変化",
+      "description": "緑：\n落下速度-20%\n20秒間自身の防御力+30+スキルLv*3%, \n自身のHPのスキルLv*1%で毎秒回復、スキルが赤に変化\n\n赤：\n攻撃範囲と攻撃力が段階的に強化される攻撃を三回、終了するとリセットされる）\n一回目：100+スキルLv*10%\n二回目：140+スキルLv*20%\n三回目：180+スキルLv*30%\n三回目は敵を吹き飛ばす\nスキルが緑に変化",
+      "mp": 42.0,
+      "cooldown": 33.0,
+      "element": "風",
+      "category": "攻撃・変化・強化・回復",
+      "icon": "autumn-shift",
+      "source": "スキルデータ!B10:H10",
+      "descriptionLevel1": "緑：落下速度が20%低下。20秒間、防御力が33%上昇し、毎秒HPの1%を回復します。\n赤：攻撃力の110%・160%・210%で3回攻撃。最後の攻撃で敵を吹き飛ばします。"
+    }
+  },
+  "hasu": {
+    "source": "花データ!A25:L25",
+    "stats": {
+      "HP": "22",
+      "MP": "30",
+      "EXP": "5%",
+      "ATK": "3",
+      "DEF": "9",
+      "CD": "4"
+    },
+    "resistances": {
+      "熱": "耐",
+      "水": "耐",
+      "風": "ー",
+      "光": "弱",
+      "土": "ー"
+    },
+    "skill": {
+      "name": "トップクラスの耐久力",
+      "description": "35+スキルLv*2秒間最大HP＋75+スキルLv*15%、現在のHP+75+スキルLv*15%、\n防御力＋10+スキルLv*5%\n攻撃力-10-スキルLv*5%",
+      "mp": 45.0,
+      "cooldown": 60.0,
+      "element": "無",
+      "category": "強化",
+      "icon": "fortify",
+      "source": "スキルデータ!B11:H11",
+      "descriptionLevel1": "37秒間、最大HPが90%、防御力が15%上昇し、攻撃力が15%低下します。現在のHPも90%増加します。"
+    }
+  },
+  "rurimatsuri": {
+    "source": "花データ!A26:L26",
+    "stats": {
+      "HP": "9",
+      "MP": "18",
+      "EXP": "5%",
+      "ATK": "6",
+      "DEF": "4",
+      "CD": "2"
+    },
+    "resistances": {
+      "熱": "ー",
+      "水": "耐",
+      "風": "耐",
+      "光": "弱",
+      "土": "ー"
+    },
+    "skill": {
+      "name": "デバフ（被ダメアップや鈍足）とか",
+      "description": "80+スキルLv*10%の攻撃力で攻撃。12+スキルLv*1秒間敵全体の攻撃速度-20%",
+      "mp": 30.0,
+      "cooldown": 36.0,
+      "element": "光",
+      "category": "攻撃・弱化",
+      "icon": "slow-attack",
+      "source": "スキルデータ!B12:H12",
+      "descriptionLevel1": "攻撃力の90%で攻撃し、13秒間、敵全体の攻撃速度を20%下げます。"
+    }
+  },
+  "ajisai": {
+    "source": "花データ!A27:L27",
+    "stats": {
+      "HP": "13",
+      "MP": "20",
+      "EXP": "5%",
+      "ATK": "3",
+      "DEF": "7",
+      "CD": "2"
+    },
+    "resistances": {
+      "熱": "耐",
+      "水": "吸",
+      "風": "弱",
+      "光": "弱",
+      "土": "ー"
+    },
+    "skill": {
+      "name": "回復。",
+      "description": "回復力の80+スキルLv*15%で回復",
+      "mp": 30.0,
+      "cooldown": 22.0,
+      "element": "無",
+      "category": "回復",
+      "icon": "healing",
+      "source": "スキルデータ!B13:H13",
+      "descriptionLevel1": "回復力の95%で回復します。"
+    }
+  },
+  "hangesho": {
+    "source": "花データ!A29:L29",
+    "stats": {
+      "HP": "10",
+      "MP": "24",
+      "EXP": "5%",
+      "ATK": "2",
+      "DEF": "6",
+      "CD": "4"
+    },
+    "resistances": {
+      "熱": "ー",
+      "水": "耐",
+      "風": "ー",
+      "光": "弱",
+      "土": "ー"
+    },
+    "words": [
+      "内気",
+      "内に秘めた情熱",
+      "清浄無垢"
+    ],
+    "skill": {
+      "name": "隠密系（的に認知されないとか）",
+      "description": "100+10*スキルLv%の攻撃１回と、15秒間回避率+30%",
+      "mp": 31.0,
+      "cooldown": 35.0,
+      "element": "土",
+      "category": "攻撃・強化",
+      "icon": "stealth",
+      "source": "スキルデータ!B14:H14",
+      "descriptionLevel1": "攻撃力の110%で1回攻撃し、15秒間、回避率が30%上昇します。"
+    },
+    "origin": "",
+    "habitat": "",
+    "features": ""
+  },
+  "nemunoki": {
+    "source": "花データ!A30:L30",
+    "stats": {
+      "HP": "12",
+      "MP": "21",
+      "EXP": "5%",
+      "ATK": "3",
+      "DEF": "5",
+      "CD": "3"
+    },
+    "resistances": {
+      "熱": "ー",
+      "水": "ー",
+      "風": "耐",
+      "光": "弱",
+      "土": "ー"
+    },
+    "words": [
+      "歓喜",
+      "胸のときめき",
+      "安らぎ",
+      "夢想",
+      "創造力"
+    ],
+    "skill": {
+      "name": "状態異常「睡眠」敵は寝る（一回攻撃したら起きる）",
+      "description": "風属性での攻撃力の100%で攻撃、8秒間睡眠を付与",
+      "mp": 30.0,
+      "cooldown": 30.0,
+      "element": "風",
+      "category": "",
+      "icon": "",
+      "source": "スキルデータ!B15:H15"
+    },
+    "origin": "",
+    "habitat": "",
+    "features": ""
+  },
+  "tanpopo": {
+    "source": "花データ!A31:L31",
+    "stats": {
+      "HP": "6",
+      "MP": "10",
+      "EXP": "5%",
+      "ATK": "4",
+      "DEF": "3",
+      "CD": "1"
+    },
+    "resistances": {
+      "熱": "ー",
+      "水": "弱",
+      "風": "無",
+      "光": "ー",
+      "土": "弱"
+    },
+    "words": [
+      "恋占い",
+      "真実の愛",
+      "信頼"
+    ],
+    "skill": {
+      "name": "戦ってると綿毛になって空飛べるとか？",
+      "description": "４０秒間自身の質量-80%、200%の攻撃力で攻撃2回",
+      "mp": 30.0,
+      "cooldown": 30.0,
+      "element": "風",
+      "category": "",
+      "icon": "",
+      "source": "スキルデータ!B16:H16"
+    },
+    "origin": "",
+    "habitat": "",
+    "features": ""
+  },
+  "tulip": {
+    "source": "花データ!A32:L32",
+    "stats": {
+      "HP": "11",
+      "MP": "15",
+      "EXP": "5%",
+      "ATK": "5",
+      "DEF": "5",
+      "CD": "2"
+    },
+    "resistances": {
+      "熱": "ー",
+      "水": "ー",
+      "風": "ー",
+      "光": "耐",
+      "土": "弱"
+    },
+    "words": [
+      "思いやり",
+      "博愛"
+    ],
+    "skill": {
+      "name": "全ステータス微増バフを配る",
+      "description": "15秒間HP、MP、攻撃力、回復力、防御力、+5%",
+      "mp": 30.0,
+      "cooldown": 30.0,
+      "element": "",
+      "category": "",
+      "icon": "",
+      "source": "スキルデータ!B18:H18"
+    },
+    "origin": "",
+    "habitat": "",
+    "features": ""
+  },
+  "nanohana": {
+    "source": "花データ!A33:L33",
+    "stats": {
+      "HP": "9",
+      "MP": "15",
+      "EXP": "5%",
+      "ATK": "4",
+      "DEF": "4",
+      "CD": "1"
+    },
+    "resistances": {
+      "熱": "ー",
+      "水": "ー",
+      "風": "弱",
+      "光": "耐",
+      "土": "弱"
+    },
+    "words": [
+      "快活",
+      "明るさ"
+    ],
+    "skill": {
+      "name": "スキルを打つほど菜の花が咲いていき、どんどん威力が上がる",
+      "description": "光属性での攻撃力の80%での攻撃３回、次にスキルを使用するときスキルの攻撃力が+20%",
+      "mp": 30.0,
+      "cooldown": 30.0,
+      "element": "光",
+      "category": "",
+      "icon": "",
+      "source": "スキルデータ!B19:H19"
+    },
+    "origin": "",
+    "habitat": "",
+    "features": ""
+  },
+  "tsutsuji": {
+    "source": "花データ!A34:L34",
+    "stats": {
+      "HP": "16",
+      "MP": "10",
+      "EXP": "5%",
+      "ATK": "5",
+      "DEF": "8",
+      "CD": "3"
+    },
+    "resistances": {
+      "熱": "ー",
+      "水": "ー",
+      "風": "弱",
+      "光": "ー",
+      "土": "耐"
+    },
+    "words": [
+      "節度",
+      "慎み"
+    ],
+    "skill": {
+      "name": "一定以上のダメージを激減する（10以上のダメージを3にするみたいな）",
+      "description": "20秒間最大HPの20%以下の攻撃をすべて防御力の10％にする",
+      "mp": 30.0,
+      "cooldown": 30.0,
+      "element": "土",
+      "category": "",
+      "icon": "",
+      "source": "スキルデータ!B20:H20"
+    },
+    "origin": "",
+    "habitat": "",
+    "features": ""
+  },
+  "fuji": {
+    "source": "花データ!A35:L35",
+    "stats": {
+      "HP": "14",
+      "MP": "18",
+      "EXP": "5%",
+      "ATK": "7",
+      "DEF": "5",
+      "CD": "4"
+    },
+    "resistances": {
+      "熱": "弱",
+      "水": "ー",
+      "風": "耐",
+      "光": "ー",
+      "土": "ー"
+    },
+    "words": [
+      "優しさ",
+      "歓迎",
+      "決して離れない"
+    ],
+    "skill": {
+      "name": "長い藤棚によって中距離中範囲攻撃",
+      "description": "攻撃力の150%の攻撃1回、5秒間敵の防御力-10%",
+      "mp": 30.0,
+      "cooldown": 30.0,
+      "element": "風",
+      "category": "",
+      "icon": "",
+      "source": "スキルデータ!B21:H21"
+    },
+    "origin": "",
+    "habitat": "",
+    "features": ""
+  },
+  "poppy": {
+    "source": "花データ!A36:L36",
+    "stats": {
+      "HP": "6",
+      "MP": "18",
+      "EXP": "5%",
+      "ATK": "7",
+      "DEF": "2",
+      "CD": "1"
+    },
+    "resistances": {
+      "熱": "耐",
+      "水": "弱",
+      "風": "ー",
+      "光": "ー",
+      "土": "ー"
+    },
+    "words": [
+      "いたわり",
+      "思いやり",
+      "感謝"
+    ],
+    "skill": {
+      "name": "軽い中距離攻撃（火の玉）を連射",
+      "description": "１５秒間火の玉を連射可能（スキルボタンで）\n火の玉：対象に当たると攻撃力の100%で攻撃、対象に５秒間火傷を付与",
+      "mp": 30.0,
+      "cooldown": 30.0,
+      "element": "熱",
+      "category": "",
+      "icon": "",
+      "source": "スキルデータ!B22:H22"
+    },
+    "origin": "",
+    "habitat": "",
+    "features": ""
+  },
+  "suisen": {
+    "source": "花データ!A37:L37",
+    "stats": {
+      "HP": "10",
+      "MP": "15",
+      "EXP": "5%",
+      "ATK": "5",
+      "DEF": "5",
+      "CD": "3"
+    },
+    "resistances": {
+      "熱": "ー",
+      "水": "耐",
+      "風": "ー",
+      "光": "弱",
+      "土": "ー"
+    },
+    "words": [
+      "うぬぼれ",
+      "自己愛",
+      "神秘"
+    ],
+    "skill": {
+      "name": "バランス型毒攻撃",
+      "description": "15秒間継続する毒の瓶を１回投擲する。",
+      "mp": 30.0,
+      "cooldown": 30.0,
+      "element": "水",
+      "category": "",
+      "icon": "",
+      "source": "スキルデータ!B23:H23"
+    },
+    "origin": "",
+    "habitat": "",
+    "features": ""
+  },
+  "suzuran": {
+    "source": "花データ!A38:L38",
+    "stats": {
+      "HP": "5",
+      "MP": "15",
+      "EXP": "5%",
+      "ATK": "7",
+      "DEF": "2",
+      "CD": "3"
+    },
+    "resistances": {
+      "熱": "ー",
+      "水": "ー",
+      "風": "ー",
+      "光": "耐",
+      "土": "弱"
+    },
+    "words": [
+      "再び幸せが訪れる",
+      "純粋"
+    ],
+    "skill": {
+      "name": "防御貫通攻撃",
+      "description": "防御力無視の攻撃力250％の攻撃一回",
+      "mp": 30.0,
+      "cooldown": 30.0,
+      "element": "光",
+      "category": "",
+      "icon": "",
+      "source": "スキルデータ!B24:H24"
+    },
+    "origin": "",
+    "habitat": "",
+    "features": ""
+  },
+  "marguerite": {
+    "source": "花データ!A39:L39",
+    "stats": {
+      "HP": "8",
+      "MP": "17",
+      "EXP": "5%",
+      "ATK": "5",
+      "DEF": "3",
+      "CD": "2"
+    },
+    "resistances": {
+      "熱": "耐",
+      "水": "ー",
+      "風": "ー",
+      "光": "耐",
+      "土": "弱"
+    },
+    "words": [
+      "恋占い",
+      "真実の愛",
+      "信頼"
+    ],
+    "skill": {
+      "name": "2分の１でクリティカル(威力に2倍とか)",
+      "description": "20秒間クリティカル率15％上昇",
+      "mp": 30.0,
+      "cooldown": 30.0,
+      "element": "光",
+      "category": "",
+      "icon": "",
+      "source": "スキルデータ!B25:H25"
+    },
+    "origin": "",
+    "habitat": "",
+    "features": ""
+  },
+  "shakuyaku": {
+    "source": "花データ!A40:L40",
+    "stats": {
+      "HP": "14",
+      "MP": "18",
+      "EXP": "5%",
+      "ATK": "8",
+      "DEF": "6",
+      "CD": "4"
+    },
+    "resistances": {
+      "熱": "ー",
+      "水": "ー",
+      "風": "弱",
+      "光": "ー",
+      "土": "耐"
+    },
+    "words": [
+      "恥じらい",
+      "はにかみ",
+      "謙遜"
+    ],
+    "skill": {
+      "name": "バランスのいいアタッカー鋭い突き攻撃",
+      "description": "",
+      "mp": 30.0,
+      "cooldown": 30.0,
+      "element": "土",
+      "category": "",
+      "icon": "",
+      "source": "スキルデータ!B26:H26"
+    },
+    "origin": "",
+    "habitat": "",
+    "features": ""
+  },
+  "asagao": {
+    "source": "花データ!A41:L41",
+    "stats": {
+      "HP": "7",
+      "MP": "14",
+      "EXP": "5%",
+      "ATK": "5",
+      "DEF": "3",
+      "CD": "1"
+    },
+    "resistances": {
+      "熱": "ー",
+      "水": "耐",
+      "風": "ー",
+      "光": "弱",
+      "土": "ー"
+    },
+    "words": [
+      "愛情",
+      "結束",
+      "明日も爽やかに"
+    ],
+    "skill": {
+      "name": "ステージに入ってから一定時間能力アップ",
+      "description": "",
+      "mp": 30.0,
+      "cooldown": 30.0,
+      "element": "水",
+      "category": "",
+      "icon": "",
+      "source": "スキルデータ!B27:H27"
+    },
+    "origin": "",
+    "habitat": "",
+    "features": ""
+  },
+  "lavender": {
+    "source": "花データ!A42:L42",
+    "stats": {
+      "HP": "10",
+      "MP": "25",
+      "EXP": "5%",
+      "ATK": "1",
+      "DEF": "5",
+      "CD": "2"
+    },
+    "resistances": {
+      "熱": "弱",
+      "水": "ー",
+      "風": "耐",
+      "光": "ー",
+      "土": "ー"
+    },
+    "words": [
+      "期待",
+      "あなたを待っています",
+      "清潔"
+    ],
+    "skill": {
+      "name": "MP回復やデバフ解除",
+      "description": "回復力の10％でＭＰ回復",
+      "mp": 30.0,
+      "cooldown": 30.0,
+      "element": "風",
+      "category": "",
+      "icon": "",
+      "source": "スキルデータ!B28:H28"
+    },
+    "origin": "",
+    "habitat": "",
+    "features": ""
+  },
+  "yuri": {
+    "source": "花データ!A43:L43",
+    "stats": {
+      "HP": "12",
+      "MP": "32",
+      "EXP": "5%",
+      "ATK": "3",
+      "DEF": "6",
+      "CD": "4"
+    },
+    "resistances": {
+      "熱": "ー",
+      "水": "ー",
+      "風": "ー",
+      "光": "耐",
+      "土": "弱"
+    },
+    "words": [
+      "純粋",
+      "無垢",
+      "威厳"
+    ],
+    "skill": {
+      "name": "めっちゃ回復",
+      "description": "全回復",
+      "mp": 30.0,
+      "cooldown": 30.0,
+      "element": "",
+      "category": "",
+      "icon": "",
+      "source": "スキルデータ!B29:H29"
+    },
+    "origin": "",
+    "habitat": "",
+    "features": ""
+  },
+  "marigold": {
+    "source": "花データ!A44:L44",
+    "stats": {
+      "HP": "12",
+      "MP": "15",
+      "EXP": "5%",
+      "ATK": "5",
+      "DEF": "5",
+      "CD": "2"
+    },
+    "resistances": {
+      "熱": "耐",
+      "水": "弱",
+      "風": "ー",
+      "光": "ー",
+      "土": "ー"
+    },
+    "words": [
+      "真心",
+      "健康",
+      "変わらぬ愛"
+    ],
+    "skill": {
+      "name": "扱いやすい",
+      "description": "",
+      "mp": 30.0,
+      "cooldown": 30.0,
+      "element": "熱",
+      "category": "",
+      "icon": "",
+      "source": "スキルデータ!B30:H30"
+    },
+    "origin": "",
+    "habitat": "",
+    "features": ""
+  },
+  "hibiscus": {
+    "source": "花データ!A45:L45",
+    "stats": {
+      "HP": "8",
+      "MP": "12",
+      "EXP": "5%",
+      "ATK": "9",
+      "DEF": "3",
+      "CD": "5"
+    },
+    "resistances": {
+      "熱": "耐",
+      "水": "弱",
+      "風": "ー",
+      "光": "ー",
+      "土": "ー"
+    },
+    "words": [
+      "繊細な美",
+      "新しい恋"
+    ],
+    "skill": {
+      "name": "高火力な範囲攻撃",
+      "description": "",
+      "mp": 30.0,
+      "cooldown": 30.0,
+      "element": "熱",
+      "category": "",
+      "icon": "",
+      "source": "スキルデータ!B31:H31"
+    },
+    "origin": "",
+    "habitat": "",
+    "features": ""
+  },
+  "red_rose": {
+    "source": "花データ!A46:L46",
+    "stats": {
+      "HP": "16",
+      "MP": "26",
+      "EXP": "5%",
+      "ATK": "9",
+      "DEF": "6",
+      "CD": "3"
+    },
+    "resistances": {
+      "熱": "ー",
+      "水": "ー",
+      "風": "ー",
+      "光": "耐",
+      "土": "弱"
+    },
+    "words": [
+      "愛",
+      "美"
+    ],
+    "skill": {
+      "name": "万能型スキルで青いバラになって全能力アップとかいいかも",
+      "description": "",
+      "mp": 30.0,
+      "cooldown": 30.0,
+      "element": "光",
+      "category": "",
+      "icon": "",
+      "source": "スキルデータ!B32:H32"
+    },
+    "origin": "",
+    "habitat": "",
+    "features": ""
+  },
+  "cosmos": {
+    "source": "花データ!A47:L47",
+    "stats": {
+      "HP": "9",
+      "MP": "13",
+      "EXP": "5%",
+      "ATK": "5",
+      "DEF": "4",
+      "CD": "2"
+    },
+    "resistances": {
+      "熱": "弱",
+      "水": "ー",
+      "風": "耐",
+      "光": "ー",
+      "土": "ー"
+    },
+    "words": [
+      "乙女の真心",
+      "調和",
+      "謙虚"
+    ],
+    "skill": {
+      "name": "いなし系の防御？回避？って感じ",
+      "description": "",
+      "mp": 30.0,
+      "cooldown": 30.0,
+      "element": "風",
+      "category": "",
+      "icon": "",
+      "source": "スキルデータ!B33:H33"
+    },
+    "origin": "",
+    "habitat": "",
+    "features": ""
+  },
+  "kiku": {
+    "source": "花データ!A48:L48",
+    "stats": {
+      "HP": "18",
+      "MP": "24",
+      "EXP": "5%",
+      "ATK": "6",
+      "DEF": "9",
+      "CD": "3"
+    },
+    "resistances": {
+      "熱": "ー",
+      "水": "ー",
+      "風": "弱",
+      "光": "ー",
+      "土": "耐"
+    },
+    "words": [
+      "高貴",
+      "高潔",
+      "高尚"
+    ],
+    "skill": {
+      "name": "状態異常に対する防御",
+      "description": "",
+      "mp": 30.0,
+      "cooldown": 30.0,
+      "element": "土",
+      "category": "",
+      "icon": "",
+      "source": "スキルデータ!B34:H34"
+    },
+    "origin": "",
+    "habitat": "",
+    "features": ""
+  },
+  "tsubaki": {
+    "source": "花データ!A49:L49",
+    "stats": {
+      "HP": "18",
+      "MP": "25",
+      "EXP": "5%",
+      "ATK": "8",
+      "DEF": "8",
+      "CD": "5"
+    },
+    "resistances": {
+      "熱": "ー",
+      "水": "ー",
+      "風": "弱",
+      "光": "ー",
+      "土": "耐"
+    },
+    "words": [
+      "控えめな優雅さ",
+      "気品"
+    ],
+    "skill": {
+      "name": "万能寄りの攻撃型スキルは豪快な一撃",
+      "description": "",
+      "mp": 30.0,
+      "cooldown": 30.0,
+      "element": "土",
+      "category": "",
+      "icon": "",
+      "source": "スキルデータ!B35:H35"
+    },
+    "origin": "",
+    "habitat": "",
+    "features": ""
+  },
+  "ume": {
+    "source": "花データ!A50:L50",
+    "stats": {
+      "HP": "13",
+      "MP": "18",
+      "EXP": "5%",
+      "ATK": "6",
+      "DEF": "6",
+      "CD": "3"
+    },
+    "resistances": {
+      "熱": "ー",
+      "水": "ー",
+      "風": "弱",
+      "光": "ー",
+      "土": "耐"
+    },
+    "words": [
+      "高潔",
+      "忠実",
+      "忍耐"
+    ],
+    "skill": {
+      "name": "強力な攻撃が来ても１で耐えてカウンター",
+      "description": "",
+      "mp": 30.0,
+      "cooldown": 30.0,
+      "element": "土",
+      "category": "",
+      "icon": "",
+      "source": "スキルデータ!B36:H36"
+    },
+    "origin": "",
+    "habitat": "",
+    "features": ""
+  },
+  "gerbera": {
+    "source": "花データ!A51:L51",
+    "stats": {
+      "HP": "10",
+      "MP": "15",
+      "EXP": "5%",
+      "ATK": "6",
+      "DEF": "4",
+      "CD": "2"
+    },
+    "resistances": {
+      "熱": "ー",
+      "水": "ー",
+      "風": "ー",
+      "光": "耐",
+      "土": "弱"
+    },
+    "words": [
+      "希望",
+      "常に前進"
+    ],
+    "skill": {
+      "name": "スキルを打つと一定時間追撃が発生",
+      "description": "",
+      "mp": 30.0,
+      "cooldown": 30.0,
+      "element": "光",
+      "category": "",
+      "icon": "",
+      "source": "スキルデータ!B37:H37"
+    },
+    "origin": "",
+    "habitat": "",
+    "features": ""
+  },
+  "higanbana": {
+    "source": "花データ!A54:L54",
+    "stats": {},
+    "resistances": {
+      "熱": "耐",
+      "水": "弱",
+      "風": "ー",
+      "光": "耐",
+      "土": "ー"
+    },
+    "words": [
+      "悲しい思い出",
+      "あきらめ"
+    ],
+    "skill": {
+      "name": "自傷高火力アタッカー",
+      "description": "",
+      "mp": 30.0,
+      "cooldown": 30.0,
+      "element": "熱",
+      "category": "",
+      "icon": "",
+      "source": "スキルデータ!B39:H39"
+    },
+    "origin": "",
+    "habitat": "",
+    "features": ""
+  },
+  "blue_rose": {
+    "source": "花データ!A46:L46",
+    "stats": {
+      "HP": "16",
+      "MP": "26",
+      "EXP": "5%",
+      "ATK": "9",
+      "DEF": "6",
+      "CD": "3"
+    },
+    "resistances": {
+      "熱": "ー",
+      "水": "ー",
+      "風": "ー",
+      "光": "耐",
+      "土": "弱"
+    },
+    "words": [
+      "夢叶う",
+      "神の祝福"
+    ],
+    "skill": {
+      "name": "万能型スキルで青いバラになって全能力アップとかいいかも",
+      "description": "",
+      "mp": 30.0,
+      "cooldown": 30.0,
+      "element": "光",
+      "category": "",
+      "icon": "",
+      "source": "スキルデータ!B32:H32"
+    },
+    "origin": "",
+    "habitat": "",
+    "features": ""
+  }
+}

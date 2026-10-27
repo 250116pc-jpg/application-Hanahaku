@@ -1,3 +1,4 @@
+import { getPhpBaseUrl } from './PhpBaseUrl';
 export interface AuthenticatedUser {
   id: number;
   name: string;
@@ -80,12 +81,7 @@ function loadGoogleIdentityServices(): Promise<void> {
   return scriptPromise;
 }
 
-function getPhpBaseUrl(): string {
-  return (
-    import.meta.env.VITE_PHP_BASE_URL ??
-    'http://localhost/php/アプリケーション開発/application-Hanahaku/php'
-  ).replace(/\/$/, '');
-}
+
 
 async function authenticateWithGoogle(credential: string): Promise<AuthenticatedUser> {
   let response: Response;
@@ -132,6 +128,16 @@ export function mountGoogleSignInButton(
       ? defaultClientId
       : configuredClientId;
   let active = true;
+  const localHost = ['localhost', '127.0.0.1', '[::1]'].includes(location.hostname);
+  const ipHost = /^\d+\.\d+\.\d+\.\d+$/.test(location.hostname) || location.hostname.startsWith('[');
+  if (!localHost && (location.protocol !== 'https:' || ipHost)) {
+    container.classList.add('is-unavailable');
+    container.textContent = 'このURLではGoogleログインは使えません。通常登録したアカウントをご利用ください。';
+    const hint = container.parentElement?.querySelector('.google-auth-hint');
+    if (hint) hint.textContent = 'Googleで登録したアカウントは、Googleログイン対応のURLからご利用ください。';
+    return () => { active = false; };
+  }
+
 
   if (!clientId || clientId.startsWith('YOUR_GOOGLE_CLIENT_ID')) {
     container.classList.add('is-unavailable');

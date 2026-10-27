@@ -1,0 +1,124 @@
+import type { PrototypeFlower } from './contractPreview'
+import detailsJson from './flowerDetails.json'
+import buttonImage from '../../assets/ui/button1.png'
+import './flower-detail.css'
+
+type Skill = { name: string; description: string; descriptionLevel1?: string; mp: number | null; cooldown: number | null; element: string; category: string; icon: string }
+type Details = { stats: Record<string, string>; resistances: Record<string, string>; words?: string[]; skill: Skill | null; origin?: string; habitat?: string; features?: string }
+const details = detailsJson as Record<string, Details>
+// Skill IDs follow php/skill/skills.json; flower IDs are independent.
+const skillCodes: Record<number, string> = {1:'zinia',2:'suiren',3:'sunflower',4:'sarusuberi',5:'mukuge',6:'kochia',7:'hasu',8:'rurimatsuri',9:'ajisai',10:'hangesho',13:'sakura'}
+const icons = import.meta.glob('../../assets/skill/*.png', { eager: true, query: '?url', import: 'default' }) as Record<string, string>
+
+function node<K extends keyof HTMLElementTagNameMap>(tag: K, className = '', text = ''): HTMLElementTagNameMap[K] {
+  const el = document.createElement(tag)
+  el.className = className
+  el.textContent = text
+  return el
+}
+
+/** Read-only catalog pages. Contract testing never changes the real party or battle data. */
+export function mountFlowerDetail(flower: PrototypeFlower, options: {
+  owned: boolean; unknownUrl: string; onClose: () => void; onHome: () => void; onContract: () => void
+}): () => void {
+  const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null
+  const root = node('section', 'flower-book-screen')
+  root.setAttribute('role', 'dialog')
+  root.setAttribute('aria-modal', 'true')
+  root.setAttribute('aria-label', '図鑑詳細')
+  root.style.setProperty('--catalog-button', `url("${buttonImage}")`)
+  document.body.append(root)
+  const data = details[flower.code]
+  let owned = options.owned
+  let page: 'ability' | 'botanical' = 'ability'
+  const button = (text: string, action: () => void, className = 'book-button'): HTMLButtonElement => {
+    const b = node('button', className, text); b.type = 'button'; b.addEventListener('click', action); return b
+  }
+  const picture = (url: string | undefined, label: string): HTMLElement => {
+    const frame = node('div', 'book-picture')
+    if (url) { const img = node('img'); img.src = url; img.alt = label; frame.append(img) }
+    else frame.append(node('p', 'book-empty', '花の写真は準備中です。'))
+    return frame
+  }
+  const section = (parent: HTMLElement, title: string, body: string): void => {
+    const box = node('section', 'book-section'); box.append(node('h3', 'book-ribbon', title), node('p', '', body)); parent.append(box)
+  }
+  const render = (): void => {
+    root.replaceChildren()
+    const book = node('article', 'flower-book')
+    const header = node('header', 'book-header')
+    header.append(node('span', 'book-brand', '❀ 花の図鑑'))
+    const nav = node('nav', 'book-tabs'); nav.setAttribute('aria-label', '詳細ページ')
+    for (const [key, label] of [['ability', '能力・スキル'], ['botanical', '花の説明']] as const) {
+      const tab = button(label, () => { page = key; render() }, 'book-tab')
+      tab.setAttribute('aria-pressed', String(page === key)); nav.append(tab)
+    }
+    header.append(nav)
+    const spread = node('div', 'book-spread')
+    const left = node('div', 'book-page book-left')
+    const right = node('div', 'book-page book-right')
+    const name = owned ? flower.name : 'まだ出会っていない花'
+    left.append(node('h2', 'book-flower-name', name))
+    left.append(picture(owned ? (page === 'ability' ? flower.url : flower.realUrl) : options.unknownUrl, owned ? flower.name : '未契約の花'))
+    if (!owned) {
+      section(left, '契約状態', '未契約')
+      section(right, 'まだ閉じられたページ', '花契すると、この花の能力・スキル・花言葉を読めるようになります。')
+      right.append(button('花契する（テスト）', () => { options.onContract(); owned = true; render() }))
+      right.append(node('p', 'book-note', 'テストの契約状態は再読み込みでリセットされます。'))
+    } else if (page === 'ability') {
+      const stats = node('section', 'book-section'); stats.append(node('h3', 'book-ribbon', '主人公への初期補正'))
+      const dl = node('dl', 'book-stats')
+      for (const key of ['HP', 'MP', 'ATK', 'DEF', 'CD']) {
+        const item = node('div')
+        const bonus = flower.statusBonus?.[key.toLowerCase()]
+        const value = flower.statusBonus ? (bonus === undefined ? undefined : String(bonus)) : data?.stats[key]
+        item.append(node('dt', '', key), node('dd', '', value ? `+${value}` : '未登録')); dl.append(item)
+      }
+      stats.append(dl); left.append(stats)
+      section(right, '花の情報', `季節：${flower.season}　／　属性：${flower.element ?? '未登録'}\n契約状態：契約済み`)
+      const skill = flower.skillId === undefined ? data?.skill : details[skillCodes[flower.skillId]]?.skill
+      const skills = node('section', 'book-section'); skills.append(node('h3', 'book-ribbon', 'スキル'))
+      if (skill) {
+        const heading = node('div', 'book-skill-heading')
+        const icon = icons[`../../assets/skill/${skill.icon}.png`]
+        if (icon) { const img = node('img', 'book-skill-icon'); img.src = icon; img.alt = ''; heading.append(img) }
+        else { const fallback = node('span', 'book-skill-fallback', '✧'); fallback.setAttribute('aria-hidden', 'true'); heading.append(fallback) }
+        heading.append(node('h3', '', skill.name)); skills.append(heading)
+        skills.append(node('p', 'book-skill-meta', `消費MP：${skill.mp ?? '未登録'}　／　CT：${skill.cooldown === null ? '未登録' : `${skill.cooldown}秒`}`))
+        skills.append(node('p', 'book-skill-description', skill.descriptionLevel1 || skill.description || '詳しい効果は未登録です。'))
+        skills.append(node('p', 'book-note', 'Lv.1の効果・消費MP・CT。強化で変化します。'))
+      } else skills.append(node('p', '', 'スキル情報は未登録です。'))
+      right.append(skills)
+      const resistance = node('section', 'book-section'); resistance.append(node('h3', 'book-ribbon', '属性カット率・耐性'))
+      const list = node('div', 'book-resistances')
+      for (const element of ['熱', '水', '風', '光', '土']) {
+        let value = data?.resistances[element] ?? '未登録'
+        if (/^\d+$/.test(value)) value += '%'
+        list.append(node('span', '', `${element}：${value}`))
+      }
+      resistance.append(list); right.append(resistance)
+    } else {
+      const words = flower.hanakotoba
+      section(left, '花言葉', words.length ? words.map(w => `「${w}」`).join('　') : '花言葉は未登録です。')
+      section(right, '起源', (flower.origin ?? data?.origin) || 'この花の起源は、まだ登録されていません。')
+      section(right, '咲いている場所', (flower.habitat ?? data?.habitat) || 'この花の生育場所は、まだ登録されていません。')
+      section(right, '特徴', (flower.features ?? data?.features) || 'この花の特徴は、まだ登録されていません。')
+    }
+    spread.append(left, right)
+    const footer = node('footer', 'book-footer')
+    footer.append(button('‹ 図鑑に戻る', options.onClose), node('span', 'book-folio', page === 'ability' ? 'I — 能力・スキル' : 'II — 花の説明'), button('ホームへ ›', options.onHome))
+    book.append(header, spread, footer); root.append(book)
+    const selected = nav.querySelector<HTMLButtonElement>('[aria-pressed="true"]'); selected?.focus({ preventScroll: true })
+  }
+  const keyboard = (event: KeyboardEvent): void => {
+    if (event.key === 'Escape') { event.preventDefault(); options.onClose() }
+    if (event.key !== 'Tab') return
+    const focusable = Array.from(root.querySelectorAll<HTMLButtonElement>('button:not(:disabled)'))
+    const first = focusable[0], last = focusable[focusable.length - 1]
+    if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus() }
+    else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus() }
+  }
+  root.addEventListener('keydown', keyboard)
+  render()
+  return () => { root.removeEventListener('keydown', keyboard); root.remove(); if (previousFocus?.isConnected) previousFocus.focus({ preventScroll: true }) }
+}

@@ -1,3 +1,4 @@
+import { getPhpBaseUrl } from '../auth/PhpBaseUrl';
 import Phaser from 'phaser';
 import { mountAuthLayout } from '../auth/AuthLayout';
 import {
@@ -99,11 +100,7 @@ export class RegisterScene extends Phaser.Scene {
       this.setMessage(message, '登録しています。', false);
 
       try {
-        const phpBaseUrl = (
-          import.meta.env.VITE_PHP_BASE_URL ??
-          'http://localhost/php/アプリケーション開発/application-Hanahaku/php'
-        )
-          .replace(/\/$/, '');
+        const phpBaseUrl = getPhpBaseUrl();
         const response = await fetch(`${phpBaseUrl}/register.php`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },

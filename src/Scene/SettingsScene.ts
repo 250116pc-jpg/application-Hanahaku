@@ -4,7 +4,14 @@ import { openSettingsPanel } from '../display/SettingsPanel';
 import { logout } from '../auth/Session';
 import { preloadSettingsVoice, SettingsVoice } from '../audio/SettingsVoice';
 
-import flowerImg from '../assets/flower.png';
+const reactionImages = import.meta.glob('../assets/setting/*.png', { eager: true, query: '?url', import: 'default' }) as Record<string, string>;
+const reactionFiles = {
+  bgmUp: 'BGM音量上げずんだ.png', bgmDown: 'BGM下げずんだ.png',
+  seUp: 'SE上げずんだ.png', seDown: 'SE下げずんだ.png',
+  voiceUp: '音声音量上げずんだ.png', voiceDown: '音声音量下げずんだ.png',
+  reset: '初期値ずんだ.png',
+  mute: 'ミュートずんだ.png', unmute: 'ミュート解除ずんだ.png',
+} as const;
 import {
   applyAudioSettings,
   loadAudioSettings,
@@ -22,6 +29,7 @@ export class SettingsScene extends Phaser.Scene {
   private readonly guideStorageKey = 'hanahakuSettingsGuideSeen';
   private guideObjects: Phaser.GameObjects.GameObject[] = [];
   private voice!: SettingsVoice;
+  private character!: Phaser.GameObjects.Image;
   private returnScene = 'HomeScene';
   private resumeOnClose = false;
   private originalAudioSettings!: AudioSettings;
@@ -56,10 +64,11 @@ export class SettingsScene extends Phaser.Scene {
 
   preload(): void {
     preloadSettingsVoice(this);
-    this.load.image(
-      'settingsCharacter',
-      flowerImg
-    );
+    for (const [reaction, file] of Object.entries(reactionFiles)) {
+      const url = reactionImages[`../assets/setting/${file}`];
+      if (!url) throw new Error(`設定画像が見つかりません: ${file}`);
+      if (!this.textures.exists(`settings-${reaction}`)) this.load.image(`settings-${reaction}`, url);
+    }
   }
 
   create(): void {
@@ -131,14 +140,8 @@ export class SettingsScene extends Phaser.Scene {
     this.createMuteButton();
     this.createSpeechBubble();
 
-    const character =
-      this.add.image(
-        750,
-        455,
-        'settingsCharacter'
-      );
-
-    character.setScale(0.55);
+    this.character = this.add.image(750, 470, 'settings-unmute');
+    this.showReaction(this.isMuted ? 'mute' : 'unmute');
 
     this.createLargeButton(
       1050,
@@ -149,6 +152,7 @@ export class SettingsScene extends Phaser.Scene {
         this.seVolume = DEFAULT_AUDIO_SETTINGS.seVolume;
         this.voiceVolume = DEFAULT_AUDIO_SETTINGS.voiceVolume;
         this.isMuted = DEFAULT_AUDIO_SETTINGS.isMuted;
+        this.showReaction('reset');
 
         this.updateDisplay();
         this.setSpeech(
@@ -180,6 +184,11 @@ export class SettingsScene extends Phaser.Scene {
     if (this.returnScene === 'HomeScene' && !this.hasSeenGuide()) {
       this.time.delayedCall(0, () => this.startGuide());
     }
+  }
+
+  private showReaction(reaction: keyof typeof reactionFiles): void {
+    this.character.setTexture(`settings-${reaction}`);
+    this.character.setScale(Math.min(280 / this.character.width, 350 / this.character.height));
   }
 
   private createLoggedInUserInfo(): void {
@@ -355,6 +364,7 @@ export class SettingsScene extends Phaser.Scene {
 
     let dragStartVolume = this.bgmVolume;
     this.createVolumeSlider(270, this.bgmVolume, value => {
+      if (value !== this.bgmVolume) this.showReaction(value > this.bgmVolume ? 'bgmUp' : 'bgmDown');
       this.bgmVolume = value;
       this.updateDisplay();
     }, () => {
@@ -378,6 +388,7 @@ export class SettingsScene extends Phaser.Scene {
 
     let dragStartVolume = this.seVolume;
     this.createVolumeSlider(435, this.seVolume, value => {
+      if (value !== this.seVolume) this.showReaction(value > this.seVolume ? 'seUp' : 'seDown');
       this.seVolume = value;
       this.updateDisplay();
     }, () => {
@@ -394,6 +405,7 @@ export class SettingsScene extends Phaser.Scene {
   private createVoiceControls(): void {
     this.add.text(130, 495, '音声音量', this.getTextStyle(28));
     this.createVolumeSlider(570, this.voiceVolume, value => {
+      if (value !== this.voiceVolume) this.showReaction(value > this.voiceVolume ? 'voiceUp' : 'voiceDown');
       this.voiceVolume = value;
       this.updateDisplay();
     }, () => {
@@ -527,6 +539,7 @@ export class SettingsScene extends Phaser.Scene {
       () => {
         this.isMuted =
           !this.isMuted;
+        this.showReaction(this.isMuted ? 'mute' : 'unmute');
 
         this.updateDisplay();
 
