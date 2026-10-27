@@ -5,7 +5,9 @@ type FormationData = {
   formation: Array<number | null>;
 };
 
-const storageKey = 'hanahaku.formation.v1';
+const storageKey = 'hanahaku.formation.v2';
+const legacyStorageKey = 'hanahaku.formation.v1';
+const legacyIds: Record<number, number | null> = {1:1,2:2,3:null,4:3,5:4,6:5,7:6,8:7,9:8,10:9};
 const formationData = JSON.parse(rawFormationData) as FormationData;
 const availableFlowerIds = new Set(formationData.characters.map(character => character.id));
 
@@ -25,7 +27,17 @@ function normalizeFormation(value: unknown): Array<number | null> {
 export function loadFormation(): Array<number | null> {
   try {
     const saved = typeof window === 'undefined' ? null : window.localStorage.getItem(storageKey);
-    return saved ? normalizeFormation(JSON.parse(saved)) : normalizeFormation(formationData.formation);
+    if (saved) return normalizeFormation(JSON.parse(saved));
+    const legacy = typeof window === 'undefined' ? null : window.localStorage.getItem(legacyStorageKey);
+    if (legacy) {
+      const old: unknown = JSON.parse(legacy);
+      if (Array.isArray(old)) {
+        const migrated = normalizeFormation(old.map(id => typeof id === 'number' ? legacyIds[id] ?? null : null));
+        saveFormation(migrated);
+        return migrated;
+      }
+    }
+    return normalizeFormation(formationData.formation);
   } catch {
     return normalizeFormation(formationData.formation);
   }

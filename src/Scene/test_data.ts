@@ -1,3 +1,6 @@
+import formationData from '../../php/flower/formation.json'
+import skillData from '../../php/skill/skills.json'
+
 export type Season = '春' | '夏' | '秋' | '冬'
 export type CharacterRole = '攻撃' | '回復' | '防御' | '補助'
 export type FlowerSkillType =
@@ -140,35 +143,12 @@ const shopItems = [
   }
 ]
 
-const characters: CharacterData[] = [
-  createCharacter(1, 'ジニア', 'ジニア', 3, 1, '熱', '攻撃', '夏', 820, 230, 156, 102, 98),
-  createCharacter(2, 'スイレン', 'スイレン', 2, 1, '無', '防御', '夏', 900, 180, 75, 140, 70),
-  createCharacter(3, '桜', 'サクラ', 2, 1, '熱', '攻撃', '春', 700, 310, 148, 90, 116),
-  createCharacter(4, 'ひまわり', 'ヒマワリ', 3, 1, '熱', '補助', '夏', 650, 160, 142, 80, 105),
-  createCharacter(5, 'サルスベリ', 'サルスベリ', 1, 1, '水', '攻撃', '夏', 540, 210, 90, 74, 120),
-  createCharacter(6, 'ムクゲ', 'ムクゲ', 2, 1, '風', '補助', '夏', 560, 260, 80, 76, 112),
-  createCharacter(7, 'コキア', 'コキア', 1, 1, '無', '防御', '秋', 500, 240, 72, 68, 130),
-  createCharacter(8, 'ハス', 'ハス', 1, 1, '光', '補助', '夏', 520, 220, 78, 70, 118),
-  createCharacter(9, 'ルリマツリ', 'ルリマツリ', 2, 1, '無', '回復', '夏', 590, 190, 82, 88, 91),
-  createCharacter(10, 'アジサイ', 'アジサイ', 3, 1, '土', '補助', '夏', 880, 240, 128, 76, 108)
-]
-
-const formation: Array<number | null> = [1, 2, 3, 4]
+const characters = formationData.characters as CharacterData[]
+const formation: Array<number | null> = [...formationData.formation]
 
 export function getFlowerSkill(flowerId: number): FlowerSkill | undefined {
-  const skills: Record<number, FlowerSkill> = {
-    1: { type: 'multiHit', name: '軽い攻撃スキルを連打', description: '前方に連続攻撃する', mpCost: 20 },
-    2: { type: 'defensiveRecovery', name: 'どっしり固いディフェンス', description: '防御力を上げ、定期的にHPを回復する', mpCost: 28 },
-    3: { type: 'charge', name: '太陽の光線的な一発どかんタイプ', description: '3秒ためて強力な一撃を放つ', mpCost: 30 },
-    4: { type: 'balanced', name: '扱いやすいバランス型', description: '攻防を強化し、追尾弾を放つ', mpCost: 34 },
-    5: { type: 'continuous', name: '絶え間ない連続攻撃スキル', description: '攻撃速度を上げ、連続攻撃する', mpCost: 31 },
-    6: { type: 'maple', name: '紅葉', description: '緑の強化形態と赤の三段攻撃を切り替える', mpCost: 33 },
-    7: { type: 'fortify', name: 'トップクラスの耐久力', description: '最大HPと防御力を上げる', mpCost: 60 },
-    8: { type: 'slowAttack', name: 'デバフ（被ダメアップや鈍足）とか', description: '敵全体を攻撃し、攻撃速度を下げる', mpCost: 36 },
-    9: { type: 'heal', name: '回復。', description: 'HPを回復する', mpCost: 22 },
-    10: { type: 'evasion', name: '隠密系', description: '攻撃後、一定時間回避率を上げる', mpCost: 35 }
-  }
-  return skills[flowerId]
+  const skill = skillData.skills.find(skill => skill.id === flowerId)
+  return skill ? {type: skill.type as FlowerSkillType, name: skill.name, description: skill.description, mpCost: skill.mpCost} : undefined
 }
 
 const stages = [
@@ -265,43 +245,6 @@ const stages = [
     }
   }
 ]
-function createCharacter(
-  id: number,
-  name: string,
-  species: string,
-  rarity: number,
-  level: number,
-  element: string,
-  role: CharacterRole,
-  season: Season,
-  hp: number,
-  mp: number,
-  atk: number,
-  def: number,
-  speed: number
-): CharacterData {
-  return {
-    id,
-    name,
-    species,
-    rarity,
-    level,
-    maxLevel: rarity >= 3 ? 40 : rarity >= 2 ? 30 : 20,
-    element,
-    role,
-    season,
-    description: `${name}は${role}が得意な花です。編成に入れるとパーティの幅が広がります。`,
-    stats: {
-      hp,
-      mp,
-      atk,
-      def,
-      speed
-    },
-    skills: [getFlowerSkill(id)?.name ?? `${name}アタック`]
-  }
-}
-
 export default {
   shopItems,
   characters,

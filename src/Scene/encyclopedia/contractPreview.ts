@@ -4,15 +4,15 @@ import type { Season } from '../test_data'
 
 export type PrototypeFlower = { id: number; code: string; name: string; season: Season; url: string; key: string; element: string | null; skillId?: number; statusBonus?: Record<string, number>; hanakotoba: string[]; origin?: string; habitat?: string; features?: string; realUrl?: string; realKey: string }
 const definitions: Array<[number, string, string, Season]> = [
- [10,'ajisai','アジサイ','夏'], [11,'asagao','アサガオ','夏'], [12,'blue_rose','青いバラ','春'],
+ [9,'ajisai','アジサイ','夏'], [11,'asagao','アサガオ','夏'], [12,'blue_rose','青いバラ','春'],
  [13,'cosmos','コスモス','秋'], [14,'fuji','フジ','春'], [15,'gerbera','ガーベラ','春'],
- [3,'hangesho','ハンゲショウ','夏'], [8,'hasu','ハス','夏'], [17,'hibiscus','ハイビスカス','夏'],
- [18,'higanbana','ヒガンバナ','秋'], [19,'kiku','キク','秋'], [7,'kochia','コキア','秋'],
+ [10,'hangesho','ハンゲショウ','夏'], [7,'hasu','ハス','夏'], [17,'hibiscus','ハイビスカス','夏'],
+ [18,'higanbana','ヒガンバナ','秋'], [19,'kiku','キク','秋'], [6,'kochia','コキア','秋'],
  [20,'lavender','ラベンダー','夏'], [21,'marguerite','マーガレット','春'], [22,'marigold','マリーゴールド','夏'],
- [6,'mukuge','ムクゲ','夏'], [23,'nanohana','菜の花','春'], [24,'nemunoki','ネムノキ','夏'],
- [25,'poppy','ポピー','春'], [26,'red_rose','赤いバラ','春'], [9,'rurimatsuri','ルリマツリ','夏'],
- [16,'sakura','サクラ','春'], [5,'sarusuberi','サルスベリ','夏'], [27,'shakuyaku','シャクヤク','春'],
- [2,'suiren','スイレン','夏'], [28,'suisen','スイセン','冬'], [4,'sunflower','ひまわり','夏'],
+ [5,'mukuge','ムクゲ','夏'], [23,'nanohana','菜の花','春'], [24,'nemunoki','ネムノキ','夏'],
+ [25,'poppy','ポピー','春'], [26,'red_rose','赤いバラ','春'], [8,'rurimatsuri','ルリマツリ','夏'],
+ [16,'sakura','サクラ','春'], [4,'sarusuberi','サルスベリ','夏'], [27,'shakuyaku','シャクヤク','春'],
+ [2,'suiren','スイレン','夏'], [28,'suisen','スイセン','冬'], [3,'sunflower','ひまわり','夏'],
  [29,'suzuran','スズラン','春'], [30,'tanpopo','タンポポ','春'], [31,'tsubaki','ツバキ','冬'],
  [32,'tsutsuji','ツツジ','春'], [33,'tulip','チューリップ','春'], [34,'ume','ウメ','冬'],
  [35,'yuri','ユリ','夏'], [1,'zinia','ジニア','夏']
