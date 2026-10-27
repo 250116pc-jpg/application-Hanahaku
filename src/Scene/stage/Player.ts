@@ -18,6 +18,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   private cursors: Phaser.Types.Input.Keyboard.CursorKeys | undefined;
   private readonly PLAYER_SPEED = 160;
   private readonly JUMP_POWER = 330;
+  private readonly FALL_GRAVITY_BONUS = 220;
   private wasGrounded = true;
   private landingAnimationPlaying = false;
   private action: string | null = null;
@@ -109,6 +110,9 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   public update(): void {
     const body = this.body as Phaser.Physics.Arcade.Body;
     if (!body || !this.cursors || this.dead) return;
+
+    // Preserve the jump arc on the way up, then make the descent a little snappier.
+    body.setGravityY(!body.blocked.down && body.velocity.y > 0 ? this.FALL_GRAVITY_BONUS : 0);
 
     if (this.action !== null) {
       this.setVelocityX(0);

@@ -462,32 +462,58 @@ export class StageHUD {
       this.skillNameText?.setText('スキル効果を反映できませんでした。');
       return;
     }
-    this.playSkillEffect(skill.type);
+    this.playSkillEffect(skill);
     const duration = skill.durationMs || 1500;
     const appliedStatuses = skillStatusIds.get(flower.id) ?? [];
     this.setPartyStatuses(index, appliedStatuses, duration);
     this.updateSkillLabel();
   }
 
-  private playSkillEffect(skillType: string): void {
+  private playSkillEffect(skill: FlowerSkillState['skill']): void {
     if (!this.player) return;
     const sheetByType: Record<string, string> = {
       multiHit: '01_fire_slash', defensiveRecovery: '02_guard_buff', charge: '03_sun_beam',
       balanced: '04_homing_orb', continuous: '05_water_burst', maple: '06a_leaf_green',
       fortify: '07_fortify', slowAttack: '08_debuff', heal: '09_heal', evasion: '10_stealth',
     };
-    const sheet = sheetByType[skillType];
+    const sheet = sheetByType[skill.type];
     const animationKey = sheet ? `skill-effect-${sheet}` : '';
     if (!sheet || !this.scene.anims.exists(animationKey)) return;
 
-    const x = this.player.x + (this.player.flipX ? -42 : 42);
-    const effect = this.scene.add.sprite(x, this.player.y - 14, `skill-effect-${sheet}`)
-      .setOrigin(0.5, 1)
-      .setDisplaySize(142, 142)
-      .setScrollFactor(1)
-      .setDepth(6)
-      .play(animationKey);
-    effect.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => effect.destroy());
+    const selfCast = ['defensiveRecovery', 'fortify', 'heal', 'evasion', 'balanced', 'continuous'].includes(skill.type);
+    // Skill 8 targets every visible enemy; the others show their impact on the front target.
+    const targets = skill.type === 'slowAttack'
+      ? this.enemies.map(enemy => ({ x: enemy.x, y: enemy.y }))
+      : selfCast
+        ? [
+          { x: this.player.x, y: this.player.y },
+          ...(skill.type === 'evasion' && this.enemies[0]
+            ? [{ x: this.enemies[0].x, y: this.enemies[0].y }]
+            : []),
+        ]
+        : this.enemies.length > 0
+          ? [{ x: this.enemies[0].x, y: this.enemies[0].y }]
+          : [{ x: this.player.x, y: this.player.y }];
+    const size = skill.type === 'slowAttack' ? 240 : skill.type === 'charge' ? 250 : 208;
+    targets.forEach((target, index) => {
+      const spawn = (): void => {
+        const effect = this.scene.add.sprite(target.x, target.y - 22, `skill-effect-${sheet}`)
+          .setOrigin(0.5)
+          .setDisplaySize(size, size)
+          .setScrollFactor(1)
+          .setDepth(20)
+          .play(animationKey);
+        effect.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => effect.destroy());
+      };
+      if (skill.type === 'multiHit') {
+        Array.from({ length: Math.max(1, skill.hitCount) }, (_, hit) => hit * 160)
+          .forEach(delay => this.scene.time.delayedCall(delay, spawn));
+      } else if (skill.type === 'slowAttack') {
+        this.scene.time.delayedCall(index * 45, spawn);
+      } else {
+        spawn();
+      }
+    });
   }
 
   private updateSkillLabel(): void {
