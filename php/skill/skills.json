@@ -13,10 +13,38 @@
       "mpCost": 25,
       "cooldownSeconds": 20,
       "effect": {
-        "damagePercent": { "base": 100, "perLevel": 20 },
-        "hitCount": { "base": 3, "perLevel": 1 },
-        "range": 190,
-        "area": [[0, 0, 0, 0, 0], [1, 2, 2, 2, 2], [0, 0, 0, 0, 0]]
+        "damagePercent": {
+          "base": 100,
+          "perLevel": 20
+        },
+        "hitCount": {
+          "base": 3,
+          "perLevel": 1
+        },
+        "range": 160,
+        "area": [
+          [
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            1,
+            2,
+            2,
+            2,
+            2
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        ]
       }
     },
     {
@@ -27,16 +55,30 @@
       "element": "無",
       "category": "強化・回復",
       "icon": "icon_02",
-      "statusIds": ["def_up", "hp_regen"],
+      "statusIds": [
+        "def_up",
+        "hp_regen"
+      ],
       "maxMp": 180,
       "mpCost": 26,
       "cooldownSeconds": 28,
       "effect": {
         "durationMs": 15000,
-        "defenseBonusPercent": { "base": 15, "perLevel": 3 },
-        "healPercent": { "base": 5, "perLevel": 1 },
+        "defenseBonusPercent": {
+          "base": 15,
+          "perLevel": 3
+        },
+        "healPercent": {
+          "base": 5,
+          "perLevel": 1
+        },
         "healIntervalMs": 5000,
-        "range": 190
+        "range": 0,
+        "area": [
+          [
+            1
+          ]
+        ]
       }
     },
     {
@@ -47,15 +89,36 @@
       "element": "熱",
       "category": "攻撃",
       "icon": "icon_03",
-      "statusIds": ["def_down"],
+      "statusIds": [
+        "def_down"
+      ],
       "maxMp": 310,
       "mpCost": 28,
       "cooldownSeconds": 30,
       "effect": {
         "durationMs": 3000,
-        "defenseBonusPercent": { "base": -20, "perLevel": 4 },
-        "damagePercent": { "base": 300, "perLevel": 15 },
-        "range": 190
+        "defenseBonusPercent": {
+          "base": -20,
+          "perLevel": 4
+        },
+        "damagePercent": {
+          "base": 300,
+          "perLevel": 15
+        },
+        "range": 320,
+        "area": [
+          [
+            1,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2
+          ]
+        ]
       }
     },
     {
@@ -66,17 +129,35 @@
       "element": "熱",
       "category": "攻撃・強化",
       "icon": "icon_04",
-      "statusIds": ["atk_up", "def_up"],
+      "statusIds": [
+        "atk_up",
+        "def_up"
+      ],
       "maxMp": 160,
       "mpCost": 30,
       "cooldownSeconds": 34,
       "effect": {
-        "durationMs": { "base": 15000, "perLevel": 1000 },
-        "attackBonusPercent": { "base": 15, "perLevel": 5 },
+        "durationMs": {
+          "base": 15000,
+          "perLevel": 1000
+        },
+        "attackBonusPercent": {
+          "base": 15,
+          "perLevel": 5
+        },
         "defenseBonusPercent": 10,
-        "damagePercent": { "base": 15, "perLevel": 1 },
+        "damagePercent": {
+          "base": 15,
+          "perLevel": 1
+        },
         "repeatIntervalMs": 3000,
-        "range": 190
+        "range": 40,
+        "area": [
+          [
+            1,
+            2
+          ]
+        ]
       }
     },
     {
@@ -87,18 +168,50 @@
       "element": "水",
       "category": "攻撃・強化",
       "icon": "icon_05",
-      "statusIds": ["atk_up", "def_down"],
+      "statusIds": [
+        "atk_up",
+        "def_down"
+      ],
       "maxMp": 210,
       "mpCost": 33,
       "cooldownSeconds": 31,
       "effect": {
         "durationMs": 20000,
-        "attackBonusPercent": { "base": 10, "perLevel": 5 },
+        "attackBonusPercent": {
+          "base": 10,
+          "perLevel": 5
+        },
         "defenseBonusPercent": -15,
-        "attackSpeedBonusPercent": { "base": 30, "perLevel": 2 },
-        "damagePercent": { "base": 150, "perLevel": 10 },
+        "attackSpeedBonusPercent": {
+          "base": 30,
+          "perLevel": 2
+        },
+        "damagePercent": {
+          "base": 150,
+          "perLevel": 10
+        },
         "repeatIntervalMs": 1000,
-        "range": 190
+        "range": 120,
+        "area": [
+          [
+            0,
+            2,
+            2,
+            2
+          ],
+          [
+            1,
+            2,
+            2,
+            2
+          ],
+          [
+            0,
+            2,
+            2,
+            2
+          ]
+        ]
       }
     },
     {
@@ -109,22 +222,371 @@
       "element": "風",
       "category": "攻撃・変化・強化・回復",
       "icon": "icon_06",
-      "statusIds": ["def_up", "hp_regen"],
+      "statusIds": [
+        "def_up",
+        "hp_regen"
+      ],
       "maxMp": 260,
       "mpCost": 42,
       "cooldownSeconds": 33,
       "effect": {
         "durationMs": 20000,
-        "defenseBonusPercent": { "base": 30, "perLevel": 3 },
-        "healPercent": { "base": 0, "perLevel": 1 },
+        "defenseBonusPercent": {
+          "base": 30,
+          "perLevel": 3
+        },
+        "healPercent": {
+          "base": 0,
+          "perLevel": 1
+        },
         "healIntervalMs": 1000,
         "range": 200,
         "stages": [
-          { "damagePercent": { "base": 100, "perLevel": 10 }, "range": 120, "knockback": false },
-          { "damagePercent": { "base": 140, "perLevel": 20 }, "range": 160, "knockback": false },
-          { "damagePercent": { "base": 180, "perLevel": 30 }, "range": 200, "knockback": true }
+          {
+            "damagePercent": {
+              "base": 100,
+              "perLevel": 10
+            },
+            "range": 120,
+            "knockback": false,
+            "area": [
+              [
+                0,
+                0,
+                0,
+                2,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                2,
+                2,
+                2,
+                0,
+                0
+              ],
+              [
+                0,
+                2,
+                2,
+                2,
+                2,
+                2,
+                0
+              ],
+              [
+                2,
+                2,
+                2,
+                1,
+                2,
+                2,
+                2
+              ],
+              [
+                0,
+                2,
+                2,
+                2,
+                2,
+                2,
+                0
+              ],
+              [
+                0,
+                0,
+                2,
+                2,
+                2,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                2,
+                0,
+                0,
+                0
+              ]
+            ]
+          },
+          {
+            "damagePercent": {
+              "base": 140,
+              "perLevel": 20
+            },
+            "range": 160,
+            "knockback": false,
+            "area": [
+              [
+                0,
+                0,
+                0,
+                0,
+                2,
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                2,
+                2,
+                2,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                2,
+                2,
+                2,
+                2,
+                2,
+                0,
+                0
+              ],
+              [
+                0,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                0
+              ],
+              [
+                2,
+                2,
+                2,
+                2,
+                1,
+                2,
+                2,
+                2,
+                2
+              ],
+              [
+                0,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                0
+              ],
+              [
+                0,
+                0,
+                2,
+                2,
+                2,
+                2,
+                2,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                2,
+                2,
+                2,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0,
+                2,
+                0,
+                0,
+                0,
+                0
+              ]
+            ]
+          },
+          {
+            "damagePercent": {
+              "base": 180,
+              "perLevel": 30
+            },
+            "range": 200,
+            "knockback": true,
+            "area": [
+              [
+                0,
+                0,
+                0,
+                0,
+                0,
+                2,
+                0,
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0,
+                2,
+                2,
+                2,
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                2,
+                2,
+                2,
+                2,
+                2,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                0,
+                0
+              ],
+              [
+                0,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                0
+              ],
+              [
+                2,
+                2,
+                2,
+                2,
+                2,
+                1,
+                2,
+                2,
+                2,
+                2,
+                2
+              ],
+              [
+                0,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                0
+              ],
+              [
+                0,
+                0,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                2,
+                2,
+                2,
+                2,
+                2,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0,
+                2,
+                2,
+                2,
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0,
+                0,
+                2,
+                0,
+                0,
+                0,
+                0,
+                0
+              ]
+            ]
+          }
         ],
-        "witherChancePercent": { "base": 10, "perLevel": 2 }
+        "witherChancePercent": {
+          "base": 10,
+          "perLevel": 2
+        },
+        "area": [
+          [
+            1
+          ]
+        ]
       }
     },
     {
@@ -135,36 +597,91 @@
       "element": "無",
       "category": "強化",
       "icon": "icon_07",
-      "statusIds": ["hp_max", "def_up", "atk_down"],
+      "statusIds": [
+        "hp_max",
+        "def_up",
+        "atk_down"
+      ],
       "maxMp": 240,
       "mpCost": 45,
       "cooldownSeconds": 60,
       "effect": {
-        "durationMs": { "base": 35000, "perLevel": 2000 },
-        "maxHealthBonusPercent": { "base": 75, "perLevel": 15 },
-        "healPercent": { "base": 75, "perLevel": 15 },
-        "defenseBonusPercent": { "base": 10, "perLevel": 5 },
-        "attackBonusPercent": { "base": -10, "perLevel": -5 },
-        "range": 190
+        "durationMs": {
+          "base": 35000,
+          "perLevel": 2000
+        },
+        "maxHealthBonusPercent": {
+          "base": 75,
+          "perLevel": 15
+        },
+        "healPercent": {
+          "base": 75,
+          "perLevel": 15
+        },
+        "defenseBonusPercent": {
+          "base": 10,
+          "perLevel": 5
+        },
+        "attackBonusPercent": {
+          "base": -10,
+          "perLevel": -5
+        },
+        "range": 0,
+        "area": [
+          [
+            1
+          ]
+        ]
       }
     },
     {
       "id": 8,
       "name": "デバフ（被ダメアップや鈍足）とか",
-      "description": "攻撃力の80+level×10%で攻撃し、12+level秒間、敵全体の攻撃速度を20%下げる。",
+      "description": "攻撃力の80+level×10%で攻撃し、12+level秒間、範囲内の敵の攻撃速度を20%下げる。",
       "type": "slowAttack",
       "element": "光",
       "category": "攻撃・弱化",
       "icon": "icon_08",
-      "statusIds": ["attack_speed_down"],
+      "statusIds": [
+        "attack_speed_down"
+      ],
       "maxMp": 220,
       "mpCost": 30,
       "cooldownSeconds": 36,
       "effect": {
-        "damagePercent": { "base": 80, "perLevel": 10 },
-        "durationMs": { "base": 12000, "perLevel": 1000 },
+        "damagePercent": {
+          "base": 80,
+          "perLevel": 10
+        },
+        "durationMs": {
+          "base": 12000,
+          "perLevel": 1000
+        },
         "slowPercent": 20,
-        "range": 10000
+        "range": 160,
+        "area": [
+          [
+            0,
+            2,
+            2,
+            2,
+            0
+          ],
+          [
+            1,
+            2,
+            2,
+            2,
+            2
+          ],
+          [
+            0,
+            2,
+            2,
+            2,
+            0
+          ]
+        ]
       }
     },
     {
@@ -180,8 +697,16 @@
       "mpCost": 30,
       "cooldownSeconds": 22,
       "effect": {
-        "healPercent": { "base": 80, "perLevel": 15 },
-        "range": 190
+        "healPercent": {
+          "base": 80,
+          "perLevel": 15
+        },
+        "range": 0,
+        "area": [
+          [
+            1
+          ]
+        ]
       }
     },
     {
@@ -192,17 +717,48 @@
       "element": "土",
       "category": "攻撃・強化・弱化",
       "icon": "icon_10",
-      "statusIds": ["eva_up"],
+      "statusIds": [
+        "eva_up"
+      ],
       "maxMp": 240,
       "mpCost": 31,
       "cooldownSeconds": 35,
       "effect": {
-        "damagePercent": { "base": 100, "perLevel": 10 },
+        "damagePercent": {
+          "base": 100,
+          "perLevel": 10
+        },
         "durationMs": 15000,
         "evasionPercent": 30,
-        "range": 190,
-        "basicAttackPoisonChancePercent": { "base": 5, "perLevel": 1 },
-        "poisonDurationMs": 10000
+        "range": 160,
+        "basicAttackPoisonChancePercent": {
+          "base": 5,
+          "perLevel": 1
+        },
+        "poisonDurationMs": 10000,
+        "area": [
+          [
+            0,
+            2,
+            2,
+            2,
+            0
+          ],
+          [
+            1,
+            2,
+            2,
+            2,
+            2
+          ],
+          [
+            0,
+            2,
+            2,
+            2,
+            0
+          ]
+        ]
       }
     }
   ]

@@ -4,6 +4,7 @@ export interface FlowerSkillStage {
   damagePercent: number;
   range: number;
   knockback: boolean;
+  area: number[][];
 }
 
 export interface ServerFlowerSkill {
@@ -29,6 +30,7 @@ export interface ServerFlowerSkill {
   slowPercent: number;
   evasionPercent: number;
   repeatIntervalMs: number;
+  area: number[][];
   stages: FlowerSkillStage[];
 }
 
@@ -106,11 +108,16 @@ function parseSkill(value: unknown): ServerFlowerSkill {
       !('damagePercent' in stage) || typeof stage.damagePercent !== 'number' ||
       !('range' in stage) || typeof stage.range !== 'number' ||
       !('knockback' in stage) || typeof stage.knockback !== 'boolean'
+      || !('area' in stage) || !isAreaPattern(stage.area)
     ) {
       throw new Error('サーバーから不正なスキル情報が返されました。');
     }
-    return { damagePercent: stage.damagePercent, range: stage.range, knockback: stage.knockback };
+    return { damagePercent: stage.damagePercent, range: stage.range, knockback: stage.knockback, area: stage.area };
   });
+
+  if (!isAreaPattern(record.area)) {
+    throw new Error('サーバーから不正なスキル範囲が返されました。');
+  }
 
   return {
     type: record.type as FlowerSkillType,
@@ -135,8 +142,15 @@ function parseSkill(value: unknown): ServerFlowerSkill {
     attackSpeedBonusPercent: getNumber('attackSpeedBonusPercent'),
     slowPercent: getNumber('slowPercent'),
     evasionPercent: getNumber('evasionPercent'),
-    repeatIntervalMs: getNumber('repeatIntervalMs')
+    repeatIntervalMs: getNumber('repeatIntervalMs'),
+    area: record.area
   };
+}
+
+function isAreaPattern(value: unknown): value is number[][] {
+  return Array.isArray(value) && value.length > 0 && value.every(row =>
+    Array.isArray(row) && row.length > 0 && row.every(cell => cell === 0 || cell === 1 || cell === 2)
+  );
 }
 
 export interface StageFlowerStats {
