@@ -5,6 +5,7 @@ import { showDebugSceneName } from '../../debug';
 
 interface StageResultData {
   stageId: number;
+  stageNumber?: string;
   victory: boolean;
   reward: number;
   coins: number;
@@ -24,7 +25,7 @@ export class StageResultScene extends Phaser.Scene {
     this.add.text(width / 2, 145, data.victory ? 'ステージクリア！' : 'ゲームオーバー', getTextStyle(48, {
       color: data.victory ? '#ffe59c' : '#d9e1e8', fontStyle: 'bold', align: 'center',
     })).setOrigin(0.5);
-    this.add.text(width / 2, 225, `ステージ 1-${data.stageId}`, getTextStyle(26, { color: '#ffffff' })).setOrigin(0.5);
+    this.add.text(width / 2, 225, `ステージ ${data.stageNumber ?? `1-${data.stageId}`}`, getTextStyle(26, { color: '#ffffff' })).setOrigin(0.5);
 
     const summary = data.victory
       ? `報酬　${data.reward} コイン\n所持コイン　${data.coins}`
@@ -43,7 +44,7 @@ export class StageResultScene extends Phaser.Scene {
 
     const buttonY = height - 105;
     if (!data.victory) this.createButton(width / 2 - 220, buttonY, 'もう一度', 0x527c63, () => {
-      this.scene.start(SCENE_KEYS.STAGE, { stageId: data.stageId });
+      this.scene.start(SCENE_KEYS.STAGE, { stageId: data.stageId, stageNumber: data.stageNumber });
     });
     this.createButton(width / 2, buttonY, 'ステージ選択へ', 0x586f84, () => {
       this.scene.start(SCENE_KEYS.SELECT_STAGE, { areaId: 1 });

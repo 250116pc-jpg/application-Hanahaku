@@ -18,13 +18,13 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 }
 
 $stageId = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
-if ($stageId !== 2) {
+if (!in_array($stageId, [2, 4], true)) {
     http_response_code(404);
     echo json_encode(['error' => 'ステージが見つかりません。'], JSON_UNESCAPED_UNICODE);
     exit;
 }
 
-$stagePath = __DIR__ . '/stage2.json';
+$stagePath = __DIR__ . '/stage' . $stageId . '.json';
 $stageJson = file_get_contents($stagePath);
 if ($stageJson === false || json_decode($stageJson) === null) {
     http_response_code(500);

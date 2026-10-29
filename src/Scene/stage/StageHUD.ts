@@ -58,9 +58,9 @@ export class StageHUD {
     this.enemies = enemies;
   }
 
-  public create(stageId?: number): void {
+  public create(stageId?: number, stageNumber?: string): void {
     this.createStatusPanel();
-    this.createStageLabel(stageId);
+    this.createStageLabel(stageId, stageNumber);
     this.createUtilityButtons();
     this.createPartyHud();
     this.createMovementPad();
@@ -104,9 +104,11 @@ export class StageHUD {
     this.bar(x + 50, y + 62, panelW - (compact ? 66 : 88), 9, leader.stats.mp, leader.stats.mp, 0x32bddb);
   }
 
-  private createStageLabel(stageId?: number): void {
+  private createStageLabel(stageId?: number, stageNumber?: string): void {
     const stage = testData.stages.find(item => item.id === stageId);
-    const label = stage ? `花の遺跡　•　${stage.name}` : '花の遺跡　•　戦闘中';
+    const label = stage || stageNumber
+      ? `花の遺跡　•　${stageNumber ?? stage?.name}`
+      : '花の遺跡　•　戦闘中';
     const w = this.scene.scale.width;
     const boxW = Math.min(300, w * 0.38);
     const x = w - boxW - 22;
