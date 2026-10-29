@@ -1,4 +1,4 @@
-import Phaser from 'phaser';
+﻿import Phaser from 'phaser';
 import { restoreSession } from '../auth/Session';
 import titleBackground from '../assets/images/background/title_background.png';
 import titleLogo from '../assets/images/background/title_logo.png';
@@ -7,6 +7,8 @@ import startButtonImage from '../assets/ui/title_stertbtn.png';
 import { createTextImageButton, applySmoothDisplay } from '../utils/ui';
 import { initializeAudio, preloadAudio, startBgm } from '../audio/BgmManager';
 import { SCENE_KEYS } from './sceneKeys';
+import { preloadTitlePetals, createTitlePetals } from './title/TitlePetals';
+import { createTitleLogoLight } from './title/TitleLogoLight';
 
 export class TitleScene extends Phaser.Scene {
   constructor() {
@@ -18,6 +20,7 @@ export class TitleScene extends Phaser.Scene {
     this.load.image('title-logo', titleLogo);
     this.load.image('title-settings-button', settingsButtonImage);
     this.load.image('title-start-button', startButtonImage);
+    preloadTitlePetals(this);
     preloadAudio(this);
   }
 
@@ -38,6 +41,12 @@ export class TitleScene extends Phaser.Scene {
     const bg = this.add.image(width / 2, height / 2, 'title_bg');
     bg.setDisplaySize(width, height);
 
+    // 背景の上、ロゴとボタンの後ろに花びらを描画する。
+    createTitlePetals(this);
+
+    // 太陽の逆光をイメージした光を、文字の背後に重ねる。
+    createTitleLogoLight(this, width / 2, height / 3 + 80, 850);
+
     // ロゴは縦横比を保ったまま上部中央に表示する
     const logo = this.add.image(width / 2, height / 3+80, 'title-logo');
     logo.setScale(850 / logo.width);
@@ -51,66 +60,84 @@ export class TitleScene extends Phaser.Scene {
     }, { key: 'title-settings-button', width: 180, height: 65 });
     applySmoothDisplay(this, ['title_bg', 'title-logo', 'title-settings-button', 'title-start-button'], [settingsButton]);
 
-    const buttonImage = this.add.image(0, 0, 'title-start-button');
-    const buttonScale = 360 / buttonImage.width;
-    buttonImage.setScale(buttonScale);
+    this.createStartButton(width / 2, height / 2 + 200);
+  }
 
-    const startButton = this.add.container(
-      width / 2,
-      height / 2 + 200,
-      [buttonImage]
-    );
-    startButton.setSize(buttonImage.displayWidth, buttonImage.displayHeight);
-    startButton.setInteractive({ useHandCursor: true });
+  private createStartButton(x: number, y: number): void {
+    // ボタン全体の枠と飾りを含め、外側の透明な余白だけ除く。
+    const texture = this.textures.get('title-start-button');
+    if (!texture.has('start-button')) texture.add('start-button', 0, 180, 156, 1700, 448);
+    const label = this.add.image(0, 0, 'title-start-button', 'start-button');
+    label.setScale(320 / label.width);
+    const prompt = this.add.container(x, y, [label]).setSize(label.displayWidth, label.displayHeight);
+    prompt.setInteractive({ useHandCursor: true });
 
-    startButton.on('pointerover', () => {
-      buttonImage.clearTint();
-
-      this.tweens.add({
-        targets: startButton,
-        scale: 1.02,
-        duration: 20,
-        ease: 'Sine.easeOut',
-      });
+    const hint = this.add.text(x, y + 77, 'クリック / タップ / Enter で開始', {
+      fontFamily: '"Yu Gothic", "Meiryo", sans-serif', fontSize: '14px',
+      color: '#fff3dc', resolution: 2,
+    }).setOrigin(.5).setShadow(0, 2, '#152238', 4);
+    // 待機中は85〜100%の明るさで、ゆっくり控えめに明滅させる。
+    const breathing = this.tweens.add({
+      targets: label, alpha: .85, duration: 1500,
+      yoyo: true, repeat: -1, ease: 'Sine.easeInOut',
     });
+    let starting = false;
+    let pressed = false;
+    const animateScale = (scale: number): void => {
+      this.tweens.killTweensOf(prompt);
+      this.tweens.add({ targets: prompt, scale, duration: 45, ease: 'Sine.easeOut' });
+    };
+    const start = (): void => {
+      if (starting || !this.input.enabled) return;
+      starting = true;
+      prompt.disableInteractive();
+      breathing.stop();
 
-    startButton.on('pointerout', () => {
-      buttonImage.clearTint();
-
-      this.tweens.add({
-        targets: startButton,
-        scale: 1,
-        duration: 20,
-        ease: 'Sine.easeOut',
-      });
-    });
-
-    startButton.on('pointerdown', () => {
-      buttonImage.setTint(0xcccccc);
-
-      this.tweens.add({
-        targets: startButton,
-        scale: 0.98,
-        duration: 20,
-        ease: 'Sine.easeOut',
-      });
-    });
-
-    startButton.on('pointerup', () => {
-      buttonImage.clearTint();
+      label.setAlpha(1).clearTint();
       startBgm(this);
-
-      this.tweens.add({
-        targets: startButton,
-        scale: 1,
-        duration: 70,
-        ease: 'Sine.easeOut',
-        onComplete: () => {
-          this.scene.start(SCENE_KEYS.LOGIN);
-        },
+      animateScale(1);
+      this.tweens.add({ targets: [prompt, hint], alpha: 0, duration: 240 });
+      this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
+        this.scene.start(SCENE_KEYS.LOGIN);
       });
-    });
+      this.cameras.main.fadeOut(280, 15, 24, 36);
+    };
+    prompt.on('pointerover', () => {
+      if (starting) return;
 
+      breathing.pause();
+      label.setAlpha(1).setTint(0xffe7b0);
+      animateScale(1.025);
+    });
+    prompt.on('pointerout', () => {
+      if (starting) return;
+      pressed = false;
+      label.clearTint();
+      breathing.resume();
+
+      animateScale(1);
+    });
+    prompt.on('pointerdown', () => {
+      if (starting) return;
+      pressed = true;
+      breathing.pause();
+      label.setAlpha(1);
+      label.setTint(0xd8c9ad);
+      animateScale(.97);
+    });
+    prompt.on('pointerup', () => { if (pressed) start(); });
+    // タイトル以外でキー入力が残らないよう、終了時に解除する。
+    this.input.keyboard?.on('keydown-ENTER', start);
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      this.input.keyboard?.off('keydown-ENTER', start);
+    });
   }
 
 }
+
+
+
+
+
+
+
