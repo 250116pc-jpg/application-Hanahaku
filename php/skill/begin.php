@@ -10,7 +10,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 $userId = requireSkillUserId($pdo);
 $body = requestBody();
 $stageId = filter_var($body['stageId'] ?? null, FILTER_VALIDATE_INT);
-if ($stageId !== 2) {
+if (!in_array($stageId, [2, 4], true)) {
     respond(['ok' => false, 'error' => 'このステージのスキル状態を初期化できません。'], 422);
 }
 $flowerStats = [];

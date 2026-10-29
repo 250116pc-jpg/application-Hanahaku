@@ -74,29 +74,31 @@ function googleFetchJwks(bool $forceRefresh = false): array
     }
 
     if (function_exists('curl_init')) {
-    $curl = curl_init('https://www.googleapis.com/oauth2/v3/certs');
-    if ($curl === false) {
-        throw new RuntimeException('Google公開鍵を取得できませんでした。');
-    }
-    curl_setopt_array($curl, [
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_CONNECTTIMEOUT => 5,
-        CURLOPT_TIMEOUT => 10,
-        CURLOPT_FOLLOWLOCATION => false,
-        CURLOPT_SSL_VERIFYPEER => true,
-        CURLOPT_SSL_VERIFYHOST => 2,
-    ]);
-    $body = curl_exec($curl);
-    $status = (int)curl_getinfo($curl, CURLINFO_RESPONSE_CODE);
-    $error = curl_error($curl);
-    curl_close($curl);
+        $curl = curl_init('https://www.googleapis.com/oauth2/v3/certs');
+        if ($curl === false) {
+            throw new RuntimeException('Google公開鍵を取得できませんでした。');
+        }
+        curl_setopt_array($curl, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_CONNECTTIMEOUT => 5,
+            CURLOPT_TIMEOUT => 10,
+            CURLOPT_FOLLOWLOCATION => false,
+            CURLOPT_SSL_VERIFYPEER => true,
+            CURLOPT_SSL_VERIFYHOST => 2,
+        ]);
+        $body = curl_exec($curl);
+        $status = (int)curl_getinfo($curl, CURLINFO_RESPONSE_CODE);
+        $error = curl_error($curl);
+        curl_close($curl);
 
-    if (!is_string($body) || $status !== 200) {
-        throw new RuntimeException($error !== '' ? 'Googleへ接続できませんでした。' : 'Google公開鍵を取得できませんでした。');
-    }
-
+        if (!is_string($body) || $status !== 200) {
+            throw new RuntimeException($error !== '' ? 'Googleへ接続できませんでした。' : 'Google公開鍵を取得できませんでした。');
+        }
     } else {
-        // Apache may lack cURL even when PHP CLI has it. Keep TLS verification enabled.
+        if (!extension_loaded('openssl')) {
+            throw new RuntimeException('PHPのOpenSSL拡張が無効です。php.iniでextension=opensslを有効にしてApacheを再起動してください。');
+        }
+
         $context = stream_context_create([
             'http' => ['timeout' => 10, 'follow_location' => 0, 'ignore_errors' => true],
             'ssl' => ['verify_peer' => true, 'verify_peer_name' => true],

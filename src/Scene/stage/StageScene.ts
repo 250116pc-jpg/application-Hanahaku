@@ -60,6 +60,11 @@ export class StageScene extends Phaser.Scene {
     super({ key: SCENE_KEYS.STAGE });
   }
 
+  init(data: { stageId?: number; stageNumber?: string } = {}): void {
+    this.stageId = data.stageId ?? 2;
+    this.stageNumber = data.stageNumber ?? testData.stages.find(stage => stage.id === this.stageId)?.name;
+  }
+
   preload(): void {
     const phpBaseUrl = getPhpBaseUrl();
     this.load.image('stage-terrain', terrainImg);
@@ -87,7 +92,7 @@ export class StageScene extends Phaser.Scene {
       skillIcon06, skillIcon07, skillIcon08, skillIcon09, skillIcon10
     ].forEach((icon, index) => this.load.image(`flower-skill-${index + 1}`, icon));
     this.load.tilemapTiledJSON('map', mapUrl);
-    this.load.json('stage-data-2', `${phpBaseUrl}/stage/data.php?id=2`);
+    this.load.json(`stage-data-${this.stageId}`, `${phpBaseUrl}/stage/data.php?id=${this.stageId}`);
     this.load.spritesheet('stage-enemy-idle', enemyIdle, { frameWidth: 30, frameHeight: 30 });
     this.load.spritesheet('stage-enemy-run', enemyRun, { frameWidth: 30, frameHeight: 30 });
     this.load.spritesheet('stage-enemy-attack', enemyAttack, { frameWidth: 90, frameHeight: 50 });
@@ -115,8 +120,6 @@ export class StageScene extends Phaser.Scene {
   }
 
   create(data: { stageId?: number; stageNumber?: string } = {}): void {
-    this.stageId = data.stageId ?? 2;
-    this.stageNumber = data.stageNumber ?? testData.stages.find(stage => stage.id === this.stageId)?.name;
     this.isEnding = false;
     this.createSkillEffectAnimations();
     this.physics.world.drawDebug = false;
@@ -272,9 +275,7 @@ export class StageScene extends Phaser.Scene {
   }
 
   private createEnemies(stageId: number): Enemy[] {
-    if (stageId !== 2) return [];
-
-    const stageData: unknown = this.cache.json.get('stage-data-2');
+    const stageData: unknown = this.cache.json.get(`stage-data-${stageId}`);
     if (
       typeof stageData !== 'object' ||
       stageData === null ||
@@ -282,7 +283,7 @@ export class StageScene extends Phaser.Scene {
       !Array.isArray(stageData.enemies) ||
       stageData.enemies.length !== 3
     ) {
-      console.error('ステージ1-1の敵データを読み込めません。php/stage/stage2.jsonを確認してください。');
+      console.error(`ステージ${this.stageNumber ?? stageId}の敵データを読み込めません。php/stage/stage${stageId}.jsonを確認してください。`);
       this.add.text(24, 130, '敵データを読み込めませんでした。', {
         color: '#ffb4a2',
         fontSize: '18px',
@@ -304,7 +305,7 @@ export class StageScene extends Phaser.Scene {
         !Number.isFinite(enemy.x) ||
         !Number.isFinite(enemy.y)
       ) {
-        console.error('ステージ1-1の敵データに不正な座標があります。php/stage/stage2.jsonを確認してください。');
+        console.error(`ステージ${this.stageNumber ?? stageId}の敵データに不正な座標があります。php/stage/stage${stageId}.jsonを確認してください。`);
         continue;
       }
 
