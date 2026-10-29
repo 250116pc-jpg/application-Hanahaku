@@ -1,0 +1,29 @@
+{
+  "id": 17,
+  "eng": "hibiscus",
+  "name": "ハイビスカス",
+  "enhance_id": null,
+  "skill_id": null,
+  "element": null,
+  "status_bonus": {
+    "hp": 8,
+    "mp": 12,
+    "atk": 9,
+    "def": 3,
+    "cd": 5
+  },
+  "hanakotoba": [
+    "繊細な美",
+    "新しい恋"
+  ],
+  "path": "hibiscus.png",
+  "real_path": "haibisukasu.png",
+  "description": "",
+  "origin": "",
+  "habitat": "",
+  "features": "",
+  "date": "",
+  "season": "夏",
+  "catalog_order": 8,
+  "skill_ref": "hibiscus"
+}

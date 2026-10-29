@@ -38,8 +38,6 @@
 .book-skill-fallback { display: grid; place-items: center; font-size: 36px; color: #94704a; }
 .book-section .book-skill-meta { font-size: 14px; border-bottom: 1px solid #c4a16a; padding: 10px 0 6px; }
 .book-section .book-skill-description { font-size: 15px; }
-.book-resistances { display: flex; gap: 8px; flex-wrap: wrap; font-size: 15px; }
-.book-resistances span { padding: 4px 9px; border: 1px solid #c8ac7a; background: #fff7e355; }
 .book-footer { justify-content: center; position: relative; border-top: 1px solid #bca16c88; padding-top: 8px; padding-bottom: 8px; }
 .book-button { width: 208px; min-height: 52px; max-width: 100%; aspect-ratio: 798 / 226; border: 0; padding: 0; color: #fff2d6; background: var(--catalog-button) center / contain no-repeat; font: 16px "Yu Mincho", serif; cursor: pointer; text-shadow: 0 1px 2px #000; }
 .book-folio { display: none; color: #826c4d; font-size: 14px; letter-spacing: .08em; }

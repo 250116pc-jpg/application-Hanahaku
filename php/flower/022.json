@@ -1,0 +1,30 @@
+{
+  "id": 22,
+  "eng": "marigold",
+  "name": "マリーゴールド",
+  "enhance_id": null,
+  "skill_id": null,
+  "element": null,
+  "status_bonus": {
+    "hp": 12,
+    "mp": 15,
+    "atk": 5,
+    "def": 5,
+    "cd": 2
+  },
+  "hanakotoba": [
+    "真心",
+    "健康",
+    "変わらぬ愛"
+  ],
+  "path": "marigold.png",
+  "real_path": "mari-go-dorudo.png",
+  "description": "",
+  "origin": "",
+  "habitat": "",
+  "features": "",
+  "date": "",
+  "season": "夏",
+  "catalog_order": 14,
+  "skill_ref": "marigold"
+}

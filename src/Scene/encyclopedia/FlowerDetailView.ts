@@ -1,13 +1,7 @@
 import type { PrototypeFlower } from './contractPreview'
-import detailsJson from './flowerDetails.json'
 import buttonImage from '../../assets/ui/button1.png'
 import './flower-detail.css'
 
-type Skill = { name: string; description: string; descriptionLevel1?: string; mp: number | null; cooldown: number | null; element: string; category: string; icon: string }
-type Details = { stats: Record<string, string>; resistances: Record<string, string>; words?: string[]; skill: Skill | null; origin?: string; habitat?: string; features?: string }
-const details = detailsJson as Record<string, Details>
-// Skill IDs follow php/skill/skills.json; flower IDs are independent.
-const skillCodes: Record<number, string> = {1:'zinia',2:'suiren',3:'sunflower',4:'sarusuberi',5:'mukuge',6:'kochia',7:'hasu',8:'rurimatsuri',9:'ajisai',10:'hangesho',13:'sakura'}
 const icons = import.meta.glob('../../assets/skill/*.png', { eager: true, query: '?url', import: 'default' }) as Record<string, string>
 
 function node<K extends keyof HTMLElementTagNameMap>(tag: K, className = '', text = ''): HTMLElementTagNameMap[K] {
@@ -28,7 +22,6 @@ export function mountFlowerDetail(flower: PrototypeFlower, options: {
   root.setAttribute('aria-label', '図鑑詳細')
   root.style.setProperty('--catalog-button', `url("${buttonImage}")`)
   document.body.append(root)
-  const data = details[flower.code]
   let owned = options.owned
   let page: 'ability' | 'botanical' = 'ability'
   const button = (text: string, action: () => void, className = 'book-button'): HTMLButtonElement => {
@@ -71,12 +64,12 @@ export function mountFlowerDetail(flower: PrototypeFlower, options: {
       for (const key of ['HP', 'MP', 'ATK', 'DEF', 'CD']) {
         const item = node('div')
         const bonus = flower.statusBonus?.[key.toLowerCase()]
-        const value = flower.statusBonus ? (bonus === undefined ? undefined : String(bonus)) : data?.stats[key]
+        const value = bonus === undefined ? undefined : String(bonus)
         item.append(node('dt', '', key), node('dd', '', value ? `+${value}` : '未登録')); dl.append(item)
       }
       stats.append(dl); left.append(stats)
       section(right, '花の情報', `季節：${flower.season}　／　属性：${flower.element ?? '未登録'}\n契約状態：契約済み`)
-      const skill = flower.skillId === undefined ? data?.skill : details[skillCodes[flower.skillId]]?.skill
+      const skill = flower.skill
       const skills = node('section', 'book-section'); skills.append(node('h3', 'book-ribbon', 'スキル'))
       if (skill) {
         const heading = node('div', 'book-skill-heading')
@@ -89,20 +82,12 @@ export function mountFlowerDetail(flower: PrototypeFlower, options: {
         skills.append(node('p', 'book-note', 'Lv.1の効果・消費MP・CT。強化で変化します。'))
       } else skills.append(node('p', '', 'スキル情報は未登録です。'))
       right.append(skills)
-      const resistance = node('section', 'book-section'); resistance.append(node('h3', 'book-ribbon', '属性カット率・耐性'))
-      const list = node('div', 'book-resistances')
-      for (const element of ['熱', '水', '風', '光', '土']) {
-        let value = data?.resistances[element] ?? '未登録'
-        if (/^\d+$/.test(value)) value += '%'
-        list.append(node('span', '', `${element}：${value}`))
-      }
-      resistance.append(list); right.append(resistance)
     } else {
       const words = flower.hanakotoba
       section(left, '花言葉', words.length ? words.map(w => `「${w}」`).join('　') : '花言葉は未登録です。')
-      section(right, '起源', (flower.origin ?? data?.origin) || 'この花の起源は、まだ登録されていません。')
-      section(right, '咲いている場所', (flower.habitat ?? data?.habitat) || 'この花の生育場所は、まだ登録されていません。')
-      section(right, '特徴', (flower.features ?? data?.features) || 'この花の特徴は、まだ登録されていません。')
+      section(right, '起源', flower.origin || 'この花の起源は、まだ登録されていません。')
+      section(right, '咲いている場所', flower.habitat || 'この花の生育場所は、まだ登録されていません。')
+      section(right, '特徴', flower.features || 'この花の特徴は、まだ登録されていません。')
     }
     spread.append(left, right)
     const footer = node('footer', 'book-footer')

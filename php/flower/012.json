@@ -1,0 +1,29 @@
+{
+  "id": 12,
+  "eng": "blue_rose",
+  "name": "青いバラ",
+  "enhance_id": null,
+  "skill_id": null,
+  "element": null,
+  "status_bonus": {
+    "hp": 16,
+    "mp": 26,
+    "atk": 9,
+    "def": 6,
+    "cd": 3
+  },
+  "hanakotoba": [
+    "夢叶う",
+    "神の祝福"
+  ],
+  "path": "blue_rose.png",
+  "real_path": "aobara.png",
+  "description": "",
+  "origin": "",
+  "habitat": "",
+  "features": "",
+  "date": "",
+  "season": "春",
+  "catalog_order": 2,
+  "skill_ref": "blue_rose"
+}

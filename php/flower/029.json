@@ -1,0 +1,29 @@
+{
+  "id": 29,
+  "eng": "suzuran",
+  "name": "スズラン",
+  "enhance_id": null,
+  "skill_id": null,
+  "element": null,
+  "status_bonus": {
+    "hp": 5,
+    "mp": 15,
+    "atk": 7,
+    "def": 2,
+    "cd": 3
+  },
+  "hanakotoba": [
+    "再び幸せが訪れる",
+    "純粋"
+  ],
+  "path": "suzuran.png",
+  "real_path": "suzuran.png",
+  "description": "",
+  "origin": "",
+  "habitat": "",
+  "features": "",
+  "date": "",
+  "season": "春",
+  "catalog_order": 27,
+  "skill_ref": "suzuran"
+}
