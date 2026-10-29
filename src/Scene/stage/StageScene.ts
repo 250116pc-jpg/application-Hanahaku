@@ -35,6 +35,7 @@ import { Enemy } from './Enemy.ts';
 import { StageHUD } from './StageHUD.ts';
 import { SCENE_KEYS } from '../sceneKeys';
 import { completeStage } from './StageProgress';
+import testData from '../test_data';
 
 const flowerCodes: Record<number, string> = Object.fromEntries(formationData.characters.map(flower => [flower.id, flower.code]));
 const pixelFlowerUrls = import.meta.glob('../../assets/images/pixel_flowers/*.png', {
@@ -52,6 +53,7 @@ export class StageScene extends Phaser.Scene {
   private hud!: StageHUD;
   private enemies: Enemy[] = [];
   private stageId = 2;
+  private stageNumber?: string;
   private isEnding = false;
 
   constructor() {
@@ -112,8 +114,9 @@ export class StageScene extends Phaser.Scene {
     loadCharacterAnimation(this, 'player_drink', playerData.drink);
   }
 
-  create(data: { stageId?: number } = {}): void {
+  create(data: { stageId?: number; stageNumber?: string } = {}): void {
     this.stageId = data.stageId ?? 2;
+    this.stageNumber = data.stageNumber ?? testData.stages.find(stage => stage.id === this.stageId)?.name;
     this.isEnding = false;
     this.createSkillEffectAnimations();
     this.physics.world.drawDebug = false;
@@ -149,7 +152,7 @@ export class StageScene extends Phaser.Scene {
 
     // UI（HUD）の生成を StageHUD クラスに委譲
     this.hud = new StageHUD(this, this.player, this.enemies);
-    this.hud.create(data.stageId);
+    this.hud.create(data.stageId, data.stageNumber);
   }
 
   private createSkillEffectAnimations(): void {
@@ -279,7 +282,7 @@ export class StageScene extends Phaser.Scene {
       !Array.isArray(stageData.enemies) ||
       stageData.enemies.length !== 3
     ) {
-      console.error('ステージ1-2の敵データを読み込めません。php/stage/stage2.jsonを確認してください。');
+      console.error('ステージ1-1の敵データを読み込めません。php/stage/stage2.jsonを確認してください。');
       this.add.text(24, 130, '敵データを読み込めませんでした。', {
         color: '#ffb4a2',
         fontSize: '18px',
@@ -301,7 +304,7 @@ export class StageScene extends Phaser.Scene {
         !Number.isFinite(enemy.x) ||
         !Number.isFinite(enemy.y)
       ) {
-        console.error('ステージ1-2の敵データに不正な座標があります。php/stage/stage2.jsonを確認してください。');
+        console.error('ステージ1-1の敵データに不正な座標があります。php/stage/stage2.jsonを確認してください。');
         continue;
       }
 
@@ -391,6 +394,7 @@ export class StageScene extends Phaser.Scene {
       const completion = await completeStage(this.stageId);
       this.scene.start(SCENE_KEYS.RESULT, {
         stageId: this.stageId,
+        stageNumber: this.stageNumber,
         victory,
         reward: completion.reward,
         coins: completion.coins,
@@ -402,6 +406,7 @@ export class StageScene extends Phaser.Scene {
 
     this.scene.start(SCENE_KEYS.RESULT, {
       stageId: this.stageId,
+      stageNumber: this.stageNumber,
       victory,
       reward: 0,
       coins: 0,
