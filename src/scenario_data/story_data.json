@@ -5,74 +5,27 @@
     "stages": [
       {
         "stage": 1,
-        "title": "不穏な気配",
+        "title": "目覚め",
         "scenario": [
-          { 
-            "name": "主人公", 
-            "text": "あう、あうあうあう、、うぅ、、ここはどこだにょ。",
-            "bg": "forest_night", 
-            "bgm": "danger_01", 
-            "effect": "flash" 
-          },
-          { 
-            "name": "主人公", 
-            "text": "彗星はもっとパーって輝くもんな",
-            "bg": "forest_night", 
-            "bgm": "danger_01", 
-            "effect": "" 
-          }
+          { "name": "主人公", "text": "う……ここはどこだろう。花の香りがする……。", "bg": "forest_night", "bgm": "danger_01", "effect": "flash" },
+          { "name": "主人公", "text": "遠くで何かが動いた気がする。まずは周りを調べてみよう。", "bg": "forest_night", "bgm": "danger_01", "effect": "" }
         ]
       },
       {
         "stage": 3,
-        "title": "契約の儀式",
+        "title": "花の道",
         "scenario": [
-          { 
-            "name": "？？？", 
-            "text": "ここは危険だから、早くこっちへ来て！僕と契約して魔法少女になってよ！",
-            "bg": "forest_night", 
-            "bgm": "contract_theme", 
-            "effect": "screen_shake" 
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "chapter": 2,
-    "title": "第2章：始まりの街",
-    "stages": [
-      {
-        "stage": 1,
-        "title": "不穏な気配",
-        "scenario": [
-          { 
-            "name": "主人公", 
-            "text": "あう、あうあうあう、、うぅ、、ここはどこだにょ。",
-            "bg": "forest_night", 
-            "bgm": "danger_01", 
-            "effect": "flash" 
-          },
-          { 
-            "name": "主人公", 
-            "text": "彗星はもっとパーって輝くもんな",
-            "bg": "forest_night", 
-            "bgm": "danger_01", 
-            "effect": "" 
-          }
+          { "name": "主人公", "text": "花畑の先に道が続いている。さっきの気配も、あちらからだ。", "bg": "forest_night", "bgm": "danger_01", "effect": "" },
+          { "name": "？？？", "text": "こっちだよ！この先は危ないから、気をつけて！", "bg": "forest_night", "bgm": "contract_theme", "effect": "screen_shake" }
         ]
       },
       {
-        "stage": 2,
-        "title": "契約の儀式",
+        "stage": 5,
+        "title": "小さな出会い",
         "scenario": [
-          { 
-            "name": "？？？", 
-            "text": "ここは危険だから、早くこっちへ来て！僕と契約して魔法少女になってよ！",
-            "bg": "forest_night", 
-            "bgm": "contract_theme", 
-            "effect": "screen_shake" 
-          }
+          { "name": "主人公", "text": "助けてくれてありがとう。あなたは誰？", "bg": "forest_night", "bgm": "contract_theme", "effect": "" },
+          { "name": "？？？", "text": "話はあとで。まずはこの先の安全な場所まで一緒に行こう。", "bg": "forest_night", "bgm": "contract_theme", "effect": "" },
+          { "name": "主人公", "text": "うん。ここから先に進んでみよう。", "bg": "forest_night", "bgm": "danger_01", "effect": "" }
         ]
       }
     ]

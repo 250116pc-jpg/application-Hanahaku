@@ -177,7 +177,7 @@ const stages = [
 
   {
     id: 2,
-    name: '1-2',
+    name: '1-1',
     map: 'nil',
     enemies: [
       {
@@ -212,7 +212,7 @@ const stages = [
   },
   {
     id: 4,
-    name: '1-4',
+    name: '1-2',
     map: 'nil',
     enemies: [
       {

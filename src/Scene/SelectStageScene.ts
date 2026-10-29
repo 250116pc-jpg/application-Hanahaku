@@ -3,7 +3,7 @@ import Phaser from 'phaser';
 import testData from './test_data';
 import { AREA_STAGE_LAYOUTS, type StagePosition } from './stageSelectData';
 type StageData = typeof testData.stages[number];
-import { specialText, wait } from '../functions';
+import { specialText } from '../functions';
 import { createBackground } from '../background';
 import backgroundImg from '../assets/ui/stageslect_back.png';
 import stageIcons from '../assets/ui/stageslect_icon.png';
@@ -33,6 +33,7 @@ export class SelectStageScene extends Phaser.Scene {
   // プレイヤー
   private player!: Phaser.GameObjects.Sprite;
   private currentChapter = 1;
+  private currentStageIndex = 0;
   private isMoving = false;
   private isStageInfoOpen = false;
 
@@ -64,10 +65,15 @@ export class SelectStageScene extends Phaser.Scene {
   create(data: SelectStageSceneData = {}): void {
     this.currentChapter = AREA_STAGE_LAYOUTS[data.areaId ?? 1] ? (data.areaId ?? 1) : 1;
     this.stagePositions = AREA_STAGE_LAYOUTS[this.currentChapter];
-    this.stages = this.stagePositions.map((position, index) => {
+    let storyCount = 0;
+    let battleCount = 0;
+    this.stages = this.stagePositions.map(position => {
       const prototype = testData.stages.find(stage => stage.id === position.id);
       if (!prototype) throw new Error('Missing prototype stage: ' + position.id);
-      return { ...prototype, name: this.currentChapter + '-' + (index + 1) };
+      const name = position.type === 'story'
+        ? `${this.currentChapter}-${++storyCount}-a`
+        : `${this.currentChapter}-${++battleCount}`;
+      return { ...prototype, name };
     });
     this.currentStageIndex = 0;
     this.isMoving = false;
@@ -113,7 +119,7 @@ export class SelectStageScene extends Phaser.Scene {
       }
 
       // ステージボタン
-      this.createActionCircle(position.x, position.y, 110, stage.name);
+      this.createActionCircle(position.x, position.y, 110, index);
 
     });
 
@@ -130,7 +136,13 @@ export class SelectStageScene extends Phaser.Scene {
     // ----------------------------------------
     // Player作成
     // ----------------------------------------
-    this.player = createCharacterSprite(this, this.stagePositions[this.currentStageIndex].x, this.stagePositions[this.currentStageIndex].y-50, 'select-player-idle', 'select-player-idle');
+    this.player = createCharacterSprite(
+      this,
+      this.stagePositions[0].x,
+      this.stagePositions[0].y + this.stageRouteOffsetY - 50,
+      'select-player-idle',
+      'select-player-idle'
+    );
     this.player.setScale(1.5).setDepth(2);
   }
 
@@ -203,7 +215,9 @@ export class SelectStageScene extends Phaser.Scene {
     dialogGfx.fillRoundedRect(-popupW / 2, -popupH / 2, popupW, 60, { tl: 16, tr: 16, bl: 0, br: 0 });
 
     // タイトル文字大きく (24 → 28)
-    const titleText = scene.add.text(0, -popupH / 2 + 30, stage.name, {
+    const stageIndex = this.stages.findIndex(item => item.id === stage.id);
+    const isBattleStage = this.stagePositions[stageIndex]?.type === 'battle';
+    const titleText = scene.add.text(0, -popupH / 2 + 30, isBattleStage ? stage.name : 'ストーリー', {
       ...getTextStyle(28),
       color: '#ffffff',
       fontStyle: 'bold',
@@ -335,10 +349,10 @@ export class SelectStageScene extends Phaser.Scene {
         const stageIndex = this.stages.findIndex(item => item.id === stage.id);
         const stageType = this.stagePositions[stageIndex]?.type;
         if(stageType === 'battle') {
-          scene.scene.start(SCENE_KEYS.STAGE, { stageId: stage.id });
+          scene.scene.start(SCENE_KEYS.STAGE, { stageId: stage.id, stageNumber: stage.name });
         } else if(stageType === 'story') {
           scene.scene.start(SCENE_KEYS.STORY, {
-            chapter: 1,
+            chapter: this.currentChapter,
             stage: stage.id
           });
         }
@@ -367,19 +381,20 @@ export class SelectStageScene extends Phaser.Scene {
   // ========================================
   // ステージボタン
   // ========================================
-  private currentStageIndex: number = 0;
-  private createActionCircle(x: number, y: number, diameter: number, label: string): void {
-    const targetIndex = this.stagePositions.findIndex(pos => pos.x === x && pos.y === y);
-    const button = this.add.image(x, y + this.stageRouteOffsetY, 'stage-icons', this.stagePositions[targetIndex].type)
+  private createActionCircle(x: number, y: number, diameter: number, targetIndex: number): void {
+    const position = this.stagePositions[targetIndex];
+    const button = this.add.image(x, y + this.stageRouteOffsetY, 'stage-icons', position.type)
       .setDisplaySize(diameter, diameter * 255 / 480).setDepth(1).setInteractive({ useHandCursor: true });
-    const text = specialText(this, x, y + this.stageRouteOffsetY + 48, 27, 4, label, '#ffffff', '#01070b')
-      .setDepth(1);
-    smoothText(text);
+    if (position.type === 'battle') {
+      const text = specialText(this, x, y + this.stageRouteOffsetY + 48, 27, 4, this.stages[targetIndex].name, '#ffffff', '#01070b')
+        .setDepth(1);
+      smoothText(text);
+    }
     button.on('pointerover', () => button.setTint(0xffe4b5));
     button.on('pointerout', () => button.clearTint());
     button.on('pointerup', () => {
       if (this.isMoving || this.isStageInfoOpen) return;
-      this.movePlayerToStage(this.currentStageIndex, targetIndex);
+      this.movePlayerToStage(targetIndex);
     });
   }
 
@@ -392,81 +407,49 @@ export class SelectStageScene extends Phaser.Scene {
       .setRotation(Phaser.Math.Angle.Between(x1, y1, x2, y2)).setDepth(0.5);
   }
 
-  // ========================================
-  // プレイヤー移動
-  // ========================================
- private movePlayerToStage(nowIndex: number, targetIndex: number, continuing = false): void {
-  console.log(`現在地: ${nowIndex}, 目的地: ${targetIndex}`);
-  // 範囲チェック
-  if (
-    targetIndex < 0 ||
-    targetIndex >= this.stagePositions.length
-  ) {
-    console.error(`無効なステージインデックス: ${targetIndex}`);
-    return;
-  }
+  private movePlayerToStage(targetIndex: number): void {
+    if (!this.stagePositions[targetIndex] || !this.stages[targetIndex]) {
+      console.error(`無効なステージインデックス: ${targetIndex}`);
+      return;
+    }
 
-  // 現在地と目的地が同じ
-  if (nowIndex === targetIndex) {
-    this.openStageInfo(
-      this,
-      this.stages[targetIndex]
-    );
-    return;
-  }
+    if (targetIndex === this.currentStageIndex) {
+      this.openStageInfo(this, this.stages[targetIndex]);
+      return;
+    }
 
-  if (this.isMoving && !continuing) return;
-  this.isMoving = true;
-
-  // 移動方向
-  const direction = nowIndex < targetIndex ? 1 : -1;
-
-  // 現在地の次のステージ
-  const nextIndex = nowIndex + direction;
-
-  const targetStage = this.stagePositions[nextIndex];
-
-  // 走る
-  this.player.setFlipX(targetStage.x < this.player.x);
-  this.player.play('select-player-run');
-
-  // 1ステージ分移動
-  this.tweens.add({
-    targets: this.player,
-
-    x: targetStage.x,
-    y: targetStage.y - 50,
-
-    duration: 1200,
-    ease: 'Power1',
-
-    onComplete: () => {
-
-      // 目的地に到着したか
-      if (nextIndex === targetIndex) {
-        this.currentStageIndex = targetIndex;
-        this.player.play('select-player-idle');
-
-        wait(this, 500).then(() => {
-          this.openStageInfo(
-            this,
-            this.stages[targetIndex]
-          );
-          this.isMoving = false;
-        });
-
+    this.isMoving = true;
+    const moveAlongRoute = (): void => {
+      const nextIndex = this.currentStageIndex + Math.sign(targetIndex - this.currentStageIndex);
+      const nextPosition = this.stagePositions[nextIndex];
+      if (!nextPosition) {
+        this.isMoving = false;
+        console.error(`無効な経路インデックス: ${nextIndex}`);
         return;
       }
 
-      // まだ目的地じゃない
-      // 現在地を nextIndex に更新してもう一度移動
-      this.currentStageIndex = nextIndex;
-      this.movePlayerToStage(
-        nextIndex,
-        targetIndex,
-        true
-      );
-    }
-  });
-}
+      this.player.setFlipX(nextPosition.x < this.player.x).play('select-player-run');
+      this.tweens.add({
+        targets: this.player,
+        x: nextPosition.x,
+        y: nextPosition.y + this.stageRouteOffsetY - 50,
+        duration: 1200,
+        ease: 'Power1',
+        onComplete: () => {
+          this.currentStageIndex = nextIndex;
+          if (nextIndex !== targetIndex) {
+            moveAlongRoute();
+            return;
+          }
+
+          this.player.play('select-player-idle');
+          this.isMoving = false;
+          this.openStageInfo(this, this.stages[targetIndex]);
+        }
+      });
+    };
+
+    moveAlongRoute();
+  }
+
 }
