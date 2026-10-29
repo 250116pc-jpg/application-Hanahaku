@@ -1,29 +1,32 @@
 {
   "id": 12,
-  "eng": "blue_rose",
-  "name": "青いバラ",
+  "eng": "nemunoki",
+  "name": "ネムノキ",
   "enhance_id": null,
   "skill_id": null,
   "element": null,
   "status_bonus": {
-    "hp": 16,
-    "mp": 26,
-    "atk": 9,
-    "def": 6,
+    "hp": 12,
+    "mp": 21,
+    "atk": 3,
+    "def": 5,
     "cd": 3
   },
   "hanakotoba": [
-    "夢叶う",
-    "神の祝福"
+    "歓喜",
+    "胸のときめき",
+    "安らぎ",
+    "夢想",
+    "創造力"
   ],
-  "path": "blue_rose.png",
-  "real_path": "aobara.png",
+  "path": "nemunoki.png",
+  "real_path": "nemunoki.png",
   "description": "",
   "origin": "",
   "habitat": "",
   "features": "",
   "date": "",
-  "season": "春",
-  "catalog_order": 2,
-  "skill_ref": "blue_rose"
+  "season": "夏",
+  "catalog_order": 17,
+  "skill_ref": "nemunoki"
 }

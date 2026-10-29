@@ -1,29 +1,30 @@
 {
   "id": 17,
-  "eng": "hibiscus",
-  "name": "ハイビスカス",
+  "eng": "fuji",
+  "name": "藤",
   "enhance_id": null,
   "skill_id": null,
   "element": null,
   "status_bonus": {
-    "hp": 8,
-    "mp": 12,
-    "atk": 9,
-    "def": 3,
-    "cd": 5
+    "hp": 14,
+    "mp": 18,
+    "atk": 7,
+    "def": 5,
+    "cd": 4
   },
   "hanakotoba": [
-    "繊細な美",
-    "新しい恋"
+    "優しさ",
+    "歓迎",
+    "決して離れない"
   ],
-  "path": "hibiscus.png",
-  "real_path": "haibisukasu.png",
+  "path": "fuji.png",
+  "real_path": "huzi.png",
   "description": "",
   "origin": "",
   "habitat": "",
   "features": "",
   "date": "",
-  "season": "夏",
-  "catalog_order": 8,
-  "skill_ref": "hibiscus"
+  "season": "春",
+  "catalog_order": 4,
+  "skill_ref": "fuji"
 }

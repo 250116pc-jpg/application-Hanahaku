@@ -1,29 +1,30 @@
 {
   "id": 32,
-  "eng": "tsutsuji",
-  "name": "ツツジ",
+  "eng": "ume",
+  "name": "梅",
   "enhance_id": null,
   "skill_id": null,
   "element": null,
   "status_bonus": {
-    "hp": 16,
-    "mp": 10,
-    "atk": 5,
-    "def": 8,
+    "hp": 13,
+    "mp": 18,
+    "atk": 6,
+    "def": 6,
     "cd": 3
   },
   "hanakotoba": [
-    "節度",
-    "慎み"
+    "高潔",
+    "忠実",
+    "忍耐"
   ],
-  "path": "tsutsuji.png",
-  "real_path": "tutuzi.png",
+  "path": "ume.png",
+  "real_path": "ume.png",
   "description": "",
   "origin": "",
   "habitat": "",
   "features": "",
   "date": "",
-  "season": "春",
-  "catalog_order": 30,
-  "skill_ref": "tsutsuji"
+  "season": "冬",
+  "catalog_order": 32,
+  "skill_ref": "ume"
 }

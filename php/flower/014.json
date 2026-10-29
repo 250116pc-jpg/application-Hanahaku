@@ -1,30 +1,29 @@
 {
   "id": 14,
-  "eng": "fuji",
-  "name": "フジ",
+  "eng": "tulip",
+  "name": "チューリップ",
   "enhance_id": null,
   "skill_id": null,
   "element": null,
   "status_bonus": {
-    "hp": 14,
-    "mp": 18,
-    "atk": 7,
+    "hp": 11,
+    "mp": 15,
+    "atk": 5,
     "def": 5,
-    "cd": 4
+    "cd": 2
   },
   "hanakotoba": [
-    "優しさ",
-    "歓迎",
-    "決して離れない"
+    "思いやり",
+    "博愛"
   ],
-  "path": "fuji.png",
-  "real_path": "huzi.png",
+  "path": "tulip.png",
+  "real_path": "cyu-rippu.png",
   "description": "",
   "origin": "",
   "habitat": "",
   "features": "",
   "date": "",
   "season": "春",
-  "catalog_order": 4,
-  "skill_ref": "fuji"
+  "catalog_order": 31,
+  "skill_ref": "tulip"
 }

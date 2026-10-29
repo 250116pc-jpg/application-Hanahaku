@@ -52,7 +52,17 @@ export function mountFlowerDetail(flower: PrototypeFlower, options: {
     const right = node('div', 'book-page book-right')
     const name = owned ? flower.name : 'まだ出会っていない花'
     left.append(node('h2', 'book-flower-name', name))
-    left.append(picture(owned ? (page === 'ability' ? flower.url : flower.realUrl) : options.unknownUrl, owned ? flower.name : '未契約の花'))
+    if (owned && flower.imageVariants?.length) {
+      const variants = node('div', 'book-picture-variants')
+      for (const variant of flower.imageVariants) {
+        const item = node('div', 'book-picture-variant')
+        item.append(picture(page === 'ability' ? variant.url : variant.realUrl, variant.name), node('p', '', variant.name))
+        variants.append(item)
+      }
+      left.append(variants)
+    } else {
+      left.append(picture(owned ? (page === 'ability' ? flower.url : flower.realUrl) : options.unknownUrl, owned ? flower.name : '未契約の花'))
+    }
     if (!owned) {
       section(left, '契約状態', '未契約')
       section(right, 'まだ閉じられたページ', '花契すると、この花の能力・スキル・花言葉を読めるようになります。')
@@ -83,7 +93,7 @@ export function mountFlowerDetail(flower: PrototypeFlower, options: {
       } else skills.append(node('p', '', 'スキル情報は未登録です。'))
       right.append(skills)
     } else {
-      const words = flower.hanakotoba
+      const words = flower.imageVariants?.flatMap(variant => variant.hanakotoba) ?? flower.hanakotoba
       section(left, '花言葉', words.length ? words.map(w => `「${w}」`).join('　') : '花言葉は未登録です。')
       section(right, '起源', flower.origin || 'この花の起源は、まだ登録されていません。')
       section(right, '咲いている場所', flower.habitat || 'この花の生育場所は、まだ登録されていません。')

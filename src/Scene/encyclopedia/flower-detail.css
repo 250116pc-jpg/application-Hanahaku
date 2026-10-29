@@ -102,3 +102,7 @@
   .book-stats { padding: 6px; gap: 6px; }
   .book-stats div { font-size: 16px; }
 }
+
+.book-picture-variants { display: flex; gap: 10px; justify-content: center; }
+.book-picture-variant { min-width: 0; flex: 1; text-align: center; }
+.book-picture-variant .book-picture { width: auto; }

@@ -1,30 +1,29 @@
 {
   "id": 27,
-  "eng": "shakuyaku",
-  "name": "シャクヤク",
+  "eng": "hibiscus",
+  "name": "ハイビスカス",
   "enhance_id": null,
   "skill_id": null,
   "element": null,
   "status_bonus": {
-    "hp": 14,
-    "mp": 18,
-    "atk": 8,
-    "def": 6,
-    "cd": 4
+    "hp": 8,
+    "mp": 12,
+    "atk": 9,
+    "def": 3,
+    "cd": 5
   },
   "hanakotoba": [
-    "恥じらい",
-    "はにかみ",
-    "謙遜"
+    "繊細な美",
+    "新しい恋"
   ],
-  "path": "shakuyaku.png",
-  "real_path": "syakuyaku.png",
+  "path": "hibiscus.png",
+  "real_path": "haibisukasu.png",
   "description": "",
   "origin": "",
   "habitat": "",
   "features": "",
   "date": "",
-  "season": "春",
-  "catalog_order": 23,
-  "skill_ref": "shakuyaku"
+  "season": "夏",
+  "catalog_order": 8,
+  "skill_ref": "hibiscus"
 }

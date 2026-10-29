@@ -1,32 +1,30 @@
 {
   "id": 24,
-  "eng": "nemunoki",
-  "name": "ネムノキ",
+  "eng": "lavender",
+  "name": "ラベンダー",
   "enhance_id": null,
   "skill_id": null,
   "element": null,
   "status_bonus": {
-    "hp": 12,
-    "mp": 21,
-    "atk": 3,
+    "hp": 10,
+    "mp": 25,
+    "atk": 1,
     "def": 5,
-    "cd": 3
+    "cd": 2
   },
   "hanakotoba": [
-    "歓喜",
-    "胸のときめき",
-    "安らぎ",
-    "夢想",
-    "創造力"
+    "期待",
+    "あなたを待っています",
+    "清潔"
   ],
-  "path": "nemunoki.png",
-  "real_path": "nemunoki.png",
+  "path": "lavender.png",
+  "real_path": "rabenda-.png",
   "description": "",
   "origin": "",
   "habitat": "",
   "features": "",
   "date": "",
   "season": "夏",
-  "catalog_order": 17,
-  "skill_ref": "nemunoki"
+  "catalog_order": 12,
+  "skill_ref": "lavender"
 }
