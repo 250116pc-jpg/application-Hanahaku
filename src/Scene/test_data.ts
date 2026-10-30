@@ -139,7 +139,7 @@ const shopItems = [
     price: 1000,
     image: 'yellow_flower.png',
     frame: 9,
-    description: '戦闘中の回復に使うアイテムです。'
+    description: '花を治療し、花契できるようにするアイテムです。'
   }
 ]
 

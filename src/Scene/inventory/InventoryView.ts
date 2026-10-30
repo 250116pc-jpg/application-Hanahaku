@@ -69,7 +69,7 @@ export class InventoryView {
     this.itemPage = Math.min(this.itemPage, pageCount - 1)
     const startX = this.scene.scale.width / 2 - 300
     if (pageCount > 1) {
-      const y = 430
+      const y = 414
       const pageLabel = this.scene.add.text(this.scene.scale.width / 2, y, `${this.itemPage + 1} / ${pageCount}`, getTextStyle(16)).setOrigin(0.5)
       this.itemArea.add(pageLabel)
       if (this.itemPage > 0) this.itemArea.add(createTextButton(this.scene, this.scene.scale.width / 2 - 125, y, '← 前', () => { this.itemPage--; this.renderItems(items, selectedItemId) }, { fontSize: 16 }))
@@ -79,7 +79,7 @@ export class InventoryView {
     items.slice(this.itemPage * 4, this.itemPage * 4 + 4).forEach((item, index) => {
       this.itemArea.add(this.createItemCard(
         startX + index * 200,
-        335,
+        300,
         item,
         item.id === selectedItemId
       ))
@@ -102,6 +102,7 @@ export class InventoryView {
       this.selectedCategoryText.setText('')
       this.selectedEffectText.setText('')
       this.selectedCountText.setText('')
+      this.messageText.setText('')
       this.setUseEnabled(false)
       return
     }
@@ -111,6 +112,8 @@ export class InventoryView {
     this.selectedEffectText.setText(`効果：${item.effect}`)
     this.selectedCountText.setText(`所持数：${item.count}`)
     this.setUseEnabled(item.usable && item.count > 0)
+    if (item.id === 12) this.messageText.setText('花契で使用するアイテムです')
+    else this.messageText.setText('')
   }
 
   showMessage(message: string): void {
@@ -191,6 +194,8 @@ export class InventoryView {
   }
 
   private setUseEnabled(enabled: boolean): void {
+    if (enabled) this.useButtonBackground.setInteractive({ useHandCursor: true })
+    else this.useButtonBackground.disableInteractive()
     this.useButtonBackground.setFillStyle(enabled ? 0xffffff : 0xdddddd)
     this.useButtonText.setColor(enabled ? '#000000' : '#777777')
     this.useButton.setAlpha(enabled ? 1 : 0.7)
