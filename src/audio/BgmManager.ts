@@ -85,7 +85,8 @@ export function preloadAudio(scene: Phaser.Scene): void {
 
 function sceneBgmKey(scene: Phaser.Scene): string | null {
   if (scene.scene.key === 'TitleScene') return BGM_KEYS.title
-  if (scene.scene.key === 'SettingsScene') return null
+  // Overlays keep the BGM of the scene underneath, including paused battles.
+  if (scene.scene.key === 'SettingsScene' || scene.scene.key === 'InventoryScene') return null
   if (scene.scene.key === 'StageScene') return BGM_KEYS.stage
   return BGM_KEYS.home
 }
