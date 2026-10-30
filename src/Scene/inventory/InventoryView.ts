@@ -18,6 +18,8 @@ export class InventoryView {
   private scene: Phaser.Scene
   private callbacks: InventoryCallbacks
   private itemArea!: Phaser.GameObjects.Container
+  private itemPage = 0
+  private itemFilterKey = ''
   private selectedNameText!: Phaser.GameObjects.Text
   private selectedCategoryText!: Phaser.GameObjects.Text
   private selectedEffectText!: Phaser.GameObjects.Text
@@ -61,9 +63,20 @@ export class InventoryView {
 
   renderItems(items: InventoryItem[], selectedItemId: number | null): void {
     this.itemArea.removeAll(true)
+    const filterKey = items.map(item => item.id).join(',')
+    if (filterKey !== this.itemFilterKey) { this.itemPage = 0; this.itemFilterKey = filterKey }
+    const pageCount = Math.max(1, Math.ceil(items.length / 4))
+    this.itemPage = Math.min(this.itemPage, pageCount - 1)
     const startX = this.scene.scale.width / 2 - 300
+    if (pageCount > 1) {
+      const y = 430
+      const pageLabel = this.scene.add.text(this.scene.scale.width / 2, y, `${this.itemPage + 1} / ${pageCount}`, getTextStyle(16)).setOrigin(0.5)
+      this.itemArea.add(pageLabel)
+      if (this.itemPage > 0) this.itemArea.add(createTextButton(this.scene, this.scene.scale.width / 2 - 125, y, '← 前', () => { this.itemPage--; this.renderItems(items, selectedItemId) }, { fontSize: 16 }))
+      if (this.itemPage < pageCount - 1) this.itemArea.add(createTextButton(this.scene, this.scene.scale.width / 2 + 125, y, '次 →', () => { this.itemPage++; this.renderItems(items, selectedItemId) }, { fontSize: 16 }))
+    }
 
-    items.forEach((item, index) => {
+    items.slice(this.itemPage * 4, this.itemPage * 4 + 4).forEach((item, index) => {
       this.itemArea.add(this.createItemCard(
         startX + index * 200,
         335,

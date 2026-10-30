@@ -1,5 +1,5 @@
 [
-    {
+  {
     "id": 1,
     "name": "栄養剤 Lv.1",
     "price": 100,
@@ -58,6 +58,14 @@
   {
     "id": 8,
     "name": "風の種",
+    "price": 300,
+    "image": "yellow_flower.png",
+    "frame": 9,
+    "description": "スキルの強化に必要な素材です。"
+  },
+  {
+    "id": 9,
+    "name": "光の種",
     "price": 300,
     "image": "yellow_flower.png",
     "frame": 9,
