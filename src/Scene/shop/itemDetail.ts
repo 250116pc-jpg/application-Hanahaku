@@ -45,6 +45,39 @@ export function createItemDetail(
     wordWrap: { width: PANEL_WIDTH - 56 },
     lineSpacing: 7,
   })
+  // 説明が長い場合は、区切ったページをボタンで最後まで読めるようにする。
+  let descriptionPages: string[] = []
+  let descriptionPage = 0
+  const pageButton = scene.add.text(PANEL_X, 510, '', {
+    fontFamily: '"Yu Gothic", "Meiryo", sans-serif', fontSize: '13px', color: '#486a4f'
+  }).setOrigin(0.5).setInteractive({ useHandCursor: true })
+  pageButton.on('pointerup', () => {
+    if (descriptionPages.length < 2) return
+    descriptionPage = (descriptionPage + 1) % descriptionPages.length
+    showDescriptionPage()
+  })
+  function showDescriptionPage(): void {
+    descriptionText.setText(descriptionPages[descriptionPage] ?? '')
+    pageButton.setText(descriptionPages.length > 1 ? `説明 ${descriptionPage + 1}/${descriptionPages.length}　次へ ›` : '')
+  }
+  function setDescription(value: string): void {
+    // Phaserの実際の折り返し行を使うため、幅や日本語の文字数が変わっても対応できる。
+    const lines: string[] = []
+    let line = ''
+    // 日本語は空白で区切られないため、文字の実幅を測って折り返す。
+    for (const char of Array.from(value)) {
+      if (char === '\n') { lines.push(line); line = ''; continue }
+      if (line && descriptionText.context.measureText(line + char).width > PANEL_WIDTH - 56) {
+        lines.push(line)
+        line = char
+      } else line += char
+    }
+    if (line || !lines.length) lines.push(line)
+    descriptionPages = []
+    for (let i = 0; i < lines.length; i += 2) descriptionPages.push(lines.slice(i, i + 2).join('\n'))
+    descriptionPage = 0
+    showDescriptionPage()
+  }
   const priceText = scene.add.text(PANEL_X - PANEL_WIDTH / 2 + 28, 526, '', {
     fontFamily: '"Yu Gothic", "Meiryo", sans-serif',
     fontSize: '20px',
@@ -77,7 +110,7 @@ export function createItemDetail(
       currentItem = item
       itemImage.setTexture(getShopItemImageKey(item.id))
       nameText.setText(item.name)
-      descriptionText.setText(item.description ?? '説明なし')
+      setDescription(item.description ?? '説明なし')
       priceText.setText(`価格  ${item.price.toLocaleString()} G`)
       countText.setText(formatCount(item))
     }

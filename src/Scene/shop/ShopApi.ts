@@ -4,9 +4,9 @@ import type { ShopItem } from './types'
 import type { ItemCategory } from '../inventory/InventoryData'
 export const shopCatalog = JSON.parse(rawCatalog) as Array<ShopItem & { category: ItemCategory }>
 export type ShopState = { coin: number; items: Record<string, number> }
-export async function requestShop(action: 'state' | 'buy' = 'state', itemId?: number): Promise<ShopState> {
+export async function requestShop(action: 'state' | 'buy' = 'state', itemId?: number, quantity = 1): Promise<ShopState> {
  const base=getPhpBaseUrl()
- const response=await fetch(`${base}/shop/state.php`,{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify({action,itemId})})
+ const response=await fetch(`${base}/shop/state.php`,{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify({action,itemId,quantity})})
  const result=await response.json()
  if(!response.ok || !result.ok) throw new Error(result.error ?? '所持品を読み込めませんでした。')
  return result as ShopState

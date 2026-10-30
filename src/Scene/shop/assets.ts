@@ -52,3 +52,8 @@ export function getShopItemImageKey(itemId: number): string {
 
   return imageKeys[itemId - 1] ?? 'shop-flower';
 }
+
+// HTML images must use the original asset URL; Phaser revokes its loader blob URLs.
+export function getShopItemImageUrl(itemId: number): string {
+  return itemImages[getShopItemImageKey(itemId)] ?? flowerImage;
+}

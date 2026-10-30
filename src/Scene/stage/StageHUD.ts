@@ -136,7 +136,7 @@ export class StageHUD {
       border: '0',
       background: `url("${retreatButtonAsset}") center / contain no-repeat`,
       cursor: 'pointer',
-      zIndex: '10000',
+      zIndex: '100',
       touchAction: 'manipulation'
     });
 
@@ -156,12 +156,31 @@ export class StageHUD {
     resizeObserver.observe(canvas);
     window.addEventListener('resize', placeButton);
 
+    // DOM controls must follow the same pause state as the canvas bag button.
+    const hideButton = (): void => {
+      button.disabled = true;
+      button.hidden = true;
+    };
+    const showButton = (): void => {
+      button.disabled = false;
+      button.hidden = false;
+      placeButton();
+    };
+    this.scene.events.on(Phaser.Scenes.Events.PAUSE, hideButton);
+    this.scene.events.on(Phaser.Scenes.Events.SLEEP, hideButton);
+    this.scene.events.on(Phaser.Scenes.Events.RESUME, showButton);
+    this.scene.events.on(Phaser.Scenes.Events.WAKE, showButton);
+
     button.addEventListener('click', () => {
-      if (this.retreatDialog) return;
+      if (!this.scene.sys.isActive() || this.scene.scene.isActive(SCENE_KEYS.INVENTORY) || this.retreatDialog) return;
       this.retreatDialog = this.createRetreatDialog();
     });
 
     this.scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      this.scene.events.off(Phaser.Scenes.Events.PAUSE, hideButton);
+      this.scene.events.off(Phaser.Scenes.Events.SLEEP, hideButton);
+      this.scene.events.off(Phaser.Scenes.Events.RESUME, showButton);
+      this.scene.events.off(Phaser.Scenes.Events.WAKE, showButton);
       resizeObserver.disconnect();
       window.removeEventListener('resize', placeButton);
       button.remove();
