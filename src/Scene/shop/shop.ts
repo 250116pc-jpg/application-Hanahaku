@@ -5,6 +5,7 @@ import { createShopItemList, getMaxShopScroll, SHOP_LIST_BOUNDS } from './itemLi
 import { enableShopScroll } from './scroll'
 import { preloadShopAssets } from './assets'
 import type { ShopItem } from './types'
+import { PurchaseConfirm } from './PurchaseConfirm'
 import { SCENE_KEYS } from '../sceneKeys';
 import { createTextButton } from '../../utils/ui'
 
@@ -33,19 +34,23 @@ export class ShopScene extends Phaser.Scene {
     const shopContainer = this.add.container(0, 0)
     const countLabels = new Map<number, Phaser.GameObjects.Text>()
     const status=this.add.text(960,30,'所持品を確認中…',{fontSize:'18px',color:'#ffffff',wordWrap:{width:300}}).setDepth(100)
+    let coin = 0
+    let confirmation: PurchaseConfirm | null = null
     let ready=false
     let selected: ShopItem | undefined
     const applyState=(state: Awaited<ReturnType<typeof requestShop>>) => {
+      coin = state.coin
       for(const item of shopItems){item.count=state.items[String(item.id)] ?? 0;countLabels.get(item.id)?.setText(`所持数  ${item.count}`)}
       status.setText(`所持コイン：${state.coin.toLocaleString()} G`)
       if(selected) itemDetail.show(selected)
     }
     const itemDetail = createItemDetail(this, async item => {
-      if(!ready){ status.setText('ログイン・所持品の読み込みを確認してください'); return }
-      try {
-        const state=await requestShop('buy',item.id)
-        if(this.sys.isActive()) applyState(state)
-      } catch(error) { if(this.sys.isActive()) status.setText(error instanceof Error?error.message:'購入できませんでした。') }
+      if (!ready) { status.setText('ログイン・所持品の読み込みを確認してください'); return }
+      if (confirmation) return
+      confirmation = new PurchaseConfirm(this, item, coin, async quantity => {
+        const state = await requestShop('buy', item.id, quantity)
+        if (this.sys.isActive()) applyState(state)
+      }, () => { confirmation = null })
     })
     void requestShop().then(state=>{if(this.sys.isActive()){ready=true;applyState(state)}}).catch(error=>{if(this.sys.isActive())status.setText(error instanceof Error?error.message:'読み込みに失敗しました')})
     createShopItemList(

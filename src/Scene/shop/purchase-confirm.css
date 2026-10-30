@@ -1,0 +1,59 @@
+.shop-purchase-confirm {
+  position: fixed; inset: 0; z-index: 1200; display: flex; align-items: center; justify-content: center;
+  padding: max(10px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(10px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+  box-sizing: border-box; background: #101b14b8; color: #263b31;
+  font: 16px/1.5 "Yu Gothic", "Meiryo", sans-serif;
+}
+.shop-purchase-confirm * { box-sizing: border-box; }
+.shop-purchase-confirm .purchase-panel {
+  width: min(720px, 100%); max-height: 100%; overflow: auto; padding: 20px 28px;
+  border: 3px solid #c89d5a; border-radius: 12px; background: linear-gradient(135deg, #fffaf0, #f5e7c9);
+  box-shadow: 0 0 0 3px #263b31, 0 14px 42px #0007;
+}
+.shop-purchase-confirm .purchase-title {
+  display: flex; align-items: center; justify-content: center; width: min(240px, 80%); aspect-ratio: 798 / 226;
+  margin: 0 auto 18px; background: var(--shop-button-image) center / contain no-repeat;
+  color: #fff4d9; font-size: 24px; letter-spacing: .12em;
+}
+.shop-purchase-confirm .purchase-content { display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 28px; align-items: start; }
+.shop-purchase-confirm .purchase-product {
+  display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 16px 8px;
+  border: 2px solid #c89d5a; background: #fff8e9; text-align: center; overflow-wrap: anywhere;
+}
+.shop-purchase-confirm .purchase-product img { width: 112px; height: 112px; object-fit: contain; image-rendering: pixelated; }
+.shop-purchase-confirm .purchase-product strong { font-size: 18px; }
+.shop-purchase-confirm .purchase-info { min-width: 0; }
+.shop-purchase-confirm .purchase-question { margin: 0 0 12px; font-size: 20px; font-weight: bold; overflow-wrap: anywhere; }
+.shop-purchase-confirm button {
+  min-height: 48px; padding: 8px 16px; border: 2px solid #c89d5a; border-radius: 7px;
+  background: #fff8e9; color: #263b31; font: bold 18px "Yu Gothic", "Meiryo", sans-serif;
+  cursor: pointer; touch-action: manipulation;
+}
+.shop-purchase-confirm button:hover:not(:disabled) { filter: brightness(1.1); }
+.shop-purchase-confirm button:focus-visible { outline: 3px solid #486a4f; outline-offset: 3px; }
+.shop-purchase-confirm button:disabled { opacity: .45; cursor: default; }
+.shop-purchase-confirm .purchase-quantity { display: flex; align-items: center; gap: 10px; }
+.shop-purchase-confirm .purchase-quantity button { width: 48px; padding: 0; background: #263b31; color: #fff4d9; font-size: 26px; }
+.shop-purchase-confirm output { min-width: 80px; padding: 6px 12px; border: 2px solid #d9c59f; border-radius: 5px; background: #fffdf5; font-size: 22px; text-align: center; }
+.shop-purchase-confirm .purchase-total { margin: 12px 0 4px; color: #78521e; font-size: 24px; font-weight: bold; }
+.shop-purchase-confirm .purchase-balance { margin: 4px 0; color: #52685a; font-size: 14px; }
+.shop-purchase-confirm .purchase-error { margin: 6px 0 0; min-height: 24px; color: #a12929; overflow-wrap: anywhere; }
+.shop-purchase-confirm .purchase-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 12px; padding-top: 14px; border-top: 1px solid #d9c59f; }
+.shop-purchase-confirm .purchase-submit { width: min(212px, 100%); aspect-ratio: 798 / 226; justify-self: center; border: 0; background: var(--shop-button-image) center / contain no-repeat; color: #fff4d9; }
+@media (max-height: 480px) {
+  .shop-purchase-confirm .purchase-panel { padding: 12px 20px; }
+  .shop-purchase-confirm .purchase-title { width: min(180px, 80%); font-size: 20px; margin-bottom: 12px; }
+  .shop-purchase-confirm .purchase-content { grid-template-columns: 132px minmax(0, 1fr); gap: 20px; }
+  .shop-purchase-confirm .purchase-product { padding: 8px; gap: 4px; }
+  .shop-purchase-confirm .purchase-product img { width: 80px; height: 80px; }
+  .shop-purchase-confirm .purchase-product strong { font-size: 16px; }
+  .shop-purchase-confirm .purchase-question { font-size: 18px; margin-bottom: 6px; }
+  .shop-purchase-confirm .purchase-total { font-size: 20px; margin-top: 6px; }
+  .shop-purchase-confirm .purchase-error { min-height: 20px; margin-top: 2px; }
+  .shop-purchase-confirm .purchase-actions { margin-top: 8px; padding-top: 8px; }
+}
+@media (max-width: 560px) {
+  .shop-purchase-confirm .purchase-content { grid-template-columns: 100px minmax(0, 1fr); gap: 12px; }
+  .shop-purchase-confirm .purchase-product img { width: 72px; height: 72px; }
+  .shop-purchase-confirm .purchase-panel { padding: 12px; }
+}
