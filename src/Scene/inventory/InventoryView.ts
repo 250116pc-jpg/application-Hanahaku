@@ -7,6 +7,7 @@ import type { InventoryFilter, InventoryItem } from './InventoryData'
 
 interface InventoryCallbacks {
   onBack: () => void
+  onUse?: () => void
   onCategory: (category: InventoryFilter) => void
   onItem: (item: InventoryItem) => void
 }
@@ -220,6 +221,7 @@ const categories = document.createElement('nav')
       card.setAttribute('aria-pressed', String(item.id === selectedItemId))
       const image = document.createElement('img')
       image.src = getShopItemImageUrl(item.id)
+      if (item.id === 13) image.style.transform = 'scale(1.35)'
       image.alt = ''
       card.append(image)
       const name = document.createElement('span')
@@ -250,6 +252,7 @@ const categories = document.createElement('nav')
     const preview = document.createElement('img')
     preview.className = 'inventory-detail-image'
     preview.src = getShopItemImageUrl(item.id)
+    if (item.id === 13) preview.style.transform = 'scale(1.35)'
     preview.alt = ''
     this.detail.append(preview)
     const lines = [`種類：${getCategoryName(item.category)}`, `所持数：${item.count}`, `用途：${item.effect}`]
@@ -258,6 +261,12 @@ const categories = document.createElement('nav')
       paragraph.textContent = text
       this.detail.append(paragraph)
     })
+  }
+
+  showRecoveryUse(disabled: boolean): void {
+    const use = this.button('回復薬を使う（テスト）', () => this.callbacks.onUse?.())
+    use.disabled = disabled
+    this.detail.append(use)
   }
 
   showMessage(message: string): void {

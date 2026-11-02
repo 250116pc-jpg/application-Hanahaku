@@ -1,3 +1,6 @@
+import recoveryImage from '../../assets/images/items/asset_110.png';
+import powerImage from '../../assets/images/items/asset_090.png';
+import guardImage from '../../assets/images/items/asset_105.png';
 import backgroundImage from '../../assets/images/background/2.png';
 import shopkeeperImage from '../../assets/characters/1003/1003_3.png';
 import redPotionImage from '../../assets/images/items/asset_075.png';
@@ -24,6 +27,9 @@ const itemImages: Record<string, string> = {
   'shop-seed': seedImage,
   'shop-feather': featherImage,
   'shop-crystal': crystalImage,
+  'shop-recovery': recoveryImage,
+  'shop-power': powerImage,
+  'shop-guard': guardImage,
 };
 
 export function preloadShopAssets(scene: Phaser.Scene): void {
@@ -48,6 +54,9 @@ export function getShopItemImageKey(itemId: number): string {
     'shop-crystal',
     'shop-crystal',
     'shop-potion-red',
+    'shop-recovery',
+    'shop-power',
+    'shop-guard',
   ];
 
   return imageKeys[itemId - 1] ?? 'shop-flower';

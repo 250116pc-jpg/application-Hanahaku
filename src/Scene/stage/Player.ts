@@ -41,6 +41,65 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     return this.baseMaxHealth + this.maxHealthBonus;
   }
   public health = this.maxHealth;
+  private potionRecovering = false;
+  private regenerationTimers: Phaser.Time.TimerEvent[] = [];
+
+  private clearRegeneration(): void {
+    this.regenerationTimers.forEach(timer => timer.remove());
+    this.regenerationTimers = [];
+    this.potionRecovering = false;
+    this.emit('recovery-status', false);
+  }
+
+  private startFlowerRegeneration(durationMs: number, intervalMs: number, percent: number): void {
+    if (durationMs <= 0 || intervalMs <= 0) return;
+    this.clearRegeneration();
+    this.emit('recovery-status', true);
+    const endsAt = this.scene.time.now + durationMs;
+    const timer = this.scene.time.addEvent({ delay: intervalMs, loop: true, callback: () => {
+      if (!this.active || this.dead) { this.clearRegeneration(); return; }
+      if (this.scene.time.now >= endsAt) return;
+      this.restoreHealth(this.maxHealth * percent / 100);
+    }});
+    const end = this.scene.time.delayedCall(durationMs, () => this.clearRegeneration());
+    this.regenerationTimers = [timer, end];
+  }
+
+
+  public get recoveryPotionUnavailable(): string | null {
+    if (this.dead || !this.active) return '戦闘不能中は使用できません。';
+    if (this.potionRecovering) return '回復薬の効果中です。';
+    if (this.health >= this.maxHealth) return 'HPは満タンです。';
+    return null;
+  }
+
+  public startRecoveryPotion(): boolean {
+    if (this.recoveryPotionUnavailable) return false;
+    this.clearRegeneration();
+    this.potionRecovering = true;
+    this.emit('recovery-status', true);
+    this.emit('potion-recovery', true);
+    this.showArea([[0, 2, 0], [2, 1, 2], [0, 2, 0]], BUFF_EFFECT_COLOR);
+    const total = Math.max(1, Math.round(this.maxHealth * 0.15));
+    let delivered = 0;
+    let tick = 0;
+    const timer = this.scene.time.addEvent({ delay: 1000, repeat: 9, callback: () => {
+      if (!this.active || this.dead) {
+        this.clearRegeneration();
+        return;
+      }
+      tick++;
+      const target = Math.round(total * tick / 10);
+      this.restoreHealth(target - delivered);
+      delivered = target;
+      if (tick === 10) {
+        this.clearRegeneration();
+      }
+    }});
+    this.regenerationTimers = [timer];
+    return true;
+  }
+
 
   constructor(scene: Phaser.Scene, x: number, y: number, cursors?: Phaser.Types.Input.Keyboard.CursorKeys) {
     super(scene, x, y, 'player_idle');
@@ -50,6 +109,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     scene.physics.add.existing(this);
 
     this.cursors = cursors;
+    this.once(Phaser.GameObjects.Events.DESTROY, () => this.clearRegeneration());
     this.on(Phaser.Animations.Events.ANIMATION_COMPLETE, (animation: Phaser.Animations.Animation) => {
       if (animation.key === 'player-land') {
         this.landingAnimationPlaying = false;
@@ -188,9 +248,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
         break;
       case 'defensiveRecovery':
         this.applyDefenseBuff(skill.defenseBonusPercent, skill.durationMs);
-        this.repeatUntil(skill.durationMs, skill.healIntervalMs, () => this.restoreHealth(
-          this.maxHealth * skill.healPercent / 100
-        ));
+        this.startFlowerRegeneration(skill.durationMs, skill.healIntervalMs, skill.healPercent);
         this.showArea(skill.area, BUFF_EFFECT_COLOR);
         break;
       case 'charge':
@@ -241,9 +299,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
         } else {
           this.mapleIsRed = true;
           this.applyDefenseBuff(skill.defenseBonusPercent, skill.durationMs);
-          this.repeatUntil(skill.durationMs, skill.healIntervalMs, () => this.restoreHealth(
-            this.maxHealth * skill.healPercent / 100
-          ));
+          this.startFlowerRegeneration(skill.durationMs, skill.healIntervalMs, skill.healPercent);
           this.showArea([[1]], BUFF_EFFECT_COLOR);
         }
         break;
@@ -426,7 +482,8 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     if (intervalMs <= 0) return;
     const endsAt = this.scene.time.now + durationMs;
     const repeat = (): void => {
-      if (!this.active || this.dead || this.scene.time.now >= endsAt) return;
+      if (!this.active || this.dead) { this.clearRegeneration(); return; }
+      if (this.scene.time.now >= endsAt) return;
       effect();
       this.scene.time.delayedCall(intervalMs, repeat);
     };

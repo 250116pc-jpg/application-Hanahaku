@@ -86,6 +86,18 @@ export class StageHUD {
     const panelH = compact ? 80 : 96;
     this.panel(x, y, panelW, panelH, 14);
     this.text(x + 16, y + 10, `${leader.name}  Lv.${leader.level}`, compact ? 13 : 17, '#fff', 'bold');
+    if (this.player) {
+      const icon = this.scene.add.image(x + panelW - 30, y + 21, 'status-buff_hp_regen')
+        .setDisplaySize(22, 22).setScrollFactor(0).setDepth(this.depth + 3).setVisible(false);
+      const onRecovery = (active: boolean): void => { icon.setVisible(active); };
+      const onPotion = (): void => { this.playSkillEffect({ type: 'heal', hitCount: 1 }); };
+      this.player.on('recovery-status', onRecovery);
+      this.player.on('potion-recovery', onPotion);
+      this.scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+        this.player?.off('recovery-status', onRecovery);
+        this.player?.off('potion-recovery', onPotion);
+      });
+    }
     this.text(x + 16, y + 37, 'HP', 12, '#ff9bad', 'bold');
     this.hpBarX = x + 50;
     this.hpBarY = y + 40;
@@ -518,7 +530,7 @@ export class StageHUD {
     this.updateSkillLabel();
   }
 
-  private playSkillEffect(skill: FlowerSkillState['skill']): void {
+  private playSkillEffect(skill: Pick<FlowerSkillState['skill'], 'type' | 'hitCount'>): void {
     if (!this.player) return;
     const sheetByType: Record<string, string> = {
       multiHit: '01_fire_slash', defensiveRecovery: '02_guard_buff', charge: '03_sun_beam',

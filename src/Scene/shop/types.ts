@@ -5,6 +5,7 @@ export type ShopItem = {
   frame: number
   image?: string
   description?: string
+  inventoryDescription?: string
   count?: number
 }
 

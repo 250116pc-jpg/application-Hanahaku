@@ -1,4 +1,5 @@
 import Phaser from 'phaser'
+import type { StageScene } from './stage/StageScene'
 
 import { shopCatalog, requestShop } from './shop/ShopApi'
 import { preloadShopAssets } from './shop/assets'
@@ -17,6 +18,7 @@ export class InventoryScene extends Phaser.Scene {
   private selectedItem: InventoryItem | null = null
   private items: InventoryItem[] = []
   private view!: InventoryView
+  private usingItem = false
 
   constructor() {
     super(SCENE_KEYS.INVENTORY)
@@ -39,12 +41,14 @@ export class InventoryScene extends Phaser.Scene {
       active = false
       owner?.events.off(Phaser.Scenes.Events.SHUTDOWN, stopWithOwner)
     })
+    this.usingItem = false
     this.items = []
     this.selectedCategory = 'all'
     this.selectedItem = null
 
     this.view = new InventoryView(this, {
       onBack: () => this.closeInventory(),
+      onUse: () => { void this.useRecoveryPotion() },
       onCategory: category => this.selectCategory(category),
       onItem: item => this.selectItem(item)
     })
@@ -54,7 +58,7 @@ export class InventoryScene extends Phaser.Scene {
       if(!active || !this.sys.isActive())return
       const catalogItems: InventoryItem[] = shopCatalog.map(product => ({
         id: product.id, name: product.name, category: product.category,
-        effect: product.description ?? '詳細未登録', count: state.items[String(product.id)] ?? 0, usable: false
+        effect: product.inventoryDescription ?? product.description ?? '詳細未登録', count: state.items[String(product.id)] ?? 0, usable: false
       }))
       const knownIds = new Set(catalogItems.map(item => item.id))
       const otherItems: InventoryItem[] = Object.entries(state.items)
@@ -65,7 +69,31 @@ export class InventoryScene extends Phaser.Scene {
     }).catch(error=>{if(active && this.sys.isActive())this.view.showMessage(error instanceof Error?error.message:'読み込みに失敗しました')})
   }
 
+  private async useRecoveryPotion(): Promise<void> {
+    if (this.usingItem || this.selectedItem?.id !== 13 || this.returnScene !== SCENE_KEYS.STAGE) return
+    const stage = this.scene.manager.keys[this.returnScene] as StageScene
+    const player = stage.getRecoveryPlayer()
+    const unavailable = player.recoveryPotionUnavailable
+    if (unavailable) { this.view.showMessage(unavailable); return }
+    this.usingItem = true
+    this.refresh()
+    try {
+      const state = await requestShop('consume', 13)
+      if (!this.sys.isActive() || !player.active) return
+      const item = this.items.find(entry => entry.id === 13)
+      if (item) item.count = state.items['13'] ?? 0
+      player.startRecoveryPotion()
+      this.view.showMessage('回復薬を使用しました。戦闘に戻ると10秒かけて最大HPの15%を回復します。')
+    } catch (error) {
+      if (this.sys.isActive()) this.view.showMessage(error instanceof Error ? error.message : '使用できませんでした。')
+    } finally {
+      this.usingItem = false
+      if (this.sys.isActive()) this.refresh()
+    }
+  }
+
   private closeInventory(): void {
+    if (this.usingItem) return
     this.view.close(() => {
       if (!this.sys.isActive()) return
       if (this.scene.manager.keys[this.returnScene]) {
@@ -93,6 +121,12 @@ export class InventoryScene extends Phaser.Scene {
 
     this.view.renderItems(visibleItems, this.selectedItem?.id ?? null)
     this.view.renderDetail(this.selectedItem)
+    if (this.selectedItem?.id === 13 && this.returnScene === SCENE_KEYS.STAGE && import.meta.env.DEV && new URLSearchParams(location.search).get('shop-test') === '1') {
+      const stage = this.scene.manager.keys[this.returnScene] as StageScene
+      const reason = stage.getRecoveryPlayer().recoveryPotionUnavailable
+      this.view.showRecoveryUse(this.usingItem || this.selectedItem.count < 1 || !!reason)
+      if (reason) this.view.showMessage(reason)
+    }
   }
 
 }
