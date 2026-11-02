@@ -174,6 +174,7 @@ export class StageHUD {
     button.addEventListener('click', () => {
       if (!this.scene.sys.isActive() || this.scene.scene.isActive(SCENE_KEYS.INVENTORY) || this.retreatDialog) return;
       this.retreatDialog = this.createRetreatDialog();
+      this.scene.scene.pause(SCENE_KEYS.STAGE);
     });
 
     this.scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
@@ -255,7 +256,11 @@ export class StageHUD {
       return action;
     };
     actions.append(
-      makeAction('キャンセル', () => { dialog.remove(); this.retreatDialog = null; }),
+      makeAction('キャンセル', () => {
+        dialog.remove();
+        this.retreatDialog = null;
+        this.scene.scene.resume(SCENE_KEYS.STAGE);
+      }),
       makeAction('撤退する', () => {
         dialog.remove();
         this.retreatDialog = null;
