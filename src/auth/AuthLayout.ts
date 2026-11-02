@@ -1,11 +1,12 @@
-import Phaser from 'phaser';
+﻿import Phaser from 'phaser';
 import buttonImage from '../assets/ui/button1.png';
 import backgroundImage from '../assets/images/background/auth-meadow.png';
 import './auth-layout.css';
 
 // Native inputs remain usable with touch keyboards and browser password managers.
 export function mountAuthLayout(
-  scene: Phaser.Scene, form: HTMLFormElement, title: string, link: string, target: string
+  scene: Phaser.Scene, form: HTMLFormElement, title: string, link: string, target: string,
+  onNavigate?: (destination: string) => void
 ): { destroy: () => void } {
   const root = document.createElement('section');
   root.className = 'flower-auth-screen';
@@ -59,7 +60,7 @@ export function mountAuthLayout(
     });
     field.append(toggle);
   });
-  const navigate = (destination: string): void => { scene.scene.start(destination); };
+  const navigate = onNavigate ?? ((destination: string): void => { scene.scene.start(destination); });
   const next = document.createElement('button');
   next.type = 'button'; next.className = 'auth-route-link'; next.textContent = `${link} ›`;
   next.addEventListener('click', () => navigate(target));
@@ -76,3 +77,4 @@ export function mountAuthLayout(
   scene.events.once(Phaser.Scenes.Events.SHUTDOWN, destroy);
   return { destroy };
 }
+
