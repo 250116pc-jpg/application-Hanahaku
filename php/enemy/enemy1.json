@@ -1,0 +1,19 @@
+{
+  "id": 1,
+  "name": "シーカー",
+  "hp": 180,
+  "physicalAttack": 75,
+  "magicAttack": 75,
+  "physicalDefense": 100,
+  "magicDefense": 100,
+  "healingPower": 101,
+  "attackIntervalMs": 680,
+  "agility": 100,
+  "criticalRate": 5,
+  "criticalDamage": 30,
+  "contractFlowerId": 0,
+  "growth": {
+    "hpPerLevel": 45,
+    "physicalAttackPerLevel": 2
+  }
+}

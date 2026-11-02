@@ -4,11 +4,12 @@ import type { ServerFlowerSkill } from './SkillApi.ts';
 
 const BUFF_EFFECT_COLOR = 0xff5964;
 const SKILL_AREA_CELL_SIZE = 40;
+export type DamageType = 'physical' | 'magical';
 
 export interface CombatTarget {
   readonly x: number;
   readonly y: number;
-  receiveDamage(amount: number): void;
+  receiveDamage(amount: number, damageType?: DamageType): void;
   applyAttackSpeedSlow?(percent: number, durationMs: number): void;
   applyStatusIcon?(iconKey: string, durationMs: number): void;
   applyKnockback?(direction: number): void;
@@ -235,7 +236,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
         for (let hit = 0; hit < skill.hitCount; hit++) {
           this.scene.time.delayedCall(hit * 145, () => {
             if (!this.active || this.dead) return;
-            const hitTargets = this.damageTargetsInArea(targets, this.skillDamage(skill.damagePercent, skill.attackPower), skill.area);
+            const hitTargets = this.damageTargetsInArea(targets, this.skillDamage(skill.damagePercent, skill.attackPower), skill.area, this.getSkillDamageType(skill));
             this.emitSkillVisual(skill, 'impact', hitTargets);
           });
         }
@@ -253,7 +254,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
         this.applyDefenseBuff(skill.defenseBonusPercent, skill.durationMs);
         this.scene.time.delayedCall(skill.durationMs, () => {
           if (!this.active || this.dead) return;
-          const hitTargets = this.damageTargetsInArea(targets, this.skillDamage(skill.damagePercent, skill.attackPower), skill.area);
+          const hitTargets = this.damageTargetsInArea(targets, this.skillDamage(skill.damagePercent, skill.attackPower), skill.area, this.getSkillDamageType(skill));
           this.emitSkillVisual(skill, 'impact', hitTargets);
         });
         this.emitSkillVisual(skill, 'charge', [this]);
@@ -261,7 +262,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       case 'balanced':
         this.applyTimedBuff(skill.attackBonusPercent, skill.defenseBonusPercent, skill.durationMs);
         this.repeatUntil(skill.durationMs, skill.repeatIntervalMs, () => {
-          const hitTargets = this.damageTargetsInArea(targets, this.skillDamage(skill.damagePercent, skill.attackPower), skill.area);
+          const hitTargets = this.damageTargetsInArea(targets, this.skillDamage(skill.damagePercent, skill.attackPower), skill.area, this.getSkillDamageType(skill));
           this.emitSkillVisual(skill, 'impact', hitTargets);
         });
         this.emitSkillVisual(skill, 'buff', [this]);
@@ -273,7 +274,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
           skill.durationMs,
           Math.max(100, Math.round(skill.repeatIntervalMs / (1 + skill.attackSpeedBonusPercent / 100))),
           () => {
-          const hitTargets = this.damageTargetsInArea(targets, this.skillDamage(skill.damagePercent, skill.attackPower), skill.area);
+          const hitTargets = this.damageTargetsInArea(targets, this.skillDamage(skill.damagePercent, skill.attackPower), skill.area, this.getSkillDamageType(skill));
           this.emitSkillVisual(skill, 'impact', hitTargets);
           }
         );
@@ -289,7 +290,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
               const hitTarget = hitTargets[0];
               this.emitSkillVisual(skill, 'impact', hitTarget ? [hitTarget] : [], stage.area);
               if (hitTarget) {
-                hitTarget.receiveDamage(this.skillDamage(stage.damagePercent, skill.attackPower));
+                hitTarget.receiveDamage(this.skillDamage(stage.damagePercent, skill.attackPower), this.getSkillDamageType(skill));
                 if (stage.knockback) hitTarget.applyKnockback?.(this.flipX ? -1 : 1);
               }
             });
@@ -325,7 +326,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
         const affectedTargets = this.getTargetsInArea(targets, skill.area);
         this.emitSkillVisual(skill, 'impact', affectedTargets);
         affectedTargets.forEach(target => {
-          target.receiveDamage(this.skillDamage(skill.damagePercent, skill.attackPower));
+          target.receiveDamage(this.skillDamage(skill.damagePercent, skill.attackPower), this.getSkillDamageType(skill));
           target.applyAttackSpeedSlow?.(skill.slowPercent, skill.durationMs);
         });
         break;
@@ -334,7 +335,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
         this.emitSkillVisual(skill, 'heal', [this]);
         break;
       case 'evasion':
-        const hitTargets = this.damageTargetsInArea(targets, this.skillDamage(skill.damagePercent, skill.attackPower), skill.area);
+        const hitTargets = this.damageTargetsInArea(targets, this.skillDamage(skill.damagePercent, skill.attackPower), skill.area, this.getSkillDamageType(skill));
         this.emitSkillVisual(skill, 'impact', hitTargets);
         this.evasionUntil = this.scene.time.now + skill.durationMs;
         this.evasionPercent = skill.evasionPercent;
@@ -422,11 +423,16 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   private damageTargetsInArea(
     targets: readonly CombatTarget[],
     damage: number,
-    area: readonly (readonly number[])[]
+    area: readonly (readonly number[])[],
+    damageType: DamageType = 'physical'
   ): CombatTarget[] {
     const hitTargets = this.getTargetsInArea(targets, area);
-    hitTargets.forEach(target => target.receiveDamage(damage));
+    hitTargets.forEach(target => target.receiveDamage(damage, damageType));
     return hitTargets;
+  }
+
+  private getSkillDamageType(skill: ServerFlowerSkill): DamageType {
+    return skill.element === '無' ? 'physical' : 'magical';
   }
 
   private getTargetsInArea(

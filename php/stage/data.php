@@ -42,16 +42,50 @@ try {
         if (!is_array($enemy)) throw new UnexpectedValueException('Invalid enemy spawn record.');
         $enemyId = filter_var($enemy['id'] ?? null, FILTER_VALIDATE_INT);
         if ($enemyId === false || $enemyId < 1) throw new UnexpectedValueException('Invalid enemy ID.');
+        $level = filter_var($enemy['level'] ?? 1, FILTER_VALIDATE_INT);
+        if ($level === false || $level < 1) throw new UnexpectedValueException('Invalid enemy level.');
 
-        $enemyPath = __DIR__ . '/enemy' . $enemyId . '.json';
+        $enemyPath = __DIR__ . '/../enemy/enemy' . $enemyId . '.json';
         $enemyJson = is_file($enemyPath) ? file_get_contents($enemyPath) : false;
         if ($enemyJson === false) throw new RuntimeException('Enemy definition not found.');
 
         $enemyStats = json_decode($enemyJson, true, 512, JSON_THROW_ON_ERROR);
-        if (!is_array($enemyStats) || (int)($enemyStats['id'] ?? 0) !== $enemyId) {
+        $statKeys = [
+            'hp', 'physicalAttack', 'magicAttack', 'physicalDefense', 'magicDefense', 'healingPower',
+            'attackIntervalMs', 'agility', 'criticalRate', 'criticalDamage', 'contractFlowerId'
+        ];
+        if (
+            !is_array($enemyStats) ||
+            (int)($enemyStats['id'] ?? 0) !== $enemyId ||
+            !is_string($enemyStats['name'] ?? null) ||
+            !is_array($enemyStats['growth'] ?? null)
+        ) {
             throw new UnexpectedValueException('Invalid enemy definition.');
         }
-        $enemy['stats'] = $enemyStats;
+        $growth = $enemyStats['growth'];
+        foreach ($statKeys as $statKey) {
+            if (!is_numeric($enemyStats[$statKey] ?? null)) {
+                throw new UnexpectedValueException('Enemy base stat is missing or invalid.');
+            }
+            $growthKey = $statKey . 'PerLevel';
+            if (isset($growth[$growthKey]) && !is_numeric($growth[$growthKey])) {
+                throw new UnexpectedValueException('Enemy stat growth is invalid.');
+            }
+        }
+        $levelOffset = $level - 1;
+        $enemy['stats'] = ['level' => $level];
+        foreach ($statKeys as $statKey) {
+            if ($statKey === 'contractFlowerId') {
+                $enemy['stats'][$statKey] = (int)$enemyStats[$statKey];
+                continue;
+            }
+            $growthKey = $statKey . 'PerLevel';
+            $value = (float)$enemyStats[$statKey] + (float)($growth[$growthKey] ?? 0) * $levelOffset;
+            if ($statKey === 'hp') $value = max(1, $value);
+            if ($statKey === 'attackIntervalMs') $value = max(1, $value);
+            if (in_array($statKey, ['criticalRate', 'criticalDamage'], true)) $value = max(0, $value);
+            $enemy['stats'][$statKey] = round($value, 2);
+        }
     }
     unset($enemy);
 

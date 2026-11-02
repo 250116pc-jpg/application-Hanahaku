@@ -325,7 +325,7 @@ export class StageScene extends Phaser.Scene {
         !Number.isFinite(enemy.x) ||
         !Number.isFinite(enemy.y)
       ) {
-        console.error(`ステージ${this.stageNumber ?? stageId}の敵配置または敵ステータスが不正です。php/stage/stage${stageId}.jsonとenemy{id}.jsonを確認してください。`);
+        console.error(`ステージ${this.stageNumber ?? stageId}の敵配置または敵ステータスが不正です。php/stage/stage${stageId}.jsonとphp/enemy/enemy{id}.jsonを確認してください。`);
         continue;
       }
 
