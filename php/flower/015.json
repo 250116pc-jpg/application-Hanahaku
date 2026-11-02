@@ -1,0 +1,29 @@
+{
+  "id": 15,
+  "eng": "nanohana",
+  "name": "菜の花",
+  "enhance_id": null,
+  "skill_id": null,
+  "element": null,
+  "status_bonus": {
+    "hp": 9,
+    "mp": 15,
+    "atk": 4,
+    "def": 4,
+    "cd": 1
+  },
+  "hanakotoba": [
+    "快活",
+    "明るさ"
+  ],
+  "path": "nanohana.png",
+  "real_path": "nanohana.png",
+  "description": "",
+  "origin": "",
+  "habitat": "",
+  "features": "",
+  "date": "",
+  "season": "春",
+  "catalog_order": 16,
+  "skill_ref": "nanohana"
+}

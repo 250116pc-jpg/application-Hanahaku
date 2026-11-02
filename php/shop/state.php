@@ -6,6 +6,10 @@ $userId = requireStageUserId($pdo);
 $body = requestBody();
 $action = $body['action'] ?? 'state';
 if (!in_array($action, ['state', 'buy'], true)) respond(['ok'=>false,'error'=>'不正な操作です。'],422);
+$quantity = array_key_exists('quantity', $body) ? $body['quantity'] : 1;
+if ($action === 'buy' && (!is_int($quantity) || $quantity < 1 || $quantity > 99)) {
+ respond(['ok'=>false,'error'=>'購入数は1～99個で指定してください。'],422);
+}
 $catalog = json_decode(file_get_contents(__DIR__.'/items.json'), true, 512, JSON_THROW_ON_ERROR);
 try {
  $pdo->beginTransaction();
@@ -22,11 +26,12 @@ try {
   $product=null;
   foreach ($catalog as $entry) if (is_int($id) && $entry['id']===$id) $product=$entry;
   if (!$product) throw new RuntimeException('商品が見つかりません。');
-  if ($coin<$product['price']) throw new RuntimeException('コインが足りません。');
+  $total = $product['price'] * $quantity;
+  if ($coin<$total) throw new RuntimeException('コインが足りません。');
   $key=(string)$id;
   $count=$items->$key ?? 0;
-  if ($count>=2147483647) throw new RuntimeException('所持数の上限です。');
-  $items->$key=$count+1; $coin-=$product['price'];
+  if ($count>2147483647-$quantity) throw new RuntimeException('所持数の上限です。');
+  $items->$key=$count+$quantity; $coin-=$total;
   $q=$pdo->prepare('UPDATE users SET coin = ?, items = ? WHERE id = ?');
   $q->execute([$coin,json_encode($items,JSON_THROW_ON_ERROR),$userId]);
  }

@@ -38,3 +38,13 @@
 ※003はひまわり、010はハンゲショウです。桜は図鑑の既存枠（ID16）に残します。契約テスト状態は再読み込みで初期化されます。
 ※skill_idはphp/skill/skills.jsonを基準とします。隠密系=10。花IDとは別の値です。
 ※EXPは個別花JSON・図鑑の表示項目に含めません。
+
+【個別JSON運用：2026-10-29】
+図鑑の正本は001～033.json（花データ一覧のID順）。seasonは春・夏・秋・冬、catalog_orderは既存表示順。sourceはゲーム用データに不要。
+新しい花は未使用の整数idと一意のengを指定した3桁名JSONを追加する。既存形式のname/path/hanakotoba/status_bonus/seasonを設定し、実在するゲーム画像を用意する。写真なしは準備中表示。path.jsonの共通パスを使う。
+未登録のelement/enhance_id/skill_idはnull、未登録の能力値はstatus_bonusからキーを省略、花言葉は[]、説明は空文字。0は確定したゼロ値。
+既存skill_idの対応は維持。catalog-skills.jsonは既存図鑑の表示用定義で、戦闘用skills.jsonとは別。戦闘側に対応が確認できないスキルはIDを推測せずskill_refで既存表示を保持する。新しい花にskill_id=null、skill_ref省略ならスキル未登録になる。
+花JSON追加だけで一覧へ登録される（Viteの再読込・ビルドが必要）。能力・スキルの本番編成／戦闘への追加は別途対応が必要。
+属性は単一のelementで管理し、属性耐性・カット率は使用しない。
+
+バラ（028.json）のimage_variantsに赤・青の画像と花言葉を登録します。既存の編成・契約・戦闘の保存IDの移行は未実施です。

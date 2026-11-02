@@ -1,34 +1,21 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="2048" height="640" viewBox="0 0 2048 640">
 <defs>
- <linearGradient id="sky" x2="0" y2="1"><stop stop-color="#559bdc"/><stop offset=".55" stop-color="#82b9eb"/><stop offset="1" stop-color="#c1d9ed"/></linearGradient>
- <linearGradient id="island" x2="0" y2="1"><stop stop-color="#6488b6"/><stop offset="1" stop-color="#354c70"/></linearGradient>
- <linearGradient id="ruin" x2="0" y2="1"><stop stop-color="#64788d"/><stop offset="1" stop-color="#374b61"/></linearGradient>
- <linearGradient id="cloud" x2="0" y2="1"><stop stop-color="#fff" stop-opacity=".68"/><stop offset="1" stop-color="#cde3f5" stop-opacity=".1"/></linearGradient>
- <filter id="soft"><feGaussianBlur stdDeviation="13"/></filter>
- <g id="cloudShape" fill="url(#cloud)"><ellipse cx="0" cy="15" rx="100" ry="23"/><ellipse cx="-45" cy="5" rx="45" ry="27"/><ellipse cx="3" cy="-9" rx="48" ry="34"/><ellipse cx="52" cy="2" rx="42" ry="28"/><ellipse cx="82" cy="15" rx="48" ry="20"/></g>
- <g id="arch" fill="url(#ruin)" stroke="#8a9aa5" stroke-width="4"><path d="M0 205V92a70 70 0 0 1 140 0v113h-25V92a45 45 0 0 0-90 0v113z"/><rect x="-12" y="194" width="164" height="20" rx="4"/><path d="M8 214h18v104H8zm96 0h18v104h-18z"/><path d="M-3 310h42v12H-3zm92 0h42v12H89z"/></g>
- <g id="tower" fill="url(#ruin)" stroke="#91a2ad" stroke-width="2"><rect x="0" y="34" width="42" height="150"/><path d="M-7 38L21 0l28 38z"/><rect x="15" y="-17" width="12" height="28"/><rect x="7" y="72" width="9" height="17" fill="#b6c7d4"/><rect x="26" y="72" width="9" height="17" fill="#b6c7d4"/><rect x="16" y="119" width="11" height="20" fill="#b6c7d4"/></g>
- <g id="ivy" fill="#587953"><ellipse cx="0" cy="0" rx="17" ry="7"/><ellipse cx="19" cy="-3" rx="13" ry="6"/><ellipse cx="35" cy="1" rx="16" ry="7"/><ellipse cx="49" cy="-2" rx="12" ry="6"/></g>
+ <linearGradient id="night" x2="0" y2="1"><stop stop-color="#151725"/><stop offset=".55" stop-color="#28233a"/><stop offset="1" stop-color="#4b3547"/></linearGradient>
+ <linearGradient id="fog" x2="0" y2="1"><stop stop-color="#a69ab3" stop-opacity="0"/><stop offset=".5" stop-color="#b9a4ad" stop-opacity=".22"/><stop offset="1" stop-color="#b9a4ad" stop-opacity="0"/></linearGradient>
+ <linearGradient id="ruin" x2="0" y2="1"><stop stop-color="#62546b"/><stop offset="1" stop-color="#282638"/></linearGradient>
+ <filter id="glow"><feGaussianBlur stdDeviation="24"/></filter>
+ <g id="pine" fill="#171b29"><path d="M0 0L-83 130h44l-68 105h48l-83 126H62l-83-126h48L-41 130H3z"/><rect x="-12" y="334" width="24" height="78" fill="#211d2b"/></g>
+ <g id="arch" fill="url(#ruin)" stroke="#827284" stroke-width="5"><path d="M0 250V100a90 90 0 0 1 180 0v150h-34V100a56 56 0 0 0-112 0v150z"/><rect x="-18" y="238" width="216" height="25"/><path d="M12 262h28v150H12zm112 0h28v150h-28z"/></g>
 </defs>
-<rect width="2048" height="640" fill="url(#sky)"/>
-<circle cx="1510" cy="195" r="170" fill="#e8f5ff" opacity=".3" filter="url(#soft)"/>
-<!-- airy cloud banks -->
-<g opacity=".72"><use href="#cloudShape" x="180" y="192"/><use href="#cloudShape" x="460" y="292" transform="scale(1.25)"/><use href="#cloudShape" x="790" y="205" transform="scale(.85)"/><use href="#cloudShape" x="1150" y="265" transform="scale(1.3)"/><use href="#cloudShape" x="1740" y="287" transform="scale(1.4)"/><use href="#cloudShape" x="1950" y="170" transform="scale(.8)"/></g>
-<path d="M0 408 Q190 352 370 399T760 390T1120 409T1500 378T2048 405V540H0Z" fill="#6d9ec8" opacity=".34"/>
-<path d="M0 448 Q210 400 410 444T820 425T1220 452T1660 419T2048 445V550H0Z" fill="#547fae" opacity=".36"/>
-<!-- far floating island -->
-<path d="M1090 354 Q1195 328 1290 345 Q1410 309 1535 340 Q1670 322 1806 355 L1784 401 1738 435 1710 474 1658 495 1602 488 1550 522 1496 501 1440 530 1395 493 1334 514 1290 480 1220 493 1176 450 1123 431Z" fill="url(#island)" stroke="#7799bc" stroke-width="6"/>
-<path d="M1093 354 Q1213 328 1300 347 Q1435 310 1545 340 Q1695 326 1804 355 L1786 375 Q1615 358 1480 371 Q1300 354 1110 380Z" fill="#76945f"/>
-<path d="M1120 397l60-20 40 29-39 28zm96-28 55-23 40 31-48 29zm130 5 66-24 48 34-51 28zm140-10 48-20 49 31-55 25zm125 9 59-19 52 28-48 34zm-408 91 66-24 36 31-62 26zm144-19 54-24 50 30-47 26zm150 5 55-24 47 33-53 23z" fill="#416083" opacity=".72"/>
-<!-- distant sanctuary castle -->
-<g fill="#597ba7" stroke="#86a5c4" stroke-width="3" opacity=".92">
- <path d="M1275 348V273h26v-55h22v55h21v-81h18v-37h13v37h16v81h22v-61h23v61h20v-46h18v46h22v-75h21v-38h13v38h20v75h22v-51h21v51h24v75z"/>
- <path d="M1322 277h44v70h-44zm96-42h42v112h-42zm92 42h43v69h-43zm95 1h39v68h-39z" fill="#4e709c"/>
- <path d="M1361 297h12v25h-12zm69-17h12v25h-12zm100 19h12v25h-12zm83-2h12v25h-12z" fill="#b3cbe0" stroke="none"/>
-</g>
-<!-- broken arches and pillars in the foreground distance -->
-<g opacity=".88"><use href="#arch" x="55" y="250" transform="scale(1.5)"/><use href="#arch" x="355" y="312" transform="scale(1.08)"/><use href="#arch" x="695" y="374" transform="scale(.68)"/><use href="#arch" x="1050" y="424" transform="scale(.48)"/><use href="#arch" x="1680" y="356" transform="scale(.78)"/><use href="#tower" x="1900" y="235" transform="scale(1.18)"/></g>
-<!-- ivy and flowering shrubs at the horizon -->
-<g opacity=".93"><use href="#ivy" x="38" y="500" transform="scale(2.1)"/><use href="#ivy" x="224" y="512" transform="scale(1.6)"/><use href="#ivy" x="494" y="506" transform="scale(2.3)"/><use href="#ivy" x="845" y="512" transform="scale(1.8)"/><use href="#ivy" x="1190" y="502" transform="scale(2.1)"/><use href="#ivy" x="1510" y="509" transform="scale(1.8)"/><use href="#ivy" x="1832" y="504" transform="scale(2.25)"/></g>
-<path d="M0 528 Q150 516 285 528T560 520T840 530T1120 519T1420 529T1720 520T2048 528V640H0Z" fill="#344e69" opacity=".32"/>
+<rect width="2048" height="640" fill="url(#night)"/>
+<circle cx="1440" cy="220" r="200" fill="#b96169" opacity=".12" filter="url(#glow)"/><circle cx="1440" cy="220" r="86" fill="#e29d9b" opacity=".08"/>
+<!-- distant broken sanctuary -->
+<path d="M0 363 Q200 320 390 366T790 342T1170 365T1550 337T2048 364V545H0Z" fill="#332e42"/>
+<g opacity=".64" fill="#464052" stroke="#655a6c" stroke-width="3"><path d="M1080 362V231h44v-76h28v76h29V191h28v171zm154 0V208h42v-91h26v91h36v-58h26v58h35v154zm171 0V260h34v-90h26v90h33v-44h24v44h30v102z"/></g>
+<g opacity=".62"><use href="#arch" x="170" y="260"/><use href="#arch" x="820" y="316" transform="scale(.8)"/><use href="#arch" x="1770" y="265" transform="scale(.92)"/></g>
+<!-- dense tree line -->
+<g opacity=".98"><use href="#pine" x="20" y="120"/><use href="#pine" x="155" y="90" transform="scale(1.24)"/><use href="#pine" x="330" y="155" transform="scale(.82)"/><use href="#pine" x="500" y="104" transform="scale(1.1)"/><use href="#pine" x="685" y="145" transform="scale(.9)"/><use href="#pine" x="880" y="94" transform="scale(1.24)"/><use href="#pine" x="1070" y="144" transform="scale(.92)"/><use href="#pine" x="1280" y="89" transform="scale(1.2)"/><use href="#pine" x="1500" y="132"/><use href="#pine" x="1715" y="85" transform="scale(1.23)"/><use href="#pine" x="1930" y="130" transform="scale(.95)"/><use href="#pine" x="2040" y="50" transform="scale(1.35)"/></g>
+<path d="M0 425 Q220 396 420 428T820 416T1210 432T1630 410T2048 430V640H0Z" fill="url(#fog)"/>
+<path d="M0 500 Q250 462 490 496T950 488T1410 504T1800 482T2048 498V640H0Z" fill="#1d202e" opacity=".62"/>
+<g fill="#ffbd82" opacity=".68"><circle cx="317" cy="380" r="3"/><circle cx="690" cy="445" r="2"/><circle cx="1412" cy="390" r="3"/><circle cx="1870" cy="426" r="2"/></g>
 </svg>

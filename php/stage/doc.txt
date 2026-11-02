@@ -7,3 +7,11 @@ drop_items	報酬アイテムデータ	json
 enemies	敵の出現データ	json
 map_data	マップの地形データ	json
 area_data	どこで出現するのかのデータ	json
+
+敵データ
+ステージ JSON の enemies には enemy ID と出現座標を記述します。
+ステータスは php/enemy/enemy{ID}.json（例: enemy1.json）に記述します。
+enemy1.json は提示された基本ステータスの項目を使います。growth にはレベルごとの増加量を項目名 + PerLevel で記述します。
+ステージ JSON の敵ごとに level を指定すると、PHP が基本値 + 増加量 × (level - 1) で最終値を計算します。growth を省いた項目はレベルで変化しません。
+stage/data.php がレベル・座標・計算後ステータスをまとめてゲームへ返します。
+物理・魔法防御は 100 / (100 + 防御値) の割合で被ダメージを軽減します。素早さ100は移動速度の基準値、クリティカルダメージ30はクリティカル時の追加30%です。

@@ -1,0 +1,327 @@
+{
+  "ajisai": {
+    "name": "回復。",
+    "description": "回復力の80+スキルLv*15%で回復",
+    "mp": 30,
+    "cooldown": 22,
+    "element": "無",
+    "category": "回復",
+    "icon": "healing",
+    "descriptionLevel1": "回復力の95%で回復します。"
+  },
+  "asagao": {
+    "name": "ステージに入ってから一定時間能力アップ",
+    "description": "",
+    "mp": 30,
+    "cooldown": 30,
+    "element": "水",
+    "category": "",
+    "icon": ""
+  },
+  "blue_rose": {
+    "name": "万能型スキルで青いバラになって全能力アップとかいいかも",
+    "description": "",
+    "mp": 30,
+    "cooldown": 30,
+    "element": "光",
+    "category": "",
+    "icon": ""
+  },
+  "cosmos": {
+    "name": "いなし系の防御？回避？って感じ",
+    "description": "",
+    "mp": 30,
+    "cooldown": 30,
+    "element": "風",
+    "category": "",
+    "icon": ""
+  },
+  "fuji": {
+    "name": "長い藤棚によって中距離中範囲攻撃",
+    "description": "攻撃力の150%の攻撃1回、5秒間敵の防御力-10%",
+    "mp": 30,
+    "cooldown": 30,
+    "element": "風",
+    "category": "",
+    "icon": ""
+  },
+  "gerbera": {
+    "name": "スキルを打つと一定時間追撃が発生",
+    "description": "",
+    "mp": 30,
+    "cooldown": 30,
+    "element": "光",
+    "category": "",
+    "icon": ""
+  },
+  "hangesho": {
+    "name": "隠密系（的に認知されないとか）",
+    "description": "100+10*スキルLv%の攻撃１回と、15秒間回避率+30%",
+    "mp": 31,
+    "cooldown": 35,
+    "element": "土",
+    "category": "攻撃・強化",
+    "icon": "stealth",
+    "descriptionLevel1": "攻撃力の110%で1回攻撃し、15秒間、回避率が30%上昇します。"
+  },
+  "hasu": {
+    "name": "トップクラスの耐久力",
+    "description": "35+スキルLv*2秒間最大HP＋75+スキルLv*15%、現在のHP+75+スキルLv*15%、\n防御力＋10+スキルLv*5%\n攻撃力-10-スキルLv*5%",
+    "mp": 45,
+    "cooldown": 60,
+    "element": "無",
+    "category": "強化",
+    "icon": "fortify",
+    "descriptionLevel1": "37秒間、最大HPが90%、防御力が15%上昇し、攻撃力が15%低下します。現在のHPも90%増加します。"
+  },
+  "hibiscus": {
+    "name": "高火力な範囲攻撃",
+    "description": "",
+    "mp": 30,
+    "cooldown": 30,
+    "element": "熱",
+    "category": "",
+    "icon": ""
+  },
+  "higanbana": {
+    "name": "自傷高火力アタッカー",
+    "description": "",
+    "mp": 30,
+    "cooldown": 30,
+    "element": "熱",
+    "category": "",
+    "icon": ""
+  },
+  "kiku": {
+    "name": "状態異常に対する防御",
+    "description": "",
+    "mp": 30,
+    "cooldown": 30,
+    "element": "土",
+    "category": "",
+    "icon": ""
+  },
+  "kochia": {
+    "name": "スキルで緑から赤に変化（紅葉）それによってバランス型から攻撃型に変化",
+    "description": "緑：\n落下速度-20%\n20秒間自身の防御力+30+スキルLv*3%, \n自身のHPのスキルLv*1%で毎秒回復、スキルが赤に変化\n\n赤：\n攻撃範囲と攻撃力が段階的に強化される攻撃を三回、終了するとリセットされる）\n一回目：100+スキルLv*10%\n二回目：140+スキルLv*20%\n三回目：180+スキルLv*30%\n三回目は敵を吹き飛ばす\nスキルが緑に変化",
+    "mp": 42,
+    "cooldown": 33,
+    "element": "風",
+    "category": "攻撃・変化・強化・回復",
+    "icon": "autumn-shift",
+    "descriptionLevel1": "緑：落下速度が20%低下。20秒間、防御力が33%上昇し、毎秒HPの1%を回復します。\n赤：攻撃力の110%・160%・210%で3回攻撃。最後の攻撃で敵を吹き飛ばします。"
+  },
+  "lavender": {
+    "name": "MP回復やデバフ解除",
+    "description": "回復力の10％でＭＰ回復",
+    "mp": 30,
+    "cooldown": 30,
+    "element": "風",
+    "category": "",
+    "icon": ""
+  },
+  "marguerite": {
+    "name": "2分の１でクリティカル(威力に2倍とか)",
+    "description": "20秒間クリティカル率15％上昇",
+    "mp": 30,
+    "cooldown": 30,
+    "element": "光",
+    "category": "",
+    "icon": ""
+  },
+  "marigold": {
+    "name": "扱いやすい",
+    "description": "",
+    "mp": 30,
+    "cooldown": 30,
+    "element": "熱",
+    "category": "",
+    "icon": ""
+  },
+  "mukuge": {
+    "name": "絶え間ない連続攻撃スキル",
+    "description": "20秒間攻撃速度＋30+スキルLv*2%と攻撃力＋10+スキルLv*5％防御力-15%\n発動中1秒ごとに攻撃力の150+スキルLv*10%の攻撃を繰り返して通常攻撃不可",
+    "mp": 33,
+    "cooldown": 31,
+    "element": "水",
+    "category": "攻撃・強化",
+    "icon": "continuous-strike",
+    "descriptionLevel1": "20秒間、攻撃速度が32%、攻撃力が15%上昇し、防御力が15%低下します。\n発動中は通常攻撃ができず、毎秒、攻撃力の160%で攻撃します。"
+  },
+  "nanohana": {
+    "name": "スキルを打つほど菜の花が咲いていき、どんどん威力が上がる",
+    "description": "光属性での攻撃力の80%での攻撃３回、次にスキルを使用するときスキルの攻撃力が+20%",
+    "mp": 30,
+    "cooldown": 30,
+    "element": "光",
+    "category": "",
+    "icon": ""
+  },
+  "nemunoki": {
+    "name": "状態異常「睡眠」敵は寝る（一回攻撃したら起きる）",
+    "description": "風属性での攻撃力の100%で攻撃、8秒間睡眠を付与",
+    "mp": 30,
+    "cooldown": 30,
+    "element": "風",
+    "category": "",
+    "icon": ""
+  },
+  "poppy": {
+    "name": "軽い中距離攻撃（火の玉）を連射",
+    "description": "１５秒間火の玉を連射可能（スキルボタンで）\n火の玉：対象に当たると攻撃力の100%で攻撃、対象に５秒間火傷を付与",
+    "mp": 30,
+    "cooldown": 30,
+    "element": "熱",
+    "category": "",
+    "icon": ""
+  },
+  "red_rose": {
+    "name": "万能型スキルで青いバラになって全能力アップとかいいかも",
+    "description": "",
+    "mp": 30,
+    "cooldown": 30,
+    "element": "光",
+    "category": "",
+    "icon": ""
+  },
+  "rurimatsuri": {
+    "name": "デバフ（被ダメアップや鈍足）とか",
+    "description": "80+スキルLv*10%の攻撃力で攻撃。12+スキルLv*1秒間敵全体の攻撃速度-20%",
+    "mp": 30,
+    "cooldown": 36,
+    "element": "光",
+    "category": "攻撃・弱化",
+    "icon": "slow-attack",
+    "descriptionLevel1": "攻撃力の90%で攻撃し、13秒間、敵全体の攻撃速度を20%下げます。"
+  },
+  "sakura": {
+    "name": "花吹雪が舞う画面全体攻撃とか",
+    "description": "画面内の敵全体に攻撃力の300%の攻撃１回、60秒間攻撃力が+15%、",
+    "mp": 30,
+    "cooldown": 30,
+    "element": "光",
+    "category": "",
+    "icon": ""
+  },
+  "sarusuberi": {
+    "name": "扱いやすいバランス型",
+    "description": "15+スキルLv*1秒間攻撃力＋15+スキルLv*5%, 防御力+10%、\n攻撃力の15+スキルLv*1%の追尾弾を3秒ごとに放つ",
+    "mp": 30,
+    "cooldown": 34,
+    "element": "熱",
+    "category": "攻撃・強化",
+    "icon": "balanced-boost",
+    "descriptionLevel1": "16秒間、攻撃力が20%、防御力が10%上昇します。\n3秒ごとに、攻撃力の16%の追尾弾を放ちます。"
+  },
+  "shakuyaku": {
+    "name": "バランスのいいアタッカー鋭い突き攻撃",
+    "description": "",
+    "mp": 30,
+    "cooldown": 30,
+    "element": "土",
+    "category": "",
+    "icon": ""
+  },
+  "suiren": {
+    "name": "どっしり固いディフェンス",
+    "description": "15秒間、防御力を15+スキルLv*3%上昇させる\n5秒ごとに体力を自身のHPの5+スキルLv*1%回復させる",
+    "mp": 26,
+    "cooldown": 28,
+    "element": "無",
+    "category": "強化・回復",
+    "icon": "defensive-recovery",
+    "descriptionLevel1": "15秒間、防御力が18%上昇します。\n5秒ごとに自身のHPの6%を回復します。"
+  },
+  "suisen": {
+    "name": "バランス型毒攻撃",
+    "description": "15秒間継続する毒の瓶を１回投擲する。",
+    "mp": 30,
+    "cooldown": 30,
+    "element": "水",
+    "category": "",
+    "icon": ""
+  },
+  "sunflower": {
+    "name": "太陽の光線的な一発どかんタイプ",
+    "description": "3秒間通常攻撃不可\n防御力-20+スキルLv*4%、3秒後に攻撃力の300+スキルLv*15％で攻撃",
+    "mp": 28,
+    "cooldown": 30,
+    "element": "熱",
+    "category": "攻撃",
+    "icon": "solar-burst",
+    "descriptionLevel1": "3秒間、通常攻撃ができなくなり、防御力が16%低下します。\n3秒後に攻撃力の315%で攻撃します。"
+  },
+  "suzuran": {
+    "name": "防御貫通攻撃",
+    "description": "防御力無視の攻撃力250％の攻撃一回",
+    "mp": 30,
+    "cooldown": 30,
+    "element": "光",
+    "category": "",
+    "icon": ""
+  },
+  "tanpopo": {
+    "name": "戦ってると綿毛になって空飛べるとか？",
+    "description": "４０秒間自身の質量-80%、200%の攻撃力で攻撃2回",
+    "mp": 30,
+    "cooldown": 30,
+    "element": "風",
+    "category": "",
+    "icon": ""
+  },
+  "tsubaki": {
+    "name": "万能寄りの攻撃型スキルは豪快な一撃",
+    "description": "",
+    "mp": 30,
+    "cooldown": 30,
+    "element": "土",
+    "category": "",
+    "icon": ""
+  },
+  "tsutsuji": {
+    "name": "一定以上のダメージを激減する（10以上のダメージを3にするみたいな）",
+    "description": "20秒間最大HPの20%以下の攻撃をすべて防御力の10％にする",
+    "mp": 30,
+    "cooldown": 30,
+    "element": "土",
+    "category": "",
+    "icon": ""
+  },
+  "tulip": {
+    "name": "全ステータス微増バフを配る",
+    "description": "15秒間HP、MP、攻撃力、回復力、防御力、+5%",
+    "mp": 30,
+    "cooldown": 30,
+    "element": "",
+    "category": "",
+    "icon": ""
+  },
+  "ume": {
+    "name": "強力な攻撃が来ても１で耐えてカウンター",
+    "description": "",
+    "mp": 30,
+    "cooldown": 30,
+    "element": "土",
+    "category": "",
+    "icon": ""
+  },
+  "yuri": {
+    "name": "めっちゃ回復",
+    "description": "全回復",
+    "mp": 30,
+    "cooldown": 30,
+    "element": "",
+    "category": "",
+    "icon": ""
+  },
+  "zinia": {
+    "name": "軽い攻撃スキルを連打",
+    "description": "100+スキルLv*20%の攻撃力で攻撃3+スキルLv回",
+    "mp": 25,
+    "cooldown": 20,
+    "element": "熱",
+    "category": "攻撃",
+    "icon": "multi-hit",
+    "descriptionLevel1": "攻撃力の120%で4回攻撃します。"
+  }
+}

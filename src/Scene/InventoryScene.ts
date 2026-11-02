@@ -46,8 +46,7 @@ export class InventoryScene extends Phaser.Scene {
     this.view = new InventoryView(this, {
       onBack: () => this.closeInventory(),
       onCategory: category => this.selectCategory(category),
-      onItem: item => this.selectItem(item),
-      onUse: () => this.useSelectedItem()
+      onItem: item => this.selectItem(item)
     })
     this.view.create()
     this.refresh()
@@ -89,19 +88,4 @@ export class InventoryScene extends Phaser.Scene {
     this.view.renderDetail(this.selectedItem)
   }
 
-  private useSelectedItem(): void {
-    const item = this.selectedItem
-    if (!item) return
-
-    if (!item.usable) {
-      this.view.showMessage('このアイテムは使用できません')
-      return
-    }
-    if (item.count <= 0) {
-      this.view.showMessage('所持していません')
-      return
-    }
-
-    this.view.showMessage('アイテムの使用効果は準備中です')
-  }
 }
