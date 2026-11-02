@@ -38,6 +38,21 @@ try {
         throw new UnexpectedValueException('Invalid stage enemy list.');
     }
 
+    $enhancementPath = __DIR__ . '/../enemy/enhancements.json';
+    $enhancementJson = is_file($enhancementPath) ? file_get_contents($enhancementPath) : false;
+    if ($enhancementJson === false) throw new RuntimeException('Enemy enhancement data not found.');
+    $enhancementData = json_decode($enhancementJson, true, 512, JSON_THROW_ON_ERROR);
+    if (!is_array($enhancementData) || !is_array($enhancementData['profiles'] ?? null)) {
+        throw new UnexpectedValueException('Invalid enemy enhancement data.');
+    }
+    $enhancements = [];
+    foreach ($enhancementData['profiles'] as $profile) {
+        if (!is_array($profile) || !isset($profile['id'])) throw new UnexpectedValueException('Invalid enemy enhancement profile.');
+        $profileId = filter_var($profile['id'], FILTER_VALIDATE_INT);
+        if ($profileId === false || $profileId < 1) throw new UnexpectedValueException('Invalid enemy enhancement ID.');
+        $enhancements[$profileId] = $profile;
+    }
+
     foreach ($stage['enemies'] as &$enemy) {
         if (!is_array($enemy)) throw new UnexpectedValueException('Invalid enemy spawn record.');
         $enemyId = filter_var($enemy['id'] ?? null, FILTER_VALIDATE_INT);
@@ -50,40 +65,52 @@ try {
         if ($enemyJson === false) throw new RuntimeException('Enemy definition not found.');
 
         $enemyStats = json_decode($enemyJson, true, 512, JSON_THROW_ON_ERROR);
-        $statKeys = [
-            'hp', 'physicalAttack', 'magicAttack', 'physicalDefense', 'magicDefense', 'healingPower',
-            'attackIntervalMs', 'agility', 'criticalRate', 'criticalDamage', 'contractFlowerId'
-        ];
         if (
             !is_array($enemyStats) ||
             (int)($enemyStats['id'] ?? 0) !== $enemyId ||
-            !is_string($enemyStats['name'] ?? null) ||
-            !is_array($enemyStats['growth'] ?? null)
+            !is_string($enemyStats['name'] ?? null)
         ) {
             throw new UnexpectedValueException('Invalid enemy definition.');
         }
-        $growth = $enemyStats['growth'];
+        $statKeys = [
+            'hp', 'mp', 'physicalAttack', 'magicAttack', 'physicalDefense', 'magicDefense',
+            'healingPower', 'attackIntervalMs', 'agility', 'criticalRate', 'criticalDamage', 'contractFlowerId'
+        ];
         foreach ($statKeys as $statKey) {
-            if (!is_numeric($enemyStats[$statKey] ?? null)) {
-                throw new UnexpectedValueException('Enemy base stat is missing or invalid.');
-            }
-            $growthKey = $statKey . 'PerLevel';
-            if (isset($growth[$growthKey]) && !is_numeric($growth[$growthKey])) {
-                throw new UnexpectedValueException('Enemy stat growth is invalid.');
-            }
+            if (!is_numeric($enemyStats[$statKey] ?? null)) throw new UnexpectedValueException('Enemy base stat is missing or invalid.');
         }
+
+        $enhancementId = filter_var($enemy['enhancementId'] ?? $enemyStats['enhancementId'] ?? null, FILTER_VALIDATE_INT);
+        if ($enhancementId === false || $enhancementId < 1 || !isset($enhancements[$enhancementId])) {
+            throw new UnexpectedValueException('Enemy enhancement profile not found.');
+        }
+        $profile = $enhancements[$enhancementId];
+        if (!is_string($profile['job'] ?? null) || !is_string($profile['direction'] ?? null) || !is_array($profile['growth'] ?? null)) {
+            throw new UnexpectedValueException('Invalid enemy enhancement profile.');
+        }
+        $growth = $profile['growth'];
+        foreach (['hp', 'mp', 'physicalAttack', 'magicAttack', 'physicalDefense', 'magicDefense', 'healingPower', 'criticalDamage'] as $growthKey) {
+            if (!is_numeric($growth[$growthKey] ?? null)) throw new UnexpectedValueException('Enemy enhancement growth is missing or invalid.');
+        }
+
         $levelOffset = $level - 1;
-        $enemy['stats'] = ['level' => $level];
+        $enemy['stats'] = [
+            'level' => $level,
+            'enhancementId' => $enhancementId,
+            'job' => $profile['job'],
+            'direction' => $profile['direction'],
+        ];
         foreach ($statKeys as $statKey) {
             if ($statKey === 'contractFlowerId') {
                 $enemy['stats'][$statKey] = (int)$enemyStats[$statKey];
                 continue;
             }
-            $growthKey = $statKey . 'PerLevel';
+            $growthKey = $statKey;
             $value = (float)$enemyStats[$statKey] + (float)($growth[$growthKey] ?? 0) * $levelOffset;
             if ($statKey === 'hp') $value = max(1, $value);
             if ($statKey === 'attackIntervalMs') $value = max(1, $value);
-            if (in_array($statKey, ['criticalRate', 'criticalDamage'], true)) $value = max(0, $value);
+            if (in_array($statKey, ['mp', 'physicalAttack', 'magicAttack', 'physicalDefense', 'magicDefense', 'healingPower', 'criticalDamage'], true)) $value = max(0, $value);
+            if ($statKey === 'criticalRate') $value = min(100, max(0, $value));
             $enemy['stats'][$statKey] = round($value, 2);
         }
     }

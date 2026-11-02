@@ -2,8 +2,8 @@
   "id": 2,
   "name": "1-1",
   "enemies": [
-    { "id": 1, "level": 1, "x": 560, "y": 480 },
-    { "id": 1, "level": 1, "x": 1040, "y": 480 },
-    { "id": 1, "level": 1, "x": 1560, "y": 480 }
+    { "id": 1, "enhancementId": 1, "level": 1, "x": 560, "y": 480 },
+    { "id": 1, "enhancementId": 1, "level": 1, "x": 1040, "y": 480 },
+    { "id": 1, "enhancementId": 1, "level": 1, "x": 1560, "y": 480 }
   ]
 }

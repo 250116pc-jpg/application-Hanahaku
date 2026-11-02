@@ -3,6 +3,9 @@ import type { DamageType, Player } from './Player.ts';
 
 export interface EnemyStats {
   level: number;
+  enhancementId: number;
+  job: string;
+  direction: string;
   hp: number;
   physicalAttack: number;
   magicAttack: number;
@@ -19,9 +22,9 @@ export interface EnemyStats {
 export function isEnemyStats(value: unknown): value is EnemyStats {
   if (typeof value !== 'object' || value === null) return false;
   const stats = value as Record<string, unknown>;
-  const numericKeys = ['level', 'hp', 'physicalAttack', 'magicAttack', 'physicalDefense', 'magicDefense',
+  const numericKeys = ['level', 'enhancementId', 'hp', 'mp', 'physicalAttack', 'magicAttack', 'physicalDefense', 'magicDefense',
     'healingPower', 'attackIntervalMs', 'agility', 'criticalRate', 'criticalDamage', 'contractFlowerId'];
-  return numericKeys.every(key =>
+  return typeof stats.job === 'string' && typeof stats.direction === 'string' && numericKeys.every(key =>
     typeof stats[key] === 'number' && Number.isFinite(stats[key])
   );
 }
