@@ -52,20 +52,27 @@ export class InventoryScene extends Phaser.Scene {
     this.refresh()
     void requestShop().then(state=>{
       if(!active || !this.sys.isActive())return
-      this.items=Object.entries(state.items).filter(([,count])=>count>0).map(([id,count])=>{
-        const product=shopCatalog.find(item=>item.id===Number(id))
-        return {id:Number(id),name:product?.name ?? `アイテム ${id}`,category:product?.category ?? 'important',effect:product?.description ?? '詳細未登録',count,usable:false}
-      })
+      const catalogItems: InventoryItem[] = shopCatalog.map(product => ({
+        id: product.id, name: product.name, category: product.category,
+        effect: product.description ?? '詳細未登録', count: state.items[String(product.id)] ?? 0, usable: false
+      }))
+      const knownIds = new Set(catalogItems.map(item => item.id))
+      const otherItems: InventoryItem[] = Object.entries(state.items)
+        .filter(([id, count]) => count > 0 && !knownIds.has(Number(id)))
+        .map(([id, count]) => ({ id: Number(id), name: `アイテム ${id}`, category: 'important', effect: '詳細未登録', count, usable: false }))
+      this.items = [...catalogItems, ...otherItems].sort((a, b) => a.id - b.id)
       this.refresh()
-      if(!this.items.length)this.view.showMessage('所持アイテムはありません')
     }).catch(error=>{if(active && this.sys.isActive())this.view.showMessage(error instanceof Error?error.message:'読み込みに失敗しました')})
   }
 
   private closeInventory(): void {
-    if (this.scene.manager.keys[this.returnScene]) {
-      this.scene.resume(this.returnScene)
-    }
-    this.scene.stop()
+    this.view.close(() => {
+      if (!this.sys.isActive()) return
+      if (this.scene.manager.keys[this.returnScene]) {
+        this.scene.resume(this.returnScene)
+      }
+      this.scene.stop()
+    })
   }
 
   private selectCategory(category: InventoryFilter): void {

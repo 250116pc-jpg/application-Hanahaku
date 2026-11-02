@@ -216,10 +216,11 @@ export class StageHUD {
       width: 'min(650px, 90%)',
       minHeight: '300px',
       padding: '42px 28px',
-      border: '3px solid #536878',
+      border: '2px solid #b99a65',
       borderRadius: '12px',
-      background: '#fff',
-      color: '#17212a',
+      background: 'linear-gradient(145deg, #1c3143, #0b1726)',
+      color: '#f5e6c5',
+      boxShadow: 'inset 0 0 0 3px #344657, 0 14px 35px #0009',
       textAlign: 'center',
       display: 'flex',
       flexDirection: 'column',
@@ -232,7 +233,7 @@ export class StageHUD {
     Object.assign(title.style, { fontSize: 'clamp(20px, 3vw, 32px)', fontWeight: 'bold' });
     const warning = document.createElement('div');
     warning.textContent = '進行状況が失われます。';
-    Object.assign(warning.style, { fontSize: 'clamp(16px, 2vw, 24px)', color: '#444' });
+    Object.assign(warning.style, { fontSize: 'clamp(16px, 2vw, 24px)', color: '#e4d3b0' });
     const actions = document.createElement('div');
     Object.assign(actions.style, { display: 'flex', gap: '18px', justifyContent: 'center', flexWrap: 'wrap' });
     const makeAction = (label: string, onClick: () => void): HTMLButtonElement => {
@@ -243,33 +244,53 @@ export class StageHUD {
         minWidth: '180px',
         minHeight: '58px',
         padding: '8px 18px',
-        border: '2px solid #333',
+        border: '2px solid #b99a65',
         borderRadius: '8px',
-        background: '#fff',
-        color: '#111',
+        background: '#132638',
+        color: '#f5e6c5',
         font: 'bold 20px Yu Mincho, YuMincho, serif',
         cursor: 'pointer'
       });
       action.addEventListener('click', onClick);
-      action.addEventListener('pointerenter', () => { action.style.background = '#eaf4fb'; });
-      action.addEventListener('pointerleave', () => { action.style.background = '#fff'; });
+      action.addEventListener('pointerenter', () => { action.style.background = '#34506a'; });
+      action.addEventListener('pointerleave', () => { action.style.background = '#132638'; });
       return action;
     };
+    let closing = false;
+    const closeDialog = (retreat: boolean): void => {
+      if (closing) return;
+      closing = true;
+      dialog.style.pointerEvents = 'none';
+      let finished = false;
+      const finish = (): void => {
+        if (finished) return;
+        finished = true;
+        if (!dialog.isConnected) return;
+        dialog.remove();
+        this.retreatDialog = null;
+        if (retreat) this.scene.scene.start(SCENE_KEYS.SELECT_STAGE);
+        else this.scene.scene.resume(SCENE_KEYS.STAGE);
+      };
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || typeof dialog.animate !== 'function') {
+        finish();
+        return;
+      }
+      panel.animate([{ transform: 'translateY(0)' }, { transform: 'translateY(-28px)' }], { duration: 150, easing: 'ease-in', fill: 'forwards' });
+      const animation = dialog.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 150, easing: 'ease-in', fill: 'forwards' });
+      animation.finished.then(finish, finish);
+      window.setTimeout(finish, 250);
+    };
     actions.append(
-      makeAction('キャンセル', () => {
-        dialog.remove();
-        this.retreatDialog = null;
-        this.scene.scene.resume(SCENE_KEYS.STAGE);
-      }),
-      makeAction('撤退する', () => {
-        dialog.remove();
-        this.retreatDialog = null;
-        this.scene.scene.start(SCENE_KEYS.SELECT_STAGE);
-      })
+      makeAction('キャンセル', () => closeDialog(false)),
+      makeAction('撤退する', () => closeDialog(true))
     );
     panel.append(title, warning, actions);
     dialog.append(panel);
     document.body.append(dialog);
+    if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches && typeof dialog.animate === 'function') {
+      dialog.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 150, easing: 'ease-out' });
+      panel.animate([{ transform: 'translateY(-28px)' }, { transform: 'translateY(0)' }], { duration: 150, easing: 'ease-out' });
+    }
     return dialog;
   }
 
