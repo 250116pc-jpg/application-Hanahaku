@@ -4,7 +4,7 @@ import Phaser from 'phaser';
 import mapUrl from '../../assets/stage/Cainos/cainos_stage.tmj?url';
 import terrainImg from '../../assets/stage/Cainos/Pixel Art Platformer - Village Props/Texture/TX Tileset Ground.png';
 import propsImg from '../../assets/stage/Cainos/Pixel Art Platformer - Village Props/Texture/TX Village Props.png';
-import backgroundImg from '../../assets/stage/flower_ruins/flower_ruins_background.png';
+import backgroundImg from '../../assets/stage/flower_ruins/flower_ruins_background.svg?url';
 import bagButton from '../../assets/ui/button/bag_button.png';
 import attackButton from '../../assets/ui/button/attack_button.png';
 import jumpButton from '../../assets/ui/button/jump_button.png';
@@ -31,7 +31,7 @@ import { characterAnimations } from '../../animation/animationData.ts';
 
 // 分割したクラスのインポート
 import { Player } from './Player.ts';
-import { Enemy } from './Enemy.ts';
+import { Enemy, isEnemyStats } from './Enemy.ts';
 import { StageHUD } from './StageHUD.ts';
 import { SCENE_KEYS } from '../sceneKeys';
 import { completeStage } from './StageProgress';
@@ -133,6 +133,7 @@ export class StageScene extends Phaser.Scene {
       .setScrollFactor(1, 1)
       .setDepth(-100);
     this.createMapDecorations(map);
+    this.createForestAtmosphere(map);
 
     this.createPlayerAnimations();
     this.createEnemyAnimation();
@@ -156,6 +157,23 @@ export class StageScene extends Phaser.Scene {
     // UI（HUD）の生成を StageHUD クラスに委譲
     this.hud = new StageHUD(this, this.player, this.enemies);
     this.hud.create(data.stageId, data.stageNumber);
+  }
+
+  private createForestAtmosphere(map: Phaser.Tilemaps.Tilemap): void {
+    const width = map.widthInPixels;
+    const height = Math.max(map.heightInPixels, this.scale.height);
+    const mist = this.add.graphics().setDepth(2).setScrollFactor(0.28, 0.42);
+    mist.fillStyle(0x91a6c3, 0.055).fillEllipse(width * 0.33, height * 0.69, width * 0.72, 54);
+    mist.fillStyle(0xa4bacb, 0.045).fillEllipse(width * 0.78, height * 0.48, width * 0.62, 38);
+    this.tweens.add({ targets: mist, x: 54, alpha: 0.52, duration: 9000, yoyo: true, repeat: -1, ease: 'Sine.inOut' });
+
+    for (let i = 0; i < 24; i++) {
+      const x = Phaser.Math.Between(32, width - 32);
+      const y = Phaser.Math.Between(80, height - 90);
+      const mote = this.add.circle(x, y, Phaser.Math.Between(1, 3), i % 4 === 0 ? 0xffbd85 : 0x9bd6dc, Phaser.Math.FloatBetween(0.22, 0.55))
+        .setDepth(3).setScrollFactor(0.78, 0.9);
+      this.tweens.add({ targets: mote, y: y - Phaser.Math.Between(22, 85), alpha: 0.04, duration: Phaser.Math.Between(2600, 5800), delay: Phaser.Math.Between(0, 3000), yoyo: true, repeat: -1, ease: 'Sine.inOut' });
+    }
   }
 
   private createSkillEffectAnimations(): void {
@@ -300,16 +318,18 @@ export class StageScene extends Phaser.Scene {
         enemy === null ||
         !('x' in enemy) ||
         !('y' in enemy) ||
+        !('stats' in enemy) ||
         typeof enemy.x !== 'number' ||
         typeof enemy.y !== 'number' ||
+        !isEnemyStats(enemy.stats) ||
         !Number.isFinite(enemy.x) ||
         !Number.isFinite(enemy.y)
       ) {
-        console.error(`ステージ${this.stageNumber ?? stageId}の敵データに不正な座標があります。php/stage/stage${stageId}.jsonを確認してください。`);
+        console.error(`ステージ${this.stageNumber ?? stageId}の敵配置または敵ステータスが不正です。php/stage/stage${stageId}.jsonとenemy{id}.jsonを確認してください。`);
         continue;
       }
 
-      enemies.push(new Enemy(this, enemy.x, enemy.y, this.player));
+      enemies.push(new Enemy(this, enemy.x, enemy.y, this.player, enemy.stats));
     }
     return enemies;
   }

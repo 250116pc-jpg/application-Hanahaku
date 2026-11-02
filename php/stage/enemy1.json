@@ -1,0 +1,26 @@
+{
+  "id": 1,
+  "name": "シーカー",
+  "maxHealth": 450,
+  "attackDamage": 12,
+  "attackRange": 72,
+  "attackVerticalRange": 90,
+  "attackReachPadding": 20,
+  "aggroRange": 520,
+  "aggroVerticalRange": 120,
+  "patrolDistance": 90,
+  "patrolSpeed": 35,
+  "chaseSpeed": 65,
+  "attackIntervalMs": 1100,
+  "attackWindupMs": 300,
+  "hitbox": {
+    "width": 16,
+    "height": 20,
+    "offsetX": 7,
+    "offsetY": 10
+  },
+  "visual": {
+    "scale": 3,
+    "healthBarOffsetY": 96
+  }
+}

@@ -3,7 +3,6 @@ import { changeCharacterAnimation } from '../../animation/animation.ts';
 import type { ServerFlowerSkill } from './SkillApi.ts';
 
 const BUFF_EFFECT_COLOR = 0xff5964;
-const DEBUFF_EFFECT_COLOR = 0x4a93d1;
 const SKILL_AREA_CELL_SIZE = 40;
 
 export interface CombatTarget {
@@ -14,6 +13,14 @@ export interface CombatTarget {
   applyStatusIcon?(iconKey: string, durationMs: number): void;
   applyKnockback?(direction: number): void;
 }
+
+export type SkillVisualPhase = 'buff' | 'charge' | 'impact' | 'heal';
+export type SkillVisualHandler = (
+  skill: ServerFlowerSkill,
+  phase: SkillVisualPhase,
+  targets: readonly CombatTarget[],
+  area: readonly (readonly number[])[]
+) => void;
 
 export class Player extends Phaser.Physics.Arcade.Sprite {
   private cursors: Phaser.Types.Input.Keyboard.CursorKeys | undefined;
@@ -34,6 +41,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   private chargeUntil = 0;
   private continuousUntil = 0;
   private mapleIsRed = false;
+  private skillVisualHandler?: SkillVisualHandler;
   private readonly baseMaxHealth = 100;
   private maxHealthBonus = 0;
   private maxHealthBonusUntil = 0;
@@ -156,12 +164,55 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   public attack(targets: readonly CombatTarget[] = []): void {
     if (this.scene.time.now < this.chargeUntil || this.scene.time.now < this.continuousUntil) return;
     if (!this.playAction('attack', 'player-attack')) return;
-    this.showRange('front', 125, 0xffb347);
-    this.damageTargets(targets, this.applyAttackBonus(18), 125, false);
+    this.showSlash();
+    const hits = this.getTargetsInRange(targets, 125, false);
+    hits.slice(0, 1).forEach(target => {
+      target.receiveDamage(this.applyAttackBonus(18));
+      this.showHit(target.x, target.y - 44);
+    });
+  }
+
+  private showSlash(): void {
+    const direction = this.flipX ? -1 : 1;
+    const x = this.x + direction * 48;
+    const y = this.y - 65;
+    const slash = this.scene.add.graphics().setDepth(18).setScrollFactor(1);
+    slash.lineStyle(18, 0xff5267, 0.24).beginPath()
+      .arc(x, y, 82, direction > 0 ? -1.2 : Math.PI + 0.2, direction > 0 ? 0.55 : Math.PI - 0.55, direction < 0).strokePath();
+    slash.lineStyle(8, 0xffa1ad, 0.95).beginPath()
+      .arc(x, y, 82, direction > 0 ? -1.2 : Math.PI + 0.2, direction > 0 ? 0.55 : Math.PI - 0.55, direction < 0).strokePath();
+    slash.lineStyle(2, 0xffe7ce, 0.95).beginPath()
+      .arc(x, y, 82, direction > 0 ? -1.2 : Math.PI + 0.2, direction > 0 ? 0.55 : Math.PI - 0.55, direction < 0).strokePath();
+    this.scene.tweens.add({ targets: slash, alpha: 0, scaleX: 1.14, scaleY: 1.14, duration: 240, onComplete: () => slash.destroy() });
+  }
+
+  private showHit(x: number, y: number): void {
+    this.scene.cameras.main.shake(70, 0.0025);
+    const burst = this.scene.add.graphics().setDepth(19).setScrollFactor(1);
+    burst.lineStyle(3, 0xffe4b0, 0.95);
+    for (let i = 0; i < 7; i++) {
+      const angle = (Math.PI * 2 * i) / 7;
+      burst.lineBetween(x + Math.cos(angle) * 8, y + Math.sin(angle) * 8, x + Math.cos(angle) * 25, y + Math.sin(angle) * 25);
+    }
+    this.scene.tweens.add({ targets: burst, alpha: 0, scale: 1.35, duration: 180, onComplete: () => burst.destroy() });
   }
 
   public canUseSkill(): boolean {
     return !this.dead && this.action === null && this.scene.time.now >= this.chargeUntil;
+  }
+
+  public setSkillVisualHandler(handler: SkillVisualHandler): void {
+    this.skillVisualHandler = handler;
+  }
+
+  private emitSkillVisual(
+    skill: ServerFlowerSkill,
+    phase: SkillVisualPhase,
+    targets: readonly CombatTarget[] = [],
+    area: readonly (readonly number[])[] = skill.area
+  ): void {
+    if (this.skillVisualHandler) this.skillVisualHandler(skill, phase, targets, area);
+    else this.showArea(area, phase === 'impact' ? 0xff5f61 : phase === 'charge' ? 0xffc247 : BUFF_EFFECT_COLOR);
   }
 
   public reserveSkill(): boolean {
@@ -181,35 +232,39 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
     switch (skill.type) {
       case 'multiHit':
-        this.showArea(skill.area, 0xff5f61);
         for (let hit = 0; hit < skill.hitCount; hit++) {
-          this.damageTargetsInArea(targets, this.skillDamage(skill.damagePercent, skill.attackPower), skill.area);
+          this.scene.time.delayedCall(hit * 145, () => {
+            if (!this.active || this.dead) return;
+            const hitTargets = this.damageTargetsInArea(targets, this.skillDamage(skill.damagePercent, skill.attackPower), skill.area);
+            this.emitSkillVisual(skill, 'impact', hitTargets);
+          });
         }
         break;
       case 'defensiveRecovery':
         this.applyDefenseBuff(skill.defenseBonusPercent, skill.durationMs);
-        this.repeatUntil(skill.durationMs, skill.healIntervalMs, () => this.restoreHealth(
-          this.maxHealth * skill.healPercent / 100
-        ));
-        this.showArea(skill.area, BUFF_EFFECT_COLOR);
+        this.repeatUntil(skill.durationMs, skill.healIntervalMs, () => {
+          this.restoreHealth(this.maxHealth * skill.healPercent / 100);
+          this.emitSkillVisual(skill, 'heal', [this]);
+        });
+        this.emitSkillVisual(skill, 'buff', [this]);
         break;
       case 'charge':
         this.chargeUntil = this.scene.time.now + skill.durationMs;
         this.applyDefenseBuff(skill.defenseBonusPercent, skill.durationMs);
         this.scene.time.delayedCall(skill.durationMs, () => {
           if (!this.active || this.dead) return;
-          this.showArea(skill.area, 0xff5f61);
-          this.damageTargetsInArea(targets, this.skillDamage(skill.damagePercent, skill.attackPower), skill.area);
+          const hitTargets = this.damageTargetsInArea(targets, this.skillDamage(skill.damagePercent, skill.attackPower), skill.area);
+          this.emitSkillVisual(skill, 'impact', hitTargets);
         });
-        this.showArea([[1]], DEBUFF_EFFECT_COLOR);
+        this.emitSkillVisual(skill, 'charge', [this]);
         break;
       case 'balanced':
         this.applyTimedBuff(skill.attackBonusPercent, skill.defenseBonusPercent, skill.durationMs);
         this.repeatUntil(skill.durationMs, skill.repeatIntervalMs, () => {
-          this.showArea(skill.area, 0xff5f61);
-          this.damageTargetsInArea(targets, this.skillDamage(skill.damagePercent, skill.attackPower), skill.area);
+          const hitTargets = this.damageTargetsInArea(targets, this.skillDamage(skill.damagePercent, skill.attackPower), skill.area);
+          this.emitSkillVisual(skill, 'impact', hitTargets);
         });
-        this.showArea([[1]], BUFF_EFFECT_COLOR);
+        this.emitSkillVisual(skill, 'buff', [this]);
         break;
       case 'continuous':
         this.applyTimedBuff(skill.attackBonusPercent, skill.defenseBonusPercent, skill.durationMs);
@@ -218,11 +273,11 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
           skill.durationMs,
           Math.max(100, Math.round(skill.repeatIntervalMs / (1 + skill.attackSpeedBonusPercent / 100))),
           () => {
-          this.damageTargetsInArea(targets, this.skillDamage(skill.damagePercent, skill.attackPower), skill.area);
-          this.showArea(skill.area, 0xff5f61);
+          const hitTargets = this.damageTargetsInArea(targets, this.skillDamage(skill.damagePercent, skill.attackPower), skill.area);
+          this.emitSkillVisual(skill, 'impact', hitTargets);
           }
         );
-        this.showArea([[1]], BUFF_EFFECT_COLOR);
+        this.emitSkillVisual(skill, 'buff', [this]);
         break;
       case 'maple':
         if (this.mapleIsRed) {
@@ -230,21 +285,23 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
           skill.stages.forEach((stage, index) => {
             this.scene.time.delayedCall(index * 450, () => {
               if (!this.active || this.dead) return;
-              this.showArea(stage.area, 0xff5f61);
               const hitTargets = this.getTargetsInArea(targets, stage.area);
-              hitTargets.slice(0, 1).forEach(target => {
-                target.receiveDamage(this.skillDamage(stage.damagePercent, skill.attackPower));
-                if (stage.knockback) target.applyKnockback?.(this.flipX ? -1 : 1);
-              });
+              const hitTarget = hitTargets[0];
+              this.emitSkillVisual(skill, 'impact', hitTarget ? [hitTarget] : [], stage.area);
+              if (hitTarget) {
+                hitTarget.receiveDamage(this.skillDamage(stage.damagePercent, skill.attackPower));
+                if (stage.knockback) hitTarget.applyKnockback?.(this.flipX ? -1 : 1);
+              }
             });
           });
         } else {
           this.mapleIsRed = true;
           this.applyDefenseBuff(skill.defenseBonusPercent, skill.durationMs);
-          this.repeatUntil(skill.durationMs, skill.healIntervalMs, () => this.restoreHealth(
-            this.maxHealth * skill.healPercent / 100
-          ));
-          this.showArea([[1]], BUFF_EFFECT_COLOR);
+          this.repeatUntil(skill.durationMs, skill.healIntervalMs, () => {
+            this.restoreHealth(this.maxHealth * skill.healPercent / 100);
+            this.emitSkillVisual(skill, 'heal', [this]);
+          });
+          this.emitSkillVisual(skill, 'buff', [this]);
         }
         break;
       case 'fortify': {
@@ -261,26 +318,27 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
           }
         });
         this.emit('health-changed', this.health, this.maxHealth);
-        this.showArea(skill.area, BUFF_EFFECT_COLOR);
+        this.emitSkillVisual(skill, 'buff', [this]);
         break;
       }
       case 'slowAttack':
-        this.showArea(skill.area, DEBUFF_EFFECT_COLOR);
         const affectedTargets = this.getTargetsInArea(targets, skill.area);
+        this.emitSkillVisual(skill, 'impact', affectedTargets);
         affectedTargets.forEach(target => {
           target.receiveDamage(this.skillDamage(skill.damagePercent, skill.attackPower));
           target.applyAttackSpeedSlow?.(skill.slowPercent, skill.durationMs);
         });
         break;
       case 'heal':
-        this.showArea(skill.area, BUFF_EFFECT_COLOR);
         this.restoreHealth(this.maxHealth * skill.healPercent / 100);
+        this.emitSkillVisual(skill, 'heal', [this]);
         break;
       case 'evasion':
-        this.showArea(skill.area, 0xff5f61);
-        this.damageTargetsInArea(targets, this.skillDamage(skill.damagePercent, skill.attackPower), skill.area);
+        const hitTargets = this.damageTargetsInArea(targets, this.skillDamage(skill.damagePercent, skill.attackPower), skill.area);
+        this.emitSkillVisual(skill, 'impact', hitTargets);
         this.evasionUntil = this.scene.time.now + skill.durationMs;
         this.evasionPercent = skill.evasionPercent;
+        this.emitSkillVisual(skill, 'buff', [this]);
         break;
     }
     return true;
@@ -346,17 +404,6 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     return true;
   }
 
-  private damageTargets(
-    targets: readonly CombatTarget[],
-    damage: number,
-    range: number,
-    hitAll: boolean,
-    radial = false
-  ): void {
-    this.getTargetsInRange(targets, range, radial).slice(0, hitAll ? undefined : 1)
-      .forEach(target => target.receiveDamage(damage));
-  }
-
   private getTargetsInRange(
     targets: readonly CombatTarget[],
     range: number,
@@ -376,8 +423,10 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     targets: readonly CombatTarget[],
     damage: number,
     area: readonly (readonly number[])[]
-  ): void {
-    this.getTargetsInArea(targets, area).forEach(target => target.receiveDamage(damage));
+  ): CombatTarget[] {
+    const hitTargets = this.getTargetsInArea(targets, area);
+    hitTargets.forEach(target => target.receiveDamage(damage));
+    return hitTargets;
   }
 
   private getTargetsInArea(
@@ -442,34 +491,6 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   private restoreHealth(amount: number): void {
     this.health = Math.min(this.maxHealth, this.health + Math.max(0, Math.round(amount)));
     this.emit('health-changed', this.health, this.maxHealth);
-  }
-
-  private showRange(shape: 'front' | 'radial' | 'self', range: number, color: number): void {
-    const indicator = this.scene.add.graphics()
-      .setDepth(4)
-      .setScrollFactor(1);
-    const fillColor = color;
-    const fillAlpha = 0.18;
-    indicator.fillStyle(fillColor, fillAlpha);
-    indicator.lineStyle(3, fillColor, 0.85);
-
-    if (shape === 'front') {
-      const direction = this.flipX ? -1 : 1;
-      const x = direction > 0 ? this.x : this.x - range;
-      indicator.fillRoundedRect(x, this.y - 100, range, 200, 22);
-      indicator.strokeRoundedRect(x, this.y - 100, range, 200, 22);
-    } else {
-      indicator.fillCircle(this.x, this.y - 40, range);
-      indicator.strokeCircle(this.x, this.y - 40, range);
-    }
-
-    this.scene.tweens.add({
-      targets: indicator,
-      alpha: 0,
-      delay: 300,
-      duration: 350,
-      onComplete: () => indicator.destroy()
-    });
   }
 
   private showArea(area: readonly (readonly number[])[], color: number): void {

@@ -3,8 +3,8 @@ import { getTextStyle } from '../../utils/ui/index.ts';
 import testData, { getFlowerSkill } from '../test_data.ts';
 import type { CharacterData } from '../test_data.ts';
 import { SCENE_KEYS } from '../sceneKeys';
-import type { CombatTarget, Player } from './Player';
-import { beginStageSkillStates, type FlowerSkillState } from './SkillApi.ts';
+import type { CombatTarget, Player, SkillVisualPhase } from './Player';
+import { beginStageSkillStates, type FlowerSkillState, type ServerFlowerSkill } from './SkillApi.ts';
 import { loadFormation } from '../../form/formationStorage.ts';
 import retreatButtonAsset from '../../assets/ui/button/retreat_button.png';
 import rawSkillDefinitions from '../../../php/skill/skills.json?raw';
@@ -56,6 +56,9 @@ export class StageHUD {
     this.scene = scene;
     this.player = player;
     this.enemies = enemies;
+    this.player?.setSkillVisualHandler((skill, phase, targets, area) => {
+      this.playSkillEffect(skill, phase, targets, area);
+    });
   }
 
   public create(stageId?: number, stageNumber?: string): void {
@@ -485,58 +488,174 @@ export class StageHUD {
       this.skillNameText?.setText('スキル効果を反映できませんでした。');
       return;
     }
-    this.playSkillEffect(skill);
     const duration = skill.durationMs || 1500;
     const appliedStatuses = skillStatusIds.get(flower.id) ?? [];
     this.setPartyStatuses(index, appliedStatuses, duration);
     this.updateSkillLabel();
   }
 
-  private playSkillEffect(skill: FlowerSkillState['skill']): void {
+  private playSkillEffect(
+    skill: ServerFlowerSkill,
+    phase: SkillVisualPhase,
+    targets: readonly CombatTarget[],
+    area: readonly (readonly number[])[]
+  ): void {
     if (!this.player) return;
-    const sheetByType: Record<string, string> = {
+    const sheetByType: Record<ServerFlowerSkill['type'], string> = {
       multiHit: '01_fire_slash', defensiveRecovery: '02_guard_buff', charge: '03_sun_beam',
-      balanced: '04_homing_orb', continuous: '05_water_burst', maple: '06a_leaf_green',
+      balanced: '04_homing_orb', continuous: '05_water_burst', maple: phase === 'impact' ? '06b_leaf_red' : '06a_leaf_green',
       fortify: '07_fortify', slowAttack: '08_debuff', heal: '09_heal', evasion: '10_stealth',
     };
-    const sheet = sheetByType[skill.type];
-    const animationKey = sheet ? `skill-effect-${sheet}` : '';
-    if (!sheet || !this.scene.anims.exists(animationKey)) return;
+    const tintByType: Record<ServerFlowerSkill['type'], number> = {
+      multiHit: 0xff563d, defensiveRecovery: 0xff647d, charge: 0xffc247, balanced: 0xffa74d,
+      continuous: 0x43d7ff, maple: 0xf45a78, fortify: 0x62c9ff, slowAttack: 0x66c9ff,
+      heal: 0xff77b9, evasion: 0x9a83ff,
+    };
+    const color = tintByType[skill.type];
+    if (phase === 'impact' || phase === 'charge') this.showSkillFootprint(area, color);
 
-    const selfCast = ['defensiveRecovery', 'fortify', 'heal', 'evasion', 'balanced', 'continuous'].includes(skill.type);
-    // Skill 8 targets every visible enemy; the others show their impact on the front target.
-    const targets = skill.type === 'slowAttack'
-      ? this.enemies.map(enemy => ({ x: enemy.x, y: enemy.y }))
-      : selfCast
-        ? [
-          { x: this.player.x, y: this.player.y },
-          ...(skill.type === 'evasion' && this.enemies[0]
-            ? [{ x: this.enemies[0].x, y: this.enemies[0].y }]
-            : []),
-        ]
-        : this.enemies.length > 0
-          ? [{ x: this.enemies[0].x, y: this.enemies[0].y }]
-          : [{ x: this.player.x, y: this.player.y }];
-    const size = skill.type === 'slowAttack' ? 240 : skill.type === 'charge' ? 250 : 208;
-    targets.forEach((target, index) => {
-      const spawn = (): void => {
-        const effect = this.scene.add.sprite(target.x, target.y - 22, `skill-effect-${sheet}`)
-          .setOrigin(0.5)
-          .setDisplaySize(size, size)
-          .setScrollFactor(1)
-          .setDepth(20)
-          .play(animationKey);
-        effect.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => effect.destroy());
-      };
-      if (skill.type === 'multiHit') {
-        Array.from({ length: Math.max(1, skill.hitCount) }, (_, hit) => hit * 160)
-          .forEach(delay => this.scene.time.delayedCall(delay, spawn));
-      } else if (skill.type === 'slowAttack') {
-        this.scene.time.delayedCall(index * 45, spawn);
-      } else {
-        spawn();
-      }
+    if (phase === 'buff' || phase === 'heal') {
+      const selfTarget = { x: this.player.x, y: this.player.y - 54 };
+      this.playSkillSprite(selfTarget.x, selfTarget.y, sheetByType[skill.type], 220, color, phase === 'heal');
+      if (phase === 'buff') this.createSkillAura(color, Math.min(skill.durationMs || 2600, 20000));
+      else this.createHealBurst(selfTarget.x, selfTarget.y, color);
+      return;
+    }
+
+    if (phase === 'charge') {
+      this.createChargeGather(color, skill.durationMs);
+      return;
+    }
+
+    if (skill.type === 'charge') {
+      this.fireSunBeam(area, color);
+    }
+    if (targets.length > 0) {
+      const hitY = skill.type === 'charge' ? this.player.y - 48 : undefined;
+      targets.forEach((target, index) => {
+        const x = target.x;
+        const y = hitY ?? target.y - 36;
+        const bounds = this.getAreaBounds(area);
+        const size = Phaser.Math.Clamp(Math.max(bounds.width, bounds.height) * (skill.type === 'maple' ? 0.95 : 0.72), 150, skill.type === 'charge' ? 300 : 250);
+        this.scene.time.delayedCall(index * 38, () => {
+          this.playSkillSprite(x, y, sheetByType[skill.type], size, color, true);
+          this.createImpactBurst(x, y, color, skill.type === 'maple' ? 1.45 : 1);
+        });
+      });
+      const shake = skill.type === 'charge' || skill.type === 'maple' ? 0.007 : skill.type === 'multiHit' ? 0.0035 : 0.002;
+      this.scene.cameras.main.shake(skill.type === 'charge' ? 180 : 95, shake);
+      if (skill.type === 'charge' || skill.type === 'maple') this.scene.cameras.main.flash(90, 255, 220, 154, true);
+    }
+  }
+
+  private playSkillSprite(x: number, y: number, sheet: string, size: number, color: number, additive: boolean): void {
+    const animationKey = `skill-effect-${sheet}`;
+    if (!this.scene.anims.exists(animationKey)) return;
+    const sprite = this.scene.add.sprite(x, y, `skill-effect-${sheet}`)
+      .setOrigin(0.5).setDisplaySize(size, size).setDepth(this.depth - 4).setScrollFactor(1)
+      .setTint(color).setBlendMode(additive ? Phaser.BlendModes.ADD : Phaser.BlendModes.NORMAL).play(animationKey);
+    sprite.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => sprite.destroy());
+  }
+
+  private showSkillFootprint(area: readonly (readonly number[])[], color: number): void {
+    if (!this.player) return;
+    const originRow = area.findIndex(row => row.includes(1));
+    if (originRow < 0) return;
+    const originColumn = area[originRow].indexOf(1);
+    const direction = this.player.flipX ? -1 : 1;
+    const graphics = this.scene.add.graphics().setDepth(this.depth - 3).setScrollFactor(1);
+    area.forEach((row, rowIndex) => row.forEach((cell, columnIndex) => {
+      if (cell === 0) return;
+      const x = this.player!.x + (columnIndex - originColumn) * 40 * direction;
+      const y = this.player!.y + (rowIndex - originRow) * 40;
+      const hot = cell === 1;
+      graphics.fillStyle(hot ? 0xfff3cb : color, hot ? 0.32 : 0.18);
+      graphics.lineStyle(hot ? 3 : 2, hot ? 0xfff3cb : color, 0.95);
+      graphics.fillRoundedRect(x - 18, y - 18, 36, 36, 7);
+      graphics.strokeRoundedRect(x - 18, y - 18, 36, 36, 7);
+      graphics.lineStyle(1, 0xffffff, 0.72).lineBetween(x - 9, y, x + 9, y);
+      graphics.lineBetween(x, y - 9, x, y + 9);
+    }));
+    this.scene.tweens.add({ targets: graphics, alpha: 0, scale: 1.12, duration: 360, onComplete: () => graphics.destroy() });
+  }
+
+  private getAreaBounds(area: readonly (readonly number[])[]): { width: number; height: number } {
+    const columns = Math.max(1, ...area.map(row => row.length));
+    return { width: columns * 40, height: area.length * 40 };
+  }
+
+  private createImpactBurst(x: number, y: number, color: number, scale: number): void {
+    const burst = this.scene.add.graphics().setDepth(this.depth - 2).setScrollFactor(1);
+    burst.fillStyle(color, 0.34).fillCircle(x, y, 17 * scale);
+    burst.lineStyle(4, 0xffffff, 0.95).strokeCircle(x, y, 22 * scale);
+    burst.lineStyle(3, color, 0.95);
+    for (let i = 0; i < 10; i++) {
+      const angle = (Math.PI * 2 * i) / 10;
+      burst.lineBetween(x + Math.cos(angle) * 27 * scale, y + Math.sin(angle) * 27 * scale,
+        x + Math.cos(angle) * 56 * scale, y + Math.sin(angle) * 56 * scale);
+    }
+    this.scene.tweens.add({ targets: burst, alpha: 0, scale: 1.45, duration: 260, ease: 'Cubic.Out', onComplete: () => burst.destroy() });
+  }
+
+  private createSkillAura(color: number, duration: number): void {
+    if (!this.player) return;
+    const x = this.player.x;
+    const y = this.player.y - 48;
+    const aura = this.scene.add.container(x, y).setDepth(this.depth - 5).setScrollFactor(1);
+    const rings = this.scene.add.graphics();
+    rings.lineStyle(3, color, 0.86).strokeEllipse(0, 8, 72, 28);
+    rings.lineStyle(1, 0xffffff, 0.75).strokeEllipse(0, 8, 46, 16);
+    aura.add(rings);
+    for (let i = 0; i < 6; i++) {
+      const angle = (Math.PI * 2 * i) / 6;
+      const mote = this.scene.add.circle(Math.cos(angle) * 36, -10 + Math.sin(angle) * 20, 4, color, 0.95);
+      aura.add(mote);
+      this.scene.tweens.add({ targets: mote, x: Math.cos(angle + Math.PI) * 42, y: -10 + Math.sin(angle + Math.PI) * 25,
+        alpha: 0.24, duration: 650 + i * 70, yoyo: true, repeat: Math.max(0, Math.floor(duration / 800) - 1), ease: 'Sine.inOut' });
+    }
+    this.scene.tweens.add({ targets: aura, alpha: 0.55, scale: 1.34, duration: 850, yoyo: true,
+      repeat: Math.max(0, Math.floor(duration / 1700) - 1), ease: 'Sine.inOut' });
+    this.scene.time.delayedCall(duration, () => {
+      if (aura.active) this.scene.tweens.add({ targets: aura, alpha: 0, duration: 220, onComplete: () => aura.destroy() });
     });
+  }
+
+  private createHealBurst(x: number, y: number, color: number): void {
+    const ring = this.scene.add.circle(x, y, 26, color, 0.12).setStrokeStyle(3, 0xffe9f5, 0.95).setDepth(this.depth - 3);
+    this.scene.tweens.add({ targets: ring, scale: 2.4, alpha: 0, duration: 500, ease: 'Cubic.Out', onComplete: () => ring.destroy() });
+    for (let i = 0; i < 9; i++) {
+      const petal = this.scene.add.ellipse(x, y, 7, 18, color, 0.95).setDepth(this.depth - 2);
+      const angle = (Math.PI * 2 * i) / 9;
+      this.scene.tweens.add({ targets: petal, x: x + Math.cos(angle) * 52, y: y + Math.sin(angle) * 62 - 20,
+        alpha: 0, angle: i * 40, duration: 520, ease: 'Cubic.Out', onComplete: () => petal.destroy() });
+    }
+  }
+
+  private createChargeGather(color: number, duration: number): void {
+    if (!this.player) return;
+    const x = this.player.x;
+    const y = this.player.y - 52;
+    const ring = this.scene.add.circle(x, y, 24, color, 0.08).setStrokeStyle(4, 0xfff2c0, 0.95).setDepth(this.depth - 3);
+    this.scene.tweens.add({ targets: ring, scale: 2.5, alpha: 0.38, duration: 420, yoyo: true, repeat: Math.max(0, Math.floor(duration / 840) - 1) });
+    this.playSkillSprite(x, y - 16, '03_sun_beam', 210, color, true);
+    this.scene.time.delayedCall(duration, () => { if (ring.active) ring.destroy(); });
+  }
+
+  private fireSunBeam(area: readonly (readonly number[])[], color: number): void {
+    if (!this.player) return;
+    const originRow = area.findIndex(row => row.includes(1));
+    if (originRow < 0) return;
+    const originColumn = area[originRow].indexOf(1);
+    const direction = this.player.flipX ? -1 : 1;
+    const cells = Math.max(...area[originRow].map((cell, i) => cell === 2 ? Math.abs(i - originColumn) : 0));
+    const length = Math.max(40, cells * 40);
+    const centerY = this.player.y;
+    const beamX = direction > 0 ? this.player.x + 20 : this.player.x - length - 20;
+    const beam = this.scene.add.graphics().setDepth(this.depth - 4).setScrollFactor(1);
+    beam.fillStyle(color, 0.22).fillRoundedRect(beamX, centerY - 24, length, 48, 18);
+    beam.fillStyle(0xfff3c4, 0.88).fillRoundedRect(beamX, centerY - 6, length, 12, 6);
+    beam.lineStyle(3, 0xffffff, 0.9).strokeRoundedRect(beamX, centerY - 20, length, 40, 16);
+    this.scene.tweens.add({ targets: beam, alpha: 0, scaleY: 1.6, duration: 330, ease: 'Cubic.Out', onComplete: () => beam.destroy() });
   }
 
   private updateSkillLabel(): void {
