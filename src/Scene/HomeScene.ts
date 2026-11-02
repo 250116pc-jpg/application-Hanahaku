@@ -1,3 +1,4 @@
+﻿import { createSceneFade } from '../utils/ui/scene-fade'
 import Phaser from 'phaser'
 
 // アセットのインポート（実際のファイルパスに合わせて調整してください）
@@ -10,6 +11,7 @@ import { loadCharacterAnimation, createCharacterSprite } from '../animation/anim
 import { homeAnimationData, homeAttackCombos, homeAnimationNames, homeClickActions, type HomeAttackName } from '../animation/homeAnimationData'
 
 import { createButton } from './HomeScene/buttons'
+import { preloadTitlePetals, createTitlePetals } from './title/TitlePetals'
 //debug機能
 import { showDebugSceneName } from '../debug';
 
@@ -18,6 +20,7 @@ import { showDebugSceneName } from '../debug';
 
 
 export class HomeScene extends Phaser.Scene {
+  private navigate!: (destination: string) => void
   private readonly backgroundKeys = ['bg1', 'bg2', 'bg3', 'bg4']
 
   constructor() {
@@ -25,6 +28,7 @@ export class HomeScene extends Phaser.Scene {
   }
 
   preload(): void {
+    preloadTitlePetals(this)
     // 背景画像（表示順に4種類）
     this.load.image('bg1', bg1Img)
     this.load.image('bg2', bg2Img)
@@ -41,6 +45,8 @@ export class HomeScene extends Phaser.Scene {
   }
 
   create(): void {
+    this.input.enabled = true
+    this.navigate = createSceneFade(this)
     showDebugSceneName(this);
 
     const width = this.scale.width
@@ -55,6 +61,9 @@ export class HomeScene extends Phaser.Scene {
     // 背景画像を追加して画面サイズに合わせる
     const bg = this.add.image(width / 2, height / 2, bgKey)
     bg.setDisplaySize(width, height)
+
+    // タイトルと同じ花びらを、背景の上・主人公とボタンの後ろに表示する。
+    createTitlePetals(this, { night: bgKey === 'bg4' })
 
     // 次回戻ってきたとき用にインデックスを更新
     this.registry.set('bgIndex', (bgIndex + 1) % this.backgroundKeys.length)
@@ -215,35 +224,38 @@ export class HomeScene extends Phaser.Scene {
   private createNavigationButtons(ui: Phaser.GameObjects.Container, scaleX: number, scaleY: number): void {
 
     ui.add(createButton(this,1080 * scaleX,450 * scaleY,220,'エリア\n選択',() => {
-        this.scene.start('AreaSelectScene')},{  key: 'button1',  width: 260,  height: 110
+        this.navigate('AreaSelectScene')},{  key: 'button1',  width: 260,  height: 110
 
         }
     ))
     ui.add(createButton(this, 510 * scaleX, 630 * scaleY, 200, '育成',() => {
-        this.scene.start('TrainingScene')},{  key: 'button1',  width: 200,  height: 100
+        this.navigate('TrainingScene')},{  key: 'button1',  width: 200,  height: 100
 
         }
     ))
     ui.add(createButton(this, 740 * scaleX, 630 * scaleY, 200, '編成',() => {
-        this.scene.start('FormScene')},{  key: 'button1',  width: 200,  height: 100
+        this.navigate('FormScene')},{  key: 'button1',  width: 200,  height: 100
 
         }
     ))
     ui.add(createButton(this, 970 * scaleX, 630 * scaleY, 200, '図鑑',() => {
-        this.scene.start('EncyclopediaScene')},{  key: 'button1',  width: 200,  height: 100
+        this.navigate('EncyclopediaScene')},{  key: 'button1',  width: 200,  height: 100
 
         }
     ))
 
     ui.add(createButton(this, 1200 * scaleX, 630 * scaleY, 200, 'ショップ',() => {
-        this.scene.start('ShopScene')},{  key: 'button1',  width: 200,  height: 100
+        this.navigate('ShopScene')},{  key: 'button1',  width: 200,  height: 100
 
         }
     ))
     ui.add(createButton(this, 1220 * scaleX, 70 * scaleY, 180, '設定',() => {
-        this.scene.start('SettingsScene')},{  key: 'button1',  width: 150,  height: 80
+        this.navigate('SettingsScene')},{  key: 'button1',  width: 150,  height: 80
 
         }
     ))
   }
 }
+
+
+

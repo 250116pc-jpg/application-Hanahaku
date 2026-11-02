@@ -6,7 +6,7 @@ import petal4 from '../../assets/ui/title_f4.png';
 
 const PETAL_IMAGES = [petal1, petal2, petal3, petal4];
 // 花びらの枚数。大きさや落下速度はreset内で調整する。
-const PETAL_COUNT = 28;
+const PETAL_COUNT = 32;
 
 export function preloadTitlePetals(scene: Phaser.Scene): void {
   PETAL_IMAGES.forEach((url, index) => {
@@ -15,7 +15,7 @@ export function preloadTitlePetals(scene: Phaser.Scene): void {
   });
 }
 
-export function createTitlePetals(scene: Phaser.Scene): void {
+export function createTitlePetals(scene: Phaser.Scene, options: { night?: boolean } = {}): void {
   // 花びらの低速移動を整数座標に丸めず、小数単位で描画する。
   scene.cameras.main.roundPixels = false;
   const width = scene.scale.width;
@@ -29,6 +29,8 @@ export function createTitlePetals(scene: Phaser.Scene): void {
   const reset = (petal: Petal, initial = false): void => {
     petal.image.setTexture(`title-petal-${Phaser.Math.Between(0, 3)}`);
     petal.image.texture.setFilter(Phaser.Textures.FilterMode.LINEAR);
+    // 夜は月明かりを受けた、明るい青紫寄りのピンクにする。透明度や動きは昼と共通。
+    petal.image.setTint(options.night ? 0xb8bedc : 0xffffff);
     petal.x = Phaser.Math.FloatBetween(-80, width + 60);
     petal.y = initial ? Phaser.Math.FloatBetween(-60, height) : -65;
     petal.phase = Phaser.Math.FloatBetween(0, Math.PI * 2);
@@ -67,6 +69,9 @@ export function createTitlePetals(scene: Phaser.Scene): void {
     petals.forEach(petal => petal.image.destroy());
   });
 }
+
+
+
 
 
 
