@@ -1,3 +1,4 @@
+﻿import { createSceneFade } from '../utils/ui/scene-fade';
 import { getPhpBaseUrl } from '../auth/PhpBaseUrl';
 import Phaser from 'phaser';
 import { mountAuthLayout } from '../auth/AuthLayout';
@@ -19,6 +20,8 @@ export class LoginScene extends Phaser.Scene {
   }
 
   create(): void {
+    this.input.enabled = true;
+    const navigate = createSceneFade(this);
     const formElement = document.createElement('form');
     formElement.className = 'flower-auth-form';
     formElement.innerHTML = `
@@ -39,7 +42,7 @@ export class LoginScene extends Phaser.Scene {
       <button type="submit">ログイン</button>
     `;
 
-    const dom = mountAuthLayout(this, formElement, 'ログイン', 'アカウント作成へ', 'RegisterScene');
+    mountAuthLayout(this, formElement, 'ログイン', 'アカウント作成へ', 'RegisterScene', navigate);
     const message = formElement.querySelector<HTMLParagraphElement>('.register-message');
     const submitButton = formElement.querySelector<HTMLButtonElement>('button[type="submit"]');
     const googleButton = formElement.querySelector<HTMLDivElement>('.google-signin-button');
@@ -51,8 +54,8 @@ export class LoginScene extends Phaser.Scene {
       submitButton.disabled = true;
       submitButton.textContent = 'ログイン成功';
       this.time.delayedCall(700, () => {
-        dom.destroy();
-        this.scene.start('HomeScene');
+
+        navigate('HomeScene');
       });
     };
 
@@ -119,3 +122,5 @@ export class LoginScene extends Phaser.Scene {
     element.classList.toggle('is-success', isSuccess);
   }
 }
+
+

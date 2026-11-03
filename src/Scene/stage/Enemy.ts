@@ -1,22 +1,56 @@
 import Phaser from 'phaser';
-import type { Player } from './Player.ts';
+import type { DamageType, Player } from './Player.ts';
+
+export interface EnemyStats {
+  level: number;
+  enhancementId: number;
+  job: string;
+  direction: string;
+  hp: number;
+  physicalAttack: number;
+  magicAttack: number;
+  physicalDefense: number;
+  magicDefense: number;
+  healingPower: number;
+  attackIntervalMs: number;
+  agility: number;
+  criticalRate: number;
+  criticalDamage: number;
+  contractFlowerId: number;
+}
+
+export function isEnemyStats(value: unknown): value is EnemyStats {
+  if (typeof value !== 'object' || value === null) return false;
+  const stats = value as Record<string, unknown>;
+  const numericKeys = ['level', 'enhancementId', 'hp', 'mp', 'physicalAttack', 'magicAttack', 'physicalDefense', 'magicDefense',
+    'healingPower', 'attackIntervalMs', 'agility', 'criticalRate', 'criticalDamage', 'contractFlowerId'];
+  return typeof stats.job === 'string' && typeof stats.direction === 'string' && numericKeys.every(key =>
+    typeof stats[key] === 'number' && Number.isFinite(stats[key])
+  );
+}
 
 export class Enemy extends Phaser.Physics.Arcade.Sprite {
   private readonly player: Player;
   private readonly homeX: number;
+  private readonly maxHealth: number;
+  private readonly stats: EnemyStats;
   private readonly patrolDistance = 90;
   private readonly patrolSpeed = 35;
   private readonly chaseSpeed = 65;
   private readonly aggroRange = 520;
   private readonly attackRange = 72;
-  private readonly maxHealth = 45;
+  private readonly attackVerticalRange = 90;
+  private readonly attackReachPadding = 20;
+  private readonly aggroVerticalRange = 120;
+  private readonly attackWindupMs = 300;
+  private readonly healthBarOffsetY = 96;
   private readonly visual: Phaser.GameObjects.Sprite;
   private readonly healthBarBackground: Phaser.GameObjects.Rectangle;
   private readonly healthBar: Phaser.GameObjects.Rectangle;
   private statusIconPlate?: Phaser.GameObjects.Arc;
   private statusIcon?: Phaser.GameObjects.Image;
   private statusIconUntil = 0;
-  private health = this.maxHealth;
+  private health: number;
   private nextAttackAt = 0;
   private attackSpeedSlowUntil = 0;
   private attackSpeedSlowPercent = 0;
@@ -25,9 +59,12 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
   private patrolDirection = -1;
   private visualBottomPadding = 2;
 
-  constructor(scene: Phaser.Scene, x: number, y: number, player: Player) {
+  constructor(scene: Phaser.Scene, x: number, y: number, player: Player, stats: EnemyStats) {
     super(scene, x, y, 'stage-enemy-idle');
     this.player = player;
+    this.stats = stats;
+    this.maxHealth = stats.hp;
+    this.health = this.maxHealth;
     this.homeX = x;
 
     scene.add.existing(this);
@@ -59,7 +96,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
       }
     });
 
-    const barY = y - 96;
+    const barY = y - this.healthBarOffsetY;
     this.healthBarBackground = scene.add.rectangle(x, barY, 48, 6, 0x17131b, 0.9)
       .setDepth(10);
     this.healthBar = scene.add.rectangle(x, barY, 44, 4, 0xe54e62)
@@ -75,7 +112,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     const distanceX = this.player.x - this.x;
     const distanceY = Math.abs(this.player.y - this.y);
     const distance = Math.abs(distanceX);
-    if (distanceY <= 90 && distance <= this.attackRange) {
+    if (distanceY <= this.attackVerticalRange && distance <= this.attackRange) {
       this.setVelocityX(0);
       this.setFlipX(distanceX < 0);
       this.visual.setFlipX(this.flipX);
@@ -83,7 +120,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
       return;
     }
 
-    if (distanceY <= 120 && distance <= this.aggroRange) {
+    if (distanceY <= this.aggroVerticalRange && distance <= this.aggroRange) {
       this.move(Math.sign(distanceX), this.chaseSpeed);
       return;
     }
@@ -93,9 +130,11 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     this.move(this.patrolDirection, this.patrolSpeed);
   }
 
-  public receiveDamage(amount: number): void {
+  public receiveDamage(amount: number, damageType: DamageType = 'physical'): void {
     if (this.dead || amount <= 0) return;
-    this.health = Math.max(0, this.health - amount);
+    const defense = Math.max(0, damageType === 'magical' ? this.stats.magicDefense : this.stats.physicalDefense);
+    const mitigatedDamage = amount * 100 / (100 + defense);
+    this.health = Math.max(0, this.health - Math.max(1, Math.round(mitigatedDamage)));
     this.updateHealthBar();
     this.visual.setTint(0xffbbbb);
     this.scene.time.delayedCall(120, () => {
@@ -127,10 +166,10 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     if (this.dead || durationMs <= 0 || !this.scene.textures.exists(`status-${iconKey}`)) return;
     this.statusIconUntil = Math.max(this.statusIconUntil, this.scene.time.now + durationMs);
     if (!this.statusIcon?.active) {
-      this.statusIconPlate = this.scene.add.circle(this.x + 36, this.y - 96, 17, 0x3978be, 0.9)
+      this.statusIconPlate = this.scene.add.circle(this.x + 36, this.y - this.healthBarOffsetY, 17, 0x3978be, 0.9)
         .setStrokeStyle(2, 0xd9ecff, 0.95)
         .setDepth(12);
-      this.statusIcon = this.scene.add.image(this.x + 36, this.y - 96, `status-${iconKey}`)
+      this.statusIcon = this.scene.add.image(this.x + 36, this.y - this.healthBarOffsetY, `status-${iconKey}`)
         .setDisplaySize(28, 28)
         .setDepth(13);
     } else {
@@ -158,7 +197,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
   }
 
   private move(direction: number, speed: number): void {
-    this.setVelocityX(direction * speed);
+    this.setVelocityX(direction * speed * this.stats.agility / 100);
     this.setFlipX(direction < 0);
     this.visual.setFlipX(this.flipX);
     this.playVisual('enemy-run');
@@ -167,17 +206,21 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
   private attack(time: number): void {
     const slowPercent = time < this.attackSpeedSlowUntil ? this.attackSpeedSlowPercent : 0;
     if (slowPercent === 0) this.attackSpeedSlowPercent = 0;
-    this.nextAttackAt = time + 1100 * (1 + slowPercent / 100);
+    this.nextAttackAt = time + this.stats.attackIntervalMs * (1 + slowPercent / 100);
     this.locked = true;
     this.setVelocityX(0);
     this.playVisual('enemy-attack');
-    this.scene.time.delayedCall(300, () => {
+    this.scene.time.delayedCall(this.attackWindupMs, () => {
       if (!this.active || this.dead) return;
       if (
-        Math.abs(this.player.x - this.x) <= this.attackRange + 20 &&
-        Math.abs(this.player.y - this.y) <= 90
+        Math.abs(this.player.x - this.x) <= this.attackRange + this.attackReachPadding &&
+        Math.abs(this.player.y - this.y) <= this.attackVerticalRange
       ) {
-        this.player.receiveDamage(12);
+        const isCritical = Math.random() * 100 < this.stats.criticalRate;
+        const damage = isCritical
+          ? Math.round(this.stats.physicalAttack * (1 + this.stats.criticalDamage / 100))
+          : this.stats.physicalAttack;
+        this.player.receiveDamage(damage);
       }
     });
   }
@@ -202,7 +245,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
       this.x,
       this.y + this.visualBottomPadding * this.visual.scaleY
     );
-    const barY = this.y - 96;
+    const barY = this.y - this.healthBarOffsetY;
     this.healthBarBackground.setPosition(this.x, barY);
     this.healthBar.setSize(44 * this.health / this.maxHealth, 4)
       .setPosition(
@@ -216,7 +259,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
   private updateHealthBar(): void {
     const width = 44 * this.health / this.maxHealth;
     this.healthBar.setSize(width, 4)
-      .setPosition(this.x - 22 + width / 2, this.y - 96);
+      .setPosition(this.x - 22 + width / 2, this.y - this.healthBarOffsetY);
   }
 
   public override destroy(fromScene?: boolean): void {
