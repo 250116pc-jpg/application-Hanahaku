@@ -1,4 +1,5 @@
 import Phaser from 'phaser'
+import { playUiSe } from '../../audio/BgmManager'
 import buttonImage from '../../assets/ui/button1.png'
 import { getShopItemImageUrl } from './assets'
 import type { ShopItem } from './types'
@@ -75,7 +76,7 @@ export class PurchaseConfirm {
     error.setAttribute('role', 'status')
     const actions = document.createElement('div')
     actions.className = 'purchase-actions'
-    const cancel = this.button('キャンセル', () => { if (!this.buying) this.destroy() })
+    const cancel = this.button('キャンセル', () => { if (!this.buying) { playUiSe(scene, 'cancel'); this.destroy() } })
     const buy = this.button('購入する', () => { void purchase() })
     buy.className = 'purchase-submit'
     actions.append(cancel, buy)
@@ -96,6 +97,7 @@ export class PurchaseConfirm {
     }
     const changeQuantity = (difference: number): void => {
       if (this.buying || this.maxQuantity < 1) return
+      playUiSe(scene, 'select')
       this.quantity = Math.max(1, Math.min(this.maxQuantity, this.quantity + difference))
       update()
     }
@@ -106,14 +108,17 @@ export class PurchaseConfirm {
       update()
       try {
         await onPurchase(this.quantity)
+        if (!this.closed) playUiSe(scene, 'purchase')
         this.destroy()
       } catch (cause) {
+        if (!this.closed) playUiSe(scene, 'error')
         if (!this.closed) error.textContent = cause instanceof Error ? cause.message : '購入できませんでした。'
       } finally {
         if (!this.closed) { this.buying = false; update() }
       }
     }
     if (this.maxQuantity < 1) {
+      playUiSe(scene, 'error')
       error.textContent = coin < item.price ? 'コインが足りません。' : '所持数の上限です。'
       balance.textContent = `所持コイン：${coin.toLocaleString()} G`
     }
@@ -122,7 +127,7 @@ export class PurchaseConfirm {
     document.body.append(this.root)
     scene.events.once(Phaser.Scenes.Events.SHUTDOWN, this.shutdown)
     this.root.addEventListener('keydown', event => {
-      if (event.key === 'Escape' && !this.buying) { event.preventDefault(); this.destroy(); return }
+      if (event.key === 'Escape' && !this.buying) { event.preventDefault(); playUiSe(scene, 'cancel'); this.destroy(); return }
       if (event.key !== 'Tab') return
       const enabled = Array.from(this.root.querySelectorAll<HTMLButtonElement>('button:not(:disabled)'))
       const first = enabled[0]

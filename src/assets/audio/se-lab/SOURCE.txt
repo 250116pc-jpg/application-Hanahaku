@@ -1,0 +1,10 @@
+Source: 効果音ラボ https://soundeffect-lab.info/sound/button/
+Terms: https://soundeffect-lab.info/agreement/
+confirm.mp3 = 決定ボタンを押す34
+select.mp3 = カーソル移動12
+cancel.mp3 = キャンセル8
+open.mp3 = メニューを開く4
+purchase.mp3 = 決定ボタンを押す14
+error.mp3 = ビープ音5
+recover.mp3 = ゲージ回復3
+confirm-wood.mp3 = 決定ボタンを押す29

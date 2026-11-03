@@ -1,3 +1,4 @@
+import './InventoryFantasy.css'
 import Phaser from 'phaser'
 import inventorySlot from '../../assets/images/inventory/slot.png'
 import lockedSlot from '../../assets/images/inventory/slot_lock.png'
@@ -33,6 +34,7 @@ export class InventoryView {
   create(): void {
     this.root = document.createElement('div')
     this.root.className = 'hanahaku-inventory'
+    if (new URLSearchParams(window.location.search).get('inventory-style') !== 'classic') this.root.classList.add('inventory-fantasy-preview')
     const style = document.createElement('style')
     style.textContent = `
       .hanahaku-inventory { position:fixed; inset:0; z-index:1000; box-sizing:border-box;
