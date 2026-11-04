@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { changeCharacterAnimation } from '../../animation/animation.ts';
 import type { ServerFlowerSkill } from './SkillApi.ts';
+import { playerStats } from './allyStats.ts';
 
 const BUFF_EFFECT_COLOR = 0xff5964;
 const SKILL_AREA_CELL_SIZE = 40;
@@ -25,9 +26,9 @@ export type SkillVisualHandler = (
 
 export class Player extends Phaser.Physics.Arcade.Sprite {
   private cursors: Phaser.Types.Input.Keyboard.CursorKeys | undefined;
-  private readonly PLAYER_SPEED = 160;
-  private readonly JUMP_POWER = 330;
-  private readonly FALL_GRAVITY_BONUS = 220;
+  private readonly PLAYER_SPEED = playerStats.moveSpeed;
+  private readonly JUMP_POWER = playerStats.jumpPower;
+  private readonly FALL_GRAVITY_BONUS = playerStats.fallGravityBonus;
   private wasGrounded = true;
   private landingAnimationPlaying = false;
   private action: string | null = null;
@@ -43,9 +44,10 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   private continuousUntil = 0;
   private mapleIsRed = false;
   private skillVisualHandler?: SkillVisualHandler;
-  private readonly baseMaxHealth = 100;
+  private readonly baseMaxHealth = playerStats.hp;
   private maxHealthBonus = 0;
   private maxHealthBonusUntil = 0;
+  private nextBasicAttackAt = 0;
   public get maxHealth(): number {
     return this.baseMaxHealth + this.maxHealthBonus;
   }
@@ -127,10 +129,10 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     if (this.action !== null) {
       this.setVelocityX(0);
     } else if (this.cursors.left?.isDown) {
-      this.setVelocityX(-this.PLAYER_SPEED);
+      this.setVelocityX(-this.PLAYER_SPEED * playerStats.agility / 100);
       this.setFlipX(true);
     } else if (this.cursors.right?.isDown) {
-      this.setVelocityX(this.PLAYER_SPEED);
+      this.setVelocityX(this.PLAYER_SPEED * playerStats.agility / 100);
       this.setFlipX(false);
     } else {
       this.setVelocityX(0);
@@ -163,12 +165,14 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   }
 
   public attack(targets: readonly CombatTarget[] = []): void {
-    if (this.scene.time.now < this.chargeUntil || this.scene.time.now < this.continuousUntil) return;
+    if (this.scene.time.now < this.chargeUntil || this.scene.time.now < this.continuousUntil ||
+        this.scene.time.now < this.nextBasicAttackAt) return;
     if (!this.playAction('attack', 'player-attack')) return;
+    this.nextBasicAttackAt = this.scene.time.now + playerStats.attackIntervalMs;
     this.showSlash();
     const hits = this.getTargetsInRange(targets, 125, false);
     hits.slice(0, 1).forEach(target => {
-      target.receiveDamage(this.applyAttackBonus(18));
+      target.receiveDamage(this.applyPlayerCritical(this.applyAttackBonus(playerStats.physicalAttack)));
       this.showHit(target.x, target.y - 44);
     });
   }
@@ -345,7 +349,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     return true;
   }
 
-  public receiveDamage(amount: number): void {
+  public receiveDamage(amount: number, damageType: DamageType = 'physical'): void {
     const now = this.scene.time.now;
     if (this.dead || now < this.invulnerableUntil || amount <= 0) return;
     if (now < this.evasionUntil && Math.random() * 100 < this.evasionPercent) return;
@@ -353,7 +357,10 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     const defending = this.cursors?.down?.isDown === true &&
       (this.body as Phaser.Physics.Arcade.Body).blocked.down;
     const activeDefenseBonus = now < this.defenseUntil ? this.defenseBonusPercent : 0;
-    const damageMultiplier = defending ? 0.5 : Math.max(0.1, 1 - activeDefenseBonus / 100);
+    const defense = Math.max(0, damageType === 'magical' ? playerStats.magicDefense : playerStats.physicalDefense);
+    const statDamageMultiplier = 100 / (100 + defense);
+    const buffDamageMultiplier = Math.max(0.1, 1 - activeDefenseBonus / 100);
+    const damageMultiplier = statDamageMultiplier * (defending ? 0.5 : buffDamageMultiplier);
     this.health = Math.max(0, this.health - Math.ceil(amount * damageMultiplier));
     this.invulnerableUntil = now + 700;
     this.emit('health-changed', this.health, this.maxHealth);
@@ -458,6 +465,11 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   private applyAttackBonus(damage: number): number {
     const bonus = this.scene.time.now < this.attackBonusUntil ? this.attackBonusPercent : 0;
     return Math.max(1, Math.round(damage * (1 + bonus / 100)));
+  }
+
+  private applyPlayerCritical(damage: number): number {
+    if (Math.random() * 100 >= playerStats.criticalRate) return damage;
+    return Math.round(damage * (1 + playerStats.criticalDamage / 100));
   }
 
   private applyTimedBuff(attackPercent: number, defensePercent: number, durationMs: number): void {

@@ -1,0 +1,26 @@
+{
+  "id": 1001,
+  "name": "プレイヤー",
+  "level": 1,
+  "upgrade_id": 1,
+  "skill_id": null,
+  "description": "操作キャラクター。戦士の成長プロフィールを使用します。",
+  "req_items": [],
+  "stats": {
+    "hp": 100,
+    "mp": 0,
+    "physicalAttack": 18,
+    "magicAttack": 0,
+    "physicalDefense": 0,
+    "magicDefense": 0,
+    "healingPower": 0,
+    "attackIntervalMs": 500,
+    "agility": 100,
+    "criticalRate": 0,
+    "criticalDamage": 30,
+    "contractFlowerId": 0,
+    "moveSpeed": 160,
+    "jumpPower": 330,
+    "fallGravityBonus": 220
+  }
+}
