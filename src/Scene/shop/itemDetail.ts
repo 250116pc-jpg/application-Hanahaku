@@ -109,6 +109,8 @@ export function createItemDetail(
     show(item: ShopItem) {
       currentItem = item
       itemImage.setTexture(getShopItemImageKey(item.id))
+      const size = item.id === 13 ? 136 : 96
+      itemImage.setScale(Math.min(size / itemImage.width, size / itemImage.height))
       nameText.setText(item.name)
       setDescription(item.description ?? '説明なし')
       priceText.setText(`価格  ${item.price.toLocaleString()} G`)

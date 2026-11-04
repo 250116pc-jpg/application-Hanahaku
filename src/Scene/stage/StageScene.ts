@@ -50,6 +50,7 @@ const statusIconUrls = import.meta.glob('../../assets/images/status/*.png', {
 
 export class StageScene extends Phaser.Scene {
   private player!: Player;
+  public getRecoveryPlayer(): Player { return this.player; }
   private hud!: StageHUD;
   private enemies: Enemy[] = [];
   private stageId = 2;

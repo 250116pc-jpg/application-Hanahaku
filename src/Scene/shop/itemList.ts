@@ -29,6 +29,7 @@ export function createShopItemList(
       .setInteractive({ useHandCursor: true })
     const image = scene.add.image(-CARD_WIDTH / 2 + 48, -12, getShopItemImageKey(item.id))
       .setDisplaySize(64, 64)
+    if (item.id === 13) image.setScale(Math.min(90 / image.width, 90 / image.height))
     const name = scene.add.text(-CARD_WIDTH / 2 + 90, -CARD_HEIGHT / 2 + 20, item.name, {
       fontFamily: '"Yu Gothic", "Meiryo", sans-serif',
       fontSize: '18px',
