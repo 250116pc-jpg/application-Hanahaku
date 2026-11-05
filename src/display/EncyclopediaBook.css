@@ -42,3 +42,26 @@
 .encyclopedia-book-tabs{display:grid;grid-template-rows:repeat(4,1fr)}
 .encyclopedia-page-preview{z-index:2}
 .encyclopedia-turn-content{z-index:3;pointer-events:none}
+
+.encyclopedia-book-screen { padding-inline: 6vw; }
+.encyclopedia-book-tabs {
+  left: -4%; width: 109%; grid-template-columns: 11.93% 11.93%;
+  justify-content: space-between; pointer-events: none; z-index: 5;
+}
+.encyclopedia-book-tabs button { pointer-events: auto; }
+.encyclopedia-book-tabs .season-past {
+  position: relative;
+  isolation: isolate;
+  background-image: none;
+  padding: 0 17% 0 0;
+}
+.encyclopedia-book-tabs .season-past::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: url('../assets/images/encyclopedia/journal-tab.png') center / contain no-repeat;
+  transform: scaleX(-1);
+  pointer-events: none;
+}
+
