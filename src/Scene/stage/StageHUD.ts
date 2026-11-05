@@ -1,3 +1,8 @@
+import { playUiSe } from '../../audio/BgmManager';
+import retreatPanel from '../../assets/inventory-fantasy/panel-frame.png';
+import retreatButtonNormal from '../../assets/inventory-fantasy/button-normal.png';
+import retreatButtonHover from '../../assets/inventory-fantasy/button-hover.png';
+import retreatButtonPressed from '../../assets/inventory-fantasy/button-pressed.png';
 import Phaser from 'phaser';
 import { getTextStyle } from '../../utils/ui/index.ts';
 import testData, { getFlowerSkill } from '../test_data.ts';
@@ -94,9 +99,25 @@ export class StageHUD {
         .setDisplaySize(22, 22).setScrollFactor(0).setDepth(this.depth + 3).setVisible(false);
       const onRecovery = (active: boolean): void => { icon.setVisible(active); };
       const onPotion = (): void => { this.playSkillEffect({ type: 'heal', durationMs: 10000 }, 'heal', [], [[1]]); };
+      const attackIcon = this.scene.add.image(x + panelW - 56, y + 21, 'status-buff_atk_up')
+        .setDisplaySize(22, 22).setScrollFactor(0).setDepth(this.depth + 3).setVisible(false);
+      const defenseIcon = this.scene.add.image(x + panelW - 82, y + 21, 'status-buff_def_up')
+        .setDisplaySize(22, 22).setScrollFactor(0).setDepth(this.depth + 3).setVisible(false);
+      const updateGems = (): void => {
+        attackIcon.setVisible(this.player?.isGemActive(14) ?? false);
+        defenseIcon.setVisible(this.player?.isGemActive(15) ?? false);
+      };
+      const onGem = (id: number): void => {
+        updateGems();
+        this.playSkillEffect({ type: id === 14 ? 'balanced' : 'fortify', durationMs: 1800 }, 'buff', [], [[1]]);
+      };
+      this.player.on('gem-used', onGem);
+      this.scene.events.on(Phaser.Scenes.Events.UPDATE, updateGems);
       this.player.on('recovery-status', onRecovery);
       this.player.on('potion-recovery', onPotion);
       this.scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+        this.player?.off('gem-used', onGem);
+        this.scene.events.off(Phaser.Scenes.Events.UPDATE, updateGems);
         this.player?.off('recovery-status', onRecovery);
         this.player?.off('potion-recovery', onPotion);
       });
@@ -229,51 +250,62 @@ export class StageHUD {
     Object.assign(panel.style, {
       boxSizing: 'border-box',
       width: 'min(650px, 90%)',
-      minHeight: '300px',
-      padding: '42px 28px',
-      border: '2px solid #b99a65',
-      borderRadius: '12px',
-      background: 'linear-gradient(145deg, #1c3143, #0b1726)',
-      color: '#f5e6c5',
-      boxShadow: 'inset 0 0 0 3px #344657, 0 14px 35px #0009',
+      minHeight: 'min(280px, 84%)',
+      maxHeight: '94%',
+      overflowY: 'auto',
+      padding: 'clamp(14px, 4vh, 30px) 18px',
+      border: 'solid transparent',
+      borderWidth: '20px 28px',
+      borderImage: `url("${retreatPanel}") 220 330 fill / 20px 28px / 0 stretch`,
+      borderRadius: '0',
+      background: 'transparent',
+      imageRendering: 'pixelated',
+      color: '#45301e',
+      boxShadow: 'none',
       textAlign: 'center',
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
       justifyContent: 'space-between',
-      gap: '20px'
+      gap: 'clamp(10px, 3vh, 20px)'
     });
     const title = document.createElement('div');
     title.textContent = 'ステージから撤退しますか？';
     Object.assign(title.style, { fontSize: 'clamp(20px, 3vw, 32px)', fontWeight: 'bold' });
     const warning = document.createElement('div');
     warning.textContent = '進行状況が失われます。';
-    Object.assign(warning.style, { fontSize: 'clamp(16px, 2vw, 24px)', color: '#e4d3b0' });
+    Object.assign(warning.style, { fontSize: 'clamp(16px, 2vw, 24px)', color: '#795331' });
     const actions = document.createElement('div');
-    Object.assign(actions.style, { display: 'flex', gap: '18px', justifyContent: 'center', flexWrap: 'wrap' });
+    Object.assign(actions.style, { display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', width: '100%', gap: '12px' });
     const makeAction = (label: string, onClick: () => void): HTMLButtonElement => {
       const action = document.createElement('button');
       action.type = 'button';
       action.textContent = label;
       Object.assign(action.style, {
-        minWidth: '180px',
-        minHeight: '58px',
-        padding: '8px 18px',
-        border: '2px solid #b99a65',
-        borderRadius: '8px',
-        background: '#132638',
+        minWidth: '0',
+        minHeight: '48px',
+        padding: '8px 4px',
+        border: 'solid transparent',
+        borderWidth: '0 18px',
+        borderImage: `url("${retreatButtonNormal}") 0 450 fill / 0 18px / 0 stretch`,
+        borderRadius: '0',
+        background: 'transparent',
+        imageRendering: 'pixelated',
         color: '#f5e6c5',
-        font: 'bold 20px Yu Mincho, YuMincho, serif',
+        font: 'bold clamp(14px, 2vw, 20px) Meiryo, sans-serif',
         cursor: 'pointer'
       });
       action.addEventListener('click', onClick);
-      action.addEventListener('pointerenter', () => { action.style.background = '#34506a'; });
-      action.addEventListener('pointerleave', () => { action.style.background = '#132638'; });
+      action.addEventListener('pointerdown', () => { action.style.borderImageSource = `url("${retreatButtonPressed}")`; });
+      action.addEventListener('pointerup', () => { action.style.borderImageSource = `url("${retreatButtonNormal}")`; });
+      action.addEventListener('pointerenter', () => { action.style.borderImageSource = `url("${retreatButtonHover}")`; });
+      action.addEventListener('pointerleave', () => { action.style.borderImageSource = `url("${retreatButtonNormal}")`; });
       return action;
     };
     let closing = false;
     const closeDialog = (retreat: boolean): void => {
       if (closing) return;
+      playUiSe(this.scene, retreat ? 'confirm' : 'cancel');
       closing = true;
       dialog.style.pointerEvents = 'none';
       let finished = false;

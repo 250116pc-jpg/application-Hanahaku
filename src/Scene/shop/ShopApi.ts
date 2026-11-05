@@ -27,15 +27,14 @@ export async function requestShop(action: 'state' | 'buy' | 'consume' = 'state',
    state={coin:state.coin-total,items:{...state.items,[String(itemId)]:count+quantity}}
   }
   if(action==='consume') {
-   if((itemId!==12 && itemId!==13) || quantity!==1) throw new Error('使用できないアイテムです。')
+   if(![12,13,14,15].includes(itemId ?? 0) || quantity!==1) throw new Error('使用できないアイテムです。')
    const count=state.items[String(itemId)] ?? 0
-   if(count<1) throw new Error(itemId===12 ? '治療薬が足りません。' : '回復薬を所持していません。')
+   if(count<1) throw new Error(itemId===12 ? '治療薬が足りません。' : 'アイテムを所持していません。')
    state={...state,items:{...state.items,[String(itemId)]:count-1}}
   }
   sessionStorage.setItem(key,JSON.stringify(state))
   return state
  }
- if(action==='consume' && itemId!==12) throw new Error('現在はテストモードでのみ使用できます。')
  const base=getPhpBaseUrl()
  const response=await fetch(`${base}/shop/state.php`,{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify({action,itemId,quantity})})
  const result=await response.json()

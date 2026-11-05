@@ -238,7 +238,7 @@ export class SettingsScene extends Phaser.Scene {
   private renderCredits(): void {
     this.text(this.body, 410, 245, 'フラワーリンク  − Flower link −', 23);
     this.text(this.body, 410, 296,
-      '制作：Aチーム（中村・武田・斎藤）\n音声：VOICEVOX:ずんだもん\nBGM：PeriTune\n  Frosylva / Harbor Morning / Ancient Gust\n効果音：OtoLogic\n画像・制作支援：ChatGPT / Gemini / 三日月アルペジオ / AutoSprite\nゲームエンジン：Phaser', 16).setLineSpacing(9);
+      '制作：Aチーム（中村・武田・斎藤）\n音声：VOICEVOX:ずんだもん\nBGM：PeriTune\n  Frosylva / Harbor Morning / Ancient Gust\n効果音：OtoLogic\n画像・制作支援：ChatGPT / Gemini / 三日月アルペジオ / AutoSprite\n本のアニメーション：Art by Gridwright\nゲームエンジン：Phaser', 16).setLineSpacing(9);
   }
   private renderAccount(): void {
     let user: { name?: unknown; email?: unknown } | null = null;
@@ -287,8 +287,3 @@ export class SettingsScene extends Phaser.Scene {
     }
   }
 }
-
-
-
-
-

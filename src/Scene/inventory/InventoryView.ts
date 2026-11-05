@@ -1,3 +1,4 @@
+import './InventoryFantasy.css'
 import Phaser from 'phaser'
 import inventorySlot from '../../assets/images/inventory/slot.png'
 import lockedSlot from '../../assets/images/inventory/slot_lock.png'
@@ -33,6 +34,7 @@ export class InventoryView {
   create(): void {
     this.root = document.createElement('div')
     this.root.className = 'hanahaku-inventory'
+    if (new URLSearchParams(window.location.search).get('inventory-style') !== 'classic') this.root.classList.add('inventory-fantasy-preview')
     const style = document.createElement('style')
     style.textContent = `
       .hanahaku-inventory { position:fixed; inset:0; z-index:1000; box-sizing:border-box;
@@ -264,7 +266,7 @@ const categories = document.createElement('nav')
   }
 
   showRecoveryUse(disabled: boolean): void {
-    const use = this.button('回復薬を使う（テスト）', () => this.callbacks.onUse?.())
+    const use = this.button('使用する', () => this.callbacks.onUse?.())
     use.disabled = disabled
     this.detail.append(use)
   }

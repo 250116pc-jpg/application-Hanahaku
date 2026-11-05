@@ -10,7 +10,7 @@ $quantity = array_key_exists('quantity', $body) ? $body['quantity'] : 1;
 if ($action === 'buy' && (!is_int($quantity) || $quantity < 1 || $quantity > 99)) {
  respond(['ok'=>false,'error'=>'購入数は1～99個で指定してください。'],422);
 }
-if ($action === 'consume' && (($body['itemId'] ?? null) !== 12 || $quantity !== 1)) {
+if ($action === 'consume' && (!is_int($body['itemId'] ?? null) || !in_array($body['itemId'], [12, 13, 14, 15], true) || $quantity !== 1)) {
  respond(['ok'=>false,'error'=>'使用できないアイテムです。'],422);
 }
 $catalog = json_decode(file_get_contents(__DIR__.'/items.json'), true, 512, JSON_THROW_ON_ERROR);
@@ -37,9 +37,11 @@ try {
   $items->$key=$count+$quantity; $coin-=$total;
  }
  if ($action === 'consume') {
-  $count = $items->{'12'} ?? 0;
-  if ($count < 1) throw new RuntimeException('治療薬が足りません。');
-  $items->{'12'} = $count - 1;
+  $id = $body['itemId'];
+  $key = (string)$id;
+  $count = $items->$key ?? 0;
+  if ($count < 1) throw new RuntimeException($id === 12 ? '治療薬が足りません。' : 'アイテムを所持していません。');
+  $items->$key = $count - 1;
  }
  if ($action !== 'state') {
   $q=$pdo->prepare('UPDATE users SET coin = ?, items = ? WHERE id = ?');

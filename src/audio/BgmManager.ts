@@ -3,6 +3,16 @@ import titleBgm from '../assets/audio/PathOfAdventure/PeriTune_Frosylva.mp3'
 import homeBgm from '../assets/audio/PathOfAdventure/PeriTune_Harbor_Morning_loop.mp3'
 import stageBgm from '../assets/audio/PathOfAdventure/Peritune_Ancient_Gust_loop.mp3'
 import clickSe from '../assets/audio/PathOfAdventure/NoLoop/line.wav'
+const seAssets = import.meta.glob('../assets/audio/se-lab/*.mp3', { eager: true, query: '?url', import: 'default' }) as Record<string, string>
+export type UiSe = 'confirm' | 'select' | 'cancel' | 'open' | 'purchase' | 'error' | 'recover' | 'confirm-wood'
+// Use ?se-confirm=wood to compare the wooden confirmation sound.
+const lastUiSound = new WeakMap<Phaser.Game, number>()
+export function playUiSe(scene: Phaser.Scene, kind: UiSe): void {
+  lastUiSound.set(scene.game, performance.now())
+  resumeAudioFromGesture(scene)
+  const selected = kind === 'confirm' && new URLSearchParams(location.search).get('se-confirm') === 'wood' ? 'confirm-wood' : kind
+  playSe(scene, `ui-${selected}`)
+}
 
 
 export const BGM_KEYS = {
@@ -81,6 +91,7 @@ export function preloadAudio(scene: Phaser.Scene): void {
   scene.load.audio(BGM_KEYS.home, homeBgm)
   scene.load.audio(BGM_KEYS.stage, stageBgm)
   scene.load.audio(CLICK_SE_KEY, clickSe)
+  for (const [path, url] of Object.entries(seAssets)) scene.load.audio(`ui-${path.split('/').pop()!.replace('.mp3', '')}`, url)
 }
 
 function sceneBgmKey(scene: Phaser.Scene): string | null {
@@ -124,7 +135,10 @@ export function initializeAudio(scene: Phaser.Scene): void {
           state.pendingClick = true
           waitForUnlock(target, state)
         } else {
-          playSe(target, CLICK_SE_KEY)
+          // Scene handlers may play a more specific sound in this same gesture.
+          queueMicrotask(() => {
+            if (performance.now() - (lastUiSound.get(target.game) ?? -Infinity) > 50) playSe(target, CLICK_SE_KEY)
+          })
         }
       })
     })
@@ -244,7 +258,7 @@ export function startBgm(scene: Phaser.Scene): void {
 }
 
 export function playSe(scene: Phaser.Scene, key: string): void {
-  if (scene.cache.audio.exists(key)) {
+  if (!stateFor(scene).settings.isMuted && scene.cache.audio.exists(key)) {
     scene.sound.play(key, { volume: stateFor(scene).settings.seVolume })
   }
 }

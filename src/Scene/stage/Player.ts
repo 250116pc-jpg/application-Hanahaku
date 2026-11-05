@@ -53,6 +53,30 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     return this.baseMaxHealth + this.maxHealthBonus;
   }
   public health = this.maxHealth;
+  private itemAttackUntil = 0;
+  private itemDefenseUntil = 0;
+
+  public itemUnavailable(id: number): string | null {
+    if (id === 13) return this.recoveryPotionUnavailable;
+    if (this.dead || !this.active) return '戦闘不能中は使用できません。';
+    if (![14,15].includes(id)) return '使用できないアイテムです。';
+    if (this.scene.time.now < (id === 14 ? this.itemAttackUntil : this.itemDefenseUntil)) return 'この宝石の効果中です。';
+    return null;
+  }
+
+  public isGemActive(id: number): boolean {
+    return this.active && !this.dead && this.scene.time.now < (id === 14 ? this.itemAttackUntil : this.itemDefenseUntil);
+  }
+
+  public startBattleItem(id: number): boolean {
+    if (this.itemUnavailable(id)) return false;
+    if (id === 13) return this.startRecoveryPotion();
+    if (id === 14) this.itemAttackUntil = this.scene.time.now + 30000;
+    else this.itemDefenseUntil = this.scene.time.now + 30000;
+    this.emit('gem-used', id);
+    return true;
+  }
+
   private potionRecovering = false;
   private regenerationTimers: Phaser.Time.TimerEvent[] = [];
 
@@ -433,7 +457,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     const statDamageMultiplier = 100 / (100 + defense);
     const buffDamageMultiplier = Math.max(0.1, 1 - activeDefenseBonus / 100);
     const damageMultiplier = statDamageMultiplier * buffDamageMultiplier * (defending ? 0.5 : 1);
-    this.health = Math.max(0, this.health - Math.ceil(amount * damageMultiplier));
+    this.health = Math.max(0, this.health - Math.ceil(amount * damageMultiplier * (damageType === 'physical' && now < this.itemDefenseUntil ? 0.8 : 1)));
     this.invulnerableUntil = now + 700;
     this.emit('health-changed', this.health, this.maxHealth);
 
@@ -539,7 +563,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
   private applyAttackBonus(damage: number): number {
     const bonus = this.scene.time.now < this.attackBonusUntil ? this.attackBonusPercent : 0;
-    return Math.max(1, Math.round(damage * (1 + bonus / 100)));
+    return Math.max(1, Math.round(damage * (1 + bonus / 100) * (this.scene.time.now < this.itemAttackUntil ? 1.2 : 1)));
   }
 
   private applyPlayerCritical(damage: number): number {
