@@ -1,3 +1,4 @@
+import { readFlowerContracts } from './stage/flowerContracts'
 import { mountEncyclopediaBook } from '../display/EncyclopediaBook'
 import questionSpring from '../assets/images/encyclopedia/unknown-spring.png'
 import questionSummer from '../assets/images/encyclopedia/unknown-summer.png'
@@ -71,7 +72,7 @@ export class EncyclopediaScene extends Phaser.Scene {
   this.closeDetail()
   this.input.enabled = false
   this.detailCleanup = mountFlowerDetail(flower, {
-   owned: contractPreview.owned.has(flower.id),
+   owned: contractPreview.owned.has(flower.id) || !!readFlowerContracts()[flower.id],
    unknownUrl: unknownFlowers[flower.season].url,
    onClose: () => { this.closeDetail(); this.list() },
    onHome: () => { this.closeDetail(); this.scene.start('HomeScene') },

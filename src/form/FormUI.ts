@@ -4,7 +4,7 @@ import { getTextStyle } from '../utils/ui'
 
 const BORDER = 0xb68b4d
 const CARD_BORDER = 0xb68b4d
-const SELECTED_FILL = 0xe5eddb
+const SELECTED_FILL = 0xf5e5d3
 
 export class FormUI {
 
@@ -41,7 +41,7 @@ export class FormUI {
       fill
     )
       .setOrigin(0, 0)
-      .setStrokeStyle(selected ? 4 : 2, selected ? 0x557649 : CARD_BORDER)
+      .setStrokeStyle(selected ? 4 : 2, selected ? 0x9e5145 : CARD_BORDER)
       .setInteractive({ useHandCursor: true })
 
     const power = this.getPower(character)
@@ -73,7 +73,7 @@ export class FormUI {
       8 * scale,
       91 * scale,
       '★'.repeat(character.rarity),
-      this.textStyle(14 * scale, '#ffd230')
+      this.textStyle(14 * scale, '#a9822e')
     )
 
     const element = this.scene.add.circle(
@@ -103,13 +103,13 @@ export class FormUI {
 
     if (inFormation) {
   const check = this.scene.add.text(
-    width - 25 * scale,
-    -13 * scale,
-    '✓',
-    this.textStyle(34 * scale, '#ffd230')
+    width - 44 * scale,
+    23 * scale,
+    '編成中',
+    this.textStyle(10 * scale, '#ffffff')
   )
 
-  check.setStroke('#5b4216', 5 * scale)
+  check.setBackgroundColor('#536c53').setPadding(3, 2, 3, 2)
 
   container.add(check)
 }
@@ -140,16 +140,16 @@ return container
     const background = this.scene.add.rectangle(
       0, 0,
       128, 112,
-      selected ? 0xe5eddb : 0xfff8e9
+      selected ? 0xf5e5d3 : 0xfff8e9
     )
       .setOrigin(0, 0)
-      .setStrokeStyle(selected ? 3 : 2, selected ? 0x557649 : CARD_BORDER)
+      .setStrokeStyle(selected ? 3 : 2, selected ? 0x9e5145 : CARD_BORDER)
       .setInteractive({ useHandCursor: true })
 
     const text = this.scene.add.text(
       64,
       56,
-      '空き',
+      '＋ 配置枠',
       this.textStyle(18, '#6b7280')
     ).setOrigin(0.5)
 
@@ -180,7 +180,7 @@ return container
       x, y,
       width,
       32,
-      active ? 0x557649 : 0xfff8e9
+      active ? 0x9e5145 : 0xfff8e9
     )
       .setStrokeStyle(2, BORDER)
       .setInteractive({ useHandCursor: true })
@@ -192,11 +192,21 @@ return container
       this.textStyle(16, active ? '#fff8e9' : '#263b31')
     ).setOrigin(0.5)
 
+    let pressed = false
     background.on('pointerdown', () => {
-      background.setFillStyle(0xdbeafe)
+      pressed = true
+      background.setFillStyle(0xe6d9bd)
     })
-
-    background.on('pointerup', onClick)
+    background.on('pointerout', () => {
+      pressed = false
+      background.setFillStyle(active ? 0x9e5145 : 0xfff8e9)
+    })
+    background.on('pointerup', () => {
+      if (!pressed) return
+      pressed = false
+      background.setFillStyle(active ? 0x9e5145 : 0xfff8e9)
+      onClick()
+    })
 
     container.add([
       background,
@@ -215,7 +225,7 @@ createActionButton(
   onClick: () => void
 ): void {
 
-  const fill = primary ? 0x557649 : 0xfff8e9
+  const fill = primary ? 0x9e5145 : 0xfff8e9
   const color = primary ? '#ffffff' : '#263b31'
 
   const button = this.scene.add.rectangle(
@@ -240,13 +250,13 @@ createActionButton(
     pressed = true
 
     button.setFillStyle(
-      primary ? 0x2f6fc8 : 0xdbeafe
+      primary ? 0x823f35 : 0xe6d9bd
     )
   })
 
   button.on('pointerover', () => {
     button.setFillStyle(
-      primary ? 0x3c7cdf : 0xeaf4fb
+      primary ? 0xb36554 : 0xf1e5cb
     )
   })
 
@@ -290,9 +300,9 @@ createActionButton(
 
 
   private getElementColor(element: string): number {
-    if (element === '火') return 0xe85d4f
-    if (element === '水') return 0x3b82f6
-    if (element === '風') return 0x22c55e
+    if (element === '火' || element === '熱') return 0xe85d4f
+    if (element === '水' || element === '冷') return 0x3b82f6
+    if (element === '風' || element === '自然') return 0x22c55e
     if (element === '土') return 0x9a6b3f
 
     return 0x8b5cf6

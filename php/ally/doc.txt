@@ -6,3 +6,8 @@ upgrade_id	強化id	int	外部キー
 skill_id	スキルid	int	外部キー
 description	キャラの説明	text
 req_items	強化に必要なアイテムと数	json
+
+プレイヤーの基本ステータスは1001.jsonのstatsに記述します。
+levelは成長計算に使い、upgrade_idはupgrades.jsonのupgrade_idを参照します。
+upgrade_idの成長値 × (level - 1) を基本ステータスへ加算します。未指定の成長項目は変化しません。
+敵も同じupgrades.jsonを参照するため、強化ID 1〜7は味方・敵で共通です。

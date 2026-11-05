@@ -1,3 +1,4 @@
+import { readFlowerContracts } from '../Scene/stage/flowerContracts'
 import type { Season } from '../Scene/test_data'
 import { prototypeFlowers, contractPreview, type PrototypeFlower } from '../Scene/encyclopedia/contractPreview'
 import './EncyclopediaBook.css'
@@ -26,12 +27,12 @@ export function mountEncyclopediaBook(options: {
  }
  const close=():void=>{if(busy)return;animate(true,options.onHome)}
  const title=document.createElement('h1');title.textContent='花の図鑑';ui.append(title)
- const progress=document.createElement('p');progress.className='encyclopedia-book-progress';progress.textContent=`花契済み ${contractPreview.owned.size} / ${prototypeFlowers.length}`;ui.append(progress)
+ const progress=document.createElement('p');progress.className='encyclopedia-book-progress';progress.textContent=`花契済み ${new Set([...contractPreview.owned, ...Object.keys(readFlowerContracts()).map(Number)]).size} / ${prototypeFlowers.length}`;ui.append(progress)
  const grid=document.createElement('div');grid.className='encyclopedia-book-grid';ui.append(grid)
  const flowers=prototypeFlowers.filter(f=>f.season===options.season)
  const pages=Math.max(1,Math.ceil(flowers.length/8)),page=Math.min(options.page,pages-1)
  flowers.slice(page*8,page*8+8).forEach(f=>{
-  const owned=contractPreview.owned.has(f.id),card=button(grid,'',()=>options.onSelect(f));card.className='encyclopedia-book-card'
+  const owned=contractPreview.owned.has(f.id) || !!readFlowerContracts()[f.id],card=button(grid,'',()=>options.onSelect(f));card.className='encyclopedia-book-card'
   const image=document.createElement('img');image.src=owned?f.url:options.unknown[f.season].url;image.alt=owned?f.name:'未契約の花'
   const label=document.createElement('span');label.textContent=owned?f.name:'？？？';const picture=document.createElement('span');picture.className='encyclopedia-book-picture';picture.append(image);card.append(picture,label)
  })

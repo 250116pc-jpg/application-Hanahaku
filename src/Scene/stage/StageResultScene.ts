@@ -11,6 +11,7 @@ interface StageResultData {
   coins: number;
   persisted: 'server' | 'device';
   saveError?: string;
+  contractMessage?: string;
 }
 
 export class StageResultScene extends Phaser.Scene {
@@ -42,6 +43,11 @@ export class StageResultScene extends Phaser.Scene {
       this.add.text(width / 2, 438, data.saveError, getTextStyle(15, { color: '#f2c6b8', align: 'center' })).setOrigin(0.5);
     }
 
+    if (data.contractMessage) {
+      this.add.text(width / 2, 490, data.contractMessage, getTextStyle(24, {
+        color: '#ffe59c', fontStyle: 'bold',
+      })).setOrigin(0.5);
+    }
     const buttonY = height - 105;
     if (!data.victory) this.createButton(width / 2 - 220, buttonY, 'もう一度', 0x527c63, () => {
       this.scene.start(SCENE_KEYS.STAGE, { stageId: data.stageId, stageNumber: data.stageNumber });

@@ -488,6 +488,7 @@ export class StageHUD {
     const w = this.scene.scale.width;
     const h = this.scene.scale.height;
     const baseX = w - 72;
+    this.createGuardButton(baseX - 154, h - 215);
     //攻撃
     this.imageButton(baseX - 154, h - 94, 130, '', 'stage-attack', () => this.player?.attack(this.enemies));
     // Flower cards are the skill buttons; this label reports the selected flower's skill state.
@@ -498,7 +499,35 @@ export class StageHUD {
     this.imageButton(baseX - 40, h - 64, 130, '', 'stage-jump', () => this.player?.jump());
   }
 
-  private imageButton(x: number, y: number, size: number, label: string, texture: string, onClick: () => void): void {
+  private createGuardButton(x: number, y: number): void {
+    const key = 'stage-guard';
+    if (!this.scene.textures.exists(key)) {
+      const art = this.scene.make.graphics({ x: 0, y: 0 }, false);
+      art.fillStyle(0x202a37).fillCircle(60, 60, 55);
+      art.lineStyle(2, 0xe5d4a5).strokeCircle(60, 60, 54);
+      art.lineStyle(1, 0xbca780).strokeCircle(60, 60, 50);
+      for (const [px, py] of [[60, 9], [111, 60], [60, 111], [9, 60]]) {
+        art.strokePoints([{ x: px, y: py - 4 }, { x: px + 4, y: py },
+          { x: px, y: py + 4 }, { x: px - 4, y: py }], true);
+      }
+      art.fillStyle(0xf4dfb8).fillPoints([{ x: 39, y: 31 }, { x: 60, y: 24 },
+        { x: 81, y: 31 }, { x: 78, y: 53 }, { x: 60, y: 69 }, { x: 42, y: 53 }], true);
+      art.lineStyle(2, 0x8b7458).lineBetween(60, 32, 60, 60).lineBetween(47, 43, 73, 43);
+      art.generateTexture(key, 120, 120);
+      art.destroy();
+    }
+    const button = this.imageButton(x, y, 106, '', key, () => this.player?.guard());
+    const label = this.text(x, y + 23, '防御', 19, '#f4dfb8', 'bold')
+      .setOrigin(0.5).setDepth(this.depth + 4);
+    this.scene.time.addEvent({ delay: 50, loop: true, callback: () => {
+      const active = this.player?.isGuarding() === true;
+      if (active) button.setTint(0xa0ebff);
+      else button.clearTint();
+      label.setText(active ? '防御中' : '防御');
+    } });
+  }
+
+  private imageButton(x: number, y: number, size: number, label: string, texture: string, onClick: () => void): Phaser.GameObjects.Image {
     const image = this.scene.add.image(x, y, texture).setDisplaySize(size, size)
       .setScrollFactor(0).setDepth(this.depth + 3);
     // Use a screen-fixed rectangular target independent of the PNG's transparent pixels.
@@ -519,6 +548,7 @@ export class StageHUD {
       onClick();
     });
     hitArea.on('pointerupoutside', () => image.setScale(baseScale));
+    return image;
   }
 
   private useSelectedFlowerSkill(index = this.selectedFlower): void {
@@ -582,6 +612,9 @@ export class StageHUD {
       heal: 0xff77b9, evasion: 0x9a83ff,
     };
     const color = tintByType[skill.type];
+    if (phase === 'charge' || phase === 'buff' || phase === 'heal') {
+      this.createImpactBurst(this.player.x, this.player.y - 48, color, 1.1);
+    }
     if (phase === 'impact' || phase === 'charge') this.showSkillFootprint(area, color);
 
     if (phase === 'buff' || phase === 'heal') {
@@ -597,8 +630,15 @@ export class StageHUD {
       return;
     }
 
+    const facingLeft = this.player.flipX;
     if (skill.type === 'charge') {
       this.fireSunBeam(area, color);
+    }
+    if (targets.length === 0) {
+      const x = this.player.x + (facingLeft ? -52 : 52);
+      const y = this.player.y - 48;
+      this.playSkillSprite(x, y, sheetByType[skill.type], 150, color, true, facingLeft);
+      this.createImpactBurst(x, y, color, 0.8);
     }
     if (targets.length > 0) {
       const hitY = skill.type === 'charge' ? this.player.y - 48 : undefined;
@@ -608,7 +648,7 @@ export class StageHUD {
         const bounds = this.getAreaBounds(area);
         const size = Phaser.Math.Clamp(Math.max(bounds.width, bounds.height) * (skill.type === 'maple' ? 0.95 : 0.72), 150, skill.type === 'charge' ? 300 : 250);
         this.scene.time.delayedCall(index * 38, () => {
-          this.playSkillSprite(x, y, sheetByType[skill.type], size, color, true);
+          this.playSkillSprite(x, y, sheetByType[skill.type], size, color, true, facingLeft);
           this.createImpactBurst(x, y, color, skill.type === 'maple' ? 1.45 : 1);
         });
       });
@@ -618,12 +658,12 @@ export class StageHUD {
     }
   }
 
-  private playSkillSprite(x: number, y: number, sheet: string, size: number, color: number, additive: boolean): void {
+  private playSkillSprite(x: number, y: number, sheet: string, size: number, color: number, additive: boolean, facingLeft = false): void {
     const animationKey = `skill-effect-${sheet}`;
     if (!this.scene.anims.exists(animationKey)) return;
     const sprite = this.scene.add.sprite(x, y, `skill-effect-${sheet}`)
       .setOrigin(0.5).setDisplaySize(size, size).setDepth(this.depth - 4).setScrollFactor(1)
-      .setTint(color).setBlendMode(additive ? Phaser.BlendModes.ADD : Phaser.BlendModes.NORMAL).play(animationKey);
+      .setTint(color).setFlipX(facingLeft).setBlendMode(additive ? Phaser.BlendModes.ADD : Phaser.BlendModes.NORMAL).play(animationKey);
     sprite.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => sprite.destroy());
   }
 
@@ -646,7 +686,7 @@ export class StageHUD {
       graphics.lineStyle(1, 0xffffff, 0.72).lineBetween(x - 9, y, x + 9, y);
       graphics.lineBetween(x, y - 9, x, y + 9);
     }));
-    this.scene.tweens.add({ targets: graphics, alpha: 0, scale: 1.12, duration: 360, onComplete: () => graphics.destroy() });
+    this.scene.tweens.add({ targets: graphics, alpha: 0, duration: 360, onComplete: () => graphics.destroy() });
   }
 
   private getAreaBounds(area: readonly (readonly number[])[]): { width: number; height: number } {
@@ -655,14 +695,22 @@ export class StageHUD {
   }
 
   private createImpactBurst(x: number, y: number, color: number, scale: number): void {
-    const burst = this.scene.add.graphics().setDepth(this.depth - 2).setScrollFactor(1);
-    burst.fillStyle(color, 0.34).fillCircle(x, y, 17 * scale);
-    burst.lineStyle(4, 0xffffff, 0.95).strokeCircle(x, y, 22 * scale);
+    const burst = this.scene.add.graphics({ x, y }).setDepth(this.depth - 2).setBlendMode(Phaser.BlendModes.ADD);
+    burst.fillStyle(color, 0.34).fillCircle(0, 0, 24 * scale);
+    burst.lineStyle(4, 0xffffff, 0.95).strokeCircle(0, 0, 22 * scale);
     burst.lineStyle(3, color, 0.95);
-    for (let i = 0; i < 10; i++) {
-      const angle = (Math.PI * 2 * i) / 10;
-      burst.lineBetween(x + Math.cos(angle) * 27 * scale, y + Math.sin(angle) * 27 * scale,
-        x + Math.cos(angle) * 56 * scale, y + Math.sin(angle) * 56 * scale);
+    burst.strokeCircle(0, 0, 38 * scale);
+    for (let i = 0; i < 16; i++) {
+      const angle = (Math.PI * 2 * i) / 16;
+      const distance = (i % 2 === 0 ? 92 : 63) * scale;
+      const spark = this.scene.add.rectangle(x, y, 8, 4, i % 2 === 0 ? 0xfff5d4 : color)
+        .setRotation(angle).setDepth(this.depth - 1).setBlendMode(Phaser.BlendModes.ADD);
+      this.scene.tweens.add({
+        targets: spark, x: x + Math.cos(angle) * distance, y: y + Math.sin(angle) * distance,
+        alpha: 0, scale: 0.25, duration: 380, ease: 'Cubic.Out', onComplete: () => spark.destroy(),
+      });
+      burst.lineBetween(Math.cos(angle) * 27 * scale, Math.sin(angle) * 27 * scale,
+        Math.cos(angle) * 56 * scale, Math.sin(angle) * 56 * scale);
     }
     this.scene.tweens.add({ targets: burst, alpha: 0, scale: 1.45, duration: 260, ease: 'Cubic.Out', onComplete: () => burst.destroy() });
   }
@@ -707,7 +755,7 @@ export class StageHUD {
     const y = this.player.y - 52;
     const ring = this.scene.add.circle(x, y, 24, color, 0.08).setStrokeStyle(4, 0xfff2c0, 0.95).setDepth(this.depth - 3);
     this.scene.tweens.add({ targets: ring, scale: 2.5, alpha: 0.38, duration: 420, yoyo: true, repeat: Math.max(0, Math.floor(duration / 840) - 1) });
-    this.playSkillSprite(x, y - 16, '03_sun_beam', 210, color, true);
+    this.playSkillSprite(x, y - 16, '03_sun_beam', 210, color, true, this.player.flipX);
     this.scene.time.delayedCall(duration, () => { if (ring.active) ring.destroy(); });
   }
 
@@ -721,10 +769,10 @@ export class StageHUD {
     const length = Math.max(40, cells * 40);
     const centerY = this.player.y;
     const beamX = direction > 0 ? this.player.x + 20 : this.player.x - length - 20;
-    const beam = this.scene.add.graphics().setDepth(this.depth - 4).setScrollFactor(1);
-    beam.fillStyle(color, 0.22).fillRoundedRect(beamX, centerY - 24, length, 48, 18);
-    beam.fillStyle(0xfff3c4, 0.88).fillRoundedRect(beamX, centerY - 6, length, 12, 6);
-    beam.lineStyle(3, 0xffffff, 0.9).strokeRoundedRect(beamX, centerY - 20, length, 40, 16);
+    const beam = this.scene.add.graphics({ x: beamX, y: centerY }).setDepth(this.depth - 4).setScrollFactor(1);
+    beam.fillStyle(color, 0.22).fillRoundedRect(0, -24, length, 48, 18);
+    beam.fillStyle(0xfff3c4, 0.88).fillRoundedRect(0, -6, length, 12, 6);
+    beam.lineStyle(3, 0xffffff, 0.9).strokeRoundedRect(0, -20, length, 40, 16);
     this.scene.tweens.add({ targets: beam, alpha: 0, scaleY: 1.6, duration: 330, ease: 'Cubic.Out', onComplete: () => beam.destroy() });
   }
 

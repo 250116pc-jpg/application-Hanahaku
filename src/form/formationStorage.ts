@@ -43,11 +43,13 @@ export function loadFormation(): Array<number | null> {
   }
 }
 
-export function saveFormation(value: Array<number | null>): void {
+export function saveFormation(value: Array<number | null>): boolean {
   const formation = normalizeFormation(value);
   try {
-    if (typeof window !== 'undefined') window.localStorage.setItem(storageKey, JSON.stringify(formation));
+    if (typeof window === 'undefined') return false;
+    window.localStorage.setItem(storageKey, JSON.stringify(formation));
+    return true;
   } catch {
-    // Keep the current session usable when browser storage is unavailable.
+    return false;
   }
 }

@@ -1,43 +1,43 @@
 {
-  "profiles": [
+  "upgrades": [
     {
-      "id": 1,
+      "upgrade_id": 1,
       "job": "戦士",
       "direction": "圧倒的なタフさと前線維持能力（HP特化）",
       "growth": { "hp": 13, "mp": 6, "physicalAttack": 9, "magicAttack": 2, "physicalDefense": 8, "magicDefense": 5, "healingPower": 5, "criticalDamage": 2 }
     },
     {
-      "id": 2,
+      "upgrade_id": 2,
       "job": "剣闘士",
       "direction": "一撃の重さを追求した物理アタッカー（物攻特化）",
       "growth": { "hp": 7, "mp": 5, "physicalAttack": 12, "magicAttack": 2, "physicalDefense": 4, "magicDefense": 3, "healingPower": 4, "criticalDamage": 8 }
     },
     {
-      "id": 3,
+      "upgrade_id": 3,
       "job": "重騎士",
       "direction": "物理攻撃を完全にシャットアウトする鉄壁（物防特化）",
       "growth": { "hp": 10, "mp": 3, "physicalAttack": 5, "magicAttack": 1, "physicalDefense": 12, "magicDefense": 7, "healingPower": 4, "criticalDamage": 2 }
     },
     {
-      "id": 4,
+      "upgrade_id": 4,
       "job": "聖騎士",
       "direction": "魔法や呪いに強く、味方を守る盾（魔防特化・中MP）",
       "growth": { "hp": 8, "mp": 9, "physicalAttack": 6, "magicAttack": 5, "physicalDefense": 7, "magicDefense": 11, "healingPower": 7, "criticalDamage": 2 }
     },
     {
-      "id": 5,
+      "upgrade_id": 5,
       "job": "神官",
       "direction": "豊富なMPで戦線を維持し続ける癒やし手（回復・MP特化）",
       "growth": { "hp": 5, "mp": 11, "physicalAttack": 2, "magicAttack": 7, "physicalDefense": 4, "magicDefense": 7, "healingPower": 12, "criticalDamage": 2 }
     },
     {
-      "id": 6,
+      "upgrade_id": 6,
       "job": "暗殺者",
       "direction": "スキルで手数を稼ぐ、紙耐久・一撃必殺の超ロマン砲（クリダメ特化）",
       "growth": { "hp": 4, "mp": 7, "physicalAttack": 9, "magicAttack": 2, "physicalDefense": 3, "magicDefense": 3, "healingPower": 2, "criticalDamage": 11 }
     },
     {
-      "id": 7,
+      "upgrade_id": 7,
       "job": "魔術師",
       "direction": "無限の魔力で広範囲を焼き尽くす高火力砲台（魔攻・MP特化）",
       "growth": { "hp": 4, "mp": 12, "physicalAttack": 2, "magicAttack": 12, "physicalDefense": 3, "magicDefense": 7, "healingPower": 4, "criticalDamage": 5 }

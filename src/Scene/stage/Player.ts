@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { changeCharacterAnimation } from '../../animation/animation.ts';
 import type { ServerFlowerSkill } from './SkillApi.ts';
+import { playerStats } from './allyStats.ts';
 
 const BUFF_EFFECT_COLOR = 0xff5964;
 const SKILL_AREA_CELL_SIZE = 40;
@@ -9,6 +10,7 @@ export type DamageType = 'physical' | 'magical';
 export interface CombatTarget {
   readonly x: number;
   readonly y: number;
+  readonly isDefeated?: boolean;
   receiveDamage(amount: number, damageType?: DamageType): void;
   applyAttackSpeedSlow?(percent: number, durationMs: number): void;
   applyStatusIcon?(iconKey: string, durationMs: number): void;
@@ -25,9 +27,9 @@ export type SkillVisualHandler = (
 
 export class Player extends Phaser.Physics.Arcade.Sprite {
   private cursors: Phaser.Types.Input.Keyboard.CursorKeys | undefined;
-  private readonly PLAYER_SPEED = 160;
-  private readonly JUMP_POWER = 330;
-  private readonly FALL_GRAVITY_BONUS = 220;
+  private readonly PLAYER_SPEED = playerStats.moveSpeed;
+  private readonly JUMP_POWER = playerStats.jumpPower;
+  private readonly FALL_GRAVITY_BONUS = playerStats.fallGravityBonus;
   private wasGrounded = true;
   private landingAnimationPlaying = false;
   private action: string | null = null;
@@ -43,9 +45,10 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   private continuousUntil = 0;
   private mapleIsRed = false;
   private skillVisualHandler?: SkillVisualHandler;
-  private readonly baseMaxHealth = 100;
+  private readonly baseMaxHealth = playerStats.hp;
   private maxHealthBonus = 0;
   private maxHealthBonusUntil = 0;
+  private nextBasicAttackAt = 0;
   public get maxHealth(): number {
     return this.baseMaxHealth + this.maxHealthBonus;
   }
@@ -202,6 +205,23 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   }
 
 
+  private guardUntil = 0;
+
+  public guard(): void {
+    const body = this.body as Phaser.Physics.Arcade.Body | null;
+    if (!body?.blocked.down || this.dead || this.action !== null ||
+        this.scene.time.now < this.chargeUntil || this.scene.time.now < this.continuousUntil) return;
+    this.guardUntil = this.scene.time.now + 900;
+    this.setVelocityX(0);
+    this.playAnimation('player-defend');
+  }
+
+  public isGuarding(): boolean {
+    const body = this.body as Phaser.Physics.Arcade.Body | null;
+    return !this.dead && this.action === null && body?.blocked.down === true &&
+      (this.cursors?.down?.isDown === true || this.scene.time.now < this.guardUntil);
+  }
+
   public update(): void {
     const body = this.body as Phaser.Physics.Arcade.Body;
     if (!body || !this.cursors || this.dead) return;
@@ -209,13 +229,13 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     // Preserve the jump arc on the way up, then make the descent a little snappier.
     body.setGravityY(!body.blocked.down && body.velocity.y > 0 ? this.FALL_GRAVITY_BONUS : 0);
 
-    if (this.action !== null) {
+    if (this.action !== null || this.isGuarding()) {
       this.setVelocityX(0);
     } else if (this.cursors.left?.isDown) {
-      this.setVelocityX(-this.PLAYER_SPEED);
+      this.setVelocityX(-this.PLAYER_SPEED * playerStats.agility / 100);
       this.setFlipX(true);
     } else if (this.cursors.right?.isDown) {
-      this.setVelocityX(this.PLAYER_SPEED);
+      this.setVelocityX(this.PLAYER_SPEED * playerStats.agility / 100);
       this.setFlipX(false);
     } else {
       this.setVelocityX(0);
@@ -226,7 +246,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     const isGrounded = body.blocked.down;
     if (this.action !== null) {
       // Keep the action animation visible until it completes.
-    } else if (this.cursors.down?.isDown && isGrounded) {
+    } else if (this.isGuarding()) {
       this.landingAnimationPlaying = false;
       this.playAnimation('player-defend');
     } else if (!isGrounded) {
@@ -244,16 +264,18 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
   public jump(): void {
     const body = this.body as Phaser.Physics.Arcade.Body;
-    if (body?.blocked.down) this.setVelocityY(-this.JUMP_POWER);
+    if (!this.dead && !this.isGuarding() && body?.blocked.down) this.setVelocityY(-this.JUMP_POWER);
   }
 
   public attack(targets: readonly CombatTarget[] = []): void {
-    if (this.scene.time.now < this.chargeUntil || this.scene.time.now < this.continuousUntil) return;
+    if (this.scene.time.now < this.chargeUntil || this.scene.time.now < this.continuousUntil ||
+        this.scene.time.now < this.nextBasicAttackAt) return;
     if (!this.playAction('attack', 'player-attack')) return;
+    this.nextBasicAttackAt = this.scene.time.now + playerStats.attackIntervalMs;
     this.showSlash();
     const hits = this.getTargetsInRange(targets, 125, false);
     hits.slice(0, 1).forEach(target => {
-      target.receiveDamage(this.applyAttackBonus(18));
+      target.receiveDamage(this.applyPlayerCritical(this.applyAttackBonus(playerStats.physicalAttack)));
       this.showHit(target.x, target.y - 44);
     });
   }
@@ -269,22 +291,22 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       .arc(x, y, 82, direction > 0 ? -1.2 : Math.PI + 0.2, direction > 0 ? 0.55 : Math.PI - 0.55, direction < 0).strokePath();
     slash.lineStyle(2, 0xffe7ce, 0.95).beginPath()
       .arc(x, y, 82, direction > 0 ? -1.2 : Math.PI + 0.2, direction > 0 ? 0.55 : Math.PI - 0.55, direction < 0).strokePath();
-    this.scene.tweens.add({ targets: slash, alpha: 0, scaleX: 1.14, scaleY: 1.14, duration: 240, onComplete: () => slash.destroy() });
+    this.scene.tweens.add({ targets: slash, alpha: 0, duration: 240, onComplete: () => slash.destroy() });
   }
 
   private showHit(x: number, y: number): void {
     this.scene.cameras.main.shake(70, 0.0025);
-    const burst = this.scene.add.graphics().setDepth(19).setScrollFactor(1);
+    const burst = this.scene.add.graphics({ x, y }).setDepth(19).setScrollFactor(1);
     burst.lineStyle(3, 0xffe4b0, 0.95);
     for (let i = 0; i < 7; i++) {
       const angle = (Math.PI * 2 * i) / 7;
-      burst.lineBetween(x + Math.cos(angle) * 8, y + Math.sin(angle) * 8, x + Math.cos(angle) * 25, y + Math.sin(angle) * 25);
+      burst.lineBetween(Math.cos(angle) * 8, Math.sin(angle) * 8, Math.cos(angle) * 25, Math.sin(angle) * 25);
     }
     this.scene.tweens.add({ targets: burst, alpha: 0, scale: 1.35, duration: 180, onComplete: () => burst.destroy() });
   }
 
   public canUseSkill(): boolean {
-    return !this.dead && this.action === null && this.scene.time.now >= this.chargeUntil;
+    return !this.dead && !this.isGuarding() && this.action === null && this.scene.time.now >= this.chargeUntil;
   }
 
   public setSkillVisualHandler(handler: SkillVisualHandler): void {
@@ -429,10 +451,12 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     if (this.dead || now < this.invulnerableUntil || amount <= 0) return;
     if (now < this.evasionUntil && Math.random() * 100 < this.evasionPercent) return;
 
-    const defending = this.cursors?.down?.isDown === true &&
-      (this.body as Phaser.Physics.Arcade.Body).blocked.down;
+    const defending = this.isGuarding();
     const activeDefenseBonus = now < this.defenseUntil ? this.defenseBonusPercent : 0;
-    const damageMultiplier = defending ? 0.5 : Math.max(0.1, 1 - activeDefenseBonus / 100);
+    const defense = Math.max(0, damageType === 'magical' ? playerStats.magicDefense : playerStats.physicalDefense);
+    const statDamageMultiplier = 100 / (100 + defense);
+    const buffDamageMultiplier = Math.max(0.1, 1 - activeDefenseBonus / 100);
+    const damageMultiplier = statDamageMultiplier * buffDamageMultiplier * (defending ? 0.5 : 1);
     this.health = Math.max(0, this.health - Math.ceil(amount * damageMultiplier * (damageType === 'physical' && now < this.itemDefenseUntil ? 0.8 : 1)));
     this.invulnerableUntil = now + 700;
     this.emit('health-changed', this.health, this.maxHealth);
@@ -461,7 +485,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   }
 
   private playAction(action: string, animationKey: string): boolean {
-    if (this.dead || this.action !== null || !this.scene.anims.exists(animationKey)) return false;
+    if (this.dead || this.isGuarding() || this.action !== null || !this.scene.anims.exists(animationKey)) return false;
     this.action = action;
     this.landingAnimationPlaying = false;
     this.setVelocityX(0);
@@ -472,6 +496,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   private playSkillAnimation(animationKey: string): boolean {
     if (
       !this.scene.anims.exists(animationKey) ||
+      this.isGuarding() ||
       (this.action !== 'skillPending' && this.action !== null) ||
       this.dead
     ) {
@@ -491,6 +516,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   ): CombatTarget[] {
     const direction = this.flipX ? -1 : 1;
     return targets.filter(target => {
+      if (target.isDefeated) return false;
       const distanceX = (target.x - this.x) * direction;
       const distanceY = target.y - this.y;
       return radial
@@ -524,6 +550,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     const direction = this.flipX ? -1 : 1;
 
     return targets.filter(target => {
+      if (target.isDefeated) return false;
       const column = originColumn + Math.round((target.x - this.x) * direction / SKILL_AREA_CELL_SIZE);
       const row = originRow + Math.round((target.y - this.y) / SKILL_AREA_CELL_SIZE);
       return area[row]?.[column] === 2;
@@ -537,6 +564,11 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   private applyAttackBonus(damage: number): number {
     const bonus = this.scene.time.now < this.attackBonusUntil ? this.attackBonusPercent : 0;
     return Math.max(1, Math.round(damage * (1 + bonus / 100) * (this.scene.time.now < this.itemAttackUntil ? 1.2 : 1)));
+  }
+
+  private applyPlayerCritical(damage: number): number {
+    if (Math.random() * 100 >= playerStats.criticalRate) return damage;
+    return Math.round(damage * (1 + playerStats.criticalDamage / 100));
   }
 
   private applyTimedBuff(attackPercent: number, defensePercent: number, durationMs: number): void {
