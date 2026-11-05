@@ -112,7 +112,7 @@ export function mountEncyclopediaBook(options: {
  }
  const close=():void=>{if(busy)return;animate(true,options.onHome)}
  const title=document.createElement('h1');title.textContent='花の図鑑';ui.append(title)
- const peopleLink=button(title,'人物録',()=>openPeopleJournal(root))
+ const peopleLink=button(title,'キャラ',()=>openPeopleJournal(root))
  peopleLink.className='people-journal-link'
  if(new URLSearchParams(location.search).get('people-ui')==='portrait') {
   peopleLink.classList.add('with-portrait')

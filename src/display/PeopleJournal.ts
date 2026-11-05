@@ -15,8 +15,8 @@ export function openPeopleJournal(parent: HTMLElement): void {
   try { metShopkeeper = localStorage.getItem(visitKey()) === '1' } catch { /* Guest preview. */ }
   const dialog = document.createElement('dialog')
   dialog.className = 'people-journal'
-  dialog.setAttribute('aria-label', '人物図鑑')
-  dialog.innerHTML = '<section><h2>人物図鑑</h2><nav aria-label="人物一覧"></nav></section><article aria-live="polite"></article><footer><button type="button">花の図鑑へ</button></footer>'
+  dialog.setAttribute('aria-label', 'キャラ図鑑')
+  dialog.innerHTML = '<section><h2>キャラ図鑑</h2><nav aria-label="キャラ一覧"></nav></section><article aria-live="polite"></article><footer><button type="button">花の図鑑へ</button></footer>'
   const sheet = document.createElement('div')
   sheet.className = 'people-journal-sheet'
   sheet.append(...Array.from(dialog.children))
