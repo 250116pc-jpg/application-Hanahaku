@@ -19,6 +19,7 @@ type CharacterDetailSceneData = {
   characterId?: number
   returnScene?: string
   returnLabel?: string
+  returnData?: { resumeFormation?: boolean }
 }
 
 type SkillDefinition = {
@@ -57,6 +58,7 @@ function forceWrapJapaneseText(value: string, maxCharacters = 20): string {
 }
 
 export class CharacterDetailScene extends Phaser.Scene {
+  private returnData: { resumeFormation?: boolean } = {}
   private characterId = 1
   private returnScene: string = SCENE_KEYS.TRAINING
   private returnLabel = '育成画面へ'
@@ -66,6 +68,7 @@ export class CharacterDetailScene extends Phaser.Scene {
   }
 
   init(data: CharacterDetailSceneData): void {
+    this.returnData = data.returnData ?? {}
     this.characterId = data.characterId ?? 1
     this.returnScene = data.returnScene ?? SCENE_KEYS.TRAINING
     this.returnLabel = data.returnLabel ?? '育成画面へ'
@@ -84,7 +87,7 @@ export class CharacterDetailScene extends Phaser.Scene {
     const character = this.findCharacter()
 
     createStandardSceneFrame(this, 'キャラ詳細', `← ${this.returnLabel}`, () => {
-      this.scene.start(this.returnScene)
+      this.scene.start(this.returnScene, this.returnData)
     })
     this.createCharacterImage()
     this.createBasicInfo(character)
