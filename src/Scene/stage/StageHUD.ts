@@ -99,9 +99,25 @@ export class StageHUD {
         .setDisplaySize(22, 22).setScrollFactor(0).setDepth(this.depth + 3).setVisible(false);
       const onRecovery = (active: boolean): void => { icon.setVisible(active); };
       const onPotion = (): void => { this.playSkillEffect({ type: 'heal', durationMs: 10000 }, 'heal', [], [[1]]); };
+      const attackIcon = this.scene.add.image(x + panelW - 56, y + 21, 'status-buff_atk_up')
+        .setDisplaySize(22, 22).setScrollFactor(0).setDepth(this.depth + 3).setVisible(false);
+      const defenseIcon = this.scene.add.image(x + panelW - 82, y + 21, 'status-buff_def_up')
+        .setDisplaySize(22, 22).setScrollFactor(0).setDepth(this.depth + 3).setVisible(false);
+      const updateGems = (): void => {
+        attackIcon.setVisible(this.player?.isGemActive(14) ?? false);
+        defenseIcon.setVisible(this.player?.isGemActive(15) ?? false);
+      };
+      const onGem = (id: number): void => {
+        updateGems();
+        this.playSkillEffect({ type: id === 14 ? 'balanced' : 'fortify', durationMs: 1800 }, 'buff', [], [[1]]);
+      };
+      this.player.on('gem-used', onGem);
+      this.scene.events.on(Phaser.Scenes.Events.UPDATE, updateGems);
       this.player.on('recovery-status', onRecovery);
       this.player.on('potion-recovery', onPotion);
       this.scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+        this.player?.off('gem-used', onGem);
+        this.scene.events.off(Phaser.Scenes.Events.UPDATE, updateGems);
         this.player?.off('recovery-status', onRecovery);
         this.player?.off('potion-recovery', onPotion);
       });

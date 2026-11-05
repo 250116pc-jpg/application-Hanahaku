@@ -113,7 +113,8 @@
     "price": 100,
     "frame": 9,
     "image": "asset_110.png",
-    "description": "一定時間回復", "inventoryDescription": "テスト中：10秒かけてプレイヤーの最大HPの15%を回復。後から使った持続回復で上書きされます。HP満タン時は使用できません。通常モードの使用は未接続です。",
+    "description": "一定時間回復",
+    "inventoryDescription": "10秒かけてプレイヤーの最大HPの15%を回復。後の持続回復で上書きされます。HP満タン・回復薬の効果中は使用できません。",
     "category": "heal"
   },
   {
@@ -122,7 +123,8 @@
     "price": 500,
     "frame": 9,
     "image": "asset_090.png",
-    "description": "一定時間、物理攻撃力増加", "inventoryDescription": "一定時間、プレイヤーの物理攻撃力を上げる予定のアイテムです。上昇量・時間は未確定で、現在は効果未実装です。",
+    "description": "一定時間、物理攻撃力増加",
+    "inventoryDescription": "30秒間、プレイヤーの通常物理攻撃のダメージを20%増加。同じ宝石の効果中は再使用できません。",
     "category": "material"
   },
   {
@@ -131,7 +133,8 @@
     "price": 500,
     "frame": 9,
     "image": "asset_105.png",
-    "description": "一定時間、物理防御力増加", "inventoryDescription": "一定時間、プレイヤーの物理防御力を上げる予定のアイテムです。上昇量・時間は未確定で、現在は効果未実装です。",
+    "description": "一定時間、物理防御力増加",
+    "inventoryDescription": "30秒間、プレイヤーの被物理ダメージを20%軽減。同じ宝石の効果中は再使用できません。",
     "category": "material"
   }
 ]

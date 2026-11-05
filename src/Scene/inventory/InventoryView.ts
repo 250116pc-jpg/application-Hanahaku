@@ -266,7 +266,7 @@ const categories = document.createElement('nav')
   }
 
   showRecoveryUse(disabled: boolean): void {
-    const use = this.button('回復薬を使う（テスト）', () => this.callbacks.onUse?.())
+    const use = this.button('使用する', () => this.callbacks.onUse?.())
     use.disabled = disabled
     this.detail.append(use)
   }
