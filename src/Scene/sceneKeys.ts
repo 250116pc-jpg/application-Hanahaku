@@ -9,6 +9,7 @@ export const SCENE_KEYS = {
   INVENTORY: 'InventoryScene',
   STAGE: 'StageScene',
   RESULT: 'StageResultScene',
+  CONTRACT: 'ContractScene',
   STORY: 'StoryScene',
   AREA_SELECT: 'AreaSelectScene',
   SELECT_STAGE: 'SelectStageScene',

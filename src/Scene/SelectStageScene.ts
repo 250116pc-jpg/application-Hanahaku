@@ -25,6 +25,7 @@ import { SCENE_KEYS } from './sceneKeys';
 interface SelectStageSceneData {
   areaId?: number;
   areaName?: string;
+  clearReward?: number;
 }
 
 export class SelectStageScene extends Phaser.Scene {
@@ -83,6 +84,13 @@ export class SelectStageScene extends Phaser.Scene {
     this.isMoving = false;
     this.isStageInfoOpen = false;
     this.prepareStageTextures();
+    if (data.clearReward !== undefined) {
+      const message = data.clearReward > 0 ? 'クリア報酬  +' + data.clearReward + ' コイン' : 'ステージクリア';
+      const notice = this.add.text(this.scale.width / 2, 100, message, getTextStyle(20, {
+        color: '#fff1d7', backgroundColor: '#172a39',
+      })).setOrigin(0.5).setDepth(4000).setScrollFactor(0);
+      this.time.delayedCall(3200, () => notice.destroy());
+    }
 
 
 

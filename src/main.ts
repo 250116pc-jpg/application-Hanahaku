@@ -7,6 +7,7 @@ import { TrainingScene } from './Scene/TrainingScene';
 import { CharacterDetailScene } from './Scene/CharacterDetailScene';
 import { InventoryScene } from './Scene/InventoryScene';
 import { StageScene } from './Scene/stage/StageScene';
+import { ContractScene } from './Scene/stage/ContractDialog';
 import { StageResultScene } from './Scene/stage/StageResultScene';
 import { SelectStageScene } from './Scene/SelectStageScene';
 import { AreaSelectScene } from './Scene/AreaSelectScene';
@@ -48,6 +49,7 @@ const config: Phaser.Types.Core.GameConfig = {
     CharacterDetailScene,
     StageScene,
     StageResultScene,
+    ContractScene,
     StoryScene,
     InventoryScene,
     AreaSelectScene,
