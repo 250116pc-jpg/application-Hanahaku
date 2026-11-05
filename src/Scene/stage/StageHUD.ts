@@ -579,11 +579,15 @@ export class StageHUD {
       return;
     }
 
+    const facingLeft = this.player.flipX;
     if (skill.type === 'charge') {
       this.fireSunBeam(area, color);
     }
     if (targets.length === 0) {
-      this.createImpactBurst(this.player.x + (this.player.flipX ? -52 : 52), this.player.y - 48, color, 0.8);
+      const x = this.player.x + (facingLeft ? -52 : 52);
+      const y = this.player.y - 48;
+      this.playSkillSprite(x, y, sheetByType[skill.type], 150, color, true, facingLeft);
+      this.createImpactBurst(x, y, color, 0.8);
     }
     if (targets.length > 0) {
       const hitY = skill.type === 'charge' ? this.player.y - 48 : undefined;
@@ -593,7 +597,7 @@ export class StageHUD {
         const bounds = this.getAreaBounds(area);
         const size = Phaser.Math.Clamp(Math.max(bounds.width, bounds.height) * (skill.type === 'maple' ? 0.95 : 0.72), 150, skill.type === 'charge' ? 300 : 250);
         this.scene.time.delayedCall(index * 38, () => {
-          this.playSkillSprite(x, y, sheetByType[skill.type], size, color, true);
+          this.playSkillSprite(x, y, sheetByType[skill.type], size, color, true, facingLeft);
           this.createImpactBurst(x, y, color, skill.type === 'maple' ? 1.45 : 1);
         });
       });
@@ -603,12 +607,12 @@ export class StageHUD {
     }
   }
 
-  private playSkillSprite(x: number, y: number, sheet: string, size: number, color: number, additive: boolean): void {
+  private playSkillSprite(x: number, y: number, sheet: string, size: number, color: number, additive: boolean, facingLeft = false): void {
     const animationKey = `skill-effect-${sheet}`;
     if (!this.scene.anims.exists(animationKey)) return;
     const sprite = this.scene.add.sprite(x, y, `skill-effect-${sheet}`)
       .setOrigin(0.5).setDisplaySize(size, size).setDepth(this.depth - 4).setScrollFactor(1)
-      .setTint(color).setBlendMode(additive ? Phaser.BlendModes.ADD : Phaser.BlendModes.NORMAL).play(animationKey);
+      .setTint(color).setFlipX(facingLeft).setBlendMode(additive ? Phaser.BlendModes.ADD : Phaser.BlendModes.NORMAL).play(animationKey);
     sprite.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => sprite.destroy());
   }
 
@@ -631,7 +635,7 @@ export class StageHUD {
       graphics.lineStyle(1, 0xffffff, 0.72).lineBetween(x - 9, y, x + 9, y);
       graphics.lineBetween(x, y - 9, x, y + 9);
     }));
-    this.scene.tweens.add({ targets: graphics, alpha: 0, scale: 1.12, duration: 360, onComplete: () => graphics.destroy() });
+    this.scene.tweens.add({ targets: graphics, alpha: 0, duration: 360, onComplete: () => graphics.destroy() });
   }
 
   private getAreaBounds(area: readonly (readonly number[])[]): { width: number; height: number } {
@@ -700,7 +704,7 @@ export class StageHUD {
     const y = this.player.y - 52;
     const ring = this.scene.add.circle(x, y, 24, color, 0.08).setStrokeStyle(4, 0xfff2c0, 0.95).setDepth(this.depth - 3);
     this.scene.tweens.add({ targets: ring, scale: 2.5, alpha: 0.38, duration: 420, yoyo: true, repeat: Math.max(0, Math.floor(duration / 840) - 1) });
-    this.playSkillSprite(x, y - 16, '03_sun_beam', 210, color, true);
+    this.playSkillSprite(x, y - 16, '03_sun_beam', 210, color, true, this.player.flipX);
     this.scene.time.delayedCall(duration, () => { if (ring.active) ring.destroy(); });
   }
 
@@ -714,10 +718,10 @@ export class StageHUD {
     const length = Math.max(40, cells * 40);
     const centerY = this.player.y;
     const beamX = direction > 0 ? this.player.x + 20 : this.player.x - length - 20;
-    const beam = this.scene.add.graphics().setDepth(this.depth - 4).setScrollFactor(1);
-    beam.fillStyle(color, 0.22).fillRoundedRect(beamX, centerY - 24, length, 48, 18);
-    beam.fillStyle(0xfff3c4, 0.88).fillRoundedRect(beamX, centerY - 6, length, 12, 6);
-    beam.lineStyle(3, 0xffffff, 0.9).strokeRoundedRect(beamX, centerY - 20, length, 40, 16);
+    const beam = this.scene.add.graphics({ x: beamX, y: centerY }).setDepth(this.depth - 4).setScrollFactor(1);
+    beam.fillStyle(color, 0.22).fillRoundedRect(0, -24, length, 48, 18);
+    beam.fillStyle(0xfff3c4, 0.88).fillRoundedRect(0, -6, length, 12, 6);
+    beam.lineStyle(3, 0xffffff, 0.9).strokeRoundedRect(0, -20, length, 40, 16);
     this.scene.tweens.add({ targets: beam, alpha: 0, scaleY: 1.6, duration: 330, ease: 'Cubic.Out', onComplete: () => beam.destroy() });
   }
 

@@ -10,6 +10,7 @@ export type DamageType = 'physical' | 'magical';
 export interface CombatTarget {
   readonly x: number;
   readonly y: number;
+  readonly isDefeated?: boolean;
   receiveDamage(amount: number, damageType?: DamageType): void;
   applyAttackSpeedSlow?(percent: number, durationMs: number): void;
   applyStatusIcon?(iconKey: string, durationMs: number): void;
@@ -266,16 +267,16 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       .arc(x, y, 82, direction > 0 ? -1.2 : Math.PI + 0.2, direction > 0 ? 0.55 : Math.PI - 0.55, direction < 0).strokePath();
     slash.lineStyle(2, 0xffe7ce, 0.95).beginPath()
       .arc(x, y, 82, direction > 0 ? -1.2 : Math.PI + 0.2, direction > 0 ? 0.55 : Math.PI - 0.55, direction < 0).strokePath();
-    this.scene.tweens.add({ targets: slash, alpha: 0, scaleX: 1.14, scaleY: 1.14, duration: 240, onComplete: () => slash.destroy() });
+    this.scene.tweens.add({ targets: slash, alpha: 0, duration: 240, onComplete: () => slash.destroy() });
   }
 
   private showHit(x: number, y: number): void {
     this.scene.cameras.main.shake(70, 0.0025);
-    const burst = this.scene.add.graphics().setDepth(19).setScrollFactor(1);
+    const burst = this.scene.add.graphics({ x, y }).setDepth(19).setScrollFactor(1);
     burst.lineStyle(3, 0xffe4b0, 0.95);
     for (let i = 0; i < 7; i++) {
       const angle = (Math.PI * 2 * i) / 7;
-      burst.lineBetween(x + Math.cos(angle) * 8, y + Math.sin(angle) * 8, x + Math.cos(angle) * 25, y + Math.sin(angle) * 25);
+      burst.lineBetween(Math.cos(angle) * 8, Math.sin(angle) * 8, Math.cos(angle) * 25, Math.sin(angle) * 25);
     }
     this.scene.tweens.add({ targets: burst, alpha: 0, scale: 1.35, duration: 180, onComplete: () => burst.destroy() });
   }
@@ -491,6 +492,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   ): CombatTarget[] {
     const direction = this.flipX ? -1 : 1;
     return targets.filter(target => {
+      if (target.isDefeated) return false;
       const distanceX = (target.x - this.x) * direction;
       const distanceY = target.y - this.y;
       return radial
@@ -524,6 +526,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     const direction = this.flipX ? -1 : 1;
 
     return targets.filter(target => {
+      if (target.isDefeated) return false;
       const column = originColumn + Math.round((target.x - this.x) * direction / SKILL_AREA_CELL_SIZE);
       const row = originRow + Math.round((target.y - this.y) / SKILL_AREA_CELL_SIZE);
       return area[row]?.[column] === 2;
