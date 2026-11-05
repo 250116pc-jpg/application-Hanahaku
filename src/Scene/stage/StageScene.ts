@@ -1,7 +1,7 @@
 import formationData from '../../../php/flower/formation.json';
 import { getPhpBaseUrl } from '../../auth/PhpBaseUrl';
 import { createGardenEnemyAnimations } from './gardenEnemies';
-import { drawContractFlower, saveFlowerContract } from './flowerContracts';
+import { drawContractFlower } from './flowerContracts';
 import type { PrototypeFlower } from '../encyclopedia/contractPreview';
 import Phaser from 'phaser';
 import mapUrl from '../../assets/stage/Cainos/cainos_stage.tmj?url';
@@ -65,7 +65,6 @@ export class StageScene extends Phaser.Scene {
   private rescueSeal?: Phaser.GameObjects.Arc;
   private rescuePrompt?: Phaser.GameObjects.Text;
   private rescued = false;
-  private contractMessage?: string;
 
   constructor() {
     super({ key: SCENE_KEYS.STAGE });
@@ -137,7 +136,6 @@ export class StageScene extends Phaser.Scene {
   create(data: { stageId?: number; stageNumber?: string } = {}): void {
     this.isEnding = false;
     this.rescued = false;
-    this.contractMessage = undefined;
     this.createSkillEffectAnimations();
     this.physics.world.drawDebug = false;
     const map = this.createMap();
@@ -217,17 +215,10 @@ export class StageScene extends Phaser.Scene {
   }
 
   private contractRescuedFlower(): void {
-    if (!this.captive || !this.rescued || this.isEnding || !this.canReachRescuePoint()) return;
-    try {
-      const outcome = saveFlowerContract(this.captive.id);
-      this.contractMessage = outcome === 'new'
-        ? `${this.captive.name}と契約しました`
-        : `${this.captive.name}の花片 ×1 を獲得しました`;
-    } catch {
-      this.rescuePrompt?.setText('保存できませんでした。押して再試行 ［E］');
-      return;
-    }
-    this.finishStage(true);
+    const flower = this.captive;
+    if (!flower || !this.rescued || this.isEnding || !this.canReachRescuePoint()) return;
+    this.isEnding = true;
+    this.scene.start(SCENE_KEYS.CONTRACT, { flower, stageId: this.stageId, stageNumber: this.stageNumber });
   }
 
   private createForestAtmosphere(map: Phaser.Tilemaps.Tilemap): void {
@@ -494,7 +485,6 @@ export class StageScene extends Phaser.Scene {
         coins: completion.coins,
         persisted: completion.persisted,
         saveError: completion.saveError,
-        contractMessage: this.contractMessage,
       });
       return;
     }

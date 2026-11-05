@@ -20,8 +20,9 @@ const unknownFlowers: Record<Season, { key: string; url: string }> = {
 
 export class EncyclopediaScene extends Phaser.Scene {
  private bookCleanup: (() => void) | null = null
+ private bookTurn = 0
  private bookOpened = false
- private season: Season = '夏'
+ private season: Season = '春'
  private page = 0
  private detailCleanup: (() => void) | null = null
  constructor() { super('EncyclopediaScene') }
@@ -32,6 +33,8 @@ export class EncyclopediaScene extends Phaser.Scene {
  }
  create(): void {
   this.bookOpened = false
+  this.season = '春'
+  this.page = 0
   this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => { this.closeDetail(); this.closeBook() })
   this.list()
  }
@@ -54,14 +57,15 @@ export class EncyclopediaScene extends Phaser.Scene {
   this.closeBook()
   this.children.removeAll(true)
   this.bookCleanup=mountEncyclopediaBook({
-   season:this.season,page:this.page,animate:!this.bookOpened,unknown:unknownFlowers,
-   onSeason:season=>{this.season=season;this.page=0;this.list()},
-   onPage:page=>{this.page=page;this.list()},
+   season:this.season,page:this.page,animate:!this.bookOpened,turn:this.bookTurn,unknown:unknownFlowers,
+   onSeason:season=>{this.bookTurn=(['春','夏','秋','冬'].indexOf(season)-['春','夏','秋','冬'].indexOf(this.season));this.season=season;this.page=0;this.list()},
+   onPage:page=>{this.bookTurn=page-this.page;this.page=page;this.list()},
    onSelect:flower=>{this.closeBook();this.detail(flower)},
    onHome:()=>this.scene.start('HomeScene'),
    onReset:()=>{this.closeBook();this.confirmReset()},
   })
   this.bookOpened=true
+  this.bookTurn=0
  }
  private closeDetail(): void {
   this.detailCleanup?.()

@@ -10,6 +10,9 @@ $quantity = array_key_exists('quantity', $body) ? $body['quantity'] : 1;
 if ($action === 'buy' && (!is_int($quantity) || $quantity < 1 || $quantity > 99)) {
  respond(['ok'=>false,'error'=>'購入数は1～99個で指定してください。'],422);
 }
+if ($action === 'consume' && (!is_int($body['itemId'] ?? null) || !in_array($body['itemId'], [12, 13, 14, 15], true) || $quantity !== 1)) {
+ respond(['ok'=>false,'error'=>'使用できないアイテムです。'],422);
+}
 $catalog = json_decode(file_get_contents(__DIR__.'/items.json'), true, 512, JSON_THROW_ON_ERROR);
 try {
  $pdo->beginTransaction();
@@ -32,18 +35,17 @@ try {
   $count=$items->$key ?? 0;
   if ($count>2147483647-$quantity) throw new RuntimeException('所持数の上限です。');
   $items->$key=$count+$quantity; $coin-=$total;
+ }
+ if ($action === 'consume') {
+  $id = $body['itemId'];
+  $key = (string)$id;
+  $count = $items->$key ?? 0;
+  if ($count < 1) throw new RuntimeException($id === 12 ? '治療薬が足りません。' : 'アイテムを所持していません。');
+  $items->$key = $count - 1;
+ }
+ if ($action !== 'state') {
   $q=$pdo->prepare('UPDATE users SET coin = ?, items = ? WHERE id = ?');
   $q->execute([$coin,json_encode($items,JSON_THROW_ON_ERROR),$userId]);
- }
- if ($action==='consume') {
-  $id=$body['itemId'] ?? null;
-  if (!is_int($id) || !in_array($id,[13,14,15],true) || $quantity!==1) throw new RuntimeException('使用できないアイテムです。');
-  $key=(string)$id;
-  $count=$items->$key ?? 0;
-  if ($count<1) throw new RuntimeException('アイテムを所持していません。');
-  $items->$key=$count-1;
-  $q=$pdo->prepare('UPDATE users SET items = ? WHERE id = ?');
-  $q->execute([json_encode($items,JSON_THROW_ON_ERROR),$userId]);
  }
  $pdo->commit();
  respond(['ok'=>true,'coin'=>$coin,'items'=>$items]);

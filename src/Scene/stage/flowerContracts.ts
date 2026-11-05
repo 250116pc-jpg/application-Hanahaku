@@ -44,9 +44,15 @@ export function readFlowerContracts(): Record<number, number> {
   }
 }
 
-export function saveFlowerContract(id: number): 'new' | 'duplicate' {
+export function prepareFlowerContract(id: number): () => 'new' | 'duplicate' {
   const saved = readFlowerContracts();
-  const previous = saved[id] ?? 0;
-  localStorage.setItem(storageKey(), JSON.stringify({ ...saved, [id]: previous + 1 }));
-  return previous > 0 ? 'duplicate' : 'new';
+  const key = storageKey();
+  // Check storage access before using a potion.
+  localStorage.setItem(key, JSON.stringify(saved));
+  return () => {
+    const current = readFlowerContracts();
+    const count = current[id] ?? 0;
+    localStorage.setItem(key, JSON.stringify({ ...current, [id]: count + 1 }));
+    return count > 0 ? 'duplicate' : 'new';
+  };
 }
