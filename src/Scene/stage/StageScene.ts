@@ -1,5 +1,6 @@
 import formationData from '../../../php/flower/formation.json';
 import { getPhpBaseUrl } from '../../auth/PhpBaseUrl';
+import { createGardenEnemyAnimations } from './gardenEnemies';
 import Phaser from 'phaser';
 import mapUrl from '../../assets/stage/Cainos/cainos_stage.tmj?url';
 import terrainImg from '../../assets/stage/Cainos/Pixel Art Platformer - Village Props/Texture/TX Tileset Ground.png';
@@ -50,6 +51,7 @@ const statusIconUrls = import.meta.glob('../../assets/images/status/*.png', {
 
 export class StageScene extends Phaser.Scene {
   private player!: Player;
+  public getRecoveryPlayer(): Player { return this.player; }
   private hud!: StageHUD;
   private enemies: Enemy[] = [];
   private stageId = 2;
@@ -285,6 +287,7 @@ export class StageScene extends Phaser.Scene {
   }
 
   private createEnemyAnimation(): void {
+    createGardenEnemyAnimations(this);
     createCharacterAnimation(this, 'enemy-idle', 'stage-enemy-idle', 24, 8);
     createCharacterAnimation(this, 'enemy-run', 'stage-enemy-run', 10, 10);
     createCharacterAnimation(this, 'enemy-attack', 'stage-enemy-attack', 8, 10, 0);
@@ -329,7 +332,7 @@ export class StageScene extends Phaser.Scene {
         continue;
       }
 
-      enemies.push(new Enemy(this, enemy.x, enemy.y, this.player, enemy.stats));
+      enemies.push(new Enemy(this, enemy.x, enemy.y, this.player, enemy.stats, typeof enemy.id === 'number' ? enemy.id : 1));
     }
     return enemies;
   }

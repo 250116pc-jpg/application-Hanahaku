@@ -38,19 +38,19 @@ try {
         throw new UnexpectedValueException('Invalid stage enemy list.');
     }
 
-    $enhancementPath = __DIR__ . '/../enemy/enhancements.json';
-    $enhancementJson = is_file($enhancementPath) ? file_get_contents($enhancementPath) : false;
-    if ($enhancementJson === false) throw new RuntimeException('Enemy enhancement data not found.');
-    $enhancementData = json_decode($enhancementJson, true, 512, JSON_THROW_ON_ERROR);
-    if (!is_array($enhancementData) || !is_array($enhancementData['profiles'] ?? null)) {
-        throw new UnexpectedValueException('Invalid enemy enhancement data.');
+    $upgradePath = __DIR__ . '/../ally/upgrades.json';
+    $upgradeJson = is_file($upgradePath) ? file_get_contents($upgradePath) : false;
+    if ($upgradeJson === false) throw new RuntimeException('Ally upgrade data not found.');
+    $upgradeData = json_decode($upgradeJson, true, 512, JSON_THROW_ON_ERROR);
+    if (!is_array($upgradeData) || !is_array($upgradeData['upgrades'] ?? null)) {
+        throw new UnexpectedValueException('Invalid upgrade data.');
     }
-    $enhancements = [];
-    foreach ($enhancementData['profiles'] as $profile) {
-        if (!is_array($profile) || !isset($profile['id'])) throw new UnexpectedValueException('Invalid enemy enhancement profile.');
-        $profileId = filter_var($profile['id'], FILTER_VALIDATE_INT);
-        if ($profileId === false || $profileId < 1) throw new UnexpectedValueException('Invalid enemy enhancement ID.');
-        $enhancements[$profileId] = $profile;
+    $upgrades = [];
+    foreach ($upgradeData['upgrades'] as $upgrade) {
+        if (!is_array($upgrade) || !isset($upgrade['upgrade_id'])) throw new UnexpectedValueException('Invalid upgrade profile.');
+        $upgradeId = filter_var($upgrade['upgrade_id'], FILTER_VALIDATE_INT);
+        if ($upgradeId === false || $upgradeId < 1) throw new UnexpectedValueException('Invalid upgrade ID.');
+        $upgrades[$upgradeId] = $upgrade;
     }
 
     foreach ($stage['enemies'] as &$enemy) {
@@ -81,10 +81,10 @@ try {
         }
 
         $enhancementId = filter_var($enemy['enhancementId'] ?? $enemyStats['enhancementId'] ?? null, FILTER_VALIDATE_INT);
-        if ($enhancementId === false || $enhancementId < 1 || !isset($enhancements[$enhancementId])) {
-            throw new UnexpectedValueException('Enemy enhancement profile not found.');
+        if ($enhancementId === false || $enhancementId < 1 || !isset($upgrades[$enhancementId])) {
+            throw new UnexpectedValueException('Enemy upgrade profile not found.');
         }
-        $profile = $enhancements[$enhancementId];
+        $profile = $upgrades[$enhancementId];
         if (!is_string($profile['job'] ?? null) || !is_string($profile['direction'] ?? null) || !is_array($profile['growth'] ?? null)) {
             throw new UnexpectedValueException('Invalid enemy enhancement profile.');
         }

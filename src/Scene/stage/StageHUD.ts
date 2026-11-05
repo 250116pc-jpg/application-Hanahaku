@@ -89,6 +89,18 @@ export class StageHUD {
     const panelH = compact ? 80 : 96;
     this.panel(x, y, panelW, panelH, 14);
     this.text(x + 16, y + 10, `${leader.name}  Lv.${leader.level}`, compact ? 13 : 17, '#fff', 'bold');
+    if (this.player) {
+      const icon = this.scene.add.image(x + panelW - 30, y + 21, 'status-buff_hp_regen')
+        .setDisplaySize(22, 22).setScrollFactor(0).setDepth(this.depth + 3).setVisible(false);
+      const onRecovery = (active: boolean): void => { icon.setVisible(active); };
+      const onPotion = (): void => { this.playSkillEffect({ type: 'heal', durationMs: 10000 }, 'heal', [], [[1]]); };
+      this.player.on('recovery-status', onRecovery);
+      this.player.on('potion-recovery', onPotion);
+      this.scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+        this.player?.off('recovery-status', onRecovery);
+        this.player?.off('potion-recovery', onPotion);
+      });
+    }
     this.text(x + 16, y + 37, 'HP', 12, '#ff9bad', 'bold');
     this.hpBarX = x + 50;
     this.hpBarY = y + 40;
@@ -177,6 +189,7 @@ export class StageHUD {
     button.addEventListener('click', () => {
       if (!this.scene.sys.isActive() || this.scene.scene.isActive(SCENE_KEYS.INVENTORY) || this.retreatDialog) return;
       this.retreatDialog = this.createRetreatDialog();
+      this.scene.scene.pause(SCENE_KEYS.STAGE);
     });
 
     this.scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
@@ -218,10 +231,11 @@ export class StageHUD {
       width: 'min(650px, 90%)',
       minHeight: '300px',
       padding: '42px 28px',
-      border: '3px solid #536878',
+      border: '2px solid #b99a65',
       borderRadius: '12px',
-      background: '#fff',
-      color: '#17212a',
+      background: 'linear-gradient(145deg, #1c3143, #0b1726)',
+      color: '#f5e6c5',
+      boxShadow: 'inset 0 0 0 3px #344657, 0 14px 35px #0009',
       textAlign: 'center',
       display: 'flex',
       flexDirection: 'column',
@@ -234,7 +248,7 @@ export class StageHUD {
     Object.assign(title.style, { fontSize: 'clamp(20px, 3vw, 32px)', fontWeight: 'bold' });
     const warning = document.createElement('div');
     warning.textContent = '進行状況が失われます。';
-    Object.assign(warning.style, { fontSize: 'clamp(16px, 2vw, 24px)', color: '#444' });
+    Object.assign(warning.style, { fontSize: 'clamp(16px, 2vw, 24px)', color: '#e4d3b0' });
     const actions = document.createElement('div');
     Object.assign(actions.style, { display: 'flex', gap: '18px', justifyContent: 'center', flexWrap: 'wrap' });
     const makeAction = (label: string, onClick: () => void): HTMLButtonElement => {
@@ -245,29 +259,53 @@ export class StageHUD {
         minWidth: '180px',
         minHeight: '58px',
         padding: '8px 18px',
-        border: '2px solid #333',
+        border: '2px solid #b99a65',
         borderRadius: '8px',
-        background: '#fff',
-        color: '#111',
+        background: '#132638',
+        color: '#f5e6c5',
         font: 'bold 20px Yu Mincho, YuMincho, serif',
         cursor: 'pointer'
       });
       action.addEventListener('click', onClick);
-      action.addEventListener('pointerenter', () => { action.style.background = '#eaf4fb'; });
-      action.addEventListener('pointerleave', () => { action.style.background = '#fff'; });
+      action.addEventListener('pointerenter', () => { action.style.background = '#34506a'; });
+      action.addEventListener('pointerleave', () => { action.style.background = '#132638'; });
       return action;
     };
-    actions.append(
-      makeAction('キャンセル', () => { dialog.remove(); this.retreatDialog = null; }),
-      makeAction('撤退する', () => {
+    let closing = false;
+    const closeDialog = (retreat: boolean): void => {
+      if (closing) return;
+      closing = true;
+      dialog.style.pointerEvents = 'none';
+      let finished = false;
+      const finish = (): void => {
+        if (finished) return;
+        finished = true;
+        if (!dialog.isConnected) return;
         dialog.remove();
         this.retreatDialog = null;
-        this.scene.scene.start(SCENE_KEYS.SELECT_STAGE);
-      })
+        if (retreat) this.scene.scene.start(SCENE_KEYS.SELECT_STAGE);
+        else this.scene.scene.resume(SCENE_KEYS.STAGE);
+      };
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || typeof dialog.animate !== 'function') {
+        finish();
+        return;
+      }
+      panel.animate([{ transform: 'translateY(0)' }, { transform: 'translateY(-28px)' }], { duration: 150, easing: 'ease-in', fill: 'forwards' });
+      const animation = dialog.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 150, easing: 'ease-in', fill: 'forwards' });
+      animation.finished.then(finish, finish);
+      window.setTimeout(finish, 250);
+    };
+    actions.append(
+      makeAction('キャンセル', () => closeDialog(false)),
+      makeAction('撤退する', () => closeDialog(true))
     );
     panel.append(title, warning, actions);
     dialog.append(panel);
     document.body.append(dialog);
+    if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches && typeof dialog.animate === 'function') {
+      dialog.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 150, easing: 'ease-out' });
+      panel.animate([{ transform: 'translateY(-28px)' }, { transform: 'translateY(0)' }], { duration: 150, easing: 'ease-out' });
+    }
     return dialog;
   }
 
@@ -418,6 +456,17 @@ export class StageHUD {
     const w = this.scene.scale.width;
     const h = this.scene.scale.height;
     const baseX = w - 72;
+    const guard = this.scene.add.rectangle(baseX - 154, h - 198, 82, 64, 0x204455)
+      .setScrollFactor(0).setDepth(this.depth + 4).setStrokeStyle(2, 0xe5d4a5)
+      .setInteractive({ useHandCursor: true });
+    const guardLabel = this.text(guard.x, guard.y, '防御', 19, '#fff4e8', 'bold')
+      .setOrigin(0.5).setDepth(this.depth + 5);
+    guard.on('pointerdown', () => this.player?.guard());
+    this.scene.time.addEvent({ delay: 50, loop: true, callback: () => {
+      const active = this.player?.isGuarding() === true;
+      guard.setFillStyle(active ? 0x397c8e : 0x204455);
+      guardLabel.setText(active ? '防御中' : '防御');
+    } });
     //攻撃
     this.imageButton(baseX - 154, h - 94, 130, '', 'stage-attack', () => this.player?.attack(this.enemies));
     // Flower cards are the skill buttons; this label reports the selected flower's skill state.
@@ -495,7 +544,7 @@ export class StageHUD {
   }
 
   private playSkillEffect(
-    skill: ServerFlowerSkill,
+    skill: Pick<ServerFlowerSkill, 'type' | 'durationMs'>,
     phase: SkillVisualPhase,
     targets: readonly CombatTarget[],
     area: readonly (readonly number[])[]
@@ -512,6 +561,9 @@ export class StageHUD {
       heal: 0xff77b9, evasion: 0x9a83ff,
     };
     const color = tintByType[skill.type];
+    if (phase === 'charge' || phase === 'buff' || phase === 'heal') {
+      this.createImpactBurst(this.player.x, this.player.y - 48, color, 1.1);
+    }
     if (phase === 'impact' || phase === 'charge') this.showSkillFootprint(area, color);
 
     if (phase === 'buff' || phase === 'heal') {
@@ -527,8 +579,15 @@ export class StageHUD {
       return;
     }
 
+    const facingLeft = this.player.flipX;
     if (skill.type === 'charge') {
       this.fireSunBeam(area, color);
+    }
+    if (targets.length === 0) {
+      const x = this.player.x + (facingLeft ? -52 : 52);
+      const y = this.player.y - 48;
+      this.playSkillSprite(x, y, sheetByType[skill.type], 150, color, true, facingLeft);
+      this.createImpactBurst(x, y, color, 0.8);
     }
     if (targets.length > 0) {
       const hitY = skill.type === 'charge' ? this.player.y - 48 : undefined;
@@ -538,7 +597,7 @@ export class StageHUD {
         const bounds = this.getAreaBounds(area);
         const size = Phaser.Math.Clamp(Math.max(bounds.width, bounds.height) * (skill.type === 'maple' ? 0.95 : 0.72), 150, skill.type === 'charge' ? 300 : 250);
         this.scene.time.delayedCall(index * 38, () => {
-          this.playSkillSprite(x, y, sheetByType[skill.type], size, color, true);
+          this.playSkillSprite(x, y, sheetByType[skill.type], size, color, true, facingLeft);
           this.createImpactBurst(x, y, color, skill.type === 'maple' ? 1.45 : 1);
         });
       });
@@ -548,12 +607,12 @@ export class StageHUD {
     }
   }
 
-  private playSkillSprite(x: number, y: number, sheet: string, size: number, color: number, additive: boolean): void {
+  private playSkillSprite(x: number, y: number, sheet: string, size: number, color: number, additive: boolean, facingLeft = false): void {
     const animationKey = `skill-effect-${sheet}`;
     if (!this.scene.anims.exists(animationKey)) return;
     const sprite = this.scene.add.sprite(x, y, `skill-effect-${sheet}`)
       .setOrigin(0.5).setDisplaySize(size, size).setDepth(this.depth - 4).setScrollFactor(1)
-      .setTint(color).setBlendMode(additive ? Phaser.BlendModes.ADD : Phaser.BlendModes.NORMAL).play(animationKey);
+      .setTint(color).setFlipX(facingLeft).setBlendMode(additive ? Phaser.BlendModes.ADD : Phaser.BlendModes.NORMAL).play(animationKey);
     sprite.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => sprite.destroy());
   }
 
@@ -576,7 +635,7 @@ export class StageHUD {
       graphics.lineStyle(1, 0xffffff, 0.72).lineBetween(x - 9, y, x + 9, y);
       graphics.lineBetween(x, y - 9, x, y + 9);
     }));
-    this.scene.tweens.add({ targets: graphics, alpha: 0, scale: 1.12, duration: 360, onComplete: () => graphics.destroy() });
+    this.scene.tweens.add({ targets: graphics, alpha: 0, duration: 360, onComplete: () => graphics.destroy() });
   }
 
   private getAreaBounds(area: readonly (readonly number[])[]): { width: number; height: number } {
@@ -585,14 +644,22 @@ export class StageHUD {
   }
 
   private createImpactBurst(x: number, y: number, color: number, scale: number): void {
-    const burst = this.scene.add.graphics().setDepth(this.depth - 2).setScrollFactor(1);
-    burst.fillStyle(color, 0.34).fillCircle(x, y, 17 * scale);
-    burst.lineStyle(4, 0xffffff, 0.95).strokeCircle(x, y, 22 * scale);
+    const burst = this.scene.add.graphics({ x, y }).setDepth(this.depth - 2).setBlendMode(Phaser.BlendModes.ADD);
+    burst.fillStyle(color, 0.34).fillCircle(0, 0, 24 * scale);
+    burst.lineStyle(4, 0xffffff, 0.95).strokeCircle(0, 0, 22 * scale);
     burst.lineStyle(3, color, 0.95);
-    for (let i = 0; i < 10; i++) {
-      const angle = (Math.PI * 2 * i) / 10;
-      burst.lineBetween(x + Math.cos(angle) * 27 * scale, y + Math.sin(angle) * 27 * scale,
-        x + Math.cos(angle) * 56 * scale, y + Math.sin(angle) * 56 * scale);
+    burst.strokeCircle(0, 0, 38 * scale);
+    for (let i = 0; i < 16; i++) {
+      const angle = (Math.PI * 2 * i) / 16;
+      const distance = (i % 2 === 0 ? 92 : 63) * scale;
+      const spark = this.scene.add.rectangle(x, y, 8, 4, i % 2 === 0 ? 0xfff5d4 : color)
+        .setRotation(angle).setDepth(this.depth - 1).setBlendMode(Phaser.BlendModes.ADD);
+      this.scene.tweens.add({
+        targets: spark, x: x + Math.cos(angle) * distance, y: y + Math.sin(angle) * distance,
+        alpha: 0, scale: 0.25, duration: 380, ease: 'Cubic.Out', onComplete: () => spark.destroy(),
+      });
+      burst.lineBetween(Math.cos(angle) * 27 * scale, Math.sin(angle) * 27 * scale,
+        Math.cos(angle) * 56 * scale, Math.sin(angle) * 56 * scale);
     }
     this.scene.tweens.add({ targets: burst, alpha: 0, scale: 1.45, duration: 260, ease: 'Cubic.Out', onComplete: () => burst.destroy() });
   }
@@ -637,7 +704,7 @@ export class StageHUD {
     const y = this.player.y - 52;
     const ring = this.scene.add.circle(x, y, 24, color, 0.08).setStrokeStyle(4, 0xfff2c0, 0.95).setDepth(this.depth - 3);
     this.scene.tweens.add({ targets: ring, scale: 2.5, alpha: 0.38, duration: 420, yoyo: true, repeat: Math.max(0, Math.floor(duration / 840) - 1) });
-    this.playSkillSprite(x, y - 16, '03_sun_beam', 210, color, true);
+    this.playSkillSprite(x, y - 16, '03_sun_beam', 210, color, true, this.player.flipX);
     this.scene.time.delayedCall(duration, () => { if (ring.active) ring.destroy(); });
   }
 
@@ -651,10 +718,10 @@ export class StageHUD {
     const length = Math.max(40, cells * 40);
     const centerY = this.player.y;
     const beamX = direction > 0 ? this.player.x + 20 : this.player.x - length - 20;
-    const beam = this.scene.add.graphics().setDepth(this.depth - 4).setScrollFactor(1);
-    beam.fillStyle(color, 0.22).fillRoundedRect(beamX, centerY - 24, length, 48, 18);
-    beam.fillStyle(0xfff3c4, 0.88).fillRoundedRect(beamX, centerY - 6, length, 12, 6);
-    beam.lineStyle(3, 0xffffff, 0.9).strokeRoundedRect(beamX, centerY - 20, length, 40, 16);
+    const beam = this.scene.add.graphics({ x: beamX, y: centerY }).setDepth(this.depth - 4).setScrollFactor(1);
+    beam.fillStyle(color, 0.22).fillRoundedRect(0, -24, length, 48, 18);
+    beam.fillStyle(0xfff3c4, 0.88).fillRoundedRect(0, -6, length, 12, 6);
+    beam.lineStyle(3, 0xffffff, 0.9).strokeRoundedRect(0, -20, length, 40, 16);
     this.scene.tweens.add({ targets: beam, alpha: 0, scaleY: 1.6, duration: 330, ease: 'Cubic.Out', onComplete: () => beam.destroy() });
   }
 
