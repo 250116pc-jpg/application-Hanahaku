@@ -1,6 +1,8 @@
 import formationData from '../../../php/flower/formation.json';
 import { getPhpBaseUrl } from '../../auth/PhpBaseUrl';
 import { createGardenEnemyAnimations } from './gardenEnemies';
+import { drawContractFlower, saveFlowerContract } from './flowerContracts';
+import type { PrototypeFlower } from '../encyclopedia/contractPreview';
 import Phaser from 'phaser';
 import mapUrl from '../../assets/stage/Cainos/cainos_stage.tmj?url';
 import terrainImg from '../../assets/stage/Cainos/Pixel Art Platformer - Village Props/Texture/TX Tileset Ground.png';
@@ -57,6 +59,13 @@ export class StageScene extends Phaser.Scene {
   private stageId = 2;
   private stageNumber?: string;
   private isEnding = false;
+  private captive?: PrototypeFlower;
+  private rescueX = 0;
+  private rescueArt?: Phaser.GameObjects.Image;
+  private rescueSeal?: Phaser.GameObjects.Arc;
+  private rescuePrompt?: Phaser.GameObjects.Text;
+  private rescued = false;
+  private contractMessage?: string;
 
   constructor() {
     super({ key: SCENE_KEYS.STAGE });
@@ -68,6 +77,10 @@ export class StageScene extends Phaser.Scene {
   }
 
   preload(): void {
+    this.captive = drawContractFlower(this.stageNumber);
+    if (this.captive && !this.textures.exists(this.captive.key)) {
+      this.load.image(this.captive.key, this.captive.url);
+    }
     const phpBaseUrl = getPhpBaseUrl();
     this.load.image('stage-terrain', terrainImg);
     this.load.image('stage-props', propsImg);
@@ -123,6 +136,8 @@ export class StageScene extends Phaser.Scene {
 
   create(data: { stageId?: number; stageNumber?: string } = {}): void {
     this.isEnding = false;
+    this.rescued = false;
+    this.contractMessage = undefined;
     this.createSkillEffectAnimations();
     this.physics.world.drawDebug = false;
     const map = this.createMap();
@@ -159,6 +174,60 @@ export class StageScene extends Phaser.Scene {
     // UI（HUD）の生成を StageHUD クラスに委譲
     this.hud = new StageHUD(this, this.player, this.enemies);
     this.hud.create(data.stageId, data.stageNumber);
+    if (this.captive) this.createRescuePoint(map.widthInPixels - 96);
+  }
+
+  private createRescuePoint(x: number): void {
+    const flower = this.captive!;
+    this.rescueX = x;
+    this.rescueSeal = this.add.circle(x, 420, 49, 0x372852, 0.85)
+      .setStrokeStyle(3, 0xd2b5fa).setDepth(6);
+    const art = this.add.image(x, 420, flower.key).setDepth(7).setTintFill(0x211831);
+    this.rescueArt = art.setScale(76 / Math.max(art.width, art.height));
+    this.rescuePrompt = this.add.text(x + 72, 346, '封印された花　敵を全滅させよう', {
+      fontSize: '18px', color: '#fff4df', backgroundColor: '#252035', padding: { x: 10, y: 6 },
+    }).setOrigin(1, 0.5).setDepth(8);
+    this.rescuePrompt.on('pointerup', () => this.contractRescuedFlower());
+    const keyboard = this.input.keyboard;
+    const onConfirm = () => this.contractRescuedFlower();
+    keyboard?.on('keydown-E', onConfirm);
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => keyboard?.off('keydown-E', onConfirm));
+  }
+
+  private canReachRescuePoint(): boolean {
+    return Math.abs(this.player.x - this.rescueX) <= 105 && Math.abs(this.player.y - 480) <= 105;
+  }
+
+  private updateRescuePoint(): void {
+    if (!this.rescued) {
+      this.rescued = true;
+      this.rescueArt?.clearTint();
+      this.rescueSeal?.setFillStyle(0x2c684f, 0.75).setStrokeStyle(3, 0xffe4a2);
+    }
+    const nearby = this.canReachRescuePoint();
+    const prompt = this.rescuePrompt;
+    if (!prompt) return;
+    const label = nearby ? `${this.captive?.name}と契約する ［E］` : '封印が解けた！ ステージ奥の花に近づこう';
+    if (prompt.text !== label && !prompt.text.includes('保存できません')) prompt.setText(label);
+    if (nearby) {
+      if (!prompt.input?.enabled) prompt.setInteractive({ useHandCursor: true });
+    } else {
+      prompt.disableInteractive();
+    }
+  }
+
+  private contractRescuedFlower(): void {
+    if (!this.captive || !this.rescued || this.isEnding || !this.canReachRescuePoint()) return;
+    try {
+      const outcome = saveFlowerContract(this.captive.id);
+      this.contractMessage = outcome === 'new'
+        ? `${this.captive.name}と契約しました`
+        : `${this.captive.name}の花片 ×1 を獲得しました`;
+    } catch {
+      this.rescuePrompt?.setText('保存できませんでした。押して再試行 ［E］');
+      return;
+    }
+    this.finishStage(true);
   }
 
   private createForestAtmosphere(map: Phaser.Tilemaps.Tilemap): void {
@@ -400,7 +469,8 @@ export class StageScene extends Phaser.Scene {
     if (this.player.health <= 0) {
       this.finishStage(false);
     } else if (this.enemies.length > 0 && this.enemies.every(enemy => enemy.isDefeated)) {
-      this.finishStage(true);
+      if (this.captive) this.updateRescuePoint();
+      else this.finishStage(true);
     }
   }
 
@@ -424,6 +494,7 @@ export class StageScene extends Phaser.Scene {
         coins: completion.coins,
         persisted: completion.persisted,
         saveError: completion.saveError,
+        contractMessage: this.contractMessage,
       });
       return;
     }

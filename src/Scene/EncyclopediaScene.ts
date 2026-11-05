@@ -2,6 +2,7 @@ import questionSpring from '../assets/images/question spring.png'
 import questionSummer from '../assets/images/question summer.png'
 import questionFall from '../assets/images/question fall.png'
 import questionWinter from '../assets/images/question winnter.png'
+import { readFlowerContracts } from './stage/flowerContracts';
 import Phaser from 'phaser'
 import type { Season } from './test_data'
 import { createTextButton, getTextStyle } from '../utils/ui'
@@ -59,13 +60,13 @@ export class EncyclopediaScene extends Phaser.Scene {
   this.frame('季節の花図鑑')
   const seasons:Season[]=['春','夏','秋','冬']
   seasons.forEach((season,i)=>this.button(180+i*150,135,season===this.season?`【${season}】`:season,()=>{this.season=season;this.page=0;this.list()}))
-  this.text(790,120,`花契済み ${contractPreview.owned.size} / ${prototypeFlowers.length}`,21)
+  this.text(790,120,`花契済み ${new Set([...contractPreview.owned, ...Object.keys(readFlowerContracts()).map(Number)]).size} / ${prototypeFlowers.length}`,21)
   const flowers=prototypeFlowers.filter(f=>f.season===this.season)
   const pages=Math.max(1,Math.ceil(flowers.length/8))
   this.page=Math.min(this.page,pages-1)
   flowers.slice(this.page*8,this.page*8+8).forEach((flower,i)=>{
    const x=205+(i%4)*285, y=280+Math.floor(i/4)*215
-   const owned=contractPreview.owned.has(flower.id)
+   const owned=contractPreview.owned.has(flower.id) || !!readFlowerContracts()[flower.id]
    const card=this.add.rectangle(x,y,255,195,0xffffff).setStrokeStyle(2,owned?0x398363:0xaab5ae).setInteractive({useHandCursor:true})
    card.on('pointerup',()=>this.detail(flower))
    this.art(flower,x,y-18,125,!owned)
@@ -86,7 +87,7 @@ export class EncyclopediaScene extends Phaser.Scene {
   this.closeDetail()
   this.input.enabled = false
   this.detailCleanup = mountFlowerDetail(flower, {
-   owned: contractPreview.owned.has(flower.id),
+   owned: contractPreview.owned.has(flower.id) || !!readFlowerContracts()[flower.id],
    unknownUrl: unknownFlowers[flower.season].url,
    onClose: () => { this.closeDetail(); this.list() },
    onHome: () => { this.closeDetail(); this.scene.start('HomeScene') },

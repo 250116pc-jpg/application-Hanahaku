@@ -456,17 +456,7 @@ export class StageHUD {
     const w = this.scene.scale.width;
     const h = this.scene.scale.height;
     const baseX = w - 72;
-    const guard = this.scene.add.rectangle(baseX - 154, h - 198, 82, 64, 0x204455)
-      .setScrollFactor(0).setDepth(this.depth + 4).setStrokeStyle(2, 0xe5d4a5)
-      .setInteractive({ useHandCursor: true });
-    const guardLabel = this.text(guard.x, guard.y, '防御', 19, '#fff4e8', 'bold')
-      .setOrigin(0.5).setDepth(this.depth + 5);
-    guard.on('pointerdown', () => this.player?.guard());
-    this.scene.time.addEvent({ delay: 50, loop: true, callback: () => {
-      const active = this.player?.isGuarding() === true;
-      guard.setFillStyle(active ? 0x397c8e : 0x204455);
-      guardLabel.setText(active ? '防御中' : '防御');
-    } });
+    this.createGuardButton(baseX - 154, h - 215);
     //攻撃
     this.imageButton(baseX - 154, h - 94, 130, '', 'stage-attack', () => this.player?.attack(this.enemies));
     // Flower cards are the skill buttons; this label reports the selected flower's skill state.
@@ -477,7 +467,35 @@ export class StageHUD {
     this.imageButton(baseX - 40, h - 64, 130, '', 'stage-jump', () => this.player?.jump());
   }
 
-  private imageButton(x: number, y: number, size: number, label: string, texture: string, onClick: () => void): void {
+  private createGuardButton(x: number, y: number): void {
+    const key = 'stage-guard';
+    if (!this.scene.textures.exists(key)) {
+      const art = this.scene.make.graphics({ x: 0, y: 0 }, false);
+      art.fillStyle(0x202a37).fillCircle(60, 60, 55);
+      art.lineStyle(2, 0xe5d4a5).strokeCircle(60, 60, 54);
+      art.lineStyle(1, 0xbca780).strokeCircle(60, 60, 50);
+      for (const [px, py] of [[60, 9], [111, 60], [60, 111], [9, 60]]) {
+        art.strokePoints([{ x: px, y: py - 4 }, { x: px + 4, y: py },
+          { x: px, y: py + 4 }, { x: px - 4, y: py }], true);
+      }
+      art.fillStyle(0xf4dfb8).fillPoints([{ x: 39, y: 31 }, { x: 60, y: 24 },
+        { x: 81, y: 31 }, { x: 78, y: 53 }, { x: 60, y: 69 }, { x: 42, y: 53 }], true);
+      art.lineStyle(2, 0x8b7458).lineBetween(60, 32, 60, 60).lineBetween(47, 43, 73, 43);
+      art.generateTexture(key, 120, 120);
+      art.destroy();
+    }
+    const button = this.imageButton(x, y, 106, '', key, () => this.player?.guard());
+    const label = this.text(x, y + 23, '防御', 19, '#f4dfb8', 'bold')
+      .setOrigin(0.5).setDepth(this.depth + 4);
+    this.scene.time.addEvent({ delay: 50, loop: true, callback: () => {
+      const active = this.player?.isGuarding() === true;
+      if (active) button.setTint(0xa0ebff);
+      else button.clearTint();
+      label.setText(active ? '防御中' : '防御');
+    } });
+  }
+
+  private imageButton(x: number, y: number, size: number, label: string, texture: string, onClick: () => void): Phaser.GameObjects.Image {
     const image = this.scene.add.image(x, y, texture).setDisplaySize(size, size)
       .setScrollFactor(0).setDepth(this.depth + 3);
     // Use a screen-fixed rectangular target independent of the PNG's transparent pixels.
@@ -498,6 +516,7 @@ export class StageHUD {
       onClick();
     });
     hitArea.on('pointerupoutside', () => image.setScale(baseScale));
+    return image;
   }
 
   private useSelectedFlowerSkill(index = this.selectedFlower): void {

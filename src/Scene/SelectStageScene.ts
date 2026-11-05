@@ -1,3 +1,4 @@
+import { getContractPool } from './stage/flowerContracts';
 import Phaser from 'phaser';
 
 import testData from './test_data';
@@ -45,6 +46,9 @@ export class SelectStageScene extends Phaser.Scene {
   // preload
   // ========================================
   preload(): void {
+    for (const { flower } of getContractPool('1-1')) {
+      if (!this.textures.exists(flower.key)) this.load.image(flower.key, flower.url);
+    }
     // 背景
     this.load.image('background', backgroundImg);
     // アイコン
@@ -196,10 +200,17 @@ export class SelectStageScene extends Phaser.Scene {
 
     this.isStageInfoOpen = true;
 
-    // 全体的に大きく（580x420 → 640x500）
-    const popupW = Math.min(width * 0.8, 640);
-    const popupH = Math.min(height * 0.8, 500);
+    const stageIndex = this.stages.findIndex(item => item.id === stage.id);
+    const isBattleStage = this.stagePositions[stageIndex]?.type === 'battle';
+    const pool = isBattleStage
+      ? getContractPool(stage.name).sort((a, b) => b.chance - a.chance || a.flower.id - b.flower.id)
+      : [];
+    const hasContracts = pool.length > 0;
+    const popupW = Math.min(width * 0.9, hasContracts ? 880 : 640);
+    const popupH = Math.min(height * 0.88, hasContracts ? 560 : 500);
 
+    // Absorb clicks inside the panel before they reach the backdrop.
+    const dialogHitArea = scene.add.zone(0, 0, popupW, popupH).setInteractive();
     const dialogGfx = scene.add.graphics();
     
     dialogGfx.fillStyle(0x000000, 0.25);
@@ -215,8 +226,6 @@ export class SelectStageScene extends Phaser.Scene {
     dialogGfx.fillRoundedRect(-popupW / 2, -popupH / 2, popupW, 60, { tl: 16, tr: 16, bl: 0, br: 0 });
 
     // タイトル文字大きく (24 → 28)
-    const stageIndex = this.stages.findIndex(item => item.id === stage.id);
-    const isBattleStage = this.stagePositions[stageIndex]?.type === 'battle';
     const titleText = scene.add.text(0, -popupH / 2 + 30, isBattleStage ? stage.name : 'ストーリー', {
       ...getTextStyle(28),
       color: '#ffffff',
@@ -237,20 +246,21 @@ export class SelectStageScene extends Phaser.Scene {
 
     // カードの高さ拡大 (160 → 210)
     const enemyCardGfx = scene.add.graphics();
-    const cardW = popupW - 60;
-    const cardH = 210;
-    const cardY = -10;
+    const cardW = hasContracts ? 264 : popupW - 60;
+    const cardX = -popupW / 2 + 30;
+    const cardH = hasContracts ? 285 : 210;
+    const cardY = hasContracts ? -52 : -10;
 
     enemyCardGfx.fillStyle(0xf4f7f9, 1);
-    enemyCardGfx.fillRoundedRect(-cardW / 2, cardY - cardH / 2, cardW, cardH, 10);
+    enemyCardGfx.fillRoundedRect(cardX, cardY - cardH / 2, cardW, cardH, 10);
     enemyCardGfx.lineStyle(1, 0xd0d7de, 1);
-    enemyCardGfx.strokeRoundedRect(-cardW / 2, cardY - cardH / 2, cardW, cardH, 10);
+    enemyCardGfx.strokeRoundedRect(cardX, cardY - cardH / 2, cardW, cardH, 10);
 
     const enemyLines = stage.enemies.map(e => `・ 敵ID: ${e.id} 数量: ${e.num}体 Lv.${e.level}`).join('\n');
     const bossLine = `・ [BOSS] 敵ID: ${stage.boss.id} 数量: ${stage.boss.num}体 Lv.${stage.boss.level}`;
 
     // サブタイトル大きく (18 → 22)
-    const enemyTitle = scene.add.text(-cardW / 2 + 20, cardY - cardH / 2 + 20, '⚔️ エリアの敵情報', {
+    const enemyTitle = scene.add.text(cardX + 20, cardY - cardH / 2 + 20, '⚔️ エリアの敵情報', {
       ...getTextStyle(22),
       color: '#333333',
       fontStyle: 'bold',
@@ -258,8 +268,38 @@ export class SelectStageScene extends Phaser.Scene {
     });
 
     // 敵情報の文字大きく、行間も広げる (16 → 20)
-    const enemyDetails = scene.add.text(-cardW / 2 + 20, cardY - cardH / 2 + 60, `${enemyLines}\n${bossLine}`, {
-      ...getTextStyle(20),
+    const contractList = scene.add.container(cardX + cardW + 16, cardY - cardH / 2);
+    if (hasContracts) {
+      const panelW = popupW - cardW - 76;
+      const tileW = (panelW - 36) / 2;
+      contractList.add(scene.add.rectangle(0, 0, panelW, cardH, 0xf2f6ee)
+        .setOrigin(0).setStrokeStyle(1, 0xc9d6bf));
+      contractList.add(scene.add.text(12, 10, '契約可能な花', getTextStyle(20, {
+        color: '#345747', fontStyle: 'bold',
+      })));
+      contractList.add(scene.add.text(panelW - 12, 16, '1体抽選・出現率順', getTextStyle(13, {
+        color: '#526454',
+      })).setOrigin(1, 0));
+      pool.forEach(({ flower, chance }, index) => {
+        const column = index % 2;
+        const row = Math.floor(index / 2);
+        const x = 12 + column * (tileW + 12);
+        const y = 45 + row * 45;
+        contractList.add(scene.add.rectangle(x, y, tileW, 40, 0xffffff)
+          .setOrigin(0).setStrokeStyle(1, 0xd9e3d2));
+        const icon = scene.add.image(x + 22, y + 20, flower.key);
+        icon.setScale(32 / Math.max(icon.width, icon.height));
+        contractList.add(icon);
+        contractList.add(scene.add.text(x + 43, y + 20, flower.name, getTextStyle(14, {
+          color: '#263b32',
+        })).setOrigin(0, 0.5));
+        contractList.add(scene.add.text(x + tileW - 9, y + 20, chance.toFixed(1) + '%', getTextStyle(14, {
+          color: '#345747', fontStyle: 'bold',
+        })).setOrigin(1, 0.5));
+      });
+    }
+    const enemyDetails = scene.add.text(cardX + 20, cardY - cardH / 2 + 60, `${enemyLines}\n${bossLine}`, {
+      ...getTextStyle(pool.length ? 14 : 20),
       color: '#444444',
       padding: { top: 0, bottom: 0, left: 0, right: 0 }
     });
@@ -363,10 +403,11 @@ export class SelectStageScene extends Phaser.Scene {
     darkBackground.on('pointerdown', () => closePopup());
 
     container.add([
-      dialogGfx, titleText, closeButton, enemyCardGfx, enemyTitle,
+      dialogHitArea, dialogGfx, titleText, closeButton, enemyCardGfx, enemyTitle,
       enemyDetails, warningText, formationBtn, startBtn
     ]);
 
+    container.add(contractList);
     container.setScale(0.85);
     container.setAlpha(0);
     scene.tweens.add({
