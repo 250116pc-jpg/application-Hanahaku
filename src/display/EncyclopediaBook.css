@@ -17,3 +17,28 @@
 .encyclopedia-footer-page{display:flex;align-items:center;justify-content:space-between;gap:4px;min-width:0}
 .encyclopedia-book-ui footer .encyclopedia-footer-page button{width:43%;min-width:0;font-size:clamp(8px,1vw,14px);padding:4px;aspect-ratio:3}
 .encyclopedia-book-ui footer .encyclopedia-footer-page span{white-space:nowrap;flex-shrink:0;font-size:clamp(8px,1vw,13px)}
+
+.encyclopedia-book-ui h1{width:44%;text-align:left;padding-left:3%}
+.encyclopedia-book{perspective:1200px}
+.encyclopedia-turn-sheet{position:absolute;top:12%;bottom:15%;left:50%;width:41%;z-index:5;pointer-events:none;transform-origin:left center;background:linear-gradient(90deg,#c7a877,#f8ebcc 13%,#f6e7c5 92%,#d8bc8d);border:1px solid #ba965b;box-shadow:6px 2px 14px #38241144;backface-visibility:visible}
+.encyclopedia-turn-sheet.turn-out{animation:encyclopedia-page-out 140ms ease-in forwards}
+.encyclopedia-turn-sheet.turn-in{animation:encyclopedia-page-in 140ms ease-out forwards}
+.encyclopedia-turn-sheet.turn-back{left:9%;transform-origin:right center}
+.encyclopedia-turn-sheet.turn-back.turn-out{animation-name:encyclopedia-page-back-out}
+.encyclopedia-turn-sheet.turn-back.turn-in{animation-name:encyclopedia-page-back-in}
+@keyframes encyclopedia-page-out{from{transform:rotateY(0)}to{transform:rotateY(-90deg)}}
+@keyframes encyclopedia-page-in{from{transform:rotateY(-90deg)}to{transform:rotateY(-180deg)}}
+@keyframes encyclopedia-page-back-out{from{transform:rotateY(0)}to{transform:rotateY(90deg)}}
+@keyframes encyclopedia-page-back-in{from{transform:rotateY(90deg)}to{transform:rotateY(180deg)}}
+@media(prefers-reduced-motion:reduce){.encyclopedia-turn-sheet{animation:none!important}}
+
+/* Keep the journal title on the left page, away from the binding. */
+.encyclopedia-book-ui h1{align-self:flex-start;width:43%;margin:0;padding-left:3%;text-align:left;overflow-wrap:anywhere}
+
+.encyclopedia-book-progress{align-self:flex-start;width:43%;text-align:left;padding-left:3%}
+.encyclopedia-page-preview{pointer-events:none}
+
+/* Keep each season in its original physical bookmark slot. */
+.encyclopedia-book-tabs{display:grid;grid-template-rows:repeat(4,1fr)}
+.encyclopedia-page-preview{z-index:2}
+.encyclopedia-turn-content{z-index:3;pointer-events:none}
