@@ -5,7 +5,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') respond(['ok'=>false,'error'=>'POST�
 $userId = requireStageUserId($pdo);
 $body = requestBody();
 $action = $body['action'] ?? 'state';
-if (!in_array($action, ['state', 'buy'], true)) respond(['ok'=>false,'error'=>'不正な操作です。'],422);
+if (!in_array($action, ['state', 'buy', 'consume'], true)) respond(['ok'=>false,'error'=>'不正な操作です。'],422);
 $quantity = array_key_exists('quantity', $body) ? $body['quantity'] : 1;
 if ($action === 'buy' && (!is_int($quantity) || $quantity < 1 || $quantity > 99)) {
  respond(['ok'=>false,'error'=>'購入数は1～99個で指定してください。'],422);
@@ -34,6 +34,16 @@ try {
   $items->$key=$count+$quantity; $coin-=$total;
   $q=$pdo->prepare('UPDATE users SET coin = ?, items = ? WHERE id = ?');
   $q->execute([$coin,json_encode($items,JSON_THROW_ON_ERROR),$userId]);
+ }
+ if ($action==='consume') {
+  $id=$body['itemId'] ?? null;
+  if (!is_int($id) || !in_array($id,[13,14,15],true) || $quantity!==1) throw new RuntimeException('使用できないアイテムです。');
+  $key=(string)$id;
+  $count=$items->$key ?? 0;
+  if ($count<1) throw new RuntimeException('アイテムを所持していません。');
+  $items->$key=$count-1;
+  $q=$pdo->prepare('UPDATE users SET items = ? WHERE id = ?');
+  $q->execute([json_encode($items,JSON_THROW_ON_ERROR),$userId]);
  }
  $pdo->commit();
  respond(['ok'=>true,'coin'=>$coin,'items'=>$items]);

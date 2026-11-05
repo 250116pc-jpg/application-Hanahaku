@@ -106,3 +106,31 @@
 .book-picture-variants { display: flex; gap: 10px; justify-content: center; }
 .book-picture-variant { min-width: 0; flex: 1; text-align: center; }
 .book-picture-variant .book-picture { width: auto; }
+
+/* Share the journal's hand-drawn portrait frame with the detail pages. */
+.book-picture{border:0;outline:0;box-shadow:none;background:url('../../assets/images/encyclopedia/journal-frame.png') center/contain no-repeat;padding:24px;aspect-ratio:1;max-width:100%;width:clamp(155px,30vh,250px);box-sizing:border-box}
+.book-picture img{width:100%;height:100%;object-fit:contain}
+
+/* The selected flower page uses the same hand-drawn journal theme as the list. */
+.flower-book-screen{font-family:'UD Digi Kyokasho NP-R','Klee','Hiragino Maru Gothic ProN','Yu Gothic',sans-serif}
+.flower-book{border:12px solid transparent;border-image:url('../../assets/images/encyclopedia/journal-frame.png') 100 stretch;border-radius:0;outline:0;box-shadow:0 12px 32px #0006}
+.book-tab,.book-ribbon,.book-button{font-family:inherit}
+.book-tab{background:url('../../assets/images/encyclopedia/journal-tab.png') center/100% 150% no-repeat;border:0;border-radius:0;min-width:120px}
+.book-tab[aria-pressed=true]{color:#233c45;background:url('../../assets/images/encyclopedia/journal-tab.png') center/100% 150% no-repeat;border:0;box-shadow:none;filter:drop-shadow(0 0 3px #bb8d36);text-decoration:underline;text-underline-offset:4px}
+.book-ribbon{border:0;box-shadow:none;background:var(--catalog-button) center/contain no-repeat;padding:15px 28px;color:#ffedc0}
+.book-button{aspect-ratio:3;min-height:58px;font-family:inherit}
+@media(min-height:481px){
+ .book-footer{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:10%;justify-items:center}
+ .book-footer .book-button{max-width:90%}
+ .book-left{padding-right:clamp(28px,4vw,76px)}
+ .book-right{padding-left:clamp(28px,4vw,76px)}
+}
+@media(orientation:landscape) and (max-height:480px){
+ .book-footer .book-button{border:0;background:var(--catalog-button) center/contain no-repeat;border-radius:0}
+ .book-picture{width:112px;height:112px;padding:12px}
+ .book-ribbon{padding:10px 16px}
+}
+
+/* Give long section labels room inside the visible part of the button art. */
+.book-ribbon{display:inline-grid;place-items:center;box-sizing:border-box;width:max-content;max-width:100%;min-width:min(100%,220px);min-height:72px;aspect-ratio:3;padding:18px 36px;text-align:center;line-height:1.4;overflow-wrap:anywhere;letter-spacing:.06em}
+@media(orientation:landscape) and (max-height:480px){.book-ribbon{min-width:min(100%,200px);min-height:64px;padding:16px 32px;font-size:14px}}

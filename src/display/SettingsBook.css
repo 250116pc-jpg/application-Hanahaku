@@ -1,0 +1,97 @@
+.settings-book-screen{position:fixed;inset:0;z-index:1100;background:#20352d;display:grid;place-items:center;padding:4px 6vw 4px 4px;font:16px/1.5 Meiryo,sans-serif;color:#302519;overflow:auto}.settings-book-screen *{box-sizing:border-box}.settings-book-screen [hidden]{display:none!important}.settings-book{position:relative;width:min(88vw,148vh);width:min(88vw,148dvh);aspect-ratio:384/256}.settings-book .settings-journal-art{width:100%;height:100%;image-rendering:pixelated}.settings-book .settings-journal-tabs{position:absolute;left:95%;top:22%;width:13%;display:flex;flex-direction:column;gap:3px}.settings-book .settings-journal-tab{position:relative;width:100%;aspect-ratio:2.5;overflow:hidden;background:transparent;border:0;padding:0;cursor:pointer}.settings-book .settings-journal-tab img{position:absolute;width:180%;height:260%;left:-40%;top:-80%;image-rendering:pixelated}.settings-book .settings-journal-tab[aria-selected=true]::after{content:'◀';position:absolute;right:0;top:50%;transform:translateY(-50%);color:#fff2c9;font-size:clamp(12px,1.5vw,20px);text-shadow:1px 1px #382719;pointer-events:none}.settings-book .settings-journal-content{position:absolute;inset:13% 9% 19%;display:grid;grid-template-columns:1fr 1fr;gap:8%}.settings-book .settings-journal-content section{padding:3% 6%;overflow:auto;min-width:0}.settings-book h2{font-size:clamp(15px,2vw,26px);text-align:center;margin:0 0 16px}.settings-book label,.settings-book p{display:block;font-size:clamp(12px,1.4vw,18px);overflow-wrap:anywhere;margin:12px 0}.settings-book input[type=range]{display:block;width:100%;accent-color:#62896e;min-height:28px}.settings-book output{font-size:14px}.settings-book select{display:block;max-width:100%;padding:6px}.settings-book button{font:inherit;cursor:pointer}.settings-book button:focus-visible,.settings-book input:focus-visible,.settings-book select:focus-visible{outline:3px solid #42694e;outline-offset:2px}.settings-book .settings-journal-footer{position:absolute;bottom:13%;left:8%;right:8%;display:flex;justify-content:center;gap:8px;flex-wrap:wrap}.settings-book .settings-journal-footer button,.settings-book .settings-journal-content button{border:1px solid #795d35;background:#f7e9cc;color:#302519;padding:6px 10px;border-radius:4px}.settings-book .settings-journal-status{position:absolute;top:100%;left:0;right:0;color:#fff8e6;font-size:13px;margin:4px 0}@media(max-width:600px){.settings-book-screen{padding:5px 8vw 55px 5px}.settings-book{width:86vw;min-height:340px}.settings-book .settings-journal-footer{bottom:9%;gap:3px}.settings-book .settings-journal-footer button{font-size:11px;padding:4px}.settings-book .settings-journal-content{inset:13% 8% 24%}.settings-book label,.settings-book p{font-size:12px}}@media (orientation:landscape) and (max-height:600px){
+ .settings-book-screen{padding:2px max(6vw,env(safe-area-inset-right)) 2px max(4px,env(safe-area-inset-left));overflow:hidden}
+ .settings-book{width:min(88vw,148vh);width:min(88vw,148dvh);min-height:0}
+ .settings-book h2{font-size:18px;margin:0 0 5px}
+ .settings-book label,.settings-book p{font-size:13px;margin:5px 0}
+ .settings-book input[type=range]{min-height:24px}
+ .settings-book output{font-size:12px}
+ .settings-book .settings-journal-content{inset:12% 8% 22%}
+ .settings-book .settings-journal-content section{padding:1% 4%}
+ .settings-book .settings-journal-footer{bottom:13%;gap:4px;left:6%;right:6%}
+ .settings-book .settings-journal-footer button{font-size:12px;padding:5px 7px}
+ .settings-book .settings-journal-status{top:auto;bottom:0;left:6%;right:6%;max-height:70%;overflow:auto;background:#20352df0;border-radius:4px}
+ .settings-book .settings-journal-status:empty{display:none}
+}
+.settings-book .settings-journal-footer{flex-direction:row;padding:0;border:0;align-items:center}
+@media(orientation:portrait) and (max-width:600px){.settings-book .settings-journal-footer{display:grid;grid-template-columns:1fr 1fr;bottom:10%;gap:4px}.settings-book .settings-journal-content{bottom:28%}}
+/* Keep the tabs aligned; animate only the selected pointer. */
+.settings-book .settings-journal-tab[aria-selected=true]::after{
+ right:3px;font-size:clamp(16px,2vw,26px);line-height:1;
+ color:#fff4d4;text-shadow:1px 1px 0 #2b1d10,-1px -1px 0 #2b1d10,1px -1px 0 #2b1d10,-1px 1px 0 #2b1d10;
+ animation:settings-pointer-nudge 900ms ease-in-out infinite;
+}
+@keyframes settings-pointer-nudge{
+ 0%,100%{transform:translate(0,-50%)}
+ 50%{transform:translate(-5px,-50%)}
+}
+@media(prefers-reduced-motion:reduce){
+ .settings-book .settings-journal-tab[aria-selected=true]::after{animation:none}
+}
+/* Gridwright ink buttons: keep the decorative ends while stretching the centre. */
+.settings-book .settings-journal-footer button,.settings-book .settings-journal-content button{
+ min-height:44px;padding:6px 8px;border:solid transparent;border-width:0 20px;
+ border-radius:0;border-image:var(--settings-ink-normal) 0 16 0 16 fill / 0 20px / 0 stretch;
+ background:transparent;color:#352719;image-rendering:pixelated;font-weight:bold;
+}
+@media(hover:hover){.settings-book .settings-journal-footer button:hover:not(:disabled),.settings-book .settings-journal-content button:hover:not(:disabled){border-image-source:var(--settings-ink-hover)}}
+.settings-book .settings-journal-footer button:active:not(:disabled),.settings-book .settings-journal-content button:active:not(:disabled){border-image-source:var(--settings-ink-pressed)}
+.settings-book .settings-journal-footer button:disabled,.settings-book .settings-journal-content button:disabled{border-image-source:var(--settings-ink-disabled);cursor:default}
+.settings-book [data-save]{color:#244c37}
+@media(orientation:landscape) and (max-height:600px){.settings-book .settings-journal-footer{left:4%;right:4%;gap:3px}.settings-book .settings-journal-footer button{font-size:11px;padding:4px 2px;border-width:0 12px;border-image-width:0 12px}}
+/* Each action stays on its own paper page, clear of the spine. */
+.settings-book .settings-journal-footer{
+ display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+ grid-template-areas:'guide cancel' 'reset save';column-gap:12%;row-gap:6px;
+ left:10%;right:10%;bottom:12%;padding:0;align-items:stretch;
+}
+.settings-book .settings-journal-footer [data-guide]{grid-area:guide}
+.settings-book .settings-journal-footer [data-reset]{grid-area:reset}
+.settings-book .settings-journal-footer [data-cancel]{grid-area:cancel}
+.settings-book .settings-journal-footer [data-save]{grid-area:save}
+.settings-book .settings-journal-footer button{min-width:0;width:100%;min-height:44px;font-size:clamp(11px,1.2vw,16px);padding:4px 2px;border-width:0 12px;border-image-width:0 12px;white-space:normal}
+.settings-book .settings-journal-content{bottom:calc(12% + 106px)}
+@media(orientation:portrait) and (max-width:600px){.settings-book .settings-journal-footer{left:8%;right:8%;bottom:10%;column-gap:10%;row-gap:4px}.settings-book .settings-journal-content{bottom:calc(10% + 104px)}}/* Ink inscriptions on the paper; retain accessible button semantics and hit areas. */
+.settings-book .settings-journal-footer button,
+.settings-book .settings-journal-content button{
+ border:0;border-image:none;border-radius:0;background:transparent;box-shadow:none;
+ color:#503923;min-height:44px;padding:7px 5px;
+ font-family:'Yu Mincho','Hiragino Mincho ProN','Hiragino Mincho Pro','Noto Serif JP',serif;
+ font-weight:600;letter-spacing:.035em;line-height:1.5;
+ text-decoration:underline;text-decoration-color:#795b3b66;text-decoration-thickness:1px;text-underline-offset:5px;
+}
+.settings-book .settings-journal-footer button:hover:not(:disabled),
+.settings-book .settings-journal-content button:hover:not(:disabled){border-image:none;color:#2e2115;text-decoration-color:currentColor;background:transparent}
+.settings-book .settings-journal-footer button:active:not(:disabled),
+.settings-book .settings-journal-content button:active:not(:disabled){border-image:none;color:#806443;background:transparent}
+.settings-book .settings-journal-footer button:disabled,
+.settings-book .settings-journal-content button:disabled{border-image:none;opacity:.45}
+.settings-book .settings-journal-footer [data-save]{color:#31513a;font-weight:700}
+/* Small touch feedback, without delaying navigation. */
+.settings-book .settings-journal-footer button,.settings-book .settings-journal-content button{transition:transform 100ms ease,color 100ms ease;touch-action:manipulation}
+.settings-book .settings-journal-footer button:active:not(:disabled),.settings-book .settings-journal-content button:active:not(:disabled){transform:translateY(2px) scale(.97)}
+.settings-book input[type=range]{touch-action:pan-y}
+.settings-book input[type=range]::-webkit-slider-thumb{transition:transform 120ms ease,box-shadow 120ms ease}
+.settings-book input[type=range]:active::-webkit-slider-thumb{transform:scale(1.25);box-shadow:0 0 0 5px #62896e33}
+.settings-book input[type=range]::-moz-range-thumb{transition:transform 120ms ease,box-shadow 120ms ease}
+.settings-book input[type=range]:active::-moz-range-thumb{transform:scale(1.25);box-shadow:0 0 0 5px #62896e33}
+.settings-book .settings-ink-mute{position:relative;display:flex;align-items:center;gap:8px;min-height:44px;cursor:pointer}
+.settings-book .settings-ink-checkbox{position:absolute;left:0;width:28px;height:28px;opacity:0;margin:0}
+.settings-check-art{display:inline-flex;width:26px;height:26px;border:2px solid #795b3b;border-radius:3px;flex-shrink:0;background:#f4e6c7}
+.settings-check-art svg{width:100%;height:100%;overflow:visible}
+.settings-check-art path{fill:none;stroke:#31513a;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:32;stroke-dashoffset:32;transition:stroke-dashoffset 180ms ease-out}
+.settings-ink-checkbox:checked+.settings-check-art path{stroke-dashoffset:0}
+.settings-ink-checkbox:focus-visible+.settings-check-art{outline:3px solid #42694e;outline-offset:3px}
+@media(prefers-reduced-motion:reduce){.settings-book .settings-journal-footer button,.settings-book .settings-journal-content button,.settings-check-art path{transition:none}.settings-book input[type=range]::-webkit-slider-thumb{transition:none}.settings-book input[type=range]::-moz-range-thumb{transition:none}}
+
+/* Readable handwritten-style trial using fonts installed on the device. */
+.settings-book-screen,.settings-book .settings-journal-footer button,.settings-book .settings-journal-content button{
+ font-family:'UD Digi Kyokasho NP-R','UD Digi Kyokasho N-R','Klee','Hiragino Maru Gothic ProN','Yu Gothic',sans-serif;
+}
+.settings-book .settings-journal-footer{bottom:17%}
+.settings-book .settings-journal-content{bottom:calc(17% + 106px)}
+.settings-book .settings-journal-footer [data-guide]::before{content:'?';display:inline-grid;place-items:center;width:1.25em;height:1.25em;border:1px solid currentColor;border-radius:50%;margin-right:.4em;font-family:serif;text-decoration:none}
+.settings-guide-dialog{color:#493522;background:#f4e6c7;border:3px double #795b3b;border-radius:5px;width:min(520px,88vw);max-height:85dvh;padding:20px;overflow:auto;font:inherit}
+.settings-guide-dialog::backdrop{background:#14231bc4}
+.settings-guide-dialog h2{margin:0 0 12px}
+.settings-guide-dialog button{min-height:44px;padding:8px 16px;background:transparent;border:0;text-decoration:underline;color:#31513a;font:inherit;cursor:pointer}
+@media(orientation:portrait) and (max-width:600px){.settings-book .settings-journal-footer{bottom:14%}.settings-book .settings-journal-content{bottom:calc(14% + 104px)}}

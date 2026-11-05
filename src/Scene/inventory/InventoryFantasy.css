@@ -1,0 +1,18 @@
+.hanahaku-inventory.inventory-fantasy-preview{color:#3b281a}
+.hanahaku-inventory.inventory-fantasy-preview .inventory-panel{
+ border:solid transparent;border-width:24px 30px;border-image:url('../../assets/inventory-fantasy/panel-frame.png') 220 330 fill / 24px 30px / 0 stretch;
+ border-radius:0;background:transparent;box-shadow:none;image-rendering:pixelated;padding:10px;
+}
+.hanahaku-inventory.inventory-fantasy-preview header{border-bottom:2px solid #907041}
+.hanahaku-inventory.inventory-fantasy-preview h1{color:#45301e;text-shadow:0 1px #fff1c7}
+.hanahaku-inventory.inventory-fantasy-preview button:not(.inventory-card){
+ border:solid transparent;border-width:0 22px;border-image:url('../../assets/inventory-fantasy/button-normal.png') 0 450 fill / 0 22px / 0 stretch;
+ border-radius:0;background:transparent;color:#fff0c7;min-height:44px;text-shadow:1px 1px 2px #180c04;padding:8px 4px;image-rendering:pixelated;
+}
+@media(hover:hover){.hanahaku-inventory.inventory-fantasy-preview button:not(.inventory-card):hover{border-image-source:url('../../assets/inventory-fantasy/button-hover.png')}}
+.hanahaku-inventory.inventory-fantasy-preview button:not(.inventory-card):active,.hanahaku-inventory.inventory-fantasy-preview button:not(.inventory-card)[aria-pressed=true]{border-image-source:url('../../assets/inventory-fantasy/button-pressed.png');color:#fff; text-decoration:underline;text-underline-offset:4px}
+.hanahaku-inventory.inventory-fantasy-preview .inventory-grid{background:#251a13;border:2px solid #927142}
+.hanahaku-inventory.inventory-fantasy-preview .inventory-detail{color:#3b281a;border:2px solid #997442;background:#f0ddb1;border-radius:0;box-shadow:inset 0 0 0 2px #e0c38c}
+.hanahaku-inventory.inventory-fantasy-preview .inventory-detail h2{color:#4c301b;border-bottom:1px solid #997442}
+.hanahaku-inventory.inventory-fantasy-preview .inventory-message{color:#922f26}
+@media(max-height:480px){.hanahaku-inventory.inventory-fantasy-preview .inventory-panel{border-width:14px 20px;border-image-width:14px 20px;padding:5px}.hanahaku-inventory.inventory-fantasy-preview nav{margin:5px 0}.hanahaku-inventory.inventory-fantasy-preview button:not(.inventory-card){border-width:0 12px;border-image-width:0 12px;font-size:13px;padding:4px 2px}}

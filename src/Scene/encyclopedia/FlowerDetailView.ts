@@ -1,5 +1,5 @@
 import type { PrototypeFlower } from './contractPreview'
-import buttonImage from '../../assets/ui/button1.png'
+import buttonImage from '../../assets/images/encyclopedia/journal-button.png'
 import './flower-detail.css'
 
 const icons = import.meta.glob('../../assets/skill/*.png', { eager: true, query: '?url', import: 'default' }) as Record<string, string>
