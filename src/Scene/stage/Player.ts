@@ -180,6 +180,23 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   }
 
 
+  private guardUntil = 0;
+
+  public guard(): void {
+    const body = this.body as Phaser.Physics.Arcade.Body | null;
+    if (!body?.blocked.down || this.dead || this.action !== null ||
+        this.scene.time.now < this.chargeUntil || this.scene.time.now < this.continuousUntil) return;
+    this.guardUntil = this.scene.time.now + 900;
+    this.setVelocityX(0);
+    this.playAnimation('player-defend');
+  }
+
+  public isGuarding(): boolean {
+    const body = this.body as Phaser.Physics.Arcade.Body | null;
+    return !this.dead && this.action === null && body?.blocked.down === true &&
+      (this.cursors?.down?.isDown === true || this.scene.time.now < this.guardUntil);
+  }
+
   public update(): void {
     const body = this.body as Phaser.Physics.Arcade.Body;
     if (!body || !this.cursors || this.dead) return;
@@ -187,7 +204,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     // Preserve the jump arc on the way up, then make the descent a little snappier.
     body.setGravityY(!body.blocked.down && body.velocity.y > 0 ? this.FALL_GRAVITY_BONUS : 0);
 
-    if (this.action !== null) {
+    if (this.action !== null || this.isGuarding()) {
       this.setVelocityX(0);
     } else if (this.cursors.left?.isDown) {
       this.setVelocityX(-this.PLAYER_SPEED * playerStats.agility / 100);
@@ -204,7 +221,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     const isGrounded = body.blocked.down;
     if (this.action !== null) {
       // Keep the action animation visible until it completes.
-    } else if (this.cursors.down?.isDown && isGrounded) {
+    } else if (this.isGuarding()) {
       this.landingAnimationPlaying = false;
       this.playAnimation('player-defend');
     } else if (!isGrounded) {
@@ -222,7 +239,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
   public jump(): void {
     const body = this.body as Phaser.Physics.Arcade.Body;
-    if (body?.blocked.down) this.setVelocityY(-this.JUMP_POWER);
+    if (!this.dead && !this.isGuarding() && body?.blocked.down) this.setVelocityY(-this.JUMP_POWER);
   }
 
   public attack(targets: readonly CombatTarget[] = []): void {
@@ -264,7 +281,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   }
 
   public canUseSkill(): boolean {
-    return !this.dead && this.action === null && this.scene.time.now >= this.chargeUntil;
+    return !this.dead && !this.isGuarding() && this.action === null && this.scene.time.now >= this.chargeUntil;
   }
 
   public setSkillVisualHandler(handler: SkillVisualHandler): void {
@@ -409,13 +426,12 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     if (this.dead || now < this.invulnerableUntil || amount <= 0) return;
     if (now < this.evasionUntil && Math.random() * 100 < this.evasionPercent) return;
 
-    const defending = this.cursors?.down?.isDown === true &&
-      (this.body as Phaser.Physics.Arcade.Body).blocked.down;
+    const defending = this.isGuarding();
     const activeDefenseBonus = now < this.defenseUntil ? this.defenseBonusPercent : 0;
     const defense = Math.max(0, damageType === 'magical' ? playerStats.magicDefense : playerStats.physicalDefense);
     const statDamageMultiplier = 100 / (100 + defense);
     const buffDamageMultiplier = Math.max(0.1, 1 - activeDefenseBonus / 100);
-    const damageMultiplier = statDamageMultiplier * (defending ? 0.5 : buffDamageMultiplier);
+    const damageMultiplier = statDamageMultiplier * buffDamageMultiplier * (defending ? 0.5 : 1);
     this.health = Math.max(0, this.health - Math.ceil(amount * damageMultiplier));
     this.invulnerableUntil = now + 700;
     this.emit('health-changed', this.health, this.maxHealth);
@@ -444,7 +460,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   }
 
   private playAction(action: string, animationKey: string): boolean {
-    if (this.dead || this.action !== null || !this.scene.anims.exists(animationKey)) return false;
+    if (this.dead || this.isGuarding() || this.action !== null || !this.scene.anims.exists(animationKey)) return false;
     this.action = action;
     this.landingAnimationPlaying = false;
     this.setVelocityX(0);
@@ -455,6 +471,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   private playSkillAnimation(animationKey: string): boolean {
     if (
       !this.scene.anims.exists(animationKey) ||
+      this.isGuarding() ||
       (this.action !== 'skillPending' && this.action !== null) ||
       this.dead
     ) {

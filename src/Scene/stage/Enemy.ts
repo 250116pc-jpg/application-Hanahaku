@@ -58,11 +58,13 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
   private dead = false;
   private patrolDirection = -1;
   private visualBottomPadding = 2;
+  private readonly enemyId: number;
 
-  constructor(scene: Phaser.Scene, x: number, y: number, player: Player, stats: EnemyStats) {
+  constructor(scene: Phaser.Scene, x: number, y: number, player: Player, stats: EnemyStats, enemyId = 1) {
     super(scene, x, y, 'stage-enemy-idle');
     this.player = player;
     this.stats = stats;
+    this.enemyId = enemyId;
     this.maxHealth = stats.hp;
     this.health = this.maxHealth;
     this.homeX = x;
@@ -83,12 +85,12 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
       .setOrigin(0.5, 1)
       .setScale(3)
       .setDepth(6);
-    this.visual.play('enemy-idle');
+    this.playVisual('enemy-idle');
     this.visual.on(Phaser.Animations.Events.ANIMATION_START, (animation: Phaser.Animations.Animation) => {
       this.visualBottomPadding = this.getVisualBottomPadding(animation.key);
     });
     this.visual.on(Phaser.Animations.Events.ANIMATION_COMPLETE, (animation: Phaser.Animations.Animation) => {
-      if (animation.key === 'enemy-death') {
+      if (animation.key.startsWith('enemy-death')) {
         this.destroy();
       } else {
         this.locked = false;
@@ -226,6 +228,8 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
   }
 
   private playVisual(animationKey: string): void {
+    const variantKey = `${animationKey}-${this.enemyId}`;
+    if (this.scene.anims.exists(variantKey)) animationKey = variantKey;
     if (this.visual.anims.currentAnim?.key !== animationKey) {
       this.visual.play(animationKey, true);
     }

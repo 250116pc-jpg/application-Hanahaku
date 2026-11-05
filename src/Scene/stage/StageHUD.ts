@@ -456,6 +456,17 @@ export class StageHUD {
     const w = this.scene.scale.width;
     const h = this.scene.scale.height;
     const baseX = w - 72;
+    const guard = this.scene.add.rectangle(baseX - 154, h - 198, 82, 64, 0x204455)
+      .setScrollFactor(0).setDepth(this.depth + 4).setStrokeStyle(2, 0xe5d4a5)
+      .setInteractive({ useHandCursor: true });
+    const guardLabel = this.text(guard.x, guard.y, '防御', 19, '#fff4e8', 'bold')
+      .setOrigin(0.5).setDepth(this.depth + 5);
+    guard.on('pointerdown', () => this.player?.guard());
+    this.scene.time.addEvent({ delay: 50, loop: true, callback: () => {
+      const active = this.player?.isGuarding() === true;
+      guard.setFillStyle(active ? 0x397c8e : 0x204455);
+      guardLabel.setText(active ? '防御中' : '防御');
+    } });
     //攻撃
     this.imageButton(baseX - 154, h - 94, 130, '', 'stage-attack', () => this.player?.attack(this.enemies));
     // Flower cards are the skill buttons; this label reports the selected flower's skill state.
@@ -550,6 +561,9 @@ export class StageHUD {
       heal: 0xff77b9, evasion: 0x9a83ff,
     };
     const color = tintByType[skill.type];
+    if (phase === 'charge' || phase === 'buff' || phase === 'heal') {
+      this.createImpactBurst(this.player.x, this.player.y - 48, color, 1.1);
+    }
     if (phase === 'impact' || phase === 'charge') this.showSkillFootprint(area, color);
 
     if (phase === 'buff' || phase === 'heal') {
@@ -567,6 +581,9 @@ export class StageHUD {
 
     if (skill.type === 'charge') {
       this.fireSunBeam(area, color);
+    }
+    if (targets.length === 0) {
+      this.createImpactBurst(this.player.x + (this.player.flipX ? -52 : 52), this.player.y - 48, color, 0.8);
     }
     if (targets.length > 0) {
       const hitY = skill.type === 'charge' ? this.player.y - 48 : undefined;
@@ -623,14 +640,22 @@ export class StageHUD {
   }
 
   private createImpactBurst(x: number, y: number, color: number, scale: number): void {
-    const burst = this.scene.add.graphics().setDepth(this.depth - 2).setScrollFactor(1);
-    burst.fillStyle(color, 0.34).fillCircle(x, y, 17 * scale);
-    burst.lineStyle(4, 0xffffff, 0.95).strokeCircle(x, y, 22 * scale);
+    const burst = this.scene.add.graphics({ x, y }).setDepth(this.depth - 2).setBlendMode(Phaser.BlendModes.ADD);
+    burst.fillStyle(color, 0.34).fillCircle(0, 0, 24 * scale);
+    burst.lineStyle(4, 0xffffff, 0.95).strokeCircle(0, 0, 22 * scale);
     burst.lineStyle(3, color, 0.95);
-    for (let i = 0; i < 10; i++) {
-      const angle = (Math.PI * 2 * i) / 10;
-      burst.lineBetween(x + Math.cos(angle) * 27 * scale, y + Math.sin(angle) * 27 * scale,
-        x + Math.cos(angle) * 56 * scale, y + Math.sin(angle) * 56 * scale);
+    burst.strokeCircle(0, 0, 38 * scale);
+    for (let i = 0; i < 16; i++) {
+      const angle = (Math.PI * 2 * i) / 16;
+      const distance = (i % 2 === 0 ? 92 : 63) * scale;
+      const spark = this.scene.add.rectangle(x, y, 8, 4, i % 2 === 0 ? 0xfff5d4 : color)
+        .setRotation(angle).setDepth(this.depth - 1).setBlendMode(Phaser.BlendModes.ADD);
+      this.scene.tweens.add({
+        targets: spark, x: x + Math.cos(angle) * distance, y: y + Math.sin(angle) * distance,
+        alpha: 0, scale: 0.25, duration: 380, ease: 'Cubic.Out', onComplete: () => spark.destroy(),
+      });
+      burst.lineBetween(Math.cos(angle) * 27 * scale, Math.sin(angle) * 27 * scale,
+        Math.cos(angle) * 56 * scale, Math.sin(angle) * 56 * scale);
     }
     this.scene.tweens.add({ targets: burst, alpha: 0, scale: 1.45, duration: 260, ease: 'Cubic.Out', onComplete: () => burst.destroy() });
   }

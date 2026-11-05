@@ -1,0 +1,17 @@
+{
+  "id": 2,
+  "name": "コケモリ",
+  "hp": 210,
+  "mp": 0,
+  "physicalAttack": 65,
+  "magicAttack": 75,
+  "physicalDefense": 100,
+  "magicDefense": 100,
+  "healingPower": 101,
+  "attackIntervalMs": 800,
+  "agility": 100,
+  "criticalRate": 5,
+  "criticalDamage": 30,
+  "contractFlowerId": 0,
+  "enhancementId": 1
+}
