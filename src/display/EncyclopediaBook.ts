@@ -1,3 +1,4 @@
+import { openPeopleJournal } from './PeopleJournal'
 import { readFlowerContracts } from '../Scene/stage/flowerContracts'
 import type { Season } from '../Scene/test_data'
 import { prototypeFlowers, contractPreview, type PrototypeFlower } from '../Scene/encyclopedia/contractPreview'
@@ -111,6 +112,22 @@ export function mountEncyclopediaBook(options: {
  }
  const close=():void=>{if(busy)return;animate(true,options.onHome)}
  const title=document.createElement('h1');title.textContent='花の図鑑';ui.append(title)
+ const peopleLink=button(title,'人物録',()=>openPeopleJournal(root))
+ peopleLink.className='people-journal-link'
+ if(new URLSearchParams(location.search).get('people-ui')==='portrait') {
+  peopleLink.classList.add('with-portrait')
+ } else {
+  const paper=document.createElement('span')
+  paper.className='people-note-paper'
+  paper.setAttribute('aria-hidden','true')
+  for(let i=1;i<=9;i++) {
+   const tile=document.createElement('img')
+   tile.alt=''
+   tile.src=new URL(`../assets/people-journal/paper-${i}.png`,import.meta.url).href
+   paper.append(tile)
+  }
+  peopleLink.prepend(paper)
+ }
  const progress=document.createElement('p');progress.className='encyclopedia-book-progress';progress.textContent=`花契済み ${new Set([...contractPreview.owned, ...Object.keys(readFlowerContracts()).map(Number)]).size} / ${prototypeFlowers.length}`;ui.append(progress)
  const grid=document.createElement('div');grid.className='encyclopedia-book-grid';ui.append(grid)
  const flowers=prototypeFlowers.filter(f=>f.season===options.season)
