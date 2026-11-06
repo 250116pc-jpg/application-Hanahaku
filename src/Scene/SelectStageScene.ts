@@ -1,8 +1,10 @@
+import storyData from '../scenario_data/story_data.json';
 import { getContractPool } from './stage/flowerContracts';
 import Phaser from 'phaser';
 
 import testData from './test_data';
 import { AREA_STAGE_LAYOUTS, type StagePosition } from './stageSelectData';
+const battleData = import.meta.glob('../../php/stage/stage*.json', { eager: true, import: 'default' }) as Record<string, { enemies: { id: number; level: number }[] }>;
 type StageData = typeof testData.stages[number];
 import { specialText } from '../functions';
 import { createBackground } from '../background';
@@ -210,6 +212,8 @@ export class SelectStageScene extends Phaser.Scene {
 
     const stageIndex = this.stages.findIndex(item => item.id === stage.id);
     const isBattleStage = this.stagePositions[stageIndex]?.type === 'battle';
+    const story = !isBattleStage ? storyData.find(chapter => chapter.chapter === this.currentChapter)?.stages.find(entry => entry.stage === stage.id) : undefined;
+    const battle = this.currentChapter === 1 && isBattleStage ? battleData['../../php/stage/stage' + stage.id + '.json'] : undefined;
     const pool = isBattleStage
       ? getContractPool(stage.name).sort((a, b) => b.chance - a.chance || a.flower.id - b.flower.id)
       : [];
@@ -234,7 +238,7 @@ export class SelectStageScene extends Phaser.Scene {
     dialogGfx.fillRoundedRect(-popupW / 2, -popupH / 2, popupW, 60, { tl: 16, tr: 16, bl: 0, br: 0 });
 
     // タイトル文字大きく (24 → 28)
-    const titleText = scene.add.text(0, -popupH / 2 + 30, isBattleStage ? stage.name : 'ストーリー', {
+    const titleText = scene.add.text(0, -popupH / 2 + 30, isBattleStage ? stage.name : story?.title ?? 'ストーリー', {
       ...getTextStyle(28),
       color: '#ffffff',
       fontStyle: 'bold',
@@ -266,6 +270,10 @@ export class SelectStageScene extends Phaser.Scene {
 
     const enemyLines = stage.enemies.map(e => `・ 敵ID: ${e.id} 数量: ${e.num}体 Lv.${e.level}`).join('\n');
     const bossLine = `・ [BOSS] 敵ID: ${stage.boss.id} 数量: ${stage.boss.num}体 Lv.${stage.boss.level}`;
+
+    const enemySummary = battle
+      ? battle.enemies.map(enemy => '・ 敵ID: ' + enemy.id + ' Lv.' + enemy.level).join('\n')
+      : [enemyLines, bossLine].filter(Boolean).join('\n');
 
     // サブタイトル大きく (18 → 22)
     const enemyTitle = scene.add.text(cardX + 20, cardY - cardH / 2 + 20, '⚔️ エリアの敵情報', {
@@ -306,7 +314,7 @@ export class SelectStageScene extends Phaser.Scene {
         })).setOrigin(1, 0.5));
       });
     }
-    const enemyDetails = scene.add.text(cardX + 20, cardY - cardH / 2 + 60, `${enemyLines}\n${bossLine}`, {
+    const enemyDetails = scene.add.text(cardX + 20, cardY - cardH / 2 + 60, enemySummary, {
       ...getTextStyle(pool.length ? 14 : 20),
       color: '#444444',
       padding: { top: 0, bottom: 0, left: 0, right: 0 }
@@ -391,7 +399,7 @@ export class SelectStageScene extends Phaser.Scene {
       closePopup(() => scene.scene.start(SCENE_KEYS.FORM));
     });
 
-    const startBtn = createDialogButton(120, popupH / 2 - 55, 160, 56, '出撃', 0x4c8c5a, 0x60ab72, () => {
+    const startBtn = createDialogButton(120, popupH / 2 - 55, 160, 56, story ? '読む' : '出撃', 0x4c8c5a, 0x60ab72, () => {
       closePopup(() => {
         console.log(`ステージID: ${stage.id} で StageScene に遷移`);
         const stageIndex = this.stages.findIndex(item => item.id === stage.id);
@@ -415,6 +423,10 @@ export class SelectStageScene extends Phaser.Scene {
       enemyDetails, warningText, formationBtn, startBtn
     ]);
 
+    if (story) {
+      for (const element of [enemyCardGfx, enemyTitle, enemyDetails, warningText, formationBtn]) element.setVisible(false);
+      startBtn.setX(0);
+    }
     container.add(contractList);
     container.setScale(0.85);
     container.setAlpha(0);

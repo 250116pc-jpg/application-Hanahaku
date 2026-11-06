@@ -10,11 +10,17 @@ export type StagePosition = {
 // 個別の敵・マップ・ステージIDを用意したら、この設定と対応付ける。
 export const AREA_STAGE_LAYOUTS: Record<number, StagePosition[]> = {
   1: [
-    { id: 1, x: 176, y: 235, type: 'story' },
-    { id: 2, x: 300, y: 418, type: 'battle' },
-    { id: 3, x: 615, y: 265, type: 'story' },
-    { id: 4, x: 785, y: 455, type: 'battle' },
-    { id: 5, x: 1072, y: 452, type: 'story' },
+    { id: 1, x: 176, y: 255, type: 'story' },
+    { id: 2, x: 355, y: 225, type: 'battle' },
+    { id: 3, x: 535, y: 255, type: 'story' },
+    { id: 4, x: 715, y: 225, type: 'battle' },
+    { id: 5, x: 895, y: 255, type: 'story' },
+    { id: 6, x: 1074, y: 225, type: 'battle' },
+    { id: 7, x: 1074, y: 455, type: 'story' },
+    { id: 8, x: 850, y: 505, type: 'battle' },
+    { id: 9, x: 625, y: 455, type: 'story' },
+    { id: 10, x: 400, y: 505, type: 'battle' },
+    { id: 11, x: 176, y: 455, type: 'story' },
   ],
   2: [
     { id: 1, x: 176, y: 430, type: 'story' },

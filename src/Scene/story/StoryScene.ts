@@ -68,6 +68,10 @@ export class StoryScene extends Phaser.Scene {
   create(data: StorySceneData = { chapter: 1, stage: 1 }): void {
     showDebugSceneName(this);
     this.currentChapter = data.chapter;
+    this.currentIndex = 0;
+    this.isAuto = false;
+    this.autoTimer = undefined;
+    this.log = [];
 
     const chapterData = this.storyData.find((chapter) => chapter.chapter === data.chapter);
     const stageData = chapterData?.stages.find((stage) => stage.stage === data.stage);
@@ -132,11 +136,13 @@ export class StoryScene extends Phaser.Scene {
     // =========================
     // 画面クリックで次へ
     // =========================
-    this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
+    const advanceOnClick = (pointer: Phaser.Input.Pointer): void => {
       // メニューボタン付近（yが120未満）をクリックした場合は無視
       if (pointer.y < 120) return;
       this.nextScenario();
-    });
+    };
+    this.input.on('pointerdown', advanceOnClick);
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.input.off('pointerdown', advanceOnClick));
 
     // 最初のセリフを表示
     this.showScenario();

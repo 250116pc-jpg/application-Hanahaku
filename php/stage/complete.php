@@ -7,7 +7,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') respond(['ok' => false, 'error' => 'P
 $userId = requireStageUserId($pdo);
 $body = requestBody();
 $stageId = filter_var($body['stageId'] ?? null, FILTER_VALIDATE_INT);
-if (!in_array($stageId, [2, 4], true)) respond(['ok' => false, 'error' => 'このステージのクリア結果は保存できません。'], 422);
+if (!in_array($stageId, [2, 4, 6, 8, 10], true)) respond(['ok' => false, 'error' => 'このステージのクリア結果は保存できません。'], 422);
 
 const STAGE_CLEAR_REWARD = 100;
 try {

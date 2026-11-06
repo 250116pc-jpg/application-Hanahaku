@@ -1,31 +1,462 @@
 [
   {
     "chapter": 1,
-    "title": "第1章：始まりの街",
+    "title": "第1章：花の声がする方へ",
     "stages": [
       {
         "stage": 1,
-        "title": "目覚め",
+        "title": "はじめから",
         "scenario": [
-          { "name": "主人公", "text": "う……ここはどこだろう。花の香りがする……。", "bg": "forest_night", "bgm": "danger_01", "effect": "flash" },
-          { "name": "主人公", "text": "遠くで何かが動いた気がする。まずは周りを調べてみよう。", "bg": "forest_night", "bgm": "danger_01", "effect": "" }
+          {
+            "name": "語り",
+            "text": "——そこは、人と花が「花契」で結ばれ、支え合うもうひとつの世界。",
+            "bg": "forest_night",
+            "bgm": "",
+            "effect": ""
+          },
+          {
+            "name": "語り",
+            "text": "花博の展示が終わるころ。主人公は、鉢植えに囲まれた小さな体験台の前で足を止めた。",
+            "bg": "forest_night",
+            "bgm": "",
+            "effect": ""
+          },
+          {
+            "name": "主人公",
+            "text": "「はじめから」。これ、花博のゲームかな。",
+            "bg": "forest_night",
+            "bgm": "",
+            "effect": ""
+          },
+          {
+            "name": "語り",
+            "text": "画面に触れた瞬間、会場の音が遠のいた。次に手のひらが触れたのは、冷たい土だった。",
+            "bg": "forest_night",
+            "bgm": "",
+            "effect": ""
+          },
+          {
+            "name": "主人公",
+            "text": "……ここ、どこだ？　さっきまで何をしてたんだっけ。",
+            "bg": "forest_night",
+            "bgm": "",
+            "effect": ""
+          },
+          {
+            "name": "？？？",
+            "text": "その足、右にずらして。そこ、わたしの根っこ。",
+            "bg": "forest_night",
+            "bgm": "",
+            "effect": ""
+          },
+          {
+            "name": "主人公",
+            "text": "今、しゃべったの……この花？",
+            "bg": "forest_night",
+            "bgm": "",
+            "effect": ""
+          },
+          {
+            "name": "ジニア",
+            "text": "そう。わたしはジニア。あの黒い影が来る前に、こっちへ。",
+            "bg": "forest_night",
+            "bgm": "",
+            "effect": ""
+          },
+          {
+            "name": "語り",
+            "text": "黒い影がしおれた花に触れる。花弁から赤い光が抜け、影の腕で炎に変わった。",
+            "bg": "forest_night",
+            "bgm": "",
+            "effect": ""
+          },
+          {
+            "name": "ジニア",
+            "text": "花の力を奪う病気。わたしたちはウイルスと呼んでる。あの影は、奪った力で人まで襲う。",
+            "bg": "forest_night",
+            "bgm": "",
+            "effect": ""
+          },
+          {
+            "name": "主人公",
+            "text": "君は逃げられないのか？",
+            "bg": "forest_night",
+            "bgm": "",
+            "effect": ""
+          },
+          {
+            "name": "ジニア",
+            "text": "根を張ったままじゃね。でも、あなたと「花契」を交わせば、力を貸せる。手を出して。わたしを守って。",
+            "bg": "forest_night",
+            "bgm": "",
+            "effect": ""
+          },
+          {
+            "name": "主人公",
+            "text": "わかった。二人でここを出よう。",
+            "bg": "forest_night",
+            "bgm": "",
+            "effect": ""
+          },
+          {
+            "name": "語り",
+            "text": "指先に赤い花弁が触れ、手の甲に小さな花の紋が灯った。影が、二人めがけて踏み込んできた。",
+            "bg": "forest_night",
+            "bgm": "",
+            "effect": ""
+          }
         ]
       },
       {
         "stage": 3,
-        "title": "花の道",
+        "title": "手のひらの記憶",
         "scenario": [
-          { "name": "主人公", "text": "花畑の先に道が続いている。さっきの気配も、あちらからだ。", "bg": "forest_night", "bgm": "danger_01", "effect": "" },
-          { "name": "？？？", "text": "こっちだよ！この先は危ないから、気をつけて！", "bg": "forest_night", "bgm": "contract_theme", "effect": "screen_shake" }
+          {
+            "name": "主人公",
+            "text": "……終わった。手がまだ熱い。",
+            "bg": "forest_night",
+            "bgm": "",
+            "effect": ""
+          },
+          {
+            "name": "ジニア",
+            "text": "花契の熱だよ。怖かったら、手を開いて。力を手放しても、わたしはここにいる。",
+            "bg": "forest_night",
+            "bgm": "",
+            "effect": ""
+          },
+          {
+            "name": "語り",
+            "text": "主人公が指を開くと、花の紋が一度だけ明滅した。",
+            "bg": "forest_night",
+            "bgm": "",
+            "effect": ""
+          },
+          {
+            "name": "ジニア",
+            "text": "変なの。あなたが最初に差し出した指、わたしに触れる前から震えてた。前にも何かに触れた？",
+            "bg": "forest_night",
+            "bgm": "",
+            "effect": ""
+          },
+          {
+            "name": "主人公",
+            "text": "……画面だ。花博で、ゲームの「はじめから」を押した。その直後に、ここへ来た。",
+            "bg": "forest_night",
+            "bgm": "",
+            "effect": ""
+          },
+          {
+            "name": "主人公",
+            "text": "じゃあ、ジニアもゲームの中にいるのか？",
+            "bg": "forest_night",
+            "bgm": "",
+            "effect": ""
+          },
+          {
+            "name": "ジニア",
+            "text": "ゲームは知らない。でも、さっき力を奪われた花は、昨日までお隣さんだった。助けられるなら、助けたい。",
+            "bg": "forest_night",
+            "bgm": "",
+            "effect": ""
+          },
+          {
+            "name": "語り",
+            "text": "倒れた影から黒い粒が浮いた。風に逆らい、森の奥へ一列に流れていく。",
+            "bg": "forest_night",
+            "bgm": "",
+            "effect": ""
+          },
+          {
+            "name": "ジニア",
+            "text": "前はこんな動き、しなかった。誰かが影に道を教えてるみたい。",
+            "bg": "forest_night",
+            "bgm": "",
+            "effect": ""
+          },
+          {
+            "name": "主人公",
+            "text": "粒を追おう。君の隣の花の力が、どこへ運ばれたかもわかるかもしれない。",
+            "bg": "forest_night",
+            "bgm": "",
+            "effect": ""
+          },
+          {
+            "name": "語り",
+            "text": "粒の列を追って走り出した二人の前に、木々の間から新たな影が踏み出した。",
+            "bg": "forest_night",
+            "bgm": "",
+            "effect": ""
+          }
         ]
       },
       {
         "stage": 5,
-        "title": "小さな出会い",
+        "title": "返らない返事",
         "scenario": [
-          { "name": "主人公", "text": "助けてくれてありがとう。あなたは誰？", "bg": "forest_night", "bgm": "contract_theme", "effect": "" },
-          { "name": "？？？", "text": "話はあとで。まずはこの先の安全な場所まで一緒に行こう。", "bg": "forest_night", "bgm": "contract_theme", "effect": "" },
-          { "name": "主人公", "text": "うん。ここから先に進んでみよう。", "bg": "forest_night", "bgm": "danger_01", "effect": "" }
+          {
+            "name": "語り",
+            "text": "粒を追うと、石の水路に出た。水は枯れ、底には根を引きずった跡が残っていた。",
+            "bg": "forest_night",
+            "bgm": "",
+            "effect": ""
+          },
+          {
+            "name": "ジニア",
+            "text": "ここは人が水を引いて、花が根で堤を支える場所だった。朝になると、上流から順番に花が返事をするの。",
+            "bg": "forest_night",
+            "bgm": "",
+            "effect": ""
+          },
+          {
+            "name": "ジニア",
+            "text": "おーい。……やっぱり、聞こえない。",
+            "bg": "forest_night",
+            "bgm": "",
+            "effect": ""
+          },
+          {
+            "name": "主人公",
+            "text": "待って。水門の下に光がある。さっき吸い取られた光と同じ色だ。",
+            "bg": "forest_night",
+            "bgm": "",
+            "effect": ""
+          },
+          {
+            "name": "語り",
+            "text": "石の継ぎ目に、赤い光を詰めた小さな管が埋め込まれていた。管には「回収」と刻まれている。",
+            "bg": "forest_night",
+            "bgm": "",
+            "effect": ""
+          },
+          {
+            "name": "ジニア",
+            "text": "ウイルスが自分でこんなものを作るわけない。",
+            "bg": "forest_night",
+            "bgm": "",
+            "effect": ""
+          },
+          {
+            "name": "主人公",
+            "text": "誰かが集めてる。管は水門の向こうへ続いてる。",
+            "bg": "forest_night",
+            "bgm": "",
+            "effect": ""
+          },
+          {
+            "name": "語り",
+            "text": "水門が半分まで下り、石の向こうから影の足音が重なった。",
+            "bg": "forest_night",
+            "bgm": "",
+            "effect": ""
+          }
+        ]
+      },
+      {
+        "stage": 7,
+        "title": "三度目の合図",
+        "scenario": [
+          {
+            "name": "語り",
+            "text": "水門の先には、花博の会場で見たものとよく似た案内板が立っていた。",
+            "bg": "forest_night",
+            "bgm": "",
+            "effect": ""
+          },
+          {
+            "name": "主人公",
+            "text": "この角の傷まで同じだ。展示台の横で見た。",
+            "bg": "forest_night",
+            "bgm": "",
+            "effect": ""
+          },
+          {
+            "name": "ジニア",
+            "text": "ずっと昔からある板だよ。人と花が道に迷わないようにって。",
+            "bg": "forest_night",
+            "bgm": "",
+            "effect": ""
+          },
+          {
+            "name": "語り",
+            "text": "案内板の奥から、短い鐘の音が三度。離れていた影たちが、同時に遺跡の方を向いた。",
+            "bg": "forest_night",
+            "bgm": "",
+            "effect": ""
+          },
+          {
+            "name": "主人公",
+            "text": "一度目で止まって、二度目で向きを変えた。三度目で動き出す。偶然じゃない。",
+            "bg": "forest_night",
+            "bgm": "",
+            "effect": ""
+          },
+          {
+            "name": "ジニア",
+            "text": "あの鐘、花が無事だって知らせるためのものなのに。",
+            "bg": "forest_night",
+            "bgm": "",
+            "effect": ""
+          },
+          {
+            "name": "主人公",
+            "text": "鐘楼まで行こう。合図を出すところを見れば、影を動かしてる相手に近づける。",
+            "bg": "forest_night",
+            "bgm": "",
+            "effect": ""
+          },
+          {
+            "name": "語り",
+            "text": "二人が鐘楼への石段に足を掛けると、鐘がもう一度鳴った。今度は影のすべてが、二人を見た。",
+            "bg": "forest_night",
+            "bgm": "",
+            "effect": ""
+          }
+        ]
+      },
+      {
+        "stage": 9,
+        "title": "閉じる前に",
+        "scenario": [
+          {
+            "name": "語り",
+            "text": "鐘楼の上に、人影が立っていた。鐘に触れず、黒い端末を指でなぞっている。",
+            "bg": "forest_night",
+            "bgm": "",
+            "effect": ""
+          },
+          {
+            "name": "主人公",
+            "text": "お前がウイルスを撒いたのか。花から奪った力を、何に使う？",
+            "bg": "forest_night",
+            "bgm": "",
+            "effect": ""
+          },
+          {
+            "name": "人影",
+            "text": "門を開けるだけなら、もう十分集まった。……君の花契は予定になかったけどね。",
+            "bg": "forest_night",
+            "bgm": "",
+            "effect": ""
+          },
+          {
+            "name": "ジニア",
+            "text": "わたしたちの力は、持っていっていいものじゃない！",
+            "bg": "forest_night",
+            "bgm": "",
+            "effect": ""
+          },
+          {
+            "name": "語り",
+            "text": "人影が端末に触れると、鐘の下に細い光の裂け目が開いた。向こうから、かすかに花博の場内放送が聞こえた。",
+            "bg": "forest_night",
+            "bgm": "",
+            "effect": ""
+          },
+          {
+            "name": "主人公",
+            "text": "今の声……会場だ。向こうに戻れるのか？",
+            "bg": "forest_night",
+            "bgm": "",
+            "effect": ""
+          },
+          {
+            "name": "ジニア",
+            "text": "待って。あの門、まだ花の力を吸ってる。開いたままだと、根まで持っていかれる。",
+            "bg": "forest_night",
+            "bgm": "",
+            "effect": ""
+          },
+          {
+            "name": "語り",
+            "text": "人影は裂け目へ消えた。門の前では、残った影たちが赤い光をまとい、退路を塞いだ。",
+            "bg": "forest_night",
+            "bgm": "",
+            "effect": ""
+          },
+          {
+            "name": "主人公",
+            "text": "戻る道なら、また探す。まずは花を助けよう。鐘を止めるぞ、ジニア。",
+            "bg": "forest_night",
+            "bgm": "",
+            "effect": ""
+          }
+        ]
+      },
+      {
+        "stage": 11,
+        "title": "つづきから",
+        "scenario": [
+          {
+            "name": "語り",
+            "text": "最後の影が崩れると、鐘は止まった。裂け目は閉じ、管の中の赤い光が、根を伝って森へ帰っていく。",
+            "bg": "forest_night",
+            "bgm": "",
+            "effect": ""
+          },
+          {
+            "name": "ジニア",
+            "text": "おーい。……聞こえる？",
+            "bg": "forest_night",
+            "bgm": "",
+            "effect": ""
+          },
+          {
+            "name": "語り",
+            "text": "水門の方から、一輪。少し遅れて、もう一輪。小さな返事が返ってきた。",
+            "bg": "forest_night",
+            "bgm": "",
+            "effect": ""
+          },
+          {
+            "name": "主人公",
+            "text": "よかった。……あの人は、俺が来ることを知っていたみたいだった。",
+            "bg": "forest_night",
+            "bgm": "",
+            "effect": ""
+          },
+          {
+            "name": "語り",
+            "text": "端末の欠片が石段に落ちていた。主人公が拾うと、花博で見たのと同じ書体で文字が浮かび上がった。",
+            "bg": "forest_night",
+            "bgm": "",
+            "effect": ""
+          },
+          {
+            "name": "端末",
+            "text": "「つづきから」\n最終操作：花博会場／外部端末",
+            "bg": "forest_night",
+            "bgm": "",
+            "effect": ""
+          },
+          {
+            "name": "主人公",
+            "text": "ここから会場へ行けるだけじゃない。会場のほうから、誰かが鐘を動かしていた……？",
+            "bg": "forest_night",
+            "bgm": "",
+            "effect": ""
+          },
+          {
+            "name": "ジニア",
+            "text": "それを聞きに行くんでしょ。今度は、わたしがあなたについていく番。",
+            "bg": "forest_night",
+            "bgm": "",
+            "effect": ""
+          },
+          {
+            "name": "主人公",
+            "text": "うん。ここが何なのかも、あの人がどうして花の力を集めたのかも、確かめよう。",
+            "bg": "forest_night",
+            "bgm": "",
+            "effect": ""
+          },
+          {
+            "name": "語り",
+            "text": "花の紋が灯る。主人公は欠片を握り、森の向こうへ目を向けた。",
+            "bg": "forest_night",
+            "bgm": "",
+            "effect": ""
+          }
         ]
       }
     ]
