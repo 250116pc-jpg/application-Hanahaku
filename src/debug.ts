@@ -23,3 +23,5 @@ export function showDebugSceneName(scene: Phaser.Scene): void {
   .setScrollFactor(0)
   .setDepth(9999);
 }
+// 開発サーバーの ?battle-preview=1 で、保存を行わないスキル確認を開始。
+export const isBattlePreview = import.meta.env.DEV && new URLSearchParams(location.search).get('battle-preview') === '1';

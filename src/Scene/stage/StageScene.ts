@@ -1,3 +1,5 @@
+import { battleNow } from './BattleClock';
+import { isBattlePreview } from '../../debug';
 import formationData from '../../../php/flower/formation.json';
 import { getPhpBaseUrl } from '../../auth/PhpBaseUrl';
 import { createGardenEnemyAnimations } from './gardenEnemies';
@@ -7,7 +9,7 @@ import Phaser from 'phaser';
 import mapUrl from '../../assets/stage/Cainos/cainos_stage.tmj?url';
 import terrainImg from '../../assets/stage/Cainos/Pixel Art Platformer - Village Props/Texture/TX Tileset Ground.png';
 import propsImg from '../../assets/stage/Cainos/Pixel Art Platformer - Village Props/Texture/TX Village Props.png';
-import backgroundImg from '../../assets/stage/flower_ruins/flower_ruins_background.svg?url';
+import backgroundImg from '../../assets/stage/flower_ruins/sanctuary-twilight.png';
 import bagButton from '../../assets/ui/button/bag_button.png';
 import attackButton from '../../assets/ui/button/attack_button.png';
 import jumpButton from '../../assets/ui/button/jump_button.png';
@@ -36,6 +38,7 @@ import { characterAnimations } from '../../animation/animationData.ts';
 import { Player } from './Player.ts';
 import { Enemy, isEnemyStats } from './Enemy.ts';
 import { StageHUD } from './StageHUD.ts';
+import { createStageAtmosphere } from './StageAtmosphere';
 import { SCENE_KEYS } from '../sceneKeys';
 import { completeStage } from './StageProgress';
 import testData from '../test_data';
@@ -134,6 +137,7 @@ export class StageScene extends Phaser.Scene {
   }
 
   create(data: { stageId?: number; stageNumber?: string } = {}): void {
+    battleNow(this);
     this.isEnding = false;
     this.rescued = false;
     this.createSkillEffectAnimations();
@@ -143,12 +147,12 @@ export class StageScene extends Phaser.Scene {
 
     this.add.image(0, 0, 'stage-background')
       .setOrigin(0, 0)
-      .setDisplaySize(map.widthInPixels, Math.max(map.heightInPixels, this.scale.height))
+      .setDisplaySize(this.scale.width + (map.widthInPixels - this.scale.width) * .8, Math.max(map.heightInPixels, this.scale.height))
       // Keep ruins and castle aligned with the tiled ground while the camera follows the player.
       .setScrollFactor(1, 1)
       .setDepth(-100);
     this.createMapDecorations(map);
-    this.createForestAtmosphere(map);
+
 
     this.createPlayerAnimations();
     this.createEnemyAnimation();
@@ -168,11 +172,13 @@ export class StageScene extends Phaser.Scene {
 
     this.enemies = this.createEnemies(this.stageId);
     this.setupWorld(map);
+    createStageAtmosphere(this, map, this.player, this.enemies);
 
     // UI（HUD）の生成を StageHUD クラスに委譲
     this.hud = new StageHUD(this, this.player, this.enemies);
     this.hud.create(data.stageId, data.stageNumber);
-    if (this.captive) this.createRescuePoint(map.widthInPixels - 96);
+    if (isBattlePreview) this.add.text(24, 218, '演出プレビュー · 保存なし', { fontSize: '14px', color: '#e6cf9c', backgroundColor: '#162330', padding: { x: 10, y: 6 } }).setScrollFactor(0).setDepth(2000);
+    if (this.captive && !isBattlePreview) this.createRescuePoint(map.widthInPixels - 96);
   }
 
   private createRescuePoint(x: number): void {
@@ -219,23 +225,6 @@ export class StageScene extends Phaser.Scene {
     if (!flower || !this.rescued || this.isEnding || !this.canReachRescuePoint()) return;
     this.isEnding = true;
     this.scene.start(SCENE_KEYS.CONTRACT, { flower, stageId: this.stageId, stageNumber: this.stageNumber });
-  }
-
-  private createForestAtmosphere(map: Phaser.Tilemaps.Tilemap): void {
-    const width = map.widthInPixels;
-    const height = Math.max(map.heightInPixels, this.scale.height);
-    const mist = this.add.graphics().setDepth(2).setScrollFactor(0.28, 0.42);
-    mist.fillStyle(0x91a6c3, 0.055).fillEllipse(width * 0.33, height * 0.69, width * 0.72, 54);
-    mist.fillStyle(0xa4bacb, 0.045).fillEllipse(width * 0.78, height * 0.48, width * 0.62, 38);
-    this.tweens.add({ targets: mist, x: 54, alpha: 0.52, duration: 9000, yoyo: true, repeat: -1, ease: 'Sine.inOut' });
-
-    for (let i = 0; i < 24; i++) {
-      const x = Phaser.Math.Between(32, width - 32);
-      const y = Phaser.Math.Between(80, height - 90);
-      const mote = this.add.circle(x, y, Phaser.Math.Between(1, 3), i % 4 === 0 ? 0xffbd85 : 0x9bd6dc, Phaser.Math.FloatBetween(0.22, 0.55))
-        .setDepth(3).setScrollFactor(0.78, 0.9);
-      this.tweens.add({ targets: mote, y: y - Phaser.Math.Between(22, 85), alpha: 0.04, duration: Phaser.Math.Between(2600, 5800), delay: Phaser.Math.Between(0, 3000), yoyo: true, repeat: -1, ease: 'Sine.inOut' });
-    }
   }
 
   private createSkillEffectAnimations(): void {
@@ -326,7 +315,7 @@ export class StageScene extends Phaser.Scene {
       this,
       'player-idle',
       'player_idle',
-      playerData.idle.frameCount,
+      Math.min(playerData.idle.frameCount, this.textures.get('player_idle').frameTotal - 1),
       playerData.idle.frameRate
     );
 
@@ -454,9 +443,10 @@ export class StageScene extends Phaser.Scene {
   update(): void {
     if (!this.player || this.isEnding) return;
     this.player.update();
-    this.enemies.forEach(enemy => enemy.update(this.time.now));
+    this.enemies.forEach(enemy => enemy.update(battleNow(this)));
     this.hud?.updateHealth(this.player.health, this.player.maxHealth);
 
+    if (isBattlePreview) return;
     if (this.player.health <= 0) {
       this.finishStage(false);
     } else if (this.enemies.length > 0 && this.enemies.every(enemy => enemy.isDefeated)) {

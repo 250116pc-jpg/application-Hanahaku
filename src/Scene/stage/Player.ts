@@ -1,3 +1,5 @@
+import { showBattleNumber } from './BattleFeedback';
+import { battleNow } from './BattleClock';
 import Phaser from 'phaser';
 import { changeCharacterAnimation } from '../../animation/animation.ts';
 import type { ServerFlowerSkill } from './SkillApi.ts';
@@ -17,7 +19,7 @@ export interface CombatTarget {
   applyKnockback?(direction: number): void;
 }
 
-export type SkillVisualPhase = 'buff' | 'charge' | 'impact' | 'heal';
+export type SkillVisualPhase = 'cast' | 'projectile' | 'buff' | 'charge' | 'impact' | 'heal';
 export type SkillVisualHandler = (
   skill: ServerFlowerSkill,
   phase: SkillVisualPhase,
@@ -42,8 +44,10 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   private evasionUntil = 0;
   private evasionPercent = 0;
   private chargeUntil = 0;
+  private comboUntil = 0;
   private continuousUntil = 0;
   private mapleIsRed = false;
+  public get isMapleRed(): boolean { return this.mapleIsRed; }
   private skillVisualHandler?: SkillVisualHandler;
   private readonly baseMaxHealth = playerStats.hp;
   private maxHealthBonus = 0;
@@ -60,19 +64,19 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     if (id === 13) return this.recoveryPotionUnavailable;
     if (this.dead || !this.active) return '戦闘不能中は使用できません。';
     if (![14,15].includes(id)) return '使用できないアイテムです。';
-    if (this.scene.time.now < (id === 14 ? this.itemAttackUntil : this.itemDefenseUntil)) return 'この宝石の効果中です。';
+    if (battleNow(this.scene) < (id === 14 ? this.itemAttackUntil : this.itemDefenseUntil)) return 'この宝石の効果中です。';
     return null;
   }
 
   public isGemActive(id: number): boolean {
-    return this.active && !this.dead && this.scene.time.now < (id === 14 ? this.itemAttackUntil : this.itemDefenseUntil);
+    return this.active && !this.dead && battleNow(this.scene) < (id === 14 ? this.itemAttackUntil : this.itemDefenseUntil);
   }
 
   public startBattleItem(id: number): boolean {
     if (this.itemUnavailable(id)) return false;
     if (id === 13) return this.startRecoveryPotion();
-    if (id === 14) this.itemAttackUntil = this.scene.time.now + 30000;
-    else this.itemDefenseUntil = this.scene.time.now + 30000;
+    if (id === 14) this.itemAttackUntil = battleNow(this.scene) + 30000;
+    else this.itemDefenseUntil = battleNow(this.scene) + 30000;
     this.emit('gem-used', id);
     return true;
   }
@@ -91,10 +95,10 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     if (durationMs <= 0 || intervalMs <= 0) return;
     this.clearRegeneration();
     this.emit('recovery-status', true);
-    const endsAt = this.scene.time.now + durationMs;
+    const endsAt = battleNow(this.scene) + durationMs;
     const timer = this.scene.time.addEvent({ delay: intervalMs, loop: true, callback: () => {
       if (!this.active || this.dead) { this.clearRegeneration(); return; }
-      if (this.scene.time.now >= endsAt) return;
+      if (battleNow(this.scene) >= endsAt) return;
       this.restoreHealth(this.maxHealth * percent / 100);
       onHeal?.();
     }});
@@ -210,8 +214,8 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   public guard(): void {
     const body = this.body as Phaser.Physics.Arcade.Body | null;
     if (!body?.blocked.down || this.dead || this.action !== null ||
-        this.scene.time.now < this.chargeUntil || this.scene.time.now < this.continuousUntil) return;
-    this.guardUntil = this.scene.time.now + 900;
+        battleNow(this.scene) < this.chargeUntil || battleNow(this.scene) < this.continuousUntil) return;
+    this.guardUntil = battleNow(this.scene) + 900;
     this.setVelocityX(0);
     this.playAnimation('player-defend');
   }
@@ -219,7 +223,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   public isGuarding(): boolean {
     const body = this.body as Phaser.Physics.Arcade.Body | null;
     return !this.dead && this.action === null && body?.blocked.down === true &&
-      (this.cursors?.down?.isDown === true || this.scene.time.now < this.guardUntil);
+      (this.cursors?.down?.isDown === true || battleNow(this.scene) < this.guardUntil);
   }
 
   public update(): void {
@@ -229,7 +233,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     // Preserve the jump arc on the way up, then make the descent a little snappier.
     body.setGravityY(!body.blocked.down && body.velocity.y > 0 ? this.FALL_GRAVITY_BONUS : 0);
 
-    if (this.action !== null || this.isGuarding()) {
+    if (this.action !== null || this.isGuarding() || battleNow(this.scene) < Math.max(this.chargeUntil, this.comboUntil)) {
       this.setVelocityX(0);
     } else if (this.cursors.left?.isDown) {
       this.setVelocityX(-this.PLAYER_SPEED * playerStats.agility / 100);
@@ -246,6 +250,8 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     const isGrounded = body.blocked.down;
     if (this.action !== null) {
       // Keep the action animation visible until it completes.
+    } else if (battleNow(this.scene) < this.chargeUntil) {
+      this.playAnimation('player-defend');
     } else if (this.isGuarding()) {
       this.landingAnimationPlaying = false;
       this.playAnimation('player-defend');
@@ -264,14 +270,14 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
   public jump(): void {
     const body = this.body as Phaser.Physics.Arcade.Body;
-    if (!this.dead && !this.isGuarding() && body?.blocked.down) this.setVelocityY(-this.JUMP_POWER);
+    if (!this.dead && this.action === null && battleNow(this.scene) >= Math.max(this.chargeUntil, this.comboUntil) && !this.isGuarding() && body?.blocked.down) this.setVelocityY(-this.JUMP_POWER);
   }
 
   public attack(targets: readonly CombatTarget[] = []): void {
-    if (this.scene.time.now < this.chargeUntil || this.scene.time.now < this.continuousUntil ||
-        this.scene.time.now < this.nextBasicAttackAt) return;
+    if (battleNow(this.scene) < Math.max(this.chargeUntil, this.comboUntil) || battleNow(this.scene) < this.continuousUntil ||
+        battleNow(this.scene) < this.nextBasicAttackAt) return;
     if (!this.playAction('attack', 'player-attack')) return;
-    this.nextBasicAttackAt = this.scene.time.now + playerStats.attackIntervalMs;
+    this.nextBasicAttackAt = battleNow(this.scene) + playerStats.attackIntervalMs;
     this.showSlash();
     const hits = this.getTargetsInRange(targets, 125, false);
     hits.slice(0, 1).forEach(target => {
@@ -306,7 +312,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   }
 
   public canUseSkill(): boolean {
-    return !this.dead && !this.isGuarding() && this.action === null && this.scene.time.now >= this.chargeUntil;
+    return !this.dead && !this.isGuarding() && this.action === null && battleNow(this.scene) >= Math.max(this.chargeUntil, this.comboUntil);
   }
 
   public setSkillVisualHandler(handler: SkillVisualHandler): void {
@@ -338,6 +344,16 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     if (!this.playSkillAnimation(skill.type === 'heal' ? 'player-drink' :
       ['defensiveRecovery', 'fortify'].includes(skill.type) ? 'player-defend' : 'player-skill')) return false;
 
+    this.emitSkillVisual(skill, 'cast');
+    const windup = 160;
+    const sequence = skill.type === 'multiHit' ? Math.max(0, skill.hitCount - 1) * 145
+      : skill.type === 'maple' && this.mapleIsRed ? Math.max(0, skill.stages.length - 1) * 450 : 0;
+    this.comboUntil = battleNow(this.scene) + windup + sequence;
+    this.scheduleAfter(windup, () => this.executeFlowerSkill(skill, targets));
+    return true;
+  }
+
+  private executeFlowerSkill(skill: ServerFlowerSkill, targets: readonly CombatTarget[]): void {
     switch (skill.type) {
       case 'multiHit':
         for (let hit = 0; hit < skill.hitCount; hit++) {
@@ -354,7 +370,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
         this.emitSkillVisual(skill, 'buff', [this]);
         break;
       case 'charge':
-        this.chargeUntil = this.scene.time.now + skill.durationMs;
+        this.chargeUntil = battleNow(this.scene) + skill.durationMs;
         this.applyDefenseBuff(skill.defenseBonusPercent, skill.durationMs);
         this.scene.time.delayedCall(skill.durationMs, () => {
           if (!this.active || this.dead) return;
@@ -366,14 +382,19 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       case 'balanced':
         this.applyTimedBuff(skill.attackBonusPercent, skill.defenseBonusPercent, skill.durationMs);
         this.repeatUntil(skill.durationMs, skill.repeatIntervalMs, () => {
-          const hitTargets = this.damageTargetsInArea(targets, this.skillDamage(skill.damagePercent, skill.attackPower), skill.area, this.getSkillDamageType(skill));
-          this.emitSkillVisual(skill, 'impact', hitTargets);
+          const launched = this.getTargetsInArea(targets, skill.area);
+          this.emitSkillVisual(skill, 'projectile', launched);
+          this.scheduleAfter(220, () => {
+            const hitTargets = launched.filter(target => !target.isDefeated);
+            hitTargets.forEach(target => target.receiveDamage(this.skillDamage(skill.damagePercent, skill.attackPower), this.getSkillDamageType(skill)));
+            this.emitSkillVisual(skill, 'impact', hitTargets);
+          });
         });
         this.emitSkillVisual(skill, 'buff', [this]);
         break;
       case 'continuous':
         this.applyTimedBuff(skill.attackBonusPercent, skill.defenseBonusPercent, skill.durationMs);
-        this.continuousUntil = this.scene.time.now + skill.durationMs;
+        this.continuousUntil = battleNow(this.scene) + skill.durationMs;
         this.repeatUntil(
           skill.durationMs,
           Math.max(100, Math.round(skill.repeatIntervalMs / (1 + skill.attackSpeedBonusPercent / 100))),
@@ -409,11 +430,11 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       case 'fortify': {
         const bonusHealth = Math.round(this.baseMaxHealth * skill.maxHealthBonusPercent / 100);
         this.maxHealthBonus = bonusHealth;
-        this.maxHealthBonusUntil = this.scene.time.now + skill.durationMs;
+        this.maxHealthBonusUntil = battleNow(this.scene) + skill.durationMs;
         this.health = Math.min(this.maxHealth, this.health + bonusHealth);
         this.applyTimedBuff(skill.attackBonusPercent, skill.defenseBonusPercent, skill.durationMs);
         this.scheduleAfter(skill.durationMs, () => {
-          if (this.scene.time.now >= this.maxHealthBonusUntil) {
+          if (battleNow(this.scene) >= this.maxHealthBonusUntil) {
             this.maxHealthBonus = 0;
             this.health = Math.min(this.health, this.maxHealth);
             this.emit('health-changed', this.health, this.maxHealth);
@@ -438,16 +459,15 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       case 'evasion':
         const hitTargets = this.damageTargetsInArea(targets, this.skillDamage(skill.damagePercent, skill.attackPower), skill.area, this.getSkillDamageType(skill));
         this.emitSkillVisual(skill, 'impact', hitTargets);
-        this.evasionUntil = this.scene.time.now + skill.durationMs;
+        this.evasionUntil = battleNow(this.scene) + skill.durationMs;
         this.evasionPercent = skill.evasionPercent;
         this.emitSkillVisual(skill, 'buff', [this]);
         break;
     }
-    return true;
   }
 
   public receiveDamage(amount: number, damageType: DamageType = 'physical'): void {
-    const now = this.scene.time.now;
+    const now = battleNow(this.scene);
     if (this.dead || now < this.invulnerableUntil || amount <= 0) return;
     if (now < this.evasionUntil && Math.random() * 100 < this.evasionPercent) return;
 
@@ -562,8 +582,8 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   }
 
   private applyAttackBonus(damage: number): number {
-    const bonus = this.scene.time.now < this.attackBonusUntil ? this.attackBonusPercent : 0;
-    return Math.max(1, Math.round(damage * (1 + bonus / 100) * (this.scene.time.now < this.itemAttackUntil ? 1.2 : 1)));
+    const bonus = battleNow(this.scene) < this.attackBonusUntil ? this.attackBonusPercent : 0;
+    return Math.max(1, Math.round(damage * (1 + bonus / 100) * (battleNow(this.scene) < this.itemAttackUntil ? 1.2 : 1)));
   }
 
   private applyPlayerCritical(damage: number): number {
@@ -573,27 +593,27 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
   private applyTimedBuff(attackPercent: number, defensePercent: number, durationMs: number): void {
     this.attackBonusPercent = attackPercent;
-    this.attackBonusUntil = this.scene.time.now + durationMs;
+    this.attackBonusUntil = battleNow(this.scene) + durationMs;
     this.applyDefenseBuff(defensePercent, durationMs);
     this.scheduleAfter(durationMs, () => {
-      if (this.scene.time.now >= this.attackBonusUntil) this.attackBonusPercent = 0;
+      if (battleNow(this.scene) >= this.attackBonusUntil) this.attackBonusPercent = 0;
     });
   }
 
   private applyDefenseBuff(defensePercent: number, durationMs: number): void {
     this.defenseBonusPercent = defensePercent;
-    this.defenseUntil = this.scene.time.now + durationMs;
+    this.defenseUntil = battleNow(this.scene) + durationMs;
     this.scheduleAfter(durationMs, () => {
-      if (this.scene.time.now >= this.defenseUntil) this.defenseBonusPercent = 0;
+      if (battleNow(this.scene) >= this.defenseUntil) this.defenseBonusPercent = 0;
     });
   }
 
   private repeatUntil(durationMs: number, intervalMs: number, effect: () => void): void {
     if (intervalMs <= 0) return;
-    const endsAt = this.scene.time.now + durationMs;
+    const endsAt = battleNow(this.scene) + durationMs;
     const repeat = (): void => {
       if (!this.active || this.dead) { this.clearRegeneration(); return; }
-      if (this.scene.time.now >= endsAt) return;
+      if (battleNow(this.scene) >= endsAt) return;
       effect();
       this.scene.time.delayedCall(intervalMs, repeat);
     };
@@ -607,7 +627,9 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   }
 
   private restoreHealth(amount: number): void {
-    this.health = Math.min(this.maxHealth, this.health + Math.max(0, Math.round(amount)));
+    const healed = Math.min(this.maxHealth - this.health, Math.max(0, Math.round(amount)));
+    this.health += healed;
+    showBattleNumber(this.scene, this.x, this.y, healed, 'heal');
     this.emit('health-changed', this.health, this.maxHealth);
   }
 

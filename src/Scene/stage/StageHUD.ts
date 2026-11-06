@@ -1,3 +1,5 @@
+import { isBattlePreview } from '../../debug';
+import { battleNow } from './BattleClock';
 import { playUiSe } from '../../audio/BgmManager';
 import retreatPanel from '../../assets/inventory-fantasy/panel-frame.png';
 import retreatButtonNormal from '../../assets/inventory-fantasy/button-normal.png';
@@ -8,8 +10,9 @@ import { getTextStyle } from '../../utils/ui/index.ts';
 import testData, { getFlowerSkill } from '../test_data.ts';
 import type { CharacterData } from '../test_data.ts';
 import { SCENE_KEYS } from '../sceneKeys';
-import type { CombatTarget, Player, SkillVisualPhase } from './Player';
-import { beginStageSkillStates, type FlowerSkillState, type ServerFlowerSkill } from './SkillApi.ts';
+import type { CombatTarget, Player } from './Player';
+import { SkillEffects } from './SkillEffects';
+import { beginStageSkillStates, type FlowerSkillState } from './SkillApi.ts';
 import { loadFormation } from '../../form/formationStorage.ts';
 import retreatButtonAsset from '../../assets/ui/button/retreat_button.png';
 import rawSkillDefinitions from '../../../php/skill/skills.json?raw';
@@ -55,15 +58,22 @@ export class StageHUD {
   private hpBarY = 0;
   private hpBarWidth = 0;
   private hpBarHeight = 0;
+  private skillLoadError = '';
+  private disposed = false;
+  private notice = '';
+  private noticeUntil = 0;
+  private effects?: SkillEffects;
   private skillNameText?: Phaser.GameObjects.Text;
 
   constructor(scene: Phaser.Scene, player?: Player, enemies: readonly CombatTarget[] = []) {
     this.scene = scene;
     this.player = player;
     this.enemies = enemies;
-    this.player?.setSkillVisualHandler((skill, phase, targets, area) => {
-      this.playSkillEffect(skill, phase, targets, area);
-    });
+    scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => { this.disposed = true; });
+    if (this.player) {
+      const effects = this.effects = new SkillEffects(scene, this.player);
+      this.player.setSkillVisualHandler((skill, phase, targets, area) => effects.play(skill, phase, targets, area));
+    }
   }
 
   public create(stageId?: number, stageNumber?: string): void {
@@ -98,7 +108,7 @@ export class StageHUD {
       const icon = this.scene.add.image(x + panelW - 30, y + 21, 'status-buff_hp_regen')
         .setDisplaySize(22, 22).setScrollFactor(0).setDepth(this.depth + 3).setVisible(false);
       const onRecovery = (active: boolean): void => { icon.setVisible(active); };
-      const onPotion = (): void => { this.playSkillEffect({ type: 'heal', durationMs: 10000 }, 'heal', [], [[1]]); };
+      const onPotion = (): void => { this.effects?.play({ type: 'heal', durationMs: 10000 }, 'heal', [], [[1]]); };
       const attackIcon = this.scene.add.image(x + panelW - 56, y + 21, 'status-buff_atk_up')
         .setDisplaySize(22, 22).setScrollFactor(0).setDepth(this.depth + 3).setVisible(false);
       const defenseIcon = this.scene.add.image(x + panelW - 82, y + 21, 'status-buff_def_up')
@@ -109,7 +119,7 @@ export class StageHUD {
       };
       const onGem = (id: number): void => {
         updateGems();
-        this.playSkillEffect({ type: id === 14 ? 'balanced' : 'fortify', durationMs: 1800 }, 'buff', [], [[1]]);
+        this.effects?.play({ type: id === 14 ? 'balanced' : 'fortify', durationMs: 1800 }, 'buff', [], [[1]]);
       };
       this.player.on('gem-used', onGem);
       this.scene.events.on(Phaser.Scenes.Events.UPDATE, updateGems);
@@ -431,7 +441,7 @@ export class StageHUD {
   private setPartyStatuses(index: number, statusIds: string[], durationMs: number): void {
     if (durationMs <= 0) return;
     const untilByStatus = this.partyStatusUntil[index];
-    statusIds.forEach(statusId => untilByStatus.set(statusId, Date.now() + durationMs));
+    statusIds.forEach(statusId => untilByStatus.set(statusId, battleNow(this.scene) + durationMs));
     this.renderPartyStatuses(index);
     this.scene.time.delayedCall(durationMs + 30, () => this.renderPartyStatuses(index));
   }
@@ -442,7 +452,7 @@ export class StageHUD {
     if (!container) return;
     container.removeAll(true);
     for (const [statusId, until] of untilByStatus) {
-      if (until <= Date.now()) untilByStatus.delete(statusId);
+      if (until <= battleNow(this.scene)) untilByStatus.delete(statusId);
     }
     const active = [...untilByStatus.keys()];
     active.forEach((statusId, slot) => {
@@ -492,7 +502,7 @@ export class StageHUD {
     //攻撃
     this.imageButton(baseX - 154, h - 94, 130, '', 'stage-attack', () => this.player?.attack(this.enemies));
     // Flower cards are the skill buttons; this label reports the selected flower's skill state.
-    this.skillNameText = this.text(baseX + 28, h - 230, '', 14, '#fff4e8', 'bold').setOrigin(0.5);
+    this.skillNameText = this.text(w - 24, h - 295, '', 14, '#fff4e8', 'bold').setOrigin(1, .5).setWordWrapWidth(240);
     this.updateSkillLabel();
     this.scene.time.addEvent({ delay: 50, loop: true, callback: () => this.updateSkillLabel() });
     //ジャンプ
@@ -556,8 +566,8 @@ export class StageHUD {
     const flower = testData.characters.find(character => character.id === formationId);
     if (!flower || !this.player) return;
     const cooldownUntil = this.flowerCooldownUntil.get(flower.id) ?? 0;
-    if (cooldownUntil > Date.now()) {
-      this.skillNameText?.setText(`再使用まで${Math.ceil((cooldownUntil - Date.now()) / 1000)}秒`);
+    if (cooldownUntil > battleNow(this.scene)) {
+      this.skillNameText?.setText(`再使用まで${Math.ceil((cooldownUntil - battleNow(this.scene)) / 1000)}秒`);
       return;
     }
     if (!this.flowerSkills.has(flower.id)) {
@@ -571,13 +581,16 @@ export class StageHUD {
     }
     const currentMp = this.flowerMp.get(flower.id) ?? 0;
     if (currentMp < skill.mpCost) {
-      this.skillNameText?.setText('MPが足りません');
+      this.notice = 'MPが足りません';
+      this.noticeUntil = battleNow(this.scene) + 1500;
+      this.skillNameText?.setText(this.notice);
       return;
     }
     if (!this.player.reserveSkill()) return;
+    const redMaple = skill.type === 'maple' && this.player.isMapleRed;
 
     this.flowerMp.set(flower.id, currentMp - skill.mpCost);
-    this.flowerCooldownUntil.set(flower.id, Date.now() + skill.cooldownSeconds * 1000);
+    this.flowerCooldownUntil.set(flower.id, battleNow(this.scene) + skill.cooldownSeconds * 1000);
     this.flowerCooldownDuration.set(flower.id, skill.cooldownSeconds * 1000);
     this.updateFlowerMp(index, flower);
     if (!this.player.useFlowerSkill(skill, this.enemies)) {
@@ -590,190 +603,13 @@ export class StageHUD {
     }
     const duration = skill.durationMs || 1500;
     const appliedStatuses = skillStatusIds.get(flower.id) ?? [];
-    this.setPartyStatuses(index, appliedStatuses, duration);
+    // Enemy debuffs must not be displayed as a debuff on the caster.
+    if (skill.type !== 'slowAttack' && !redMaple) {
+      this.scene.time.delayedCall(160, () => {
+        if (this.player && this.player.health > 0) this.setPartyStatuses(index, appliedStatuses, duration);
+      });
+    }
     this.updateSkillLabel();
-  }
-
-  private playSkillEffect(
-    skill: Pick<ServerFlowerSkill, 'type' | 'durationMs'>,
-    phase: SkillVisualPhase,
-    targets: readonly CombatTarget[],
-    area: readonly (readonly number[])[]
-  ): void {
-    if (!this.player) return;
-    const sheetByType: Record<ServerFlowerSkill['type'], string> = {
-      multiHit: '01_fire_slash', defensiveRecovery: '02_guard_buff', charge: '03_sun_beam',
-      balanced: '04_homing_orb', continuous: '05_water_burst', maple: phase === 'impact' ? '06b_leaf_red' : '06a_leaf_green',
-      fortify: '07_fortify', slowAttack: '08_debuff', heal: '09_heal', evasion: '10_stealth',
-    };
-    const tintByType: Record<ServerFlowerSkill['type'], number> = {
-      multiHit: 0xff563d, defensiveRecovery: 0xff647d, charge: 0xffc247, balanced: 0xffa74d,
-      continuous: 0x43d7ff, maple: 0xf45a78, fortify: 0x62c9ff, slowAttack: 0x66c9ff,
-      heal: 0xff77b9, evasion: 0x9a83ff,
-    };
-    const color = tintByType[skill.type];
-    if (phase === 'charge' || phase === 'buff' || phase === 'heal') {
-      this.createImpactBurst(this.player.x, this.player.y - 48, color, 1.1);
-    }
-    if (phase === 'impact' || phase === 'charge') this.showSkillFootprint(area, color);
-
-    if (phase === 'buff' || phase === 'heal') {
-      const selfTarget = { x: this.player.x, y: this.player.y - 54 };
-      this.playSkillSprite(selfTarget.x, selfTarget.y, sheetByType[skill.type], 220, color, phase === 'heal');
-      if (phase === 'buff') this.createSkillAura(color, Math.min(skill.durationMs || 2600, 20000));
-      else this.createHealBurst(selfTarget.x, selfTarget.y, color);
-      return;
-    }
-
-    if (phase === 'charge') {
-      this.createChargeGather(color, skill.durationMs);
-      return;
-    }
-
-    const facingLeft = this.player.flipX;
-    if (skill.type === 'charge') {
-      this.fireSunBeam(area, color);
-    }
-    if (targets.length === 0) {
-      const x = this.player.x + (facingLeft ? -52 : 52);
-      const y = this.player.y - 48;
-      this.playSkillSprite(x, y, sheetByType[skill.type], 150, color, true, facingLeft);
-      this.createImpactBurst(x, y, color, 0.8);
-    }
-    if (targets.length > 0) {
-      const hitY = skill.type === 'charge' ? this.player.y - 48 : undefined;
-      targets.forEach((target, index) => {
-        const x = target.x;
-        const y = hitY ?? target.y - 36;
-        const bounds = this.getAreaBounds(area);
-        const size = Phaser.Math.Clamp(Math.max(bounds.width, bounds.height) * (skill.type === 'maple' ? 0.95 : 0.72), 150, skill.type === 'charge' ? 300 : 250);
-        this.scene.time.delayedCall(index * 38, () => {
-          this.playSkillSprite(x, y, sheetByType[skill.type], size, color, true, facingLeft);
-          this.createImpactBurst(x, y, color, skill.type === 'maple' ? 1.45 : 1);
-        });
-      });
-      const shake = skill.type === 'charge' || skill.type === 'maple' ? 0.007 : skill.type === 'multiHit' ? 0.0035 : 0.002;
-      this.scene.cameras.main.shake(skill.type === 'charge' ? 180 : 95, shake);
-      if (skill.type === 'charge' || skill.type === 'maple') this.scene.cameras.main.flash(90, 255, 220, 154, true);
-    }
-  }
-
-  private playSkillSprite(x: number, y: number, sheet: string, size: number, color: number, additive: boolean, facingLeft = false): void {
-    const animationKey = `skill-effect-${sheet}`;
-    if (!this.scene.anims.exists(animationKey)) return;
-    const sprite = this.scene.add.sprite(x, y, `skill-effect-${sheet}`)
-      .setOrigin(0.5).setDisplaySize(size, size).setDepth(this.depth - 4).setScrollFactor(1)
-      .setTint(color).setFlipX(facingLeft).setBlendMode(additive ? Phaser.BlendModes.ADD : Phaser.BlendModes.NORMAL).play(animationKey);
-    sprite.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => sprite.destroy());
-  }
-
-  private showSkillFootprint(area: readonly (readonly number[])[], color: number): void {
-    if (!this.player) return;
-    const originRow = area.findIndex(row => row.includes(1));
-    if (originRow < 0) return;
-    const originColumn = area[originRow].indexOf(1);
-    const direction = this.player.flipX ? -1 : 1;
-    const graphics = this.scene.add.graphics().setDepth(this.depth - 3).setScrollFactor(1);
-    area.forEach((row, rowIndex) => row.forEach((cell, columnIndex) => {
-      if (cell === 0) return;
-      const x = this.player!.x + (columnIndex - originColumn) * 40 * direction;
-      const y = this.player!.y + (rowIndex - originRow) * 40;
-      const hot = cell === 1;
-      graphics.fillStyle(hot ? 0xfff3cb : color, hot ? 0.32 : 0.18);
-      graphics.lineStyle(hot ? 3 : 2, hot ? 0xfff3cb : color, 0.95);
-      graphics.fillRoundedRect(x - 18, y - 18, 36, 36, 7);
-      graphics.strokeRoundedRect(x - 18, y - 18, 36, 36, 7);
-      graphics.lineStyle(1, 0xffffff, 0.72).lineBetween(x - 9, y, x + 9, y);
-      graphics.lineBetween(x, y - 9, x, y + 9);
-    }));
-    this.scene.tweens.add({ targets: graphics, alpha: 0, duration: 360, onComplete: () => graphics.destroy() });
-  }
-
-  private getAreaBounds(area: readonly (readonly number[])[]): { width: number; height: number } {
-    const columns = Math.max(1, ...area.map(row => row.length));
-    return { width: columns * 40, height: area.length * 40 };
-  }
-
-  private createImpactBurst(x: number, y: number, color: number, scale: number): void {
-    const burst = this.scene.add.graphics({ x, y }).setDepth(this.depth - 2).setBlendMode(Phaser.BlendModes.ADD);
-    burst.fillStyle(color, 0.34).fillCircle(0, 0, 24 * scale);
-    burst.lineStyle(4, 0xffffff, 0.95).strokeCircle(0, 0, 22 * scale);
-    burst.lineStyle(3, color, 0.95);
-    burst.strokeCircle(0, 0, 38 * scale);
-    for (let i = 0; i < 16; i++) {
-      const angle = (Math.PI * 2 * i) / 16;
-      const distance = (i % 2 === 0 ? 92 : 63) * scale;
-      const spark = this.scene.add.rectangle(x, y, 8, 4, i % 2 === 0 ? 0xfff5d4 : color)
-        .setRotation(angle).setDepth(this.depth - 1).setBlendMode(Phaser.BlendModes.ADD);
-      this.scene.tweens.add({
-        targets: spark, x: x + Math.cos(angle) * distance, y: y + Math.sin(angle) * distance,
-        alpha: 0, scale: 0.25, duration: 380, ease: 'Cubic.Out', onComplete: () => spark.destroy(),
-      });
-      burst.lineBetween(Math.cos(angle) * 27 * scale, Math.sin(angle) * 27 * scale,
-        Math.cos(angle) * 56 * scale, Math.sin(angle) * 56 * scale);
-    }
-    this.scene.tweens.add({ targets: burst, alpha: 0, scale: 1.45, duration: 260, ease: 'Cubic.Out', onComplete: () => burst.destroy() });
-  }
-
-  private createSkillAura(color: number, duration: number): void {
-    if (!this.player) return;
-    const x = this.player.x;
-    const y = this.player.y - 48;
-    const aura = this.scene.add.container(x, y).setDepth(this.depth - 5).setScrollFactor(1);
-    const rings = this.scene.add.graphics();
-    rings.lineStyle(3, color, 0.86).strokeEllipse(0, 8, 72, 28);
-    rings.lineStyle(1, 0xffffff, 0.75).strokeEllipse(0, 8, 46, 16);
-    aura.add(rings);
-    for (let i = 0; i < 6; i++) {
-      const angle = (Math.PI * 2 * i) / 6;
-      const mote = this.scene.add.circle(Math.cos(angle) * 36, -10 + Math.sin(angle) * 20, 4, color, 0.95);
-      aura.add(mote);
-      this.scene.tweens.add({ targets: mote, x: Math.cos(angle + Math.PI) * 42, y: -10 + Math.sin(angle + Math.PI) * 25,
-        alpha: 0.24, duration: 650 + i * 70, yoyo: true, repeat: Math.max(0, Math.floor(duration / 800) - 1), ease: 'Sine.inOut' });
-    }
-    this.scene.tweens.add({ targets: aura, alpha: 0.55, scale: 1.34, duration: 850, yoyo: true,
-      repeat: Math.max(0, Math.floor(duration / 1700) - 1), ease: 'Sine.inOut' });
-    this.scene.time.delayedCall(duration, () => {
-      if (aura.active) this.scene.tweens.add({ targets: aura, alpha: 0, duration: 220, onComplete: () => aura.destroy() });
-    });
-  }
-
-  private createHealBurst(x: number, y: number, color: number): void {
-    const ring = this.scene.add.circle(x, y, 26, color, 0.12).setStrokeStyle(3, 0xffe9f5, 0.95).setDepth(this.depth - 3);
-    this.scene.tweens.add({ targets: ring, scale: 2.4, alpha: 0, duration: 500, ease: 'Cubic.Out', onComplete: () => ring.destroy() });
-    for (let i = 0; i < 9; i++) {
-      const petal = this.scene.add.ellipse(x, y, 7, 18, color, 0.95).setDepth(this.depth - 2);
-      const angle = (Math.PI * 2 * i) / 9;
-      this.scene.tweens.add({ targets: petal, x: x + Math.cos(angle) * 52, y: y + Math.sin(angle) * 62 - 20,
-        alpha: 0, angle: i * 40, duration: 520, ease: 'Cubic.Out', onComplete: () => petal.destroy() });
-    }
-  }
-
-  private createChargeGather(color: number, duration: number): void {
-    if (!this.player) return;
-    const x = this.player.x;
-    const y = this.player.y - 52;
-    const ring = this.scene.add.circle(x, y, 24, color, 0.08).setStrokeStyle(4, 0xfff2c0, 0.95).setDepth(this.depth - 3);
-    this.scene.tweens.add({ targets: ring, scale: 2.5, alpha: 0.38, duration: 420, yoyo: true, repeat: Math.max(0, Math.floor(duration / 840) - 1) });
-    this.playSkillSprite(x, y - 16, '03_sun_beam', 210, color, true, this.player.flipX);
-    this.scene.time.delayedCall(duration, () => { if (ring.active) ring.destroy(); });
-  }
-
-  private fireSunBeam(area: readonly (readonly number[])[], color: number): void {
-    if (!this.player) return;
-    const originRow = area.findIndex(row => row.includes(1));
-    if (originRow < 0) return;
-    const originColumn = area[originRow].indexOf(1);
-    const direction = this.player.flipX ? -1 : 1;
-    const cells = Math.max(...area[originRow].map((cell, i) => cell === 2 ? Math.abs(i - originColumn) : 0));
-    const length = Math.max(40, cells * 40);
-    const centerY = this.player.y;
-    const beamX = direction > 0 ? this.player.x + 20 : this.player.x - length - 20;
-    const beam = this.scene.add.graphics({ x: beamX, y: centerY }).setDepth(this.depth - 4).setScrollFactor(1);
-    beam.fillStyle(color, 0.22).fillRoundedRect(0, -24, length, 48, 18);
-    beam.fillStyle(0xfff3c4, 0.88).fillRoundedRect(0, -6, length, 12, 6);
-    beam.lineStyle(3, 0xffffff, 0.9).strokeRoundedRect(0, -20, length, 40, 16);
-    this.scene.tweens.add({ targets: beam, alpha: 0, scaleY: 1.6, duration: 330, ease: 'Cubic.Out', onComplete: () => beam.destroy() });
   }
 
   private updateSkillLabel(): void {
@@ -783,11 +619,13 @@ export class StageHUD {
     const skill = flower
       ? this.flowerSkills.get(flower.id) ?? getFlowerSkill(flower.id)
       : undefined;
+    if (this.skillLoadError) { this.skillNameText.setText(this.skillLoadError); return; }
     this.skillNameText.setText(skill?.name ?? '花を選択');
     this.updateCooldownOverlays();
+    if (battleNow(this.scene) < this.noticeUntil) { this.skillNameText.setText(this.notice); return; }
     const cooldownUntil = flower ? this.flowerCooldownUntil.get(flower.id) ?? 0 : 0;
-    if (cooldownUntil > Date.now()) {
-      this.skillNameText.setText(`${skill?.name ?? 'スキル'} ${Math.ceil((cooldownUntil - Date.now()) / 1000)}秒`);
+    if (cooldownUntil > battleNow(this.scene)) {
+      this.skillNameText.setText(`${skill?.name ?? 'スキル'} ${Math.ceil((cooldownUntil - battleNow(this.scene)) / 1000)}秒`);
     }
   }
 
@@ -800,10 +638,11 @@ export class StageHUD {
         attackPower: flower.stats.atk
       }));
       const states = await beginStageSkillStates(stageId, flowers);
+      if (this.disposed) return;
       states.forEach(state => {
         this.flowerMp.set(state.flowerId, state.mp);
         this.flowerMaxMp.set(state.flowerId, state.maxMp);
-        this.flowerCooldownUntil.set(state.flowerId, state.cooldownUntil);
+        this.flowerCooldownUntil.set(state.flowerId, battleNow(this.scene) + Math.max(0, state.cooldownUntil - Date.now()));
         this.flowerSkills.set(state.flowerId, state.skill);
         this.flowerCooldownDuration.set(state.flowerId, state.skill.cooldownSeconds * 1000);
         const formationIndex = this.formation.indexOf(state.flowerId);
@@ -811,15 +650,21 @@ export class StageHUD {
         if (formationIndex >= 0 && flower) this.updateFlowerMp(formationIndex, flower);
       });
       this.updateSkillLabel();
+      if (import.meta.env.DEV && isBattlePreview && this.player) {
+        const { attachPreviewControls } = await import('./SkillPreview');
+        if (!this.disposed) attachPreviewControls(this.scene, this.player, this.flowerSkills, this.enemies);
+      }
     } catch (error) {
+      if (this.disposed) return;
       const message = error instanceof Error ? error.message : 'スキルデータを読み込めませんでした。';
+      this.skillLoadError = message;
       this.skillNameText?.setText(message);
       console.error('Flower skill state loading failed:', error);
     }
   }
 
   private updateCooldownOverlays(): void {
-    const now = Date.now();
+    const now = battleNow(this.scene);
     this.flowerCooldownOverlays.forEach((overlay, index) => {
       const center = this.flowerSkillIconCenters[index];
       if (!overlay || !center) return;
@@ -877,6 +722,7 @@ export class StageHUD {
   }
 
   private openInventory(): void {
+    if (isBattlePreview) return;
     if (this.scene.scene.isActive(SCENE_KEYS.INVENTORY)) return;
     this.scene.scene.launch(SCENE_KEYS.INVENTORY, { returnScene: SCENE_KEYS.STAGE });
     this.scene.scene.bringToTop(SCENE_KEYS.INVENTORY);

@@ -1,3 +1,4 @@
+import { isBattlePreview } from '../../debug';
 import { getPhpBaseUrl } from '../../auth/PhpBaseUrl';
 import type { FlowerSkillType } from '../test_data.ts';
 
@@ -159,6 +160,7 @@ export async function beginStageSkillStates(
   stageId: number,
   flowers: readonly StageFlowerStats[]
 ): Promise<FlowerSkillState[]> {
+  if (import.meta.env.DEV && isBattlePreview) return (await import('./SkillPreview')).buildPreviewSkillStates(flowers);
   const result = await postSkillRequest('begin', { stageId, flowers });
   if (typeof result !== 'object' || result === null || !('flowers' in result) || !Array.isArray(result.flowers)) {
     throw new Error('サーバーから不正なスキル状態が返されました。');
