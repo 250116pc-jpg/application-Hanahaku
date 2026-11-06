@@ -1,5 +1,13 @@
 export const debug = true;
 
+// true: スタート時のログインを省略。通常のログインを確認するときは false。
+// サーバー側の認証は省略しないため、アカウントが必要な機能にはログインが必要。
+export const skipLogin = true;
+
+export function shouldSkipLogin(): boolean {
+  return debug && skipLogin;
+}
+
 export function showDebugSceneName(scene: Phaser.Scene): void {
   if (!debug) return;
 
