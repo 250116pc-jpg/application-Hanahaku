@@ -27,10 +27,12 @@ export function mountFlowerDetail(flower: PrototypeFlower, options: {
   const button = (text: string, action: () => void, className = 'book-button'): HTMLButtonElement => {
     const b = node('button', className, text); b.type = 'button'; b.addEventListener('click', action); return b
   }
-  const picture = (url: string | undefined, label: string): HTMLElement => {
+  const picture = (url: string, label: string): HTMLElement => {
     const frame = node('div', 'book-picture')
-    if (url) { const img = node('img'); img.src = url; img.alt = label; frame.append(img) }
-    else frame.append(node('p', 'book-empty', '花の写真は準備中です。'))
+    const img = node('img')
+    img.src = url
+    img.alt = label
+    frame.append(img)
     return frame
   }
   const section = (parent: HTMLElement, title: string, body: string): void => {
@@ -56,12 +58,12 @@ export function mountFlowerDetail(flower: PrototypeFlower, options: {
       const variants = node('div', 'book-picture-variants')
       for (const variant of flower.imageVariants) {
         const item = node('div', 'book-picture-variant')
-        item.append(picture(page === 'ability' ? variant.url : variant.realUrl, variant.name), node('p', '', variant.name))
+        item.append(picture(variant.url, variant.name), node('p', '', variant.name))
         variants.append(item)
       }
       left.append(variants)
     } else {
-      left.append(picture(owned ? (page === 'ability' ? flower.url : flower.realUrl) : options.unknownUrl, owned ? flower.name : '未契約の花'))
+      left.append(picture(owned ? flower.url : options.unknownUrl, owned ? flower.name : '未契約の花'))
     }
     if (!owned) {
       section(left, '契約状態', '未契約')

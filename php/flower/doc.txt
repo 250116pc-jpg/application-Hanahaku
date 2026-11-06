@@ -30,8 +30,7 @@
 }
 参考はExcelの画面構成図にて使います。
 ※これはdoc.txt用の説明例です。実際のJSONには「ーーー」以降の説明を書きません。
-※写真のファイル名が異なる場合のみ "real_path": "写真のファイル名.png" を追加します。
-  写真の参照先：path.json.real + (real_path ?? path)
+※図鑑の花画像は path.json.game + path のゲーム用イラストを使用します。
 ※属性IDは熱=1、水=2、風=3、光=4、土=5、無=6です。
 ※同じ花は id と name で照合します。「ヒマワリ」は id=3 / name=ひまわり と同じ花です。
 ※図鑑は001〜010.jsonとpath.jsonを読み込みます。flower.jsonは図鑑では使用しません。
@@ -41,7 +40,7 @@
 
 【個別JSON運用：2026-10-29】
 図鑑の正本は001～033.json（花データ一覧のID順）。seasonは春・夏・秋・冬、catalog_orderは既存表示順。sourceはゲーム用データに不要。
-新しい花は未使用の整数idと一意のengを指定した3桁名JSONを追加する。既存形式のname/path/hanakotoba/status_bonus/seasonを設定し、実在するゲーム画像を用意する。写真なしは準備中表示。path.jsonの共通パスを使う。
+新しい花は未使用の整数idと一意のengを指定した3桁名JSONを追加する。既存形式のname/path/hanakotoba/status_bonus/seasonを設定し、実在するゲーム画像を用意する。path.jsonの共通パスを使う。
 未登録のelement/enhance_id/skill_idはnull、未登録の能力値はstatus_bonusからキーを省略、花言葉は[]、説明は空文字。0は確定したゼロ値。
 既存skill_idの対応は維持。catalog-skills.jsonは既存図鑑の表示用定義で、戦闘用skills.jsonとは別。戦闘側に対応が確認できないスキルはIDを推測せずskill_refで既存表示を保持する。新しい花にskill_id=null、skill_ref省略ならスキル未登録になる。
 花JSON追加だけで一覧へ登録される（Viteの再読込・ビルドが必要）。能力・スキルの本番編成／戦闘への追加は別途対応が必要。

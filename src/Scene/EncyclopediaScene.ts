@@ -32,7 +32,6 @@ export class EncyclopediaScene extends Phaser.Scene {
   if (!this.cache.audio.exists('encyclopedia-page-turn')) this.load.audio('encyclopedia-page-turn',pageTurnSound)
   for (const {key,url} of Object.values(unknownFlowers)) if (!this.textures.exists(key)) this.load.image(key,url)
   for (const flower of prototypeFlowers) if (!this.textures.exists(flower.key)) this.load.image(flower.key,flower.url)
-  for (const flower of prototypeFlowers) if (flower.realUrl && !this.textures.exists(flower.realKey)) this.load.image(flower.realKey,flower.realUrl)
  }
  create(): void {
   this.bookOpened = false

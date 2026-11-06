@@ -17,7 +17,6 @@
     "美"
   ],
   "path": "red_rose.png",
-  "real_path": "akabara.png",
   "description": "",
   "origin": "",
   "habitat": "",
@@ -30,7 +29,6 @@
     {
       "name": "バラ（赤）",
       "path": "red_rose.png",
-      "real_path": "akabara.png",
       "hanakotoba": [
         "愛",
         "美"
@@ -39,7 +37,6 @@
     {
       "name": "バラ（青）",
       "path": "blue_rose.png",
-      "real_path": "aobara.png",
       "hanakotoba": [
         "夢叶う",
         "神の祝福"
