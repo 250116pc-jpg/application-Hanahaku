@@ -399,7 +399,10 @@ export class SelectStageScene extends Phaser.Scene {
 
     // ボタンのサイズも少し大きく (150x48 → 160x56)
     const formationBtn = createDialogButton(-120, popupH / 2 - 55, 160, 56, '編成', 0x536878, 0x6d8396, () => {
-      closePopup(() => scene.scene.start(SCENE_KEYS.FORM));
+      closePopup(() => {
+        scene.scene.launch(SCENE_KEYS.FORM, { returnToStage: true });
+        scene.scene.sleep();
+      });
     });
 
     const startBtn = createDialogButton(120, popupH / 2 - 55, 160, 56, '出撃', 0x4c8c5a, 0x60ab72, () => {
