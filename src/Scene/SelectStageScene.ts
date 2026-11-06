@@ -33,6 +33,9 @@ interface SelectStageSceneData {
 
 const STAGES_PER_PAGE = 6;
 
+const getSavedPageKey = (areaId: number): string => `stageSelectPage:${areaId}`;
+const getSavedStageIndexKey = (areaId: number, page: number): string => `stageSelectStage:${areaId}:${page}`;
+
 export class SelectStageScene extends Phaser.Scene {
   private readonly stageRouteOffsetY = 40;
   private stagePositions: StagePosition[] = [];
@@ -78,12 +81,17 @@ export class SelectStageScene extends Phaser.Scene {
     this.currentChapter = AREA_STAGE_LAYOUTS[data.areaId ?? 1] ? (data.areaId ?? 1) : 1;
     this.stagePositions = AREA_STAGE_LAYOUTS[this.currentChapter];
     this.pageCount = Math.ceil(this.stagePositions.length / STAGES_PER_PAGE);
-    const savedPage = this.registry.get('stageSelectPage') as { areaId: number; page: number } | undefined;
-    const initialPage = data.page ?? (savedPage?.areaId === this.currentChapter ? savedPage.page : 0);
+    const savedPage = this.registry.get(getSavedPageKey(this.currentChapter)) as number | undefined;
+    const initialPage = data.page ?? savedPage ?? 0;
     this.currentPage = Phaser.Math.Clamp(initialPage, 0, this.pageCount - 1);
-    this.registry.set('stageSelectPage', { areaId: this.currentChapter, page: this.currentPage });
     const pageStart = this.currentPage * STAGES_PER_PAGE;
     const pageEnd = Math.min(pageStart + STAGES_PER_PAGE, this.stagePositions.length);
+    const savedStageIndex = this.registry.get(getSavedStageIndexKey(this.currentChapter, this.currentPage)) as number | undefined;
+    const initialStageIndex = savedStageIndex ?? pageStart;
+    this.currentStageIndex = initialStageIndex >= pageStart && initialStageIndex < pageEnd
+      ? initialStageIndex
+      : pageStart;
+    this.saveStageSelectProgress();
     let storyCount = 0;
     let battleCount = 0;
     this.stages = this.stagePositions.map(position => {
@@ -94,7 +102,6 @@ export class SelectStageScene extends Phaser.Scene {
         : `${this.currentChapter}-${++battleCount}`;
       return { ...prototype, name };
     });
-    this.currentStageIndex = pageStart;
     this.isMoving = false;
     this.isStageInfoOpen = false;
     this.prepareStageTextures();
@@ -158,13 +165,18 @@ export class SelectStageScene extends Phaser.Scene {
     // ----------------------------------------
     this.player = createCharacterSprite(
       this,
-      this.stagePositions[pageStart].x,
-      this.stagePositions[pageStart].y + this.stageRouteOffsetY - 50,
+      this.stagePositions[this.currentStageIndex].x,
+      this.stagePositions[this.currentStageIndex].y + this.stageRouteOffsetY - 50,
       'select-player-idle',
       'select-player-idle'
     );
     this.player.setScale(1.5).setDepth(2);
     this.createPageControls();
+  }
+
+  private saveStageSelectProgress(): void {
+    this.registry.set(getSavedPageKey(this.currentChapter), this.currentPage);
+    this.registry.set(getSavedStageIndexKey(this.currentChapter, this.currentPage), this.currentStageIndex);
   }
 
   private createPageControls(): void {
@@ -558,6 +570,7 @@ export class SelectStageScene extends Phaser.Scene {
         ease: 'Power1',
         onComplete: () => {
           this.currentStageIndex = nextIndex;
+          this.saveStageSelectProgress();
           if (nextIndex !== targetIndex) {
             moveAlongRoute();
             return;
