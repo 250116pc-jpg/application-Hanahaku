@@ -1,3 +1,4 @@
+import { recordShopVisit } from '../../display/PeopleJournal'
 import { shopCatalog, requestShop } from './ShopApi'
 import { createShopBackground } from './background'
 import { createItemDetail } from './itemDetail'
@@ -27,6 +28,7 @@ export class ShopScene extends Phaser.Scene {
 
     createShopBackground(this, screenWidth, screenHeight)
     this.createShopkeeper()
+    recordShopVisit()
     this.createHeader(screenWidth)
     this.createBackButton()
 

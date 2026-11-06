@@ -1,3 +1,4 @@
+import { openPeopleJournal } from './PeopleJournal'
 import { readFlowerContracts } from '../Scene/stage/flowerContracts'
 import type { Season } from '../Scene/test_data'
 import { prototypeFlowers, contractPreview, type PrototypeFlower } from '../Scene/encyclopedia/contractPreview'
@@ -7,7 +8,7 @@ const asset = (name: string): string => images['../assets/settings-book/'+name]!
 export function mountEncyclopediaBook(options: {
  season: Season; page: number; animate: boolean; turn?: number;
  unknown: Record<Season,{url:string}>;
- onSeason: (season: Season) => void; onPage: (page:number) => void;
+ onTurn: () => void; onSeason: (season: Season) => void; onPage: (page:number) => void;
  onSelect: (flower:PrototypeFlower) => void; onHome: () => void; onReset: () => void
 }): () => void {
  const root=document.createElement('section'); root.className='encyclopedia-book-screen'
@@ -30,7 +31,7 @@ export function mountEncyclopediaBook(options: {
  const turn=(direction:number,targetSeason:Season,targetPage:number,change:()=>void):void=>{
   if(busy)return
   busy=true;root.setAttribute('aria-busy','true')
-  if(reduced()){change();return}
+  if(reduced()){options.onTurn();change();return}
   const preview=ui.cloneNode(true) as HTMLElement
   preview.classList.add('encyclopedia-page-preview');preview.inert=true;preview.setAttribute('aria-hidden','true')
   const previewGrid=preview.querySelector<HTMLElement>('.encyclopedia-book-grid')!
@@ -47,6 +48,7 @@ export function mountEncyclopediaBook(options: {
    moving.classList.add('encyclopedia-turn-content');moving.inert=true;moving.setAttribute('aria-hidden','true')
    book.append(moving)
    preview.hidden=false
+   options.onTurn()
    // Outer paper edges in the original 384px-wide Gridwright frames.
    const edges=[341,317,292,264,219,167,115,67,28]
    const percent=(x:number):number=>Math.max(0,Math.min(100,(x/384-0.09)/0.82*100))
@@ -111,6 +113,22 @@ export function mountEncyclopediaBook(options: {
  }
  const close=():void=>{if(busy)return;animate(true,options.onHome)}
  const title=document.createElement('h1');title.textContent='花の図鑑';ui.append(title)
+ const peopleLink=button(title,'キャラ',()=>openPeopleJournal(root))
+ peopleLink.className='people-journal-link'
+ if(new URLSearchParams(location.search).get('people-ui')==='portrait') {
+  peopleLink.classList.add('with-portrait')
+ } else {
+  const paper=document.createElement('span')
+  paper.className='people-note-paper'
+  paper.setAttribute('aria-hidden','true')
+  for(let i=1;i<=9;i++) {
+   const tile=document.createElement('img')
+   tile.alt=''
+   tile.src=new URL(`../assets/people-journal/paper-${i}.png`,import.meta.url).href
+   paper.append(tile)
+  }
+  peopleLink.prepend(paper)
+ }
  const progress=document.createElement('p');progress.className='encyclopedia-book-progress';progress.textContent=`花契済み ${new Set([...contractPreview.owned, ...Object.keys(readFlowerContracts()).map(Number)]).size} / ${prototypeFlowers.length}`;ui.append(progress)
  const grid=document.createElement('div');grid.className='encyclopedia-book-grid';ui.append(grid)
  const flowers=prototypeFlowers.filter(f=>f.season===options.season)

@@ -1,5 +1,6 @@
 ﻿import Phaser from 'phaser';
 import { restoreSession } from '../auth/Session';
+import { shouldSkipLogin } from '../debug';
 import titleBackground from '../assets/images/background/title_background.png';
 import titleLogo from '../assets/images/background/title_logo.png';
 import settingsButtonImage from '../assets/ui/button1.png';
@@ -26,15 +27,19 @@ export class TitleScene extends Phaser.Scene {
 
   create(): void {
     initializeAudio(this);
-    this.input.enabled = false;
-    let active = true;
-    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => { active = false; });
-    void restoreSession().then(loggedIn => {
-      if (!active) return;
-      if (loggedIn) this.scene.start(SCENE_KEYS.HOME);
-    }).catch(() => {
-      // Keep manual login available when offline or the server is unavailable.
-    }).finally(() => { if (active) this.input.enabled = true; });
+    if (shouldSkipLogin()) {
+      this.input.enabled = true;
+    } else {
+      this.input.enabled = false;
+      let active = true;
+      this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => { active = false; });
+      void restoreSession().then(loggedIn => {
+        if (!active) return;
+        if (loggedIn) this.scene.start(SCENE_KEYS.HOME);
+      }).catch(() => {
+        // Keep manual login available when offline or the server is unavailable.
+      }).finally(() => { if (active) this.input.enabled = true; });
+    }
     const width = this.scale.width;
     const height = this.scale.height;
 
@@ -98,7 +103,7 @@ export class TitleScene extends Phaser.Scene {
       animateScale(1);
       this.tweens.add({ targets: [prompt, hint], alpha: 0, duration: 240 });
       this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
-        this.scene.start(SCENE_KEYS.LOGIN);
+        this.scene.start(shouldSkipLogin() ? SCENE_KEYS.HOME : SCENE_KEYS.LOGIN);
       });
       this.cameras.main.fadeOut(280, 15, 24, 36);
     };

@@ -2,6 +2,8 @@ import { DEFAULT_AUDIO_SETTINGS } from './AudioDefaults'
 import titleBgm from '../assets/audio/PathOfAdventure/PeriTune_Frosylva.mp3'
 import homeBgm from '../assets/audio/PathOfAdventure/PeriTune_Harbor_Morning_loop.mp3'
 import stageBgm from '../assets/audio/PathOfAdventure/Peritune_Ancient_Gust_loop.mp3'
+import shopBgm from '../assets/audio/PathOfAdventure/PerituneMaterial_Harvest6_loop.mp3'
+import encyclopediaBgm from '../assets/audio/PathOfAdventure/PerituneMaterial_Glimmering_Woods_loop.mp3'
 import clickSe from '../assets/audio/PathOfAdventure/NoLoop/line.wav'
 const seAssets = import.meta.glob('../assets/audio/se-lab/*.mp3', { eager: true, query: '?url', import: 'default' }) as Record<string, string>
 export type UiSe = 'confirm' | 'select' | 'cancel' | 'open' | 'purchase' | 'error' | 'recover' | 'confirm-wood'
@@ -18,7 +20,9 @@ export function playUiSe(scene: Phaser.Scene, kind: UiSe): void {
 export const BGM_KEYS = {
   title: 'bgmTitle',
   home: 'bgmHome',
-  stage: 'bgmStage'
+  stage: 'bgmStage',
+  shop: 'bgmShop',
+  encyclopedia: 'bgmEncyclopedia'
 } as const
 
 const CLICK_SE_KEY = 'seClick'
@@ -90,6 +94,8 @@ export function preloadAudio(scene: Phaser.Scene): void {
   scene.load.audio(BGM_KEYS.title, titleBgm)
   scene.load.audio(BGM_KEYS.home, homeBgm)
   scene.load.audio(BGM_KEYS.stage, stageBgm)
+  scene.load.audio(BGM_KEYS.shop, shopBgm)
+  scene.load.audio(BGM_KEYS.encyclopedia, encyclopediaBgm)
   scene.load.audio(CLICK_SE_KEY, clickSe)
   for (const [path, url] of Object.entries(seAssets)) scene.load.audio(`ui-${path.split('/').pop()!.replace('.mp3', '')}`, url)
 }
@@ -99,6 +105,8 @@ function sceneBgmKey(scene: Phaser.Scene): string | null {
   // Overlays keep the BGM of the scene underneath, including paused battles.
   if (scene.scene.key === 'SettingsScene' || scene.scene.key === 'InventoryScene') return null
   if (scene.scene.key === 'StageScene') return BGM_KEYS.stage
+  if (scene.scene.key === 'ShopScene') return BGM_KEYS.shop
+  if (scene.scene.key === 'EncyclopediaScene') return BGM_KEYS.encyclopedia
   return BGM_KEYS.home
 }
 

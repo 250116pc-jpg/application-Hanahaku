@@ -243,7 +243,13 @@ const stages = [
       num: 1,
       level: 3
     }
-  }
+  },
+  { id: 6, name: '1-3', map: 'nil', enemies: [{ id: 1, num: 1, level: 3 }], boss: { id: 3, num: 1, level: 3 } },
+  { id: 7, name: '1-3-a', map: 'nil', enemies: [], boss: { id: 3, num: 1, level: 3 } },
+  { id: 8, name: '1-4', map: 'nil', enemies: [{ id: 1, num: 1, level: 4 }], boss: { id: 3, num: 1, level: 4 } },
+  { id: 9, name: '1-4-a', map: 'nil', enemies: [], boss: { id: 3, num: 1, level: 4 } },
+  { id: 10, name: '1-5', map: 'nil', enemies: [{ id: 1, num: 1, level: 5 }], boss: { id: 3, num: 1, level: 5 } },
+  { id: 11, name: '1-5-a', map: 'nil', enemies: [], boss: { id: 3, num: 1, level: 5 } }
 ]
 export default {
   shopItems,

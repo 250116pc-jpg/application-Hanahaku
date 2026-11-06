@@ -1,0 +1,27 @@
+{
+  "id": 8,
+  "name": "1-4",
+  "enemies": [
+    {
+      "id": 3,
+      "enhancementId": 1,
+      "level": 4,
+      "x": 520,
+      "y": 480
+    },
+    {
+      "id": 2,
+      "enhancementId": 1,
+      "level": 4,
+      "x": 980,
+      "y": 480
+    },
+    {
+      "id": 3,
+      "enhancementId": 1,
+      "level": 4,
+      "x": 1480,
+      "y": 480
+    }
+  ]
+}

@@ -65,3 +65,6 @@
   pointer-events: none;
 }
 
+
+/* Background behind the open encyclopedia book. */
+.encyclopedia-book-screen { background: #142433 url('../assets/images/encyclopedia/encyclopedia-background.png') center / cover no-repeat; }

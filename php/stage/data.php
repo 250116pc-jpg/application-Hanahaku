@@ -18,7 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 }
 
 $stageId = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
-if (!in_array($stageId, [2, 4], true)) {
+if (!in_array($stageId, [2, 4, 6, 8, 10], true)) {
     http_response_code(404);
     echo json_encode(['error' => 'ステージが見つかりません。'], JSON_UNESCAPED_UNICODE);
     exit;

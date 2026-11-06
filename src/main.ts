@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { isBattlePreview } from './debug';
 
 import { TitleScene } from './Scene/TitleScene';
 import { HomeScene } from './Scene/HomeScene';
@@ -39,6 +40,7 @@ const config: Phaser.Types.Core.GameConfig = {
     createContainer: true
   },
   scene: [
+    ...(isBattlePreview ? [StageScene] : []),
     ...(import.meta.env.DEV && new URLSearchParams(location.search).get('flower-test') === '1' ? [EncyclopediaScene] : []),
     TitleScene,
     LoginScene,
@@ -47,7 +49,7 @@ const config: Phaser.Types.Core.GameConfig = {
     SettingsScene,
     TrainingScene,
     CharacterDetailScene,
-    StageScene,
+    ...(isBattlePreview ? [] : [StageScene]),
     StageResultScene,
     ContractScene,
     StoryScene,
@@ -73,4 +75,5 @@ const config: Phaser.Types.Core.GameConfig = {
   backgroundColor: '#000000'
 }
 
-new Phaser.Game(config)
+const game = new Phaser.Game(config);
+if (isBattlePreview) Object.assign(window, { __battlePreviewGame: game });

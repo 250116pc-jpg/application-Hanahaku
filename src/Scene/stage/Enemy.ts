@@ -1,3 +1,5 @@
+import { showBattleNumber } from './BattleFeedback';
+import { battleNow } from './BattleClock';
 import Phaser from 'phaser';
 import type { DamageType, Player } from './Player.ts';
 
@@ -136,7 +138,9 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     if (this.dead || amount <= 0) return;
     const defense = Math.max(0, damageType === 'magical' ? this.stats.magicDefense : this.stats.physicalDefense);
     const mitigatedDamage = amount * 100 / (100 + defense);
-    this.health = Math.max(0, this.health - Math.max(1, Math.round(mitigatedDamage)));
+    const damage = Math.min(this.health, Math.max(1, Math.round(mitigatedDamage)));
+    this.health -= damage;
+    showBattleNumber(this.scene, this.x, this.y, damage, damageType);
     this.updateHealthBar();
     this.visual.setTint(0xffbbbb);
     this.scene.time.delayedCall(120, () => {
@@ -160,13 +164,13 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
 
   public applyAttackSpeedSlow(percent: number, durationMs: number): void {
     this.attackSpeedSlowPercent = Math.max(this.attackSpeedSlowPercent, percent);
-    this.attackSpeedSlowUntil = Math.max(this.attackSpeedSlowUntil, this.scene.time.now + durationMs);
+    this.attackSpeedSlowUntil = Math.max(this.attackSpeedSlowUntil, battleNow(this.scene) + durationMs);
     this.applyStatusIcon('debuff_atk_down', durationMs);
   }
 
   public applyStatusIcon(iconKey: string, durationMs: number): void {
     if (this.dead || durationMs <= 0 || !this.scene.textures.exists(`status-${iconKey}`)) return;
-    this.statusIconUntil = Math.max(this.statusIconUntil, this.scene.time.now + durationMs);
+    this.statusIconUntil = Math.max(this.statusIconUntil, battleNow(this.scene) + durationMs);
     if (!this.statusIcon?.active) {
       this.statusIconPlate = this.scene.add.circle(this.x + 36, this.y - this.healthBarOffsetY, 17, 0x3978be, 0.9)
         .setStrokeStyle(2, 0xd9ecff, 0.95)
@@ -178,9 +182,9 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
       this.statusIcon.setTexture(`status-${iconKey}`).setVisible(true);
     }
     const expiresAt = this.statusIconUntil;
-    const remaining = Math.max(0, expiresAt - this.scene.time.now);
+    const remaining = Math.max(0, expiresAt - battleNow(this.scene));
     this.scene.time.delayedCall(remaining + 30, () => {
-      if (this.statusIcon?.active && this.statusIconUntil <= expiresAt && this.scene.time.now >= this.statusIconUntil) {
+      if (this.statusIcon?.active && this.statusIconUntil <= expiresAt && battleNow(this.scene) >= this.statusIconUntil) {
         this.statusIcon.destroy();
         this.statusIcon = undefined;
         this.statusIconPlate?.destroy();

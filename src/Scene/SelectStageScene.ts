@@ -1,8 +1,10 @@
+import storyData from '../scenario_data/story_data.json';
 import { getContractPool } from './stage/flowerContracts';
 import Phaser from 'phaser';
 
 import testData from './test_data';
 import { AREA_STAGE_LAYOUTS, type StagePosition } from './stageSelectData';
+const battleData = import.meta.glob('../../php/stage/stage*.json', { eager: true, import: 'default' }) as Record<string, { enemies: { id: number; level: number }[] }>;
 type StageData = typeof testData.stages[number];
 import { specialText } from '../functions';
 import { createBackground } from '../background';
@@ -26,7 +28,13 @@ interface SelectStageSceneData {
   areaId?: number;
   areaName?: string;
   clearReward?: number;
+  page?: number;
 }
+
+const STAGES_PER_PAGE = 6;
+
+const getSavedPageKey = (areaId: number): string => `stageSelectPage:${areaId}`;
+const getSavedStageIndexKey = (areaId: number, page: number): string => `stageSelectStage:${areaId}:${page}`;
 
 export class SelectStageScene extends Phaser.Scene {
   private readonly stageRouteOffsetY = 40;
@@ -38,6 +46,8 @@ export class SelectStageScene extends Phaser.Scene {
   private currentStageIndex = 0;
   private isMoving = false;
   private isStageInfoOpen = false;
+  private currentPage = 0;
+  private pageCount = 1;
 
   constructor() {
     super(SCENE_KEYS.SELECT_STAGE);
@@ -70,6 +80,18 @@ export class SelectStageScene extends Phaser.Scene {
   create(data: SelectStageSceneData = {}): void {
     this.currentChapter = AREA_STAGE_LAYOUTS[data.areaId ?? 1] ? (data.areaId ?? 1) : 1;
     this.stagePositions = AREA_STAGE_LAYOUTS[this.currentChapter];
+    this.pageCount = Math.ceil(this.stagePositions.length / STAGES_PER_PAGE);
+    const savedPage = this.registry.get(getSavedPageKey(this.currentChapter)) as number | undefined;
+    const initialPage = data.page ?? savedPage ?? 0;
+    this.currentPage = Phaser.Math.Clamp(initialPage, 0, this.pageCount - 1);
+    const pageStart = this.currentPage * STAGES_PER_PAGE;
+    const pageEnd = Math.min(pageStart + STAGES_PER_PAGE, this.stagePositions.length);
+    const savedStageIndex = this.registry.get(getSavedStageIndexKey(this.currentChapter, this.currentPage)) as number | undefined;
+    const initialStageIndex = savedStageIndex ?? pageStart;
+    this.currentStageIndex = initialStageIndex >= pageStart && initialStageIndex < pageEnd
+      ? initialStageIndex
+      : pageStart;
+    this.saveStageSelectProgress();
     let storyCount = 0;
     let battleCount = 0;
     this.stages = this.stagePositions.map(position => {
@@ -80,7 +102,6 @@ export class SelectStageScene extends Phaser.Scene {
         : `${this.currentChapter}-${++battleCount}`;
       return { ...prototype, name };
     });
-    this.currentStageIndex = 0;
     this.isMoving = false;
     this.isStageInfoOpen = false;
     this.prepareStageTextures();
@@ -115,25 +136,19 @@ export class SelectStageScene extends Phaser.Scene {
     // ----------------------------------------
     // ステージ作成
     // ----------------------------------------
-    this.stagePositions.forEach((position, index) => {
+    for (let index = pageStart; index < pageEnd; index++) {
+      const position = this.stagePositions[index];
       const stage = this.stages[index];
-      const nextStage = this.stages[index + 1];
+      const nextPosition = this.stagePositions[index + 1];
 
-      if (!stage) return;
+      if (!position || !stage) continue;
 
-      // 次のステージがある場合だけ線を描画
-      if (nextStage) {
-        const nextPosition = this.stagePositions[index + 1];
-
-        // 外側の黒い線
+      if (index + 1 < pageEnd && nextPosition) {
         this.createLine(nextPosition.x, nextPosition.y, position.x, position.y);
-        // 内側の白い線
       }
 
-      // ステージボタン
       this.createActionCircle(position.x, position.y, 110, index);
-
-    });
+    }
 
     // ----------------------------------------
     // Playerアニメーション作成
@@ -150,12 +165,54 @@ export class SelectStageScene extends Phaser.Scene {
     // ----------------------------------------
     this.player = createCharacterSprite(
       this,
-      this.stagePositions[0].x,
-      this.stagePositions[0].y + this.stageRouteOffsetY - 50,
+      this.stagePositions[this.currentStageIndex].x,
+      this.stagePositions[this.currentStageIndex].y + this.stageRouteOffsetY - 50,
       'select-player-idle',
       'select-player-idle'
     );
     this.player.setScale(1.5).setDepth(2);
+    this.createPageControls();
+  }
+
+  private saveStageSelectProgress(): void {
+    this.registry.set(getSavedPageKey(this.currentChapter), this.currentPage);
+    this.registry.set(getSavedStageIndexKey(this.currentChapter, this.currentPage), this.currentStageIndex);
+  }
+
+  private createPageControls(): void {
+    if (this.pageCount < 2) return;
+
+    const width = this.scale.width;
+    const height = this.scale.height;
+    const createArrow = (x: number, direction: -1 | 1, enabled: boolean): void => {
+      const circle = this.add.circle(x, height / 2, 34, 0x172a39, 0.88)
+        .setStrokeStyle(2, 0xf2d28a, 0.9)
+        .setAlpha(enabled ? 1 : 0.45)
+        .setDepth(10)
+        .setScrollFactor(0);
+      this.add.text(x, height / 2 - 2, direction < 0 ? '‹' : '›', getTextStyle(44, {
+        color: '#fff8df',
+        fontStyle: 'bold',
+        padding: { left: 0, right: 0, top: 0, bottom: 0 },
+      })).setOrigin(0.5).setDepth(11).setScrollFactor(0);
+
+      if (!enabled) return;
+      circle.setInteractive({ useHandCursor: true });
+      circle.on('pointerover', () => circle.setFillStyle(0x345747, 1));
+      circle.on('pointerout', () => circle.setFillStyle(0x172a39, 0.88));
+      circle.on('pointerup', () => {
+        if (this.isMoving || this.isStageInfoOpen) return;
+        this.scene.restart({ areaId: this.currentChapter, page: this.currentPage + direction });
+      });
+    };
+
+    createArrow(58, -1, this.currentPage > 0);
+    createArrow(width - 58, 1, this.currentPage < this.pageCount - 1);
+    this.add.text(width / 2, height - 24, `${this.currentPage + 1} / ${this.pageCount}`, getTextStyle(17, {
+      color: '#fff8df',
+      backgroundColor: '#172a39',
+      padding: { left: 12, right: 12, top: 4, bottom: 4 },
+    })).setOrigin(0.5).setDepth(10).setScrollFactor(0);
   }
 
   // ========================================
@@ -210,6 +267,8 @@ export class SelectStageScene extends Phaser.Scene {
 
     const stageIndex = this.stages.findIndex(item => item.id === stage.id);
     const isBattleStage = this.stagePositions[stageIndex]?.type === 'battle';
+    const story = !isBattleStage ? storyData.find(chapter => chapter.chapter === this.currentChapter)?.stages.find(entry => entry.stage === stage.id) : undefined;
+    const battle = this.currentChapter === 1 && isBattleStage ? battleData['../../php/stage/stage' + stage.id + '.json'] : undefined;
     const pool = isBattleStage
       ? getContractPool(stage.name).sort((a, b) => b.chance - a.chance || a.flower.id - b.flower.id)
       : [];
@@ -234,7 +293,7 @@ export class SelectStageScene extends Phaser.Scene {
     dialogGfx.fillRoundedRect(-popupW / 2, -popupH / 2, popupW, 60, { tl: 16, tr: 16, bl: 0, br: 0 });
 
     // タイトル文字大きく (24 → 28)
-    const titleText = scene.add.text(0, -popupH / 2 + 30, isBattleStage ? stage.name : 'ストーリー', {
+    const titleText = scene.add.text(0, -popupH / 2 + 30, isBattleStage ? stage.name : story?.title ?? 'ストーリー', {
       ...getTextStyle(28),
       color: '#ffffff',
       fontStyle: 'bold',
@@ -266,6 +325,10 @@ export class SelectStageScene extends Phaser.Scene {
 
     const enemyLines = stage.enemies.map(e => `・ 敵ID: ${e.id} 数量: ${e.num}体 Lv.${e.level}`).join('\n');
     const bossLine = `・ [BOSS] 敵ID: ${stage.boss.id} 数量: ${stage.boss.num}体 Lv.${stage.boss.level}`;
+
+    const enemySummary = battle
+      ? battle.enemies.map(enemy => '・ 敵ID: ' + enemy.id + ' Lv.' + enemy.level).join('\n')
+      : [enemyLines, bossLine].filter(Boolean).join('\n');
 
     // サブタイトル大きく (18 → 22)
     const enemyTitle = scene.add.text(cardX + 20, cardY - cardH / 2 + 20, '⚔️ エリアの敵情報', {
@@ -306,7 +369,7 @@ export class SelectStageScene extends Phaser.Scene {
         })).setOrigin(1, 0.5));
       });
     }
-    const enemyDetails = scene.add.text(cardX + 20, cardY - cardH / 2 + 60, `${enemyLines}\n${bossLine}`, {
+    const enemyDetails = scene.add.text(cardX + 20, cardY - cardH / 2 + 60, enemySummary, {
       ...getTextStyle(pool.length ? 14 : 20),
       color: '#444444',
       padding: { top: 0, bottom: 0, left: 0, right: 0 }
@@ -386,12 +449,26 @@ export class SelectStageScene extends Phaser.Scene {
       return btnContainer;
     };
 
+    const inventoryBtn = isBattleStage ? createDialogButton(
+      cardX + cardW / 2, cardY + cardH / 2 - 34,
+      Math.min(220, cardW - 40), 44, '所持品を見る', 0x536878, 0x6d8396, () => {
+        if (scene.scene.isActive(SCENE_KEYS.INVENTORY)) return;
+        scene.scene.launch(SCENE_KEYS.INVENTORY, { returnScene: scene.scene.key });
+        scene.scene.pause();
+      }
+    ) : null;
+    // Reserve space only when the inventory button is shown.
+    if (isBattleStage) enemyDetails.setCrop(0, 0, cardW - 40, Math.max(0, cardH - 134));
+
     // ボタンのサイズも少し大きく (150x48 → 160x56)
     const formationBtn = createDialogButton(-120, popupH / 2 - 55, 160, 56, '編成', 0x536878, 0x6d8396, () => {
-      closePopup(() => scene.scene.start(SCENE_KEYS.FORM));
+      closePopup(() => {
+        scene.scene.launch(SCENE_KEYS.FORM, { returnToStage: true });
+        scene.scene.sleep();
+      });
     });
 
-    const startBtn = createDialogButton(120, popupH / 2 - 55, 160, 56, '出撃', 0x4c8c5a, 0x60ab72, () => {
+    const startBtn = createDialogButton(120, popupH / 2 - 55, 160, 56, story ? '読む' : '出撃', 0x4c8c5a, 0x60ab72, () => {
       closePopup(() => {
         console.log(`ステージID: ${stage.id} で StageScene に遷移`);
         const stageIndex = this.stages.findIndex(item => item.id === stage.id);
@@ -415,6 +492,11 @@ export class SelectStageScene extends Phaser.Scene {
       enemyDetails, warningText, formationBtn, startBtn
     ]);
 
+    if (story) {
+      for (const element of [enemyCardGfx, enemyTitle, enemyDetails, warningText, formationBtn]) element.setVisible(false);
+      startBtn.setX(0);
+    }
+    if (inventoryBtn) container.add(inventoryBtn);
     container.add(contractList);
     container.setScale(0.85);
     container.setAlpha(0);
@@ -457,7 +539,9 @@ export class SelectStageScene extends Phaser.Scene {
   }
 
   private movePlayerToStage(targetIndex: number): void {
-    if (!this.stagePositions[targetIndex] || !this.stages[targetIndex]) {
+    const pageStart = this.currentPage * STAGES_PER_PAGE;
+    const pageEnd = Math.min(pageStart + STAGES_PER_PAGE, this.stagePositions.length);
+    if (targetIndex < pageStart || targetIndex >= pageEnd || !this.stagePositions[targetIndex] || !this.stages[targetIndex]) {
       console.error(`無効なステージインデックス: ${targetIndex}`);
       return;
     }
@@ -486,6 +570,7 @@ export class SelectStageScene extends Phaser.Scene {
         ease: 'Power1',
         onComplete: () => {
           this.currentStageIndex = nextIndex;
+          this.saveStageSelectProgress();
           if (nextIndex !== targetIndex) {
             moveAlongRoute();
             return;
