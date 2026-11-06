@@ -144,7 +144,7 @@ export function mountEncyclopediaBook(options: {
  drawCards(grid,options.season,page)
  const footer=document.createElement('footer');ui.append(footer)
  const leftFooter=document.createElement('div');leftFooter.className='encyclopedia-footer-page';const rightFooter=document.createElement('div');rightFooter.className='encyclopedia-footer-page';footer.append(leftFooter,rightFooter)
- button(leftFooter,'← ホーム',close)
+ const back=button(root,'← ホーム',close);back.className='encyclopedia-book-back';root.prepend(back)
  const seasonIndex=seasons.indexOf(options.season)
  const previousSeason=seasons[Math.max(0,seasonIndex-1)]!
  const prev=button(leftFooter,'← 前',()=>page>0?turn(-1,options.season,page-1,()=>options.onPage(page-1)):turn(-1,previousSeason,0,()=>options.onSeason(previousSeason)));prev.disabled=page===0&&seasonIndex===0

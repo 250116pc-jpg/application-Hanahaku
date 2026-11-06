@@ -121,7 +121,7 @@
 .book-button{aspect-ratio:3;min-height:58px;font-family:inherit}
 @media(min-height:481px){
  .book-footer{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:10%;justify-items:center}
- .book-footer .book-button{max-width:90%}
+ .book-footer .book-button{grid-column:2;max-width:90%}
  .book-left{padding-right:clamp(28px,4vw,76px)}
  .book-right{padding-left:clamp(28px,4vw,76px)}
 }
@@ -134,3 +134,11 @@
 /* Give long section labels room inside the visible part of the button art. */
 .book-ribbon{display:inline-grid;place-items:center;box-sizing:border-box;width:max-content;max-width:100%;min-width:min(100%,220px);min-height:72px;aspect-ratio:3;padding:18px 36px;text-align:center;line-height:1.4;overflow-wrap:anywhere;letter-spacing:.06em}
 @media(orientation:landscape) and (max-height:480px){.book-ribbon{min-width:min(100%,200px);min-height:64px;padding:16px 32px;font-size:14px}}
+
+.book-header .book-back {
+  width: 140px;
+  max-width: 100%;
+  min-height: 44px;
+  flex-shrink: 0;
+  font-size: 14px;
+}

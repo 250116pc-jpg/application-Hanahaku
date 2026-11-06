@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { createTextButton } from './buttons';
 import { getTextStyle } from './styles';
+import { BACK_BUTTON_POSITION } from './back-button';
 
 const BACKGROUND_COLOR = '#cfe3f5';
 const FRAME_COLOR = 0xcfe3f5;
@@ -21,7 +22,7 @@ export const createStandardSceneFrame = (
   scene.add.rectangle(width / 2, height / 2, 1180, 650, FRAME_COLOR)
     .setStrokeStyle(3, FRAME_BORDER_COLOR);
   scene.add.text(width / 2, 55, title, getTextStyle(34)).setOrigin(0.5);
-  createTextButton(scene, 140, 65, backLabel, onBack, {
+  createTextButton(scene, BACK_BUTTON_POSITION.x, BACK_BUTTON_POSITION.y, backLabel, onBack, {
     fontSize: 24,
     padding: { top: 10, bottom: 10, left: 18, right: 18 }
   });

@@ -57,7 +57,7 @@ export const characterAnimations = {
       frameWidth: 192,
       frameHeight: 128,
       frameCount: 6,
-      frameRate: 12
+      frameRate: 15
     },
     skill: {
       image: playerSkill,

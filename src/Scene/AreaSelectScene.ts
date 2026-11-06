@@ -75,12 +75,12 @@ export class AreaSelectScene extends Phaser.Scene {
     this.difficultyText = this.addLabel(1430, 620, '', 30).setFontFamily(FONT_FAMILY);
     this.addLabel(1238, 620, '❀ 難易度', 27).setFontFamily(FONT_FAMILY);
 
-    // 【操作ボタン】位置・サイズは背景素材の座標基準。戻る画像はログインと共通。
     this.addImageButton('location', 1340, 105, 380, 97, () => this.checkCurrentLocation());
-    this.layout.add(createBackButton(this,
-      { x: 185, y: 885, width: 260, height: 74, fontSize: 30 },
+    // 共通の高さを使い、背景に描かれた見出しの右に置く。
+    createBackButton(this,
+      { width: 180, height: 55, fontSize: 23 },
       () => this.scene.start(SCENE_KEYS.HOME)
-    ));
+    ).setX(560);
     this.confirmButton = this.addImageButton('confirm', 1355, 714, 455, 96, () => {
       const area = this.areas.find(item => item.id === this.selectedAreaId);
       if (area?.unlocked) this.scene.start(SCENE_KEYS.SELECT_STAGE, { areaId: area.id, areaName: area.name });

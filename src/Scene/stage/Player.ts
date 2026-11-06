@@ -7,6 +7,8 @@ import { playerStats } from './allyStats.ts';
 
 const BUFF_EFFECT_COLOR = 0xff5964;
 const SKILL_AREA_CELL_SIZE = 40;
+// Phaser numbers animation frames from 1. The sword first extends on frame 2.
+const BASIC_ATTACK_IMPACT_FRAME = 2;
 export type DamageType = 'physical' | 'magical';
 
 export interface CombatTarget {
@@ -53,6 +55,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   private maxHealthBonus = 0;
   private maxHealthBonusUntil = 0;
   private nextBasicAttackAt = 0;
+  private basicAttackTargets: readonly CombatTarget[] | null = null;
   public get maxHealth(): number {
     return this.baseMaxHealth + this.maxHealthBonus;
   }
@@ -151,6 +154,15 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
     this.cursors = cursors;
     this.once(Phaser.GameObjects.Events.DESTROY, () => this.clearRegeneration());
+    this.on(Phaser.Animations.Events.ANIMATION_UPDATE, (animation: Phaser.Animations.Animation, frame: Phaser.Animations.AnimationFrame) => {
+      if (animation.key !== 'player-attack' || frame.index < BASIC_ATTACK_IMPACT_FRAME || !this.basicAttackTargets) return;
+      const targets = this.basicAttackTargets;
+      this.basicAttackTargets = null;
+      this.landBasicAttack(targets);
+    });
+    this.on(Phaser.Animations.Events.ANIMATION_STOP, (animation: Phaser.Animations.Animation) => {
+      if (animation.key === 'player-attack') this.basicAttackTargets = null;
+    });
     this.on(Phaser.Animations.Events.ANIMATION_COMPLETE, (animation: Phaser.Animations.Animation) => {
       if (animation.key === 'player-land') {
         this.landingAnimationPlaying = false;
@@ -278,6 +290,10 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
         battleNow(this.scene) < this.nextBasicAttackAt) return;
     if (!this.playAction('attack', 'player-attack')) return;
     this.nextBasicAttackAt = battleNow(this.scene) + playerStats.attackIntervalMs;
+    this.basicAttackTargets = targets;
+  }
+
+  private landBasicAttack(targets: readonly CombatTarget[]): void {
     this.showSlash();
     const hits = this.getTargetsInRange(targets, 125, false);
     hits.slice(0, 1).forEach(target => {

@@ -40,7 +40,7 @@ export function mountFlowerDetail(flower: PrototypeFlower, options: {
     root.replaceChildren()
     const book = node('article', 'flower-book')
     const header = node('header', 'book-header')
-    header.append(node('span', 'book-brand', '❀ 花の図鑑'))
+    header.append(button('‹ 図鑑に戻る', options.onClose, 'book-button book-back'), node('span', 'book-brand', '❀ 花の図鑑'))
     const nav = node('nav', 'book-tabs'); nav.setAttribute('aria-label', '詳細ページ')
     for (const [key, label] of [['ability', '能力・スキル'], ['botanical', '花の説明']] as const) {
       const tab = button(label, () => { page = key; render() }, 'book-tab')
@@ -101,7 +101,7 @@ export function mountFlowerDetail(flower: PrototypeFlower, options: {
     }
     spread.append(left, right)
     const footer = node('footer', 'book-footer')
-    footer.append(button('‹ 図鑑に戻る', options.onClose), node('span', 'book-folio', page === 'ability' ? 'I — 能力・スキル' : 'II — 花の説明'), button('ホームへ ›', options.onHome))
+    footer.append(node('span', 'book-folio', page === 'ability' ? 'I — 能力・スキル' : 'II — 花の説明'), button('ホームへ ›', options.onHome))
     book.append(header, spread, footer); root.append(book)
     const selected = nav.querySelector<HTMLButtonElement>('[aria-pressed="true"]'); selected?.focus({ preventScroll: true })
   }

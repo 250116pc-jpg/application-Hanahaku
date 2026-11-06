@@ -8,7 +8,7 @@ import questionFall from '../assets/images/encyclopedia/unknown-autumn.png'
 import questionWinter from '../assets/images/encyclopedia/unknown-winter.png'
 import Phaser from 'phaser'
 import type { Season } from './test_data'
-import { createTextButton, getTextStyle } from '../utils/ui'
+import { BACK_BUTTON_POSITION, createTextButton, getTextStyle } from '../utils/ui'
 import { prototypeFlowers, contractPreview } from './encyclopedia/contractPreview'
 import type { PrototypeFlower } from './encyclopedia/contractPreview'
 import { mountFlowerDetail } from './encyclopedia/FlowerDetailView'
@@ -53,7 +53,7 @@ export class EncyclopediaScene extends Phaser.Scene {
   this.cameras.main.setBackgroundColor('#edf4ec')
   this.text(420,25,title,30)
   this.text(270,75,'花を選ぶと詳細を表示します。テストの花契状態は再読み込みでリセットされます。',17)
-  this.button(120,45,'← ホーム',()=>this.scene.start('HomeScene'))
+  this.button(BACK_BUTTON_POSITION.x,BACK_BUTTON_POSITION.y,'← ホーム',()=>this.scene.start('HomeScene'))
  }
  private closeBook(): void { this.bookCleanup?.(); this.bookCleanup=null }
  private list(): void {

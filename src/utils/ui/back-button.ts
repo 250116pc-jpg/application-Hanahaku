@@ -4,6 +4,7 @@ import { getBodyTextStyle } from './styles';
 import { smoothText } from './display-quality';
 
 const BACK_TEXTURE = 'ui-back-button';
+export const BACK_BUTTON_POSITION = { x: 120, y: 45 } as const;
 
 // 各Sceneのpreload()から呼ぶ。ログイン画面と同じ画像を使う。
 export function preloadBackButton(scene: Phaser.Scene): void {
@@ -11,19 +12,18 @@ export function preloadBackButton(scene: Phaser.Scene): void {
 }
 
 export type BackButtonOptions = {
-  x: number;
-  y: number;
   width: number;
   height: number;
   fontSize: number;
   depth?: number;
 };
 
-// 見た目・操作は共通化し、配置・サイズ・戻り先は画面側で指定する。
+// 画面左上に置き、サイズと戻り先は画面側で指定する。
 export function createBackButton(
   scene: Phaser.Scene, options: BackButtonOptions, onBack: () => void
 ): Phaser.GameObjects.Container {
-  const { x, y, width, height, fontSize, depth = 0 } = options;
+  const { width, height, fontSize, depth = 0 } = options;
+  const { x, y } = BACK_BUTTON_POSITION;
   const image = scene.add.image(0, 0, BACK_TEXTURE).setDisplaySize(width, height);
   image.texture.setFilter(Phaser.Textures.FilterMode.LINEAR);
   const text = smoothText(scene.add.text(0, 0, '‹ もどる', getBodyTextStyle(fontSize, {

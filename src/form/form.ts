@@ -7,6 +7,7 @@ import { FormUI } from './FormUI'
 import { FormationManager } from './FormationManager'
 import { SCENE_KEYS } from '../Scene/sceneKeys'
 import { loadFormation, saveFormation } from './formationStorage'
+import { BACK_BUTTON_POSITION } from '../utils/ui'
 
 const data = JSON.parse(rawFormationData) as { characters: CharacterData[] }
 const textures = import.meta.glob('../assets/images/pixel_flowers/*.png', { eager: true, query: '?url', import: 'default' }) as Record<string, string>
@@ -58,7 +59,7 @@ export class FormScene extends Phaser.Scene {
     this.add.rectangle(640, 43, 1280, 86, 0x354b40)
     this.add.rectangle(640, 87, 1280, 3, 0xb68b4d)
     this.label(640, 42, '花 の 編 成', 30, '#fff4dc').setOrigin(0.5)
-    this.ui.createPill(100, 43, 148, this.returnToStage ? '‹ ステージ選択' : '‹ ホーム', false, () => this.leave())
+    this.ui.createPill(BACK_BUTTON_POSITION.x, BACK_BUTTON_POSITION.y, 148, this.returnToStage ? '‹ ステージ選択' : '‹ ホーム', false, () => this.leave())
     this.label(1230, 42, '花と旅する、四人の仲間', 16, '#efe1bf').setOrigin(1, 0.5)
     this.panel(24, 108, 292, 518)
     this.panel(334, 108, 922, 212)

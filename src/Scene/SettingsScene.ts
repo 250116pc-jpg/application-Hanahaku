@@ -4,7 +4,7 @@ import { applyAudioSettings, loadAudioSettings, saveAudioSettings, resumeAudioFr
 import { preloadSettingsVoice, SettingsVoice } from '../audio/SettingsVoice';
 import { loadDisplaySettings, saveDisplaySettings, type DisplaySettings } from '../display/DisplaySettings';
 import { logout } from '../auth/Session';
-import { applySmoothDisplay } from '../utils/ui';
+import { applySmoothDisplay, BACK_BUTTON_POSITION } from '../utils/ui';
 import background from '../assets/ui/settings_background.png';
 import panel from '../assets/ui/settings_panel.png';
 import button from '../assets/ui/button1.png';
@@ -102,7 +102,7 @@ export class SettingsScene extends Phaser.Scene {
     // リアクションのメッセージは、ずんだもんの頭上に中央揃えで表示する。
     this.message = this.text(this.layout, 1030, 260, '', 16, '#536044')
       .setWordWrapWidth(190).setAlign('center').setOrigin(.5, 1).setLineSpacing(4);
-    this.artButton(this.layout, 125, 668, 180, 55, '‹  もどる', () => this.closeSettings(false));
+    this.artButton(this.layout, BACK_BUTTON_POSITION.x, BACK_BUTTON_POSITION.y, 180, 48, '‹  もどる', () => this.closeSettings(false));
     const move = (pointer: Phaser.Input.Pointer): void => { if (pointer.isDown) this.drag?.move(pointer); };
     const release = (): void => { const drag = this.drag; this.drag = undefined; drag?.end(); };
     this.input.on('pointermove', move);

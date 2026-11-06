@@ -68,3 +68,17 @@
 
 /* Background behind the open encyclopedia book. */
 .encyclopedia-book-screen { background: #142433 url('../assets/images/encyclopedia/encyclopedia-background.png') center / cover no-repeat; }
+.encyclopedia-book-back {
+  position: absolute;
+  top: max(12px, env(safe-area-inset-top));
+  left: max(12px, env(safe-area-inset-left));
+  min-height: 44px;
+  padding: 6px 14px;
+  border: 1px solid #aa8c57;
+  border-radius: 4px;
+  background: #193447;
+  color: #ffedc0;
+  font: inherit;
+  cursor: pointer;
+  z-index: 1;
+}

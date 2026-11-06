@@ -128,7 +128,7 @@ export class SelectStageScene extends Phaser.Scene {
     // 戻るボタン
     // ----------------------------------------
     createBackButton(this,
-      { x: 120, y: 66, width: 180, height: 60, fontSize: 23, depth: 10 },
+      { width: 180, height: 60, fontSize: 23, depth: 10 },
       () => this.scene.start(SCENE_KEYS.AREA_SELECT)
     );
 

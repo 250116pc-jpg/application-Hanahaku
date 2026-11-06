@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { SCENE_KEYS } from '../sceneKeys';
-import { getTextStyle } from '../../utils/ui';
+import { BACK_BUTTON_POSITION, getTextStyle } from '../../utils/ui';
 import { showDebugSceneName } from '../../debug';
 
 interface StageResultData {
@@ -49,13 +49,13 @@ export class StageResultScene extends Phaser.Scene {
       })).setOrigin(0.5);
     }
     const buttonY = height - 105;
-    if (!data.victory) this.createButton(width / 2 - 220, buttonY, 'もう一度', 0x527c63, () => {
+    if (!data.victory) this.createButton(width / 2 - 110, buttonY, 'もう一度', 0x527c63, () => {
       this.scene.start(SCENE_KEYS.STAGE, { stageId: data.stageId, stageNumber: data.stageNumber });
     });
-    this.createButton(width / 2, buttonY, 'ステージ選択へ', 0x586f84, () => {
+    this.createButton(BACK_BUTTON_POSITION.x, BACK_BUTTON_POSITION.y, '‹ ステージ選択へ', 0x586f84, () => {
       this.scene.start(SCENE_KEYS.SELECT_STAGE, { areaId: 1 });
     });
-    this.createButton(width / 2 + 220, buttonY, 'ホームへ', 0x80683e, () => {
+    this.createButton(width / 2 + (data.victory ? 0 : 110), buttonY, 'ホームへ', 0x80683e, () => {
       this.scene.start(SCENE_KEYS.HOME);
     });
   }

@@ -2,7 +2,7 @@
 import testData, { getFlowerSkill } from './test_data';
 import type { CharacterData } from './test_data';
 import { SCENE_KEYS } from './sceneKeys';
-import { applySmoothDisplay } from '../utils/ui';
+import { applySmoothDisplay, BACK_BUTTON_POSITION } from '../utils/ui';
 import background from '../assets/ui/training_background.png';
 import parchment from '../assets/ui/training_panel.png';
 import buttonArtwork from '../assets/ui/button1.png';
@@ -170,9 +170,9 @@ export class TrainingScene extends Phaser.Scene {
     this.expText = undefined;
     this.expFill = undefined;
     const flower = this.ownedFlowers.find(item => item.id === this.selectedId);
-    this.content.add(this.add.image(126, 43, 'training-button').setDisplaySize(218, 68));
-    this.text(50, 25, '✿', 30, C.gold);
-    this.text(90, 25, '育成', 32, '#fff9e9').setFontFamily('"Yu Mincho", "MS PMincho", serif');
+    this.content.add(this.add.image(640, 43, 'training-button').setDisplaySize(218, 68));
+    this.text(564, 25, '✿', 30, C.gold);
+    this.text(604, 25, '育成', 32, '#fff9e9').setFontFamily('"Yu Mincho", "MS PMincho", serif');
     // 同じ花を表示している間は、花・左パネル・待機アニメーションを作り直さない。
     if (this.portraitId !== (flower?.id ?? 0)) {
       this.idle?.remove();
@@ -202,7 +202,7 @@ export class TrainingScene extends Phaser.Scene {
     else if (this.tab === 'level') this.renderLevel(flower);
     else this.renderSkill(flower);
     this.renderRoster();
-    this.button(36, 673, 140, 36, '‹  ホームへ', () => this.scene.start(SCENE_KEYS.HOME));
+    this.button(BACK_BUTTON_POSITION.x - 70, BACK_BUTTON_POSITION.y - 18, 140, 36, '‹  ホームへ', () => this.scene.start(SCENE_KEYS.HOME));
   }
   private renderPortrait(flower: CharacterData): void {
     this.panel(36, 88, 400, 410);
