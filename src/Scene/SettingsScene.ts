@@ -8,6 +8,7 @@ import { applySmoothDisplay } from '../utils/ui';
 import background from '../assets/ui/settings_background.png';
 import panel from '../assets/ui/settings_panel.png';
 import button from '../assets/ui/button1.png';
+import tabButton from '../assets/ui/training_tab_selected.png';
 
 const reactionImages = import.meta.glob('../assets/setting/*.png', { eager: true, query: '?url', import: 'default' }) as Record<string, string>;
 const reactionFiles = {
@@ -50,6 +51,7 @@ export class SettingsScene extends Phaser.Scene {
     this.load.image('settings-background', background);
     this.load.image('settings-panel', panel);
     this.load.image('settings-button', button);
+    this.load.image('settings-tab', tabButton);
     for (const [reaction, file] of Object.entries(reactionFiles)) {
       const url = reactionImages[`../assets/setting/${file}`];
       if (url && !this.textures.exists(`settings-${reaction}`)) this.load.image(`settings-${reaction}`, url);
@@ -57,6 +59,18 @@ export class SettingsScene extends Phaser.Scene {
   }
 
   create(): void {
+    const tabTexture = this.textures.get('settings-tab');
+    if (!tabTexture.has('rect')) tabTexture.add('rect', 0, 8, 160, 1936, 460);
+    // 育成画面と同じクリーム色・金縁の未選択タブ。単色の部品なので画像は増やさない。
+    if (!this.textures.exists('settings-tab-cream')) {
+      const texture = this.textures.createCanvas('settings-tab-cream', 215, 62);
+      if (texture) {
+        const context = texture.context;
+        context.fillStyle = '#f7ecd4'; context.strokeStyle = '#b79553'; context.lineWidth = 1;
+        context.beginPath(); context.roundRect(.5, .5, 214, 61, 6); context.fill(); context.stroke();
+        texture.refresh(); texture.setFilter(Phaser.Textures.FilterMode.LINEAR);
+      }
+    }
     this.active = true;
     this.leaving = false;
     this.tabs = [];
@@ -81,7 +95,7 @@ export class SettingsScene extends Phaser.Scene {
     lines.lineBetween(152, 140, 1126, 140).lineBetween(380, 170, 380, 570);
     this.layout.add(lines);
     TABS.forEach(([tab, label, icon], index) => {
-      this.tabs.push(this.artButton(this.layout, 252, 207 + index * 75, 215, 62, `${icon}   ${label}`, () => this.renderTab(tab)));
+      this.tabs.push(this.artButton(this.layout, 252, 207 + index * 75, 215, 62, `${icon}   ${label}`, () => this.renderTab(tab), 'settings-tab'));
     });
     this.body = this.add.container(0, 0);
     this.layout.add(this.body);
@@ -105,7 +119,7 @@ export class SettingsScene extends Phaser.Scene {
       if (!this.leaving) applyAudioSettings(this, this.original);
     });
     this.renderTab('sound');
-    applySmoothDisplay(this, ['settings-background', 'settings-panel', 'settings-button', ...Object.keys(reactionFiles).map(key => `settings-${key}`).filter(key => this.textures.exists(key))]);
+    applySmoothDisplay(this, ['settings-background', 'settings-panel', 'settings-button', 'settings-tab', ...Object.keys(reactionFiles).map(key => `settings-${key}`).filter(key => this.textures.exists(key))]);
   }
 
   private text(parent: Phaser.GameObjects.Container, x: number, y: number, label: string, size = 22, color = INK): Phaser.GameObjects.Text {
@@ -113,10 +127,10 @@ export class SettingsScene extends Phaser.Scene {
     parent.add(text);
     return text;
   }
-  private artButton(parent: Phaser.GameObjects.Container, x: number, y: number, width: number, height: number, label: string, onClick: () => void): Phaser.GameObjects.Image {
-    const image = this.add.image(x, y, 'settings-button').setDisplaySize(width, height).setInteractive({ useHandCursor: true });
+  private artButton(parent: Phaser.GameObjects.Container, x: number, y: number, width: number, height: number, label: string, onClick: () => void, texture = 'settings-button'): Phaser.GameObjects.Image {
+    const image = this.add.image(x, y, texture, texture === 'settings-tab' ? 'rect' : undefined).setDisplaySize(width, height).setInteractive({ useHandCursor: true });
     parent.add(image);
-    this.text(parent, x, y, label, 21, '#fff5df').setOrigin(.5);
+    image.setData('label', this.text(parent, x, y, label, 21, '#fff5df').setOrigin(.5));
     image.on('pointerover', () => image.setAlpha(.85));
     image.on('pointerout', () => image.setAlpha(1));
     image.on('pointerup', () => { if (!this.leaving) { resumeAudioFromGesture(this); onClick(); } });
@@ -128,7 +142,12 @@ export class SettingsScene extends Phaser.Scene {
     this.character = undefined;
     this.body.removeAll(true);
     this.message.setText('');
-    this.tabs.forEach((image, index) => image.setTint(TABS[index][0] === tab ? 0xa7eff2 : 0xffffff));
+    this.tabs.forEach((image, index) => {
+      const selected = TABS[index][0] === tab;
+      image.setTexture(selected ? 'settings-tab' : 'settings-tab-cream', selected ? 'rect' : undefined)
+        .setDisplaySize(215, 62).clearTint();
+      (image.getData('label') as Phaser.GameObjects.Text).setColor(selected ? '#fff5df' : INK);
+    });
     this.text(this.body, 410, 174, TABS.find(item => item[0] === tab)![1], 29).setFontFamily('"Yu Mincho", "MS PMincho", serif');
     const line = this.add.graphics().lineStyle(1, 0xb1803e).lineBetween(410, 222, 1120, 222);
     this.body.add(line);
@@ -287,3 +306,5 @@ export class SettingsScene extends Phaser.Scene {
     }
   }
 }
+
+
