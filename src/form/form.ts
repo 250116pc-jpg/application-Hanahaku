@@ -25,6 +25,7 @@ export class FormScene extends Phaser.Scene {
   private saved: Array<number | null> = []
   private content!: Phaser.GameObjects.Container
   private status!: Phaser.GameObjects.Text
+  private returnToStage = false
   private preserveDraft = false
   private modal?: Phaser.GameObjects.Container
 
@@ -34,8 +35,12 @@ export class FormScene extends Phaser.Scene {
     for (const [path, url] of Object.entries(textures)) this.load.image(`form-${path.split('/').pop()!.replace(/\.png$/i, '')}`, url)
   }
 
-  init(data: { resumeFormation?: boolean } = {}): void {
+  init(data: { resumeFormation?: boolean; returnToStage?: boolean } = {}): void {
+    if (!data.resumeFormation) this.returnToStage = data.returnToStage === true
     this.preserveDraft = this.preserveDraft && data.resumeFormation === true
+    // Phaser reuses scene data when a later start() omits its data argument.
+    // Consume this entry data so a fresh visit from home resets the destination.
+    this.sys.settings.data = {}
   }
 
   create(): void {
@@ -53,7 +58,7 @@ export class FormScene extends Phaser.Scene {
     this.add.rectangle(640, 43, 1280, 86, 0x354b40)
     this.add.rectangle(640, 87, 1280, 3, 0xb68b4d)
     this.label(640, 42, '花 の 編 成', 30, '#fff4dc').setOrigin(0.5)
-    this.ui.createPill(100, 43, 148, '‹ ホーム', false, () => this.leave())
+    this.ui.createPill(100, 43, 148, this.returnToStage ? '‹ ステージ選択' : '‹ ホーム', false, () => this.leave())
     this.label(1230, 42, '花と旅する、四人の仲間', 16, '#efe1bf').setOrigin(1, 0.5)
     this.panel(24, 108, 292, 518)
     this.panel(334, 108, 922, 212)
@@ -152,7 +157,13 @@ export class FormScene extends Phaser.Scene {
     this.saved = [...formation]; this.refresh(); this.status.setText('編成を保存しました。このメンバーで冒険に出発できます')
   }
   private leave(): void {
-    const exit = () => { this.preserveDraft = false; this.scene.start(SCENE_KEYS.HOME) }
+    const exit = () => {
+      this.preserveDraft = false
+      if (this.returnToStage && this.scene.isSleeping(SCENE_KEYS.SELECT_STAGE)) {
+        this.scene.wake(SCENE_KEYS.SELECT_STAGE)
+        this.scene.stop()
+      } else this.scene.start(SCENE_KEYS.HOME)
+    }
     if (this.dirty()) this.confirm('未保存の変更を破棄してホームに戻りますか？', exit)
     else exit()
   }

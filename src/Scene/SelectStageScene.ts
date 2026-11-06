@@ -437,9 +437,23 @@ export class SelectStageScene extends Phaser.Scene {
       return btnContainer;
     };
 
+    const inventoryBtn = isBattleStage ? createDialogButton(
+      cardX + cardW / 2, cardY + cardH / 2 - 34,
+      Math.min(220, cardW - 40), 44, '所持品を見る', 0x536878, 0x6d8396, () => {
+        if (scene.scene.isActive(SCENE_KEYS.INVENTORY)) return;
+        scene.scene.launch(SCENE_KEYS.INVENTORY, { returnScene: scene.scene.key });
+        scene.scene.pause();
+      }
+    ) : null;
+    // Reserve space only when the inventory button is shown.
+    if (isBattleStage) enemyDetails.setCrop(0, 0, cardW - 40, Math.max(0, cardH - 134));
+
     // ボタンのサイズも少し大きく (150x48 → 160x56)
     const formationBtn = createDialogButton(-120, popupH / 2 - 55, 160, 56, '編成', 0x536878, 0x6d8396, () => {
-      closePopup(() => scene.scene.start(SCENE_KEYS.FORM));
+      closePopup(() => {
+        scene.scene.launch(SCENE_KEYS.FORM, { returnToStage: true });
+        scene.scene.sleep();
+      });
     });
 
     const startBtn = createDialogButton(120, popupH / 2 - 55, 160, 56, story ? '読む' : '出撃', 0x4c8c5a, 0x60ab72, () => {
@@ -470,6 +484,7 @@ export class SelectStageScene extends Phaser.Scene {
       for (const element of [enemyCardGfx, enemyTitle, enemyDetails, warningText, formationBtn]) element.setVisible(false);
       startBtn.setX(0);
     }
+    if (inventoryBtn) container.add(inventoryBtn);
     container.add(contractList);
     container.setScale(0.85);
     container.setAlpha(0);
