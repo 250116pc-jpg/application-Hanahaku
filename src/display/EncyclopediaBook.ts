@@ -8,7 +8,7 @@ const asset = (name: string): string => images['../assets/settings-book/'+name]!
 export function mountEncyclopediaBook(options: {
  season: Season; page: number; animate: boolean; turn?: number;
  unknown: Record<Season,{url:string}>;
- onSeason: (season: Season) => void; onPage: (page:number) => void;
+ onTurn: () => void; onSeason: (season: Season) => void; onPage: (page:number) => void;
  onSelect: (flower:PrototypeFlower) => void; onHome: () => void; onReset: () => void
 }): () => void {
  const root=document.createElement('section'); root.className='encyclopedia-book-screen'
@@ -31,7 +31,7 @@ export function mountEncyclopediaBook(options: {
  const turn=(direction:number,targetSeason:Season,targetPage:number,change:()=>void):void=>{
   if(busy)return
   busy=true;root.setAttribute('aria-busy','true')
-  if(reduced()){change();return}
+  if(reduced()){options.onTurn();change();return}
   const preview=ui.cloneNode(true) as HTMLElement
   preview.classList.add('encyclopedia-page-preview');preview.inert=true;preview.setAttribute('aria-hidden','true')
   const previewGrid=preview.querySelector<HTMLElement>('.encyclopedia-book-grid')!
@@ -48,6 +48,7 @@ export function mountEncyclopediaBook(options: {
    moving.classList.add('encyclopedia-turn-content');moving.inert=true;moving.setAttribute('aria-hidden','true')
    book.append(moving)
    preview.hidden=false
+   options.onTurn()
    // Outer paper edges in the original 384px-wide Gridwright frames.
    const edges=[341,317,292,264,219,167,115,67,28]
    const percent=(x:number):number=>Math.max(0,Math.min(100,(x/384-0.09)/0.82*100))

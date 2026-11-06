@@ -1,3 +1,5 @@
+import pageTurnSound from '../assets/audio/encyclopedia/page-turn-firefly.wav'
+import { playSe } from '../audio/BgmManager'
 import { readFlowerContracts } from './stage/flowerContracts'
 import { mountEncyclopediaBook } from '../display/EncyclopediaBook'
 import questionSpring from '../assets/images/encyclopedia/unknown-spring.png'
@@ -27,6 +29,7 @@ export class EncyclopediaScene extends Phaser.Scene {
  private detailCleanup: (() => void) | null = null
  constructor() { super('EncyclopediaScene') }
  preload(): void {
+  if (!this.cache.audio.exists('encyclopedia-page-turn')) this.load.audio('encyclopedia-page-turn',pageTurnSound)
   for (const {key,url} of Object.values(unknownFlowers)) if (!this.textures.exists(key)) this.load.image(key,url)
   for (const flower of prototypeFlowers) if (!this.textures.exists(flower.key)) this.load.image(flower.key,flower.url)
   for (const flower of prototypeFlowers) if (flower.realUrl && !this.textures.exists(flower.realKey)) this.load.image(flower.realKey,flower.realUrl)
@@ -58,6 +61,7 @@ export class EncyclopediaScene extends Phaser.Scene {
   this.children.removeAll(true)
   this.bookCleanup=mountEncyclopediaBook({
    season:this.season,page:this.page,animate:!this.bookOpened,turn:this.bookTurn,unknown:unknownFlowers,
+   onTurn:()=>playSe(this,'encyclopedia-page-turn'),
    onSeason:season=>{this.bookTurn=(['春','夏','秋','冬'].indexOf(season)-['春','夏','秋','冬'].indexOf(this.season));this.season=season;this.page=0;this.list()},
    onPage:page=>{this.bookTurn=page-this.page;this.page=page;this.list()},
    onSelect:flower=>{this.closeBook();this.detail(flower)},
