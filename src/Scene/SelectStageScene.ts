@@ -28,7 +28,10 @@ interface SelectStageSceneData {
   areaId?: number;
   areaName?: string;
   clearReward?: number;
+  page?: number;
 }
+
+const STAGES_PER_PAGE = 6;
 
 export class SelectStageScene extends Phaser.Scene {
   private readonly stageRouteOffsetY = 40;
@@ -40,6 +43,8 @@ export class SelectStageScene extends Phaser.Scene {
   private currentStageIndex = 0;
   private isMoving = false;
   private isStageInfoOpen = false;
+  private currentPage = 0;
+  private pageCount = 1;
 
   constructor() {
     super(SCENE_KEYS.SELECT_STAGE);
@@ -72,6 +77,13 @@ export class SelectStageScene extends Phaser.Scene {
   create(data: SelectStageSceneData = {}): void {
     this.currentChapter = AREA_STAGE_LAYOUTS[data.areaId ?? 1] ? (data.areaId ?? 1) : 1;
     this.stagePositions = AREA_STAGE_LAYOUTS[this.currentChapter];
+    this.pageCount = Math.ceil(this.stagePositions.length / STAGES_PER_PAGE);
+    const savedPage = this.registry.get('stageSelectPage') as { areaId: number; page: number } | undefined;
+    const initialPage = data.page ?? (savedPage?.areaId === this.currentChapter ? savedPage.page : 0);
+    this.currentPage = Phaser.Math.Clamp(initialPage, 0, this.pageCount - 1);
+    this.registry.set('stageSelectPage', { areaId: this.currentChapter, page: this.currentPage });
+    const pageStart = this.currentPage * STAGES_PER_PAGE;
+    const pageEnd = Math.min(pageStart + STAGES_PER_PAGE, this.stagePositions.length);
     let storyCount = 0;
     let battleCount = 0;
     this.stages = this.stagePositions.map(position => {
@@ -82,7 +94,7 @@ export class SelectStageScene extends Phaser.Scene {
         : `${this.currentChapter}-${++battleCount}`;
       return { ...prototype, name };
     });
-    this.currentStageIndex = 0;
+    this.currentStageIndex = pageStart;
     this.isMoving = false;
     this.isStageInfoOpen = false;
     this.prepareStageTextures();
@@ -117,25 +129,19 @@ export class SelectStageScene extends Phaser.Scene {
     // ----------------------------------------
     // ステージ作成
     // ----------------------------------------
-    this.stagePositions.forEach((position, index) => {
+    for (let index = pageStart; index < pageEnd; index++) {
+      const position = this.stagePositions[index];
       const stage = this.stages[index];
-      const nextStage = this.stages[index + 1];
+      const nextPosition = this.stagePositions[index + 1];
 
-      if (!stage) return;
+      if (!position || !stage) continue;
 
-      // 次のステージがある場合だけ線を描画
-      if (nextStage) {
-        const nextPosition = this.stagePositions[index + 1];
-
-        // 外側の黒い線
+      if (index + 1 < pageEnd && nextPosition) {
         this.createLine(nextPosition.x, nextPosition.y, position.x, position.y);
-        // 内側の白い線
       }
 
-      // ステージボタン
       this.createActionCircle(position.x, position.y, 110, index);
-
-    });
+    }
 
     // ----------------------------------------
     // Playerアニメーション作成
@@ -152,12 +158,49 @@ export class SelectStageScene extends Phaser.Scene {
     // ----------------------------------------
     this.player = createCharacterSprite(
       this,
-      this.stagePositions[0].x,
-      this.stagePositions[0].y + this.stageRouteOffsetY - 50,
+      this.stagePositions[pageStart].x,
+      this.stagePositions[pageStart].y + this.stageRouteOffsetY - 50,
       'select-player-idle',
       'select-player-idle'
     );
     this.player.setScale(1.5).setDepth(2);
+    this.createPageControls();
+  }
+
+  private createPageControls(): void {
+    if (this.pageCount < 2) return;
+
+    const width = this.scale.width;
+    const height = this.scale.height;
+    const createArrow = (x: number, direction: -1 | 1, enabled: boolean): void => {
+      const circle = this.add.circle(x, height / 2, 34, 0x172a39, 0.88)
+        .setStrokeStyle(2, 0xf2d28a, 0.9)
+        .setAlpha(enabled ? 1 : 0.45)
+        .setDepth(10)
+        .setScrollFactor(0);
+      this.add.text(x, height / 2 - 2, direction < 0 ? '‹' : '›', getTextStyle(44, {
+        color: '#fff8df',
+        fontStyle: 'bold',
+        padding: { left: 0, right: 0, top: 0, bottom: 0 },
+      })).setOrigin(0.5).setDepth(11).setScrollFactor(0);
+
+      if (!enabled) return;
+      circle.setInteractive({ useHandCursor: true });
+      circle.on('pointerover', () => circle.setFillStyle(0x345747, 1));
+      circle.on('pointerout', () => circle.setFillStyle(0x172a39, 0.88));
+      circle.on('pointerup', () => {
+        if (this.isMoving || this.isStageInfoOpen) return;
+        this.scene.restart({ areaId: this.currentChapter, page: this.currentPage + direction });
+      });
+    };
+
+    createArrow(58, -1, this.currentPage > 0);
+    createArrow(width - 58, 1, this.currentPage < this.pageCount - 1);
+    this.add.text(width / 2, height - 24, `${this.currentPage + 1} / ${this.pageCount}`, getTextStyle(17, {
+      color: '#fff8df',
+      backgroundColor: '#172a39',
+      padding: { left: 12, right: 12, top: 4, bottom: 4 },
+    })).setOrigin(0.5).setDepth(10).setScrollFactor(0);
   }
 
   // ========================================
@@ -469,7 +512,9 @@ export class SelectStageScene extends Phaser.Scene {
   }
 
   private movePlayerToStage(targetIndex: number): void {
-    if (!this.stagePositions[targetIndex] || !this.stages[targetIndex]) {
+    const pageStart = this.currentPage * STAGES_PER_PAGE;
+    const pageEnd = Math.min(pageStart + STAGES_PER_PAGE, this.stagePositions.length);
+    if (targetIndex < pageStart || targetIndex >= pageEnd || !this.stagePositions[targetIndex] || !this.stages[targetIndex]) {
       console.error(`無効なステージインデックス: ${targetIndex}`);
       return;
     }
