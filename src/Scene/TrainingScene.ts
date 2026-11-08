@@ -5,10 +5,10 @@ import { SCENE_KEYS } from './sceneKeys';
 import { applySmoothDisplay, BACK_BUTTON_POSITION } from '../utils/ui';
 import background from '../assets/ui/training_background.png';
 import parchment from '../assets/ui/training_panel.png';
-import buttonArtwork from '../assets/ui/button1.png';
-import selectedTabArtwork from '../assets/ui/training_tab_selected.png';
+import buttonArtwork from '../assets/ui/training_button_wood.png';
+import selectedTabArtwork from '../assets/ui/training_tab_wood_selected.png';
 import titleOrnament from '../assets/ui/training_title_ornament.png';
-import compactButtonArtwork from '../assets/ui/training_button_square.png';
+import compactButtonArtwork from '../assets/ui/training_button_wood_square.png';
 import skillDefinitions from '../../php/skill/skills.json';
 import { requestShop, shopCatalog } from './shop/ShopApi';
 import { getShopItemImageUrl } from './shop/assets';
@@ -83,9 +83,16 @@ export class TrainingScene extends Phaser.Scene {
     this.lifecycle++;
     this.upgrading = false;
     this.upgradeMessage = '';
-    // 四角いタブ画像の外側の透明な余白を除き、未選択時と同じ寸法にする。
-    const tabTexture = this.textures.get('training-tab');
-    if (!tabTexture.has('rect')) tabTexture.add('rect', 0, 8, 160, 1936, 460);
+    // 生成画像の透明余白だけを省き、配置とボタン寸法は従来のままにする。
+    const buttonFrames: Array<[string, number, number, number, number]> = [
+      ['training-button', 25, 122, 2122, 459],
+      ['training-tab', 9, 102, 2154, 492],
+      ['training-compact-button', 74, 81, 1106, 1098],
+    ];
+    buttonFrames.forEach(([key, x, y, width, height]) => {
+      const texture = this.textures.get(key);
+      if (!texture.has('rect')) texture.add('rect', 0, x, y, width, height);
+    });
     this.input.enabled = true;
     this.cameras.main.setScroll(0, 0).setRoundPixels(false);
     // 高解像度の装飾を小さなUI部品用に描画し直し、金縁の太さを画面内で統一する。
@@ -143,15 +150,11 @@ export class TrainingScene extends Phaser.Scene {
   private button(x: number, y: number, w: number, h: number, label: string, action: () => void, selected = false, enabled = true): Phaser.GameObjects.Text {
     const isTab = h === 58;
     const isCompact = w <= 54;
-    const useNavy = selected || !isTab;
-    const g = useNavy
-      ? this.add.image(x + w / 2, y + h / 2, isCompact ? 'training-compact-button' : isTab ? 'training-tab' : 'training-button', isTab ? 'rect' : undefined)
-        // 小ボタンは縦横とも46px。横長の画像を細く潰さず、専用の正方形を使う。
-        .setDisplaySize(isCompact ? 46 : isTab ? w : w + 8, isCompact ? 46 : isTab ? h : h + 7)
-      : this.box(x, y, w, h, 0xf7ecd4, 6, 0xb79553);
-    if (useNavy) this.content.add(g);
-    if (selected) this.content.add(this.add.graphics().lineStyle(1, 0xffdc8e, .9).strokeRoundedRect(x + 8, y + 5, w - 16, h - 10, 5));
-    const caption = this.text(x + w / 2, y + h / 2, label, isCompact ? 24 : 18, useNavy ? '#fff5df' : C.ink).setOrigin(.5);
+    const texture = isCompact ? 'training-compact-button' : isTab && selected ? 'training-tab' : 'training-button';
+    const g = this.add.image(x + w / 2, y + h / 2, texture, 'rect')
+      .setDisplaySize(isCompact ? 46 : isTab ? w : w + 8, isCompact ? 46 : isTab ? h : h + 7);
+    this.content.add(g);
+    const caption = this.text(x + w / 2, y + h / 2, label, isCompact ? 24 : 18, '#fff5df').setOrigin(.5);
     const hit = this.add.zone(x + w / 2, y + h / 2, w, h);
     if (enabled) hit.setInteractive({ useHandCursor: true });
     else g.setAlpha(.4);
