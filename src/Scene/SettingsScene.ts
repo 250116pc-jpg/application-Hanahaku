@@ -1,4 +1,4 @@
-﻿import Phaser from 'phaser';
+import Phaser from 'phaser';
 import { DEFAULT_AUDIO_SETTINGS } from '../audio/AudioDefaults';
 import { applyAudioSettings, loadAudioSettings, saveAudioSettings, resumeAudioFromGesture, type AudioSettings } from '../audio/BgmManager';
 import { preloadSettingsVoice, SettingsVoice } from '../audio/SettingsVoice';
@@ -23,6 +23,7 @@ const TABS: Array<[Tab, string, string]> = [
   ['credits', 'クレジット', '▤'], ['account', 'アカウント', '♙'],
 ];
 const INK = '#17243d';
+const SETTINGS_CONTENT_OFFSET_Y = 30;
 
 export class SettingsScene extends Phaser.Scene {
   private returnScene = 'HomeScene';
@@ -87,20 +88,23 @@ export class SettingsScene extends Phaser.Scene {
     this.layout = this.add.container((this.scale.width - 1280 * scale) / 2, (this.scale.height - 720 * scale) / 2).setScale(scale);
     this.layout.add(this.add.image(640, 360, 'settings-background').setDisplaySize(1280, 720));
     this.layout.add(this.add.rectangle(640, 360, 1280, 720, 0x071932, .25));
+    // 共通の戻るボタンは固定し、設定カード全体に上の余白を設ける。
+    const content = this.add.container(0, SETTINGS_CONTENT_OFFSET_Y);
+    this.layout.add(content);
     // カードの大きさは全タブ共通。パネル画像の透明な余白を含めて配置する。
-    this.layout.add(this.add.image(640, 330, 'settings-panel').setDisplaySize(1100, 610));
-    this.text(this.layout, 153, 88, '✿', 32, '#b8883e');
-    this.text(this.layout, 201, 85, '設定', 34).setFontFamily('"Yu Mincho", "MS PMincho", serif');
+    content.add(this.add.image(640, 330, 'settings-panel').setDisplaySize(1100, 610));
+    this.text(content, 153, 88, '✿', 32, '#b8883e');
+    this.text(content, 201, 85, '設定', 34).setFontFamily('"Yu Mincho", "MS PMincho", serif');
     const lines = this.add.graphics().lineStyle(1, 0xb1803e);
     lines.lineBetween(152, 140, 1126, 140).lineBetween(380, 170, 380, 570);
-    this.layout.add(lines);
+    content.add(lines);
     TABS.forEach(([tab, label, icon], index) => {
-      this.tabs.push(this.artButton(this.layout, 252, 207 + index * 75, 215, 62, `${icon}   ${label}`, () => this.renderTab(tab), 'settings-tab'));
+      this.tabs.push(this.artButton(content, 252, 207 + index * 75, 215, 62, `${icon}   ${label}`, () => this.renderTab(tab), 'settings-tab'));
     });
     this.body = this.add.container(0, 0);
-    this.layout.add(this.body);
+    content.add(this.body);
     // リアクションのメッセージは、ずんだもんの頭上に中央揃えで表示する。
-    this.message = this.text(this.layout, 1030, 260, '', 16, '#536044')
+    this.message = this.text(content, 1030, 260, '', 16, '#536044')
       .setWordWrapWidth(190).setAlign('center').setOrigin(.5, 1).setLineSpacing(4);
     this.artButton(this.layout, BACK_BUTTON_POSITION.x, BACK_BUTTON_POSITION.y, 180, 48, '‹  もどる', () => this.closeSettings(false));
     const move = (pointer: Phaser.Input.Pointer): void => { if (pointer.isDown) this.drag?.move(pointer); };

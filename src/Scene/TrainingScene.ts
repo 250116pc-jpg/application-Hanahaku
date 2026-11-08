@@ -1,4 +1,4 @@
-﻿import Phaser from 'phaser';
+import Phaser from 'phaser';
 import testData, { getFlowerSkill } from './test_data';
 import type { CharacterData } from './test_data';
 import { SCENE_KEYS } from './sceneKeys';
@@ -7,6 +7,7 @@ import background from '../assets/ui/training_background.png';
 import parchment from '../assets/ui/training_panel.png';
 import buttonArtwork from '../assets/ui/button1.png';
 import selectedTabArtwork from '../assets/ui/training_tab_selected.png';
+import titleOrnament from '../assets/ui/training_title_ornament.png';
 import compactButtonArtwork from '../assets/ui/training_button_square.png';
 import skillDefinitions from '../../php/skill/skills.json';
 import { requestShop, shopCatalog } from './shop/ShopApi';
@@ -21,6 +22,7 @@ type Tab = 'status' | 'level' | 'skill';
 type TrainingFlower = CharacterData & { exp: string; skillLevel: number };
 const TABS: Array<[Tab, string]> = [['status', 'ステータス'], ['level', 'レベル強化'], ['skill', 'スキル強化']];
 const C = { ink: '#17243d', muted: '#79694f', gold: '#d9b579', green: '#315b57', cream: 0xf8f4e8, line: 0xc5aa76, navy: 0x102d45 };
+const CONTENT_OFFSET_Y = 20;
 const nutrients = shopCatalog.filter(item => item.category === 'material' && item.name.startsWith('栄養剤'));
 
 export class TrainingScene extends Phaser.Scene {
@@ -65,6 +67,7 @@ export class TrainingScene extends Phaser.Scene {
     this.load.image('training-button', buttonArtwork);
     this.load.image('training-tab', selectedTabArtwork);
     this.load.image('training-compact-button', compactButtonArtwork);
+    this.load.image('training-title-ornament', titleOrnament);
     // ショップと同じ画像対応を使い、栄養剤の画像だけ読み込む。
     nutrients.forEach(item => this.load.image(`training-nutrient-${item.id}`, getShopItemImageUrl(item.id)));
     testData.characters.forEach(flower => {
@@ -94,14 +97,18 @@ export class TrainingScene extends Phaser.Scene {
         texture.setFilter(Phaser.Textures.FilterMode.LINEAR);
       }
     }
+    // Use a texture frame to omit the transparent padding around the generated divider.
+    const ornament = this.textures.get('training-title-ornament');
+    if (!ornament.has('divider')) ornament.add('divider', 0, 0, 260, 2172, 200);
     const scale = Math.min(this.scale.width / 1280, this.scale.height / 720);
     this.layout = this.add.container((this.scale.width - 1280 * scale) / 2, (this.scale.height - 720 * scale) / 2).setScale(scale);
     this.layout.add(this.add.image(640, 360, 'training-garden').setDisplaySize(1280, 720));
     this.layout.add(this.add.rectangle(640, 360, 1280, 720, 0x20120a, .14));
     this.portraitId = -1;
-    this.portrait = this.add.container(0, 0); this.layout.add(this.portrait);
-    this.content = this.add.container(0, 0); this.layout.add(this.content);
-    this.effects = this.add.container(0, 0); this.layout.add(this.effects);
+    this.portrait = this.add.container(0, CONTENT_OFFSET_Y); this.layout.add(this.portrait);
+    this.content = this.add.container(0, CONTENT_OFFSET_Y); this.layout.add(this.content);
+    this.effects = this.add.container(0, CONTENT_OFFSET_Y); this.layout.add(this.effects);
+    this.createHeader();
     this.inventory = {};
     this.inventoryStatus = 'loading';
     this.ownedFlowers = [];
@@ -109,7 +116,7 @@ export class TrainingScene extends Phaser.Scene {
     this.render();
     void this.loadInventory();
     void this.loadOwnedFlowers();
-    applySmoothDisplay(this, ['training-garden', 'training-parchment', 'training-button', 'training-tab', 'training-compact-button']);
+    applySmoothDisplay(this, ['training-garden', 'training-parchment', 'training-button', 'training-tab', 'training-compact-button', 'training-title-ornament']);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       this.inventoryRequest++; // 終了後や再入場前の通信結果を描画しない。
       this.flowersRequest++;
@@ -163,6 +170,19 @@ export class TrainingScene extends Phaser.Scene {
     return value.split('\n').map(line => Array.from(line).reduce((result, char, index) => result + (index && index % columns === 0 ? '\n' : '') + char, '')).join('\n');
   }
 
+  // タイトルと戻るボタンは固定し、本文・花・強化演出だけを同じ量だけ下げる。
+  private createHeader(): void {
+    const content = this.content;
+    this.content = this.add.container(0, 0);
+    this.layout.add(this.content);
+    this.text(640, 43, '育成', 40, '#fff4dc')
+      .setFontFamily('"Yu Mincho", "MS PMincho", serif').setFontStyle('normal')
+      .setOrigin(.5).setShadow(0, 2, '#241008', 3, true, true);
+    this.content.add(this.add.image(640, 74, 'training-title-ornament', 'divider').setScale(300 / 2172));
+    this.button(BACK_BUTTON_POSITION.x - 70, BACK_BUTTON_POSITION.y - 18, 140, 36, '‹  ホームへ', () => this.scene.start(SCENE_KEYS.HOME));
+    this.content = content;
+  }
+
   private render(): void {
     this.content.removeAll(true);
     this.upgradeButtonLabel = undefined;
@@ -170,9 +190,7 @@ export class TrainingScene extends Phaser.Scene {
     this.expText = undefined;
     this.expFill = undefined;
     const flower = this.ownedFlowers.find(item => item.id === this.selectedId);
-    this.content.add(this.add.image(640, 43, 'training-button').setDisplaySize(218, 68));
-    this.text(564, 25, '✿', 30, C.gold);
-    this.text(604, 25, '育成', 32, '#fff9e9').setFontFamily('"Yu Mincho", "MS PMincho", serif');
+
     // 同じ花を表示している間は、花・左パネル・待機アニメーションを作り直さない。
     if (this.portraitId !== (flower?.id ?? 0)) {
       this.idle?.remove();
@@ -202,7 +220,7 @@ export class TrainingScene extends Phaser.Scene {
     else if (this.tab === 'level') this.renderLevel(flower);
     else this.renderSkill(flower);
     this.renderRoster();
-    this.button(BACK_BUTTON_POSITION.x - 70, BACK_BUTTON_POSITION.y - 18, 140, 36, '‹  ホームへ', () => this.scene.start(SCENE_KEYS.HOME));
+
   }
   private renderPortrait(flower: CharacterData): void {
     this.panel(36, 88, 400, 410);
