@@ -498,7 +498,7 @@ export class StageHUD {
     const w = this.scene.scale.width;
     const h = this.scene.scale.height;
     const baseX = w - 72;
-    this.createGuardButton(baseX - 154, h - 215);
+    this.createGuardButton(baseX - 90, h - 199);
     //攻撃
     this.imageButton(baseX - 154, h - 94, 130, '', 'stage-attack', () => this.player?.attack(this.enemies));
     // Flower cards are the skill buttons; this label reports the selected flower's skill state.
