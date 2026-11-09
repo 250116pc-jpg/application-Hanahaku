@@ -13,16 +13,17 @@ import skillDefinitions from '../../php/skill/skills.json';
 import { requestShop, shopCatalog } from './shop/ShopApi';
 import { getShopItemImageUrl } from './shop/assets';
 import { getPhpBaseUrl } from '../auth/PhpBaseUrl';
-import { MAX_FLOWER_LEVEL, experienceThresholds, flowerStats, levelPreview } from './training/trainingRules';
+import { MAX_FLOWER_LEVEL, experienceThresholds, flowerStats, levelPreview, skillPreview, skillThresholds } from './training/trainingRules';
 
 const flowerImages = import.meta.glob('../assets/images/pixel_flowers/*.png', { eager: true, query: '?url', import: 'default' }) as Record<string, string>;
 const skillImages = import.meta.glob('../assets/system/skill/icons/*.png', { eager: true, query: '?url', import: 'default' }) as Record<string, string>;
 type Tab = 'status' | 'level' | 'skill';
 // 花の共通定義を変更せず、ログインユーザーのDB保存値を重ねて使う。
-type TrainingFlower = CharacterData & { exp: string; skillLevel: number };
+type TrainingFlower = CharacterData & { exp: string; skillLevel: number; skillExp: string };
 const TABS: Array<[Tab, string]> = [['status', 'ステータス'], ['level', 'レベル強化'], ['skill', 'スキル強化']];
 const C = { ink: '#17243d', muted: '#79694f', gold: '#d9b579', green: '#315b57', cream: 0xf8f4e8, line: 0xc5aa76, navy: 0x102d45 };
 const CONTENT_OFFSET_Y = 20;
+const seeds = shopCatalog.filter(item => item.id >= 6 && item.id <= 10);
 const nutrients = shopCatalog.filter(item => item.category === 'material' && item.name.startsWith('栄養剤'));
 
 export class TrainingScene extends Phaser.Scene {
@@ -68,8 +69,8 @@ export class TrainingScene extends Phaser.Scene {
     this.load.image('training-tab', selectedTabArtwork);
     this.load.image('training-compact-button', compactButtonArtwork);
     this.load.image('training-title-ornament', titleOrnament);
-    // ショップと同じ画像対応を使い、栄養剤の画像だけ読み込む。
-    nutrients.forEach(item => this.load.image(`training-nutrient-${item.id}`, getShopItemImageUrl(item.id)));
+    // 栄養剤と種はショップと同じ画像対応を使う。
+    [...nutrients, ...seeds].forEach(item => this.load.image(`training-nutrient-${item.id}`, getShopItemImageUrl(item.id)));
     testData.characters.forEach(flower => {
       const url = flowerImages[`../assets/images/pixel_flowers/${flower.code}.png`];
       if (url) this.load.image(`training-flower-${flower.id}`, url);
@@ -211,7 +212,7 @@ export class TrainingScene extends Phaser.Scene {
     if (flower) this.portraitLevel?.setText(`Lv.${flower.level}`);
     TABS.forEach(([tab, label], index) => {
       const x = 460 + index * 264;
-      this.button(x, 88, 256, 58, label, () => { this.tab = tab; this.render(); }, this.tab === tab);
+      this.button(x, 88, 256, 58, label, () => { this.tab = tab; this.quantity = 1; this.upgradeMessage = ''; this.render(); }, this.tab === tab);
     });
     this.panel(460, 160, 784, 338);
     if (!flower) {
@@ -262,26 +263,34 @@ export class TrainingScene extends Phaser.Scene {
     this.text(488, 448, this.wrapped(skill?.name ?? 'スキル未設定', 35), 18);
   }
   private renderLevel(flower: TrainingFlower): void {
+    const isSkill = this.tab === 'skill';
+    const materials = isSkill ? seeds : nutrients;
+    if (!materials.some(item => item.id === this.material && (this.inventory[String(item.id)] ?? 0) > 0)) this.material = materials.find(item => (this.inventory[String(item.id)] ?? 0) > 0)?.id ?? null;
+    const currentLevel = isSkill ? flower.skillLevel : flower.level;
+    const currentExp = isSkill ? flower.skillExp : flower.exp;
+    const maxLevel = isSkill ? skillThresholds.length : MAX_FLOWER_LEVEL;
+    const calculate = isSkill ? skillPreview : levelPreview;
     const count = this.inventory[String(this.material)] ?? 0;
-    const limit = levelPreview(flower.id, flower.level, flower.exp, this.material, count, this.quantity);
+    const limit = calculate(flower.id, currentLevel, currentExp, this.material, count, this.quantity);
     this.quantity = Math.min(Math.max(1, this.quantity), limit.maxQuantity);
-    const preview = levelPreview(flower.id, flower.level, flower.exp, this.material, count, this.quantity);
-    this.text(488, 183, 'レベル強化', 23);
-    this.text(488, 226, preview.used ? `Lv.${flower.level}  →  Lv.${preview.afterLevel}` : `Lv.${flower.level} / ${MAX_FLOWER_LEVEL}`, 29, C.green);
-    if (preview.used) this.text(851, 225, `HP  ${flower.stats.hp} → ${preview.stats?.hp ?? flower.stats.hp}\nATK  ${flower.stats.atk} → ${preview.stats?.atk ?? flower.stats.atk}`, 16, C.green).setLineSpacing(5);
-    this.expText = this.text(488, 275, `累計EXP  ${BigInt(flower.exp).toLocaleString('ja-JP')}${preview.used ? `  →  ${preview.afterExp.toLocaleString('ja-JP')}` : ''}`, 16, C.muted);
+    const preview = calculate(flower.id, currentLevel, currentExp, this.material, count, this.quantity);
+    if (isSkill) this.text(851, 226, this.wrapped(getFlowerSkill(flower.id)?.name ?? '', 20), 17);
+    this.text(488, 183, isSkill ? 'スキル強化' : 'レベル強化', 23);
+    this.text(488, 226, preview.used ? `Lv.${currentLevel}  →  Lv.${preview.afterLevel}` : `Lv.${currentLevel} / ${maxLevel}`, 29, C.green);
+    if (preview.used && !isSkill) this.text(851, 225, `HP  ${flower.stats.hp} → ${preview.stats?.hp ?? flower.stats.hp}\nATK  ${flower.stats.atk} → ${preview.stats?.atk ?? flower.stats.atk}`, 16, C.green).setLineSpacing(5);
+    this.expText = this.text(488, 275, `累計EXP  ${BigInt(currentExp).toLocaleString('ja-JP')}${preview.used ? `  →  ${preview.afterExp.toLocaleString('ja-JP')}` : ''}`, 16, C.muted);
     this.content.add(this.add.rectangle(488, 297, 728, 3, 0xd8ceb4).setOrigin(0, .5));
     this.expFill = this.add.rectangle(488, 297, 0, 3, 0xa99150).setOrigin(0, .5);
     this.content.add(this.expFill);
-    this.updateExperienceGauge(Number(BigInt(flower.exp) > BigInt(experienceThresholds[MAX_FLOWER_LEVEL - 1]) ? experienceThresholds[MAX_FLOWER_LEVEL - 1] : BigInt(flower.exp)));
+    this.updateExperienceGauge(Math.min(Number(currentExp), isSkill ? skillThresholds[skillThresholds.length - 1] : experienceThresholds[MAX_FLOWER_LEVEL - 1]));
     if (this.inventoryStatus === 'loading') {
-      this.text(488, 305, '所持している栄養剤を読み込み中…', 18, C.muted);
+      this.text(488, 305, '所持している素材を読み込み中…', 18, C.muted);
     } else if (this.inventoryStatus === 'error') {
       this.text(488, 288, this.wrapped(this.inventoryError, 36), 17, '#9b4739').setLineSpacing(4);
       this.button(1040, 363, 176, 40, '再読み込み', () => { void this.loadInventory(); });
     } else {
-      const owned = nutrients.filter(item => (this.inventory[String(item.id)] ?? 0) > 0);
-      if (owned.length === 0) this.text(488, 305, '栄養剤を所持していません。', 19, C.muted);
+      const owned = materials.filter(item => (this.inventory[String(item.id)] ?? 0) > 0);
+      if (owned.length === 0) this.text(488, 305, isSkill ? '種を所持していません。' : '栄養剤を所持していません。', 19, C.muted);
       else {
         // 最大5種類を同時表示。0個の栄養剤と栄養剤以外は表示しない。
         const gap = 10, width = Math.min(232, (728 - gap * (owned.length - 1)) / owned.length);
@@ -305,17 +314,17 @@ export class TrainingScene extends Phaser.Scene {
       }
     }
     const message = this.upgrading ? '強化しています…' : this.upgradeMessage || preview.reason ||
-      (preview.discarded ? `Lv.50到達時、余剰${preview.discarded}EXPは切り捨てます。` : `獲得EXP  +${preview.gain}　／　追加コインなし`);
+      (preview.discarded ? `Lv.${maxLevel}到達時、余剰${preview.discarded}EXPは切り捨てます。` : `獲得EXP  +${preview.gain.toLocaleString('ja-JP')}${isSkill ? (skillPreview(flower.id, flower.skillLevel, flower.skillExp, this.material, count, this.quantity).perItem === 1000 ? '（同属性2倍）' : '（別属性）') : ''}　／　追加コインなし`);
     this.upgradeStatusText = this.text(488, 447, this.wrapped(message, 30), 13, C.muted).setLineSpacing(3);
     this.upgradeButtonLabel = this.button(986, 430, 230, 46, this.upgrading ? '強化中…' : '強化する', () => { void this.upgradeLevel(flower); }, true,
       !this.upgrading && this.inventoryStatus === 'ready' && !preview.reason && preview.used > 0);
     // TODO: プレイヤーレベルが実装されたら、育成上限をmin(50, プレイヤーレベル)にする。
-    // 回復力の基本値・成長反映とスキル強化は別途決定する。
+    // 回復力の基本値・成長反映は別途決定する。
   }
   private async loadInventory(silent = false): Promise<void> {
     const request = ++this.inventoryRequest;
     this.inventoryStatus = 'loading';
-    if (!silent && this.tab === 'level') this.render();
+    if (!silent && this.tab !== 'status') this.render();
     try {
       // ログインユーザーのusers.itemsを読む既存API。購入・消費は行わない。
       const state = await requestShop('state');
@@ -334,7 +343,7 @@ export class TrainingScene extends Phaser.Scene {
       this.inventoryStatus = 'error';
       this.inventoryError = error instanceof Error ? error.message : '所持品を読み込めませんでした。';
     }
-    if (!silent && this.tab === 'level') this.render();
+    if (!silent && this.tab !== 'status') this.render();
   }
   private async loadOwnedFlowers(silent = false): Promise<void> {
     const request = ++this.flowersRequest;
@@ -354,14 +363,14 @@ export class TrainingScene extends Phaser.Scene {
       if (!Array.isArray(result.flowers)) {
         throw new Error('契約済みの花のデータが正しくありません。');
       }
-      const progress = new Map<number, { level: number; exp: string; skillLevel: number }>();
+      const progress = new Map<number, { level: number; exp: string; skillLevel: number; skillExp: string }>();
       for (const row of result.flowers) {
         if (!row || !Number.isSafeInteger(row.flowerId) || row.flowerId < 1 || progress.has(row.flowerId) ||
             !Number.isSafeInteger(row.level) || row.level < 1 || !Number.isSafeInteger(row.skillLevel) || row.skillLevel < 1 ||
-            typeof row.exp !== 'string' || !/^[0-9]+$/.test(row.exp)) {
+            typeof row.skillExp !== 'string' || !/^[0-9]+$/.test(row.skillExp) || typeof row.exp !== 'string' || !/^[0-9]+$/.test(row.exp)) {
           throw new Error('花の育成データが正しくありません。');
         }
-        progress.set(row.flowerId, { level: row.level, exp: row.exp, skillLevel: row.skillLevel });
+        progress.set(row.flowerId, { level: row.level, exp: row.exp, skillLevel: row.skillLevel, skillExp: row.skillExp });
       }
       if (request !== this.flowersRequest || !this.sys.isActive()) return;
       this.ownedFlowers = testData.characters.flatMap(flower => {
@@ -391,10 +400,11 @@ export class TrainingScene extends Phaser.Scene {
   }
   private async upgradeLevel(flower: TrainingFlower): Promise<void> {
     if (this.upgrading || this.inventoryStatus !== 'ready' || this.flowersStatus !== 'ready') return;
-    const preview = levelPreview(flower.id, flower.level, flower.exp, this.material, this.inventory[String(this.material)] ?? 0, this.quantity);
+    const isSkill = this.tab === 'skill';
+    const preview = (isSkill ? skillPreview : levelPreview)(flower.id, isSkill ? flower.skillLevel : flower.level, isSkill ? flower.skillExp : flower.exp, this.material, this.inventory[String(this.material)] ?? 0, this.quantity);
     if (preview.reason || preview.used < 1 || preview.used !== this.quantity) return;
     const lifecycle = this.lifecycle;
-    const body = { flowerId: flower.id, itemId: this.material, quantity: preview.used, expectedLevel: flower.level, expectedExp: flower.exp };
+    const body = { kind: isSkill ? 'skill' : 'level', flowerId: flower.id, itemId: this.material, quantity: preview.used, expectedLevel: isSkill ? flower.skillLevel : flower.level, expectedExp: isSkill ? flower.skillExp : flower.exp };
     this.upgrading = true;
     this.upgradeMessage = '';
     this.input.enabled = false;
@@ -414,15 +424,17 @@ export class TrainingScene extends Phaser.Scene {
       if (result.flowerId !== flower.id || !Number.isSafeInteger(result.level) || result.level < flower.level || result.level > MAX_FLOWER_LEVEL ||
           typeof result.exp !== 'string' || !/^[0-9]+$/.test(result.exp) || BigInt(result.exp) > BigInt(experienceThresholds[MAX_FLOWER_LEVEL - 1]) ||
           BigInt(result.exp) < BigInt(flower.exp) || !Number.isSafeInteger(result.skillLevel) || result.skillLevel < 1 ||
+          typeof result.skillExp !== 'string' || !/^[0-9]+$/.test(result.skillExp) ||
+          (isSkill && (result.skillLevel !== preview.afterLevel || Number(result.skillExp) !== preview.afterExp)) ||
           !result.items || typeof result.items !== 'object' || Array.isArray(result.items) || Object.values(result.items).some(count => !Number.isSafeInteger(count) || Number(count) < 0)) {
         throw new Error('強化結果を確認できませんでした。最新の状態を取得します。');
       }
       // サーバーが保存に成功した結果を受け取ってから、成功演出を開始する。
-      await this.playUpgradeEffect(flower, result.level, Number(result.exp));
+      await this.playUpgradeEffect(flower, isSkill ? result.skillLevel : result.level, Number(isSkill ? result.skillExp : result.exp));
       if (lifecycle !== this.lifecycle || !this.sys.isActive()) return;
       const stats = flowerStats(flower.id, result.level);
       this.ownedFlowers = this.ownedFlowers.map(item => item.id === flower.id ? {
-        ...item, level: result.level, exp: result.exp, skillLevel: result.skillLevel,
+        ...item, level: result.level, exp: result.exp, skillLevel: result.skillLevel, skillExp: result.skillExp,
         stats: { ...item.stats, hp: stats?.hp ?? 0, mp: stats?.mp ?? 0, atk: stats?.atk ?? 0, def: stats?.def ?? 0 },
       } : item);
       this.inventory = { ...result.items };
@@ -437,29 +449,31 @@ export class TrainingScene extends Phaser.Scene {
     } finally {
       window.clearTimeout(timer);
       if (lifecycle === this.lifecycle && this.sys.isActive()) {
-        if (lifecycle === this.lifecycle && this.sys.isActive()) {
-          this.quantity = 1;
-          this.upgrading = false;
-          this.input.enabled = true;
-          this.render();
-        }
+        this.quantity = 1;
+        this.upgrading = false;
+        this.input.enabled = true;
+        this.render();
       }
     }
   }
   private updateExperienceGauge(exp: number): number {
+    const thresholds = this.tab === 'skill' ? skillThresholds : experienceThresholds;
+    const maximum = thresholds.length;
     let level = 1;
-    while (level < MAX_FLOWER_LEVEL && exp >= experienceThresholds[level]) level++;
-    const start = experienceThresholds[level - 1];
-    const end = experienceThresholds[level] ?? start;
-    const ratio = level === MAX_FLOWER_LEVEL ? 1 : Phaser.Math.Clamp((exp - start) / (end - start), 0, 1);
+    while (level < maximum && exp >= thresholds[level]) level++;
+    const start = thresholds[level - 1];
+    const end = thresholds[level] ?? start;
+    const ratio = level === maximum ? 1 : Phaser.Math.Clamp((exp - start) / (end - start), 0, 1);
     this.expFill?.setSize(728 * ratio, 3);
     return level;
   }
   private playUpgradeEffect(before: TrainingFlower, afterLevel: number, afterExp: number): Promise<void> {
+    const isSkill = this.tab === 'skill';
+    const beforeLevel = isSkill ? before.skillLevel : before.level;
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const duration = reducedMotion ? 300 : 1100;
     this.upgradeButtonLabel?.setText('強化中…');
-    this.upgradeStatusText?.setText(afterLevel > before.level ? '花のレベルが上がりました！' : '経験値を獲得しました。');
+    this.upgradeStatusText?.setText(afterLevel > beforeLevel ? (isSkill ? 'スキルレベルが上がりました！' : '花のレベルが上がりました！') : '経験値を獲得しました。');
     const glow = this.add.graphics().setPosition(236, 301);
     for (let radius = 136; radius > 0; radius -= 8) glow.fillStyle(0xffda7c, .025).fillCircle(0, 0, radius);
     glow.lineStyle(2, 0xffdf9b, .8).strokeCircle(0, 0, 97);
@@ -474,12 +488,12 @@ export class TrainingScene extends Phaser.Scene {
           alpha: 0, angle: 90, duration: duration * .9, ease: 'Cubic.easeOut' });
       }
     }
-    const title = this.add.text(236, 237, afterLevel > before.level ? 'LEVEL UP!' : 'EXP UP!', {
+    const title = this.add.text(236, 237, afterLevel > beforeLevel ? (isSkill ? 'SKILL UP!' : 'LEVEL UP!') : 'EXP UP!', {
       fontFamily: 'Georgia, serif', fontSize: 30, fontStyle: 'bold', color: '#fff1b8', stroke: '#75502a', strokeThickness: 3, resolution: 2,
     }).setOrigin(.5).setAlpha(0);
     this.effects.add(title);
     this.tweens.add({ targets: title, alpha: 1, y: 221, duration: duration * .25, yoyo: true, hold: duration * .35 });
-    const counter = { exp: Number(before.exp) };
+    const counter = { exp: Number(isSkill ? before.skillExp : before.exp) };
     return new Promise(resolve => {
       this.finishEffect = resolve;
       this.tweens.add({ targets: counter, exp: afterExp, duration, ease: 'Sine.easeInOut',
@@ -487,7 +501,7 @@ export class TrainingScene extends Phaser.Scene {
           const exp = Math.floor(counter.exp);
           const level = this.updateExperienceGauge(exp);
           this.expText?.setText(`累計EXP  ${exp.toLocaleString('ja-JP')}`);
-          this.portraitLevel?.setText(`Lv.${Math.max(before.level, level)}`);
+          if (!isSkill) this.portraitLevel?.setText(`Lv.${Math.max(before.level, level)}`);
         },
         onComplete: () => {
           this.effects.removeAll(true);
@@ -498,25 +512,8 @@ export class TrainingScene extends Phaser.Scene {
     });
   }
   private renderSkill(flower: TrainingFlower): void {
-    const skill = getFlowerSkill(flower.id);
-    const definition = skillDefinitions.skills.find(item => item.id === flower.id);
-    this.text(488, 183, 'スキル強化', 23);
-    this.text(1215, 194, `Lv.${flower.skillLevel}`, 22, C.green).setOrigin(1, 0);
-    this.box(488, 230, 88, 88, 0x1d3b3d, 12, 0xb19d6c);
-    if (this.textures.exists(`training-skill-${flower.id}`)) {
-      this.content.add(this.add.image(532, 274, `training-skill-${flower.id}`).setDisplaySize(72, 72));
-    }
-    this.text(598, 234, this.wrapped(skill?.name ?? 'スキル未設定', 24), 21).setLineSpacing(4);
-    this.text(598, 299, `消費MP  ${skill?.mpCost ?? '—'}    /    クールダウン  ${definition?.cooldownSeconds ?? '—'}秒`, 15, C.muted);
-    this.text(488, 343, this.wrapped(skill?.description ?? 'スキルの説明は準備中です。', 38), 17).setLineSpacing(5);
-    this.pendingAction('スキル強化');
-    // TODO: 所有スキルの現在レベル・次の効果・必要素材を取得してプレビューを表示する。
-    // TODO: スキル強化APIを呼び、素材消費とレベル更新をサーバー側で確定する。
-  }
-  private pendingAction(name: string): void {
-    this.text(488, 453, '強化機能は準備中です。', 13, C.muted);
-    this.box(986, 430, 230, 46, 0xe4e6da, 9, 0xd0d5c5);
-    this.text(1101, 453, `${name}する（準備中）`, 16, '#8a9587').setOrigin(.5);
+    this.renderLevel(flower);
+    // TODO: 戦闘側で成長後の攻撃力とDBのskill_levelを参照する処理は別途連携する。
   }
   private renderRoster(): void {
     this.panel(36, 514, 1208, 144);
