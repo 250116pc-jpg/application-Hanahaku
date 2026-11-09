@@ -8,7 +8,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 try {
     // ユーザーIDはリクエストの値ではなく、ログインCookieから確定する。
     $userId = requireStageUserId($pdo);
-    $query = $pdo->prepare('SELECT flower_id, level, exp, skill_level, skill_exp FROM player_flowers WHERE user_id = ? ORDER BY flower_id');
+    $query = $pdo->prepare('SELECT flower_id, level, exp, skill_level, skill_exp, contracted_at FROM player_flowers WHERE user_id = ? ORDER BY flower_id');
     $query->execute([$userId]);
     $flowers = array_map(static function (array $row): array {
         if ((int)$row['level'] < 1 || (int)$row['skill_level'] < 1 || !preg_match('/^[0-9]+$/D', (string)$row['exp'])) {
@@ -16,6 +16,7 @@ try {
         }
         return [
             'flowerId' => (int)$row['flower_id'],
+            'acquiredAt' => (string)$row['contracted_at'],
             'level' => (int)$row['level'],
             // BIGINT UNSIGNEDはJavaScriptの安全な整数範囲を超えるので文字列で返す。
             'exp' => (string)$row['exp'],

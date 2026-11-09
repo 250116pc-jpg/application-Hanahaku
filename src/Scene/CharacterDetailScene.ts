@@ -23,6 +23,7 @@ import { SCENE_KEYS } from './sceneKeys';
 const BORDER_COLOR = 0x536878
 
 type CharacterDetailSceneData = {
+  ownedCharacter?: CharacterData
   characterId?: number
   returnScene?: string
   returnLabel?: string
@@ -66,6 +67,7 @@ function forceWrapJapaneseText(value: string, maxCharacters = 20): string {
 
 export class CharacterDetailScene extends Phaser.Scene {
   private returnData: { resumeFormation?: boolean } = {}
+  private ownedCharacter?: CharacterData
   private characterId = 1
   private returnScene: string = SCENE_KEYS.TRAINING
   private returnLabel = '育成画面へ'
@@ -75,6 +77,7 @@ export class CharacterDetailScene extends Phaser.Scene {
   }
 
   init(data: CharacterDetailSceneData): void {
+    this.ownedCharacter = data.ownedCharacter
     this.returnData = data.returnData ?? {}
     this.characterId = data.characterId ?? 1
     this.returnScene = data.returnScene ?? SCENE_KEYS.TRAINING
@@ -195,6 +198,7 @@ export class CharacterDetailScene extends Phaser.Scene {
   }
 
   private findCharacter(): CharacterData {
+    if (this.ownedCharacter?.id === this.characterId) return this.ownedCharacter
     return testData.characters.find((character) => character.id === this.characterId)
       ?? testData.characters[0]
   }
