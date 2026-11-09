@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { SCENE_KEYS } from '../sceneKeys';
 import { BACK_BUTTON_POSITION, getTextStyle } from '../../utils/ui';
 import { showDebugSceneName } from '../../debug';
+import { playSe, stopBgm } from '../../audio/BgmManager';
 
 interface StageResultData {
   stageId: number;
@@ -12,6 +13,7 @@ interface StageResultData {
   persisted: 'server' | 'device';
   saveError?: string;
   contractMessage?: string;
+  fromContract?: boolean;
 }
 
 export class StageResultScene extends Phaser.Scene {
@@ -19,6 +21,12 @@ export class StageResultScene extends Phaser.Scene {
 
   create(data: StageResultData): void {
     showDebugSceneName(this);
+    stopBgm(this);
+    if (!data.fromContract) {
+      const resultSound = data.victory ? 'stage-clear' : 'game-over';
+      playSe(this, resultSound, data.victory ? 0.75 : 0.5);
+      this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.sound.stopByKey(resultSound));
+    }
     const { width, height } = this.scale;
     this.add.rectangle(width / 2, height / 2, width, height, 0x0c1722, 1);
     this.add.rectangle(width / 2, height / 2, width - 70, height - 70, 0x172a39, 1)

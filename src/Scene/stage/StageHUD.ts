@@ -315,7 +315,7 @@ export class StageHUD {
     let closing = false;
     const closeDialog = (retreat: boolean): void => {
       if (closing) return;
-      playUiSe(this.scene, retreat ? 'confirm' : 'cancel');
+      playUiSe(this.scene, retreat ? 'confirm' : 'cancel', 0.5);
       closing = true;
       dialog.style.pointerEvents = 'none';
       let finished = false;
@@ -542,7 +542,7 @@ export class StageHUD {
       .setScrollFactor(0).setDepth(this.depth + 3);
     // Use a screen-fixed rectangular target independent of the PNG's transparent pixels.
     // Phaser skips fully transparent objects during input hit testing, so keep a tiny alpha.
-    const hitArea = this.scene.add.rectangle(x, y, size, size, 0xffffff, 0.01)
+    const hitArea = this.scene.add.rectangle(x, y, size, size, 0xffffff, 0.01).setName(texture)
       .setScrollFactor(0).setDepth(this.depth + 5)
       .setInteractive(new Phaser.Geom.Rectangle(0, 0, size, size), Phaser.Geom.Rectangle.Contains);
     if (hitArea.input) hitArea.input.cursor = 'pointer';
