@@ -1,3 +1,4 @@
+// 担当：たまおちゃん｜ステージ戦闘の進行
 import { battleNow } from './BattleClock';
 import { isBattlePreview } from '../../debug';
 import formationData from '../../../php/flower/formation.json';

@@ -1,4 +1,5 @@
-﻿import Phaser from 'phaser';
+﻿// 担当：たまおちゃん｜認証機能・AuthLayout
+import Phaser from 'phaser';
 import buttonImage from '../assets/ui/button1.png';
 import backgroundImage from '../assets/images/background/auth-meadow.png';
 import './auth-layout.css';

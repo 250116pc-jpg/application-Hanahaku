@@ -1,3 +1,4 @@
+// 担当：たまおちゃん｜ショップ機能・PurchaseConfirm
 import Phaser from 'phaser'
 import { playUiSe } from '../../audio/BgmManager'
 import buttonImage from '../../assets/images/encyclopedia/journal-button.png'

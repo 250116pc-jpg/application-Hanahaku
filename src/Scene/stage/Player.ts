@@ -1,4 +1,4 @@
-// 担当：中村｜プレイヤー操作、移動・ジャンプ、攻撃・スキル・防御を管理
+// 担当：たまおちゃん｜プレイヤー操作・移動・戦闘
 import { showBattleNumber } from './BattleFeedback';
 import { playSe } from '../../audio/BgmManager';
 import { battleNow } from './BattleClock';

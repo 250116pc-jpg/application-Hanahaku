@@ -1,3 +1,4 @@
+// 担当：たまおちゃん｜認証機能・Session
 import { getPhpBaseUrl } from './PhpBaseUrl';
 import { saveCurrentUser, type AuthenticatedUser } from './GoogleSignIn';
 

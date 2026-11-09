@@ -1,3 +1,4 @@
+// 担当：たまおちゃん｜編成機能・FormUI
 import Phaser from 'phaser'
 import type { CharacterData } from '../Scene/test_data'
 import { getTextStyle } from '../utils/ui'

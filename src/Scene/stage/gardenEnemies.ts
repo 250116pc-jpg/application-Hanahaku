@@ -1,3 +1,4 @@
+// 担当：たまおちゃん｜ステージ敵データ
 import type Phaser from 'phaser';
 
 const actions = ['idle', 'run', 'attack', 'hurt', 'death'] as const;

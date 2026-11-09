@@ -1,3 +1,4 @@
+// 担当：たまおちゃん｜アニメーション・homeAnimationData
 import win from '../assets/characters/player/Red Cape Knight Character Asset/Player_Red sheets/Red_win.png';
 import run from '../assets/characters/player/Red Cape Knight Character Asset/Player_Red sheets/Red_Running.png';
 import jump from '../assets/characters/player/Red Cape Knight Character Asset/Player_Red sheets/Red_jumping.png';

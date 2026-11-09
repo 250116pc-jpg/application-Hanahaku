@@ -1,4 +1,5 @@
-﻿import Phaser from 'phaser';
+﻿// 担当：たまおちゃん｜共通UI・display-quality
+import Phaser from 'phaser';
 
 // 滑らかに描く文字の解像度とフィルターを共通化する。
 export function smoothText(text: Phaser.GameObjects.Text): Phaser.GameObjects.Text {

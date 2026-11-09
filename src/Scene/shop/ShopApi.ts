@@ -1,3 +1,4 @@
+// 担当：たまおちゃん｜ショップ機能・ShopApi
 import { getPhpBaseUrl } from '../../auth/PhpBaseUrl';
 import rawCatalog from '../../../php/shop/items.json?raw'
 import type { ShopItem } from './types'

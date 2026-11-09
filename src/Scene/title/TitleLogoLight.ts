@@ -1,3 +1,4 @@
+// 担当：たまおちゃん｜タイトル演出・TitleLogoLight
 import Phaser from 'phaser';
 
 // ロゴの透明部分を利用した光。画像ファイルを書き換えず、文字の輪郭に沿ってにじませる。

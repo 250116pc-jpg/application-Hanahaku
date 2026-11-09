@@ -1,3 +1,4 @@
+// 担当：たまおちゃん｜ステージ配置データ
 export type StagePosition = {
   id: number;
   x: number;

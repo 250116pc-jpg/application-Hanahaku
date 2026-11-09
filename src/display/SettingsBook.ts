@@ -1,3 +1,4 @@
+// 担当：たまおちゃん｜画面表示・設定・SettingsBook
 import Phaser from 'phaser';
 import { DEFAULT_AUDIO_SETTINGS } from '../audio/AudioDefaults';
 import { applyAudioSettings, loadAudioSettings, saveAudioSettings, playUiSe } from '../audio/BgmManager';

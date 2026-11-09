@@ -1,3 +1,4 @@
+// 担当：たまおちゃん｜戦闘背景の演出
 import Phaser from 'phaser';
 import type { Player } from './Player';
 import type { Enemy } from './Enemy';

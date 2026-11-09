@@ -1,3 +1,4 @@
+// 担当：たまおちゃん｜ステージ内ミニマップ
 import Phaser from 'phaser';
 import type { Player } from './Player';
 import type { Enemy } from './Enemy';

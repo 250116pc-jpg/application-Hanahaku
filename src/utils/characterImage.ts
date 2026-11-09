@@ -1,3 +1,4 @@
+// 担当：たまおちゃん｜共通ユーティリティ・characterImage
 import Phaser from 'phaser'
 import sunflower from '../assets/images/pixel_flowers/sunflower.png'
 

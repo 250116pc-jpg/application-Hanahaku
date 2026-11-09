@@ -1,3 +1,4 @@
+// 担当：たまおちゃん｜図鑑機能・contractPreview
 import catalogSkills from '../../../php/flower/catalog-skills.json'
 import imagePaths from '../../../php/flower/path.json'
 import type { Season } from '../test_data'

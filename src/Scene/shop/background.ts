@@ -1,3 +1,4 @@
+// 担当：たまおちゃん｜ショップ機能・background
 export function createShopBackground(
   scene: Phaser.Scene,
   screenWidth: number,

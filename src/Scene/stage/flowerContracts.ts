@@ -1,3 +1,4 @@
+// 担当：たまおちゃん｜契約可能な花の管理
 import roster from '../../../php/flower/formation.json';
 import { prototypeFlowers } from '../encyclopedia/contractPreview';
 

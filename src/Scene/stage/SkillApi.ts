@@ -1,3 +1,4 @@
+// 担当：たまおちゃん｜スキル状態の取得と使用
 import { isBattlePreview } from '../../debug';
 import { getPhpBaseUrl } from '../../auth/PhpBaseUrl';
 import type { FlowerSkillType } from '../test_data.ts';

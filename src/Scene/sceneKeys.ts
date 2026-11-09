@@ -1,3 +1,4 @@
+// 担当：たまおちゃん｜画面遷移キーの定義
 export const SCENE_KEYS = {
   TITLE: 'TitleScene',
   LOGIN: 'LoginScene',

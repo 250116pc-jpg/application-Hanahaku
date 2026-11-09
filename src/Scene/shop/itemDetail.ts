@@ -1,3 +1,4 @@
+// 担当：たまおちゃん｜ショップ機能・itemDetail
 import type { ItemDetailView, ShopItem } from './types'
 import { getShopItemImageKey } from './assets'
 

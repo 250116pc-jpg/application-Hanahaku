@@ -1,3 +1,4 @@
+// 担当：たまおちゃん｜図鑑機能・FlowerDetailView
 import type { PrototypeFlower } from './contractPreview'
 import buttonImage from '../../assets/images/encyclopedia/journal-button.png'
 import './flower-detail.css'

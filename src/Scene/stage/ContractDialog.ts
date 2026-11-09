@@ -1,3 +1,4 @@
+// 担当：たまおちゃん｜花との契約画面
 import Phaser from 'phaser';
 import { playSe, stopBgm } from '../../audio/BgmManager';
 import type { PrototypeFlower } from '../encyclopedia/contractPreview';

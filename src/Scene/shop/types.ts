@@ -1,3 +1,4 @@
+// 担当：たまおちゃん｜ショップ機能・types
 export type ShopItem = {
   id: number
   name: string

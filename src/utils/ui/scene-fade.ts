@@ -1,3 +1,4 @@
+// 担当：たまおちゃん｜共通UI・scene-fade
 import Phaser from 'phaser';
 
 // CanvasとHTMLフォームを同時に覆う。カメラのフェードだけではDOMは暗転しない。

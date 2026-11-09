@@ -1,3 +1,4 @@
+// 担当：たまおちゃん｜音声再生・設定・SettingsVoice
 import Phaser from 'phaser'
 import { loadAudioSettings, resumeAudioFromGesture, setVoiceDucking } from './BgmManager'
 

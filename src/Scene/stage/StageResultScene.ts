@@ -1,3 +1,4 @@
+// 担当：たまおちゃん｜戦闘結果画面
 import Phaser from 'phaser';
 import { SCENE_KEYS } from '../sceneKeys';
 import { BACK_BUTTON_POSITION, getTextStyle } from '../../utils/ui';

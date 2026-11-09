@@ -1,3 +1,4 @@
+// 担当：たまおちゃん｜所持品機能・InventoryData
 export type ItemCategory = 'heal' | 'material' | 'important'
 export type InventoryFilter = 'all' | ItemCategory
 

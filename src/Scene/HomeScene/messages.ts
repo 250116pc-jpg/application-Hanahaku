@@ -1,3 +1,4 @@
+// 担当：たまおちゃん｜ホーム画面・messages
 import Phaser from 'phaser'
 
 export function showTemporaryMessage(

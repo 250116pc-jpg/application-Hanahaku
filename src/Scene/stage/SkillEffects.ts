@@ -1,3 +1,4 @@
+// 担当：たまおちゃん｜スキル発動演出
 import { SkillSound } from './SkillSound';
 import { battleNow } from './BattleClock';
 import Phaser from 'phaser';

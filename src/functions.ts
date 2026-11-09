@@ -1,3 +1,4 @@
+// 担当：たまおちゃん｜ゲーム共通処理
 import Phaser from 'phaser'
 
 // テキスト表示の関数

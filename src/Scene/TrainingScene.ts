@@ -1,3 +1,4 @@
+// 担当：たまおちゃん｜育成画面
 import Phaser from 'phaser';
 import testData, { getFlowerSkill } from './test_data';
 import type { CharacterData } from './test_data';

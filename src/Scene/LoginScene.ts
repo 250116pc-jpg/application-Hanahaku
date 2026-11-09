@@ -1,4 +1,5 @@
-﻿import { createSceneFade } from '../utils/ui/scene-fade';
+﻿// 担当：たまおちゃん｜ログイン画面
+import { createSceneFade } from '../utils/ui/scene-fade';
 import { getPhpBaseUrl } from '../auth/PhpBaseUrl';
 import Phaser from 'phaser';
 import { mountAuthLayout } from '../auth/AuthLayout';

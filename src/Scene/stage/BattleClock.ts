@@ -1,3 +1,4 @@
+// 担当：たまおちゃん｜戦闘時間の管理
 import Phaser from 'phaser';
 
 const clocks = new WeakMap<Phaser.Scene, { elapsed: number }>();

@@ -1,3 +1,4 @@
+// 担当：たまおちゃん｜戦闘画面UIと操作ボタン
 import { isBattlePreview } from '../../debug';
 import { battleNow } from './BattleClock';
 import { playUiSe } from '../../audio/BgmManager';

@@ -1,3 +1,4 @@
+// 担当：たまおちゃん｜ショップ機能・assets
 import recoveryImage from '../../assets/images/items/asset_110.png';
 import powerImage from '../../assets/images/items/asset_090.png';
 import guardImage from '../../assets/images/items/asset_105.png';

@@ -1,4 +1,5 @@
-﻿import { createSceneFade } from '../utils/ui/scene-fade'
+﻿// 担当：たまおちゃん｜ホーム画面
+import { createSceneFade } from '../utils/ui/scene-fade'
 import Phaser from 'phaser'
 
 // アセットのインポート（実際のファイルパスに合わせて調整してください）

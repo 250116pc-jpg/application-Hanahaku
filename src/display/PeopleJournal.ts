@@ -1,3 +1,4 @@
+// 担当：たまおちゃん｜画面表示・設定・PeopleJournal
 import shopkeeper from '../assets/characters/1003/1003_3.png'
 import './PeopleJournal.css'
 

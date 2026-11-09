@@ -1,3 +1,4 @@
+// 担当：たまおちゃん｜画面表示・設定・EncyclopediaBook
 import { openPeopleJournal } from './PeopleJournal'
 import { readFlowerContracts } from '../Scene/stage/flowerContracts'
 import type { Season } from '../Scene/test_data'

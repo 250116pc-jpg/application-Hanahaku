@@ -1,4 +1,5 @@
-﻿import Phaser from 'phaser';
+﻿// 担当：たまおちゃん｜タイトル画面
+import Phaser from 'phaser';
 import { restoreSession } from '../auth/Session';
 import { shouldSkipLogin } from '../debug';
 import titleBackground from '../assets/images/background/title_background.png';

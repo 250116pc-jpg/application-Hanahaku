@@ -1,3 +1,4 @@
+// 担当：たまおちゃん｜プレイヤー能力値
 import playerAlly from '../../../php/ally/1001.json';
 import allyUpgradeData from '../../../php/ally/upgrades.json';
 

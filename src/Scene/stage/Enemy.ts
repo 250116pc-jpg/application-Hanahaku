@@ -1,3 +1,4 @@
+// 担当：たまおちゃん｜敵キャラクターの行動と状態
 import { showBattleNumber } from './BattleFeedback';
 import { battleNow } from './BattleClock';
 import Phaser from 'phaser';

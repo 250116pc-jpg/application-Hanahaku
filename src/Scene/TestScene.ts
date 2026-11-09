@@ -1,3 +1,4 @@
+// 担当：たまおちゃん｜テスト用画面
 import Phaser from 'phaser';
 import { getTextStyle, createTextButton, showRetreatDialog } from '../utils/ui/index.ts';
 import { showDebugSceneName } from '../debug';

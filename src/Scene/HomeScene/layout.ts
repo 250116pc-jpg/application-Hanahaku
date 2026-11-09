@@ -1,3 +1,4 @@
+// 担当：たまおちゃん｜ホーム画面・layout
 import Phaser from 'phaser'
 import { getTextStyle } from '../../utils/ui'
 

@@ -1,3 +1,4 @@
+// 担当：たまおちゃん｜編成機能・FormationManager
 import type { CharacterData } from '../Scene/test_data'
 
 export class FormationManager {

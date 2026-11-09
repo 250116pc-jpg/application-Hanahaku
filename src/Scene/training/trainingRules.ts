@@ -1,3 +1,4 @@
+// 担当：たまおちゃん｜育成機能・trainingRules
 import rules from '../../../php/flower/training.json';
 import upgrades from '../../../php/ally/upgrades.json';
 

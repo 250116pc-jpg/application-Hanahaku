@@ -1,3 +1,4 @@
+// 担当：たまおちゃん｜ステージ進行状況
 import { getPhpBaseUrl } from '../../auth/PhpBaseUrl';
 export interface StageProgress {
   completedStageIds: number[];

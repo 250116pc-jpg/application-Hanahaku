@@ -1,3 +1,4 @@
+// 担当：たまおちゃん｜アニメーション・animation
 import Phaser from 'phaser';
 
 type AnimationData = {

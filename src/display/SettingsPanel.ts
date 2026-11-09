@@ -1,3 +1,4 @@
+// 担当：たまおちゃん｜画面表示・設定・SettingsPanel
 import Phaser from 'phaser';
 import { loadDisplaySettings, saveDisplaySettings, type DisplaySettings } from './DisplaySettings';
 

@@ -1,3 +1,4 @@
+// 担当：たまおちゃん｜ショップ機能・shop
 import { recordShopVisit } from '../../display/PeopleJournal'
 import { shopCatalog, requestShop } from './ShopApi'
 import { createShopBackground } from './background'

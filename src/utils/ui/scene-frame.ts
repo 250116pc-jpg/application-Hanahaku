@@ -1,3 +1,4 @@
+// 担当：たまおちゃん｜共通UI・scene-frame
 import Phaser from 'phaser';
 import { createTextButton } from './buttons';
 import { getTextStyle } from './styles';

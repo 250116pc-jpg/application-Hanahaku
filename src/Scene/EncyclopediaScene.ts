@@ -1,3 +1,4 @@
+// 担当：たまおちゃん｜花の図鑑画面
 import pageTurnSound from '../assets/audio/encyclopedia/page-turn-firefly.wav'
 import { playSe } from '../audio/BgmManager'
 import { readFlowerContracts } from './stage/flowerContracts'

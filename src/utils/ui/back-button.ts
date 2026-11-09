@@ -1,4 +1,5 @@
-﻿import Phaser from 'phaser';
+﻿// 担当：たまおちゃん｜共通UI・back-button
+import Phaser from 'phaser';
 import backImage from '../../assets/ui/button1.png';
 import { getBodyTextStyle } from './styles';
 import { smoothText } from './display-quality';

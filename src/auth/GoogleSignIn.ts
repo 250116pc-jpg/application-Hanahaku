@@ -1,3 +1,4 @@
+// 担当：たまおちゃん｜認証機能・GoogleSignIn
 import { getPhpBaseUrl } from './PhpBaseUrl';
 export interface AuthenticatedUser {
   id: number;

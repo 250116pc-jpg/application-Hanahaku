@@ -1,3 +1,4 @@
+// 担当：たまおちゃん｜画面表示・設定・DisplaySettings
 export interface DisplaySettings {
   maxFps: 30 | 60 | 120;
   quality: 'crisp' | 'smooth';

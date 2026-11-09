@@ -1,3 +1,4 @@
+// 担当：たまおちゃん｜編成機能・formationStorage
 import rawFormationData from '../../php/flower/formation.json?raw';
 
 type FormationData = {

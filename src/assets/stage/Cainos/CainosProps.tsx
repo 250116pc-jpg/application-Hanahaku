@@ -1,3 +1,4 @@
+// 担当：たまおちゃん｜ステージ用アセット・CainosProps
 <?xml version="1.0" encoding="UTF-8"?>
 <tileset version="1.10" tiledversion="1.11.2" name="Cainos Props" tilewidth="153" tileheight="163" tilecount="5" columns="0">
  <tile id="0"><image source="TiledProps/tree-01.png" width="153" height="163"/></tile>

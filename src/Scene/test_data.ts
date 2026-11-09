@@ -1,3 +1,4 @@
+// 担当：たまおちゃん｜ゲームのテストデータ
 import formationData from '../../php/flower/formation.json'
 import skillData from '../../php/skill/skills.json'
 

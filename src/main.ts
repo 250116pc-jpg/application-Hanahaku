@@ -1,3 +1,4 @@
+// 担当：たまおちゃん｜ゲーム初期化と画面登録
 import Phaser from 'phaser';
 import { isBattlePreview } from './debug';
 

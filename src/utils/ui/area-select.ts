@@ -1,3 +1,4 @@
+// 担当：たまおちゃん｜共通UI・area-select
 import Phaser from 'phaser';
 import { getTextStyle } from './styles';
 import { createTextButton } from './buttons';

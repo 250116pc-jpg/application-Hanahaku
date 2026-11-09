@@ -1,4 +1,5 @@
-﻿import Phaser from 'phaser';
+﻿// 担当：たまおちゃん｜タイトル演出・TitlePetals
+import Phaser from 'phaser';
 import petal1 from '../../assets/ui/title_f1.png';
 import petal2 from '../../assets/ui/title_f2.png';
 import petal3 from '../../assets/ui/title_f3.png';

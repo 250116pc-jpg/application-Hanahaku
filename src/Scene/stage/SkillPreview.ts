@@ -1,3 +1,4 @@
+// 担当：たまおちゃん｜開発用スキルプレビュー
 import definitions from '../../../php/skill/skills.json';
 import type { FlowerSkillState, ServerFlowerSkill, StageFlowerStats } from './SkillApi';
 

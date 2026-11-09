@@ -1,4 +1,5 @@
-﻿import Phaser from 'phaser';
+﻿// 担当：たまおちゃん｜エリア選択画面
+import Phaser from 'phaser';
 import backgroundImage from '../assets/ui/eria_back.png';
 import buttonImage from '../assets/ui/eria_btn.png';
 import { preloadBackButton, createBackButton, applySmoothDisplay, smoothText, getHeadingTextStyle, FONT_FAMILY } from '../utils/ui';

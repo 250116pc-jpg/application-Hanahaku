@@ -1,3 +1,4 @@
+// 担当：たまおちゃん｜ショップ機能・scroll
 import { SHOP_LIST_BOUNDS } from './itemList'
 
 export function enableShopScroll(

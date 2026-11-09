@@ -1,3 +1,4 @@
+// 担当：たまおちゃん｜認証機能・PhpBaseUrl
 /** Use the PC host when a phone opens the local development server. */
 export function resolvePhpBaseUrl(configured: string | undefined, pageUrl: string, development: boolean): string {
   const page = new URL(pageUrl);

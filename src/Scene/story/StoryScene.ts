@@ -1,3 +1,4 @@
+// 担当：たまおちゃん｜ストーリー画面と会話進行
 import Phaser from 'phaser';
 
 import backImg from '../../assets/images/background/story/1.jpg';

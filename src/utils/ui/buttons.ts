@@ -1,3 +1,4 @@
+// 担当：たまおちゃん｜共通UI・buttons
 import Phaser from 'phaser';
 import { getTextStyle } from './styles';
 

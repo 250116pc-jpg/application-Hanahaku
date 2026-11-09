@@ -1,3 +1,4 @@
+// 担当：たまおちゃん｜新規登録画面
 import { getPhpBaseUrl } from '../auth/PhpBaseUrl';
 import Phaser from 'phaser';
 import { mountAuthLayout } from '../auth/AuthLayout';

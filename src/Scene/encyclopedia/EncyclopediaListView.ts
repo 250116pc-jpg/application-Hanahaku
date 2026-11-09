@@ -1,3 +1,4 @@
+// 担当：たまおちゃん｜図鑑機能・EncyclopediaListView
 import Phaser from 'phaser'
 import { addCharacterImage } from '../../utils/characterImage'
 

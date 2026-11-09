@@ -1,3 +1,4 @@
+// 担当：たまおちゃん｜スキル効果音
 import Phaser from 'phaser';
 import { loadAudioSettings } from '../../audio/BgmManager';
 import type { SkillVisualPhase } from './Player';

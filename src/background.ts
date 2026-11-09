@@ -1,3 +1,4 @@
+// 担当：たまおちゃん｜ゲーム背景の生成と表示
 export function createBackground(
   scene: Phaser.Scene,
   imageKey: string

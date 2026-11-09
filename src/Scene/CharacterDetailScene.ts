@@ -1,3 +1,4 @@
+// 担当：たまおちゃん｜キャラクター詳細画面
 import Phaser from 'phaser'
 import { preloadCharacterImages, addCharacterImage } from '../utils/characterImage'
 

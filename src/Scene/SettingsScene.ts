@@ -1,3 +1,4 @@
+// 担当：たまおちゃん｜設定画面
 import Phaser from 'phaser';
 import { DEFAULT_AUDIO_SETTINGS } from '../audio/AudioDefaults';
 import { applyAudioSettings, loadAudioSettings, saveAudioSettings, resumeAudioFromGesture, type AudioSettings } from '../audio/BgmManager';

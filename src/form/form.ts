@@ -1,3 +1,4 @@
+// 担当：たまおちゃん｜編成機能・form
 import Phaser from 'phaser'
 import rawFormationData from '../../php/flower/formation.json?raw'
 import { preloadShopAssets } from '../Scene/shop/assets'

@@ -1,3 +1,4 @@
+// 担当：たまおちゃん｜ダメージ・回復表示
 import Phaser from 'phaser';
 const activeNumbers = new WeakMap<Phaser.Scene, Set<Phaser.GameObjects.Text>>();
 export function showBattleNumber(scene: Phaser.Scene, x: number, y: number, amount: number, kind: 'physical' | 'magical' | 'heal'): void {

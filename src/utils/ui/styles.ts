@@ -1,3 +1,4 @@
+// 担当：たまおちゃん｜共通UI・styles
 import Phaser from 'phaser';
 
 export const HEADING_FONT_FAMILY = '"Yu Mincho", "MS PMincho", serif';

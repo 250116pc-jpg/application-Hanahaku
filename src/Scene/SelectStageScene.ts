@@ -1,3 +1,4 @@
+// 担当：たまおちゃん｜ステージ選択画面
 import storyData from '../scenario_data/story_data.json';
 import { getContractPool } from './stage/flowerContracts';
 import Phaser from 'phaser';

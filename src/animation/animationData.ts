@@ -1,3 +1,4 @@
+// 担当：たまおちゃん｜アニメーション・animationData
 
 import playerIdle from '../assets/characters/player/Red Cape Knight Character Asset/Player_Red sheets/Red_idle.png'
 import playerRun from '../assets/characters/player/Red Cape Knight Character Asset/Player_Red sheets/Red_Running.png'

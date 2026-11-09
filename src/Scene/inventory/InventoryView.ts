@@ -1,3 +1,4 @@
+// 担当：たまおちゃん｜所持品機能・InventoryView
 import './InventoryFantasy.css'
 import Phaser from 'phaser'
 import inventorySlot from '../../assets/images/inventory/slot.png'

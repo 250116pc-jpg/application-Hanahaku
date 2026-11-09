@@ -1,3 +1,4 @@
+// 担当：たまおちゃん｜所持品画面
 import Phaser from 'phaser'
 import { playUiSe } from '../audio/BgmManager'
 import type { StageScene } from './stage/StageScene'

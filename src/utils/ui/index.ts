@@ -1,3 +1,4 @@
+// 担当：たまおちゃん｜共通UI・index
 export * from './styles';
 export * from './buttons';
 export * from './dialogs';

@@ -1,3 +1,4 @@
+// 担当：たまおちゃん｜図鑑機能・flowerCatalog
 import type { CharacterData, Season } from '../test_data'
 
 // Names and seasons are provisional game settings, not botanical identifications.
