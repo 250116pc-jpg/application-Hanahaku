@@ -221,21 +221,21 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   }
 
 
-  private guardUntil = 0;
+  private guardHeld = false;
 
-  public guard(): void {
-    const body = this.body as Phaser.Physics.Arcade.Body | null;
-    if (!body?.blocked.down || this.dead || this.action !== null ||
-        battleNow(this.scene) < this.chargeUntil || battleNow(this.scene) < this.continuousUntil) return;
-    this.guardUntil = battleNow(this.scene) + 900;
-    this.setVelocityX(0);
-    this.playAnimation('player-defend');
+  public setGuardHeld(held: boolean): void {
+    this.guardHeld = held;
+    if (this.isGuarding()) {
+      this.setVelocityX(0);
+      this.playAnimation('player-defend');
+    }
   }
 
   public isGuarding(): boolean {
     const body = this.body as Phaser.Physics.Arcade.Body | null;
     return !this.dead && this.action === null && body?.blocked.down === true &&
-      (this.cursors?.down?.isDown === true || battleNow(this.scene) < this.guardUntil);
+      battleNow(this.scene) >= Math.max(this.chargeUntil, this.continuousUntil) &&
+      (this.cursors?.down?.isDown === true || this.guardHeld);
   }
 
   public update(): void {
