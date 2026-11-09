@@ -292,30 +292,30 @@ export class TrainingScene extends Phaser.Scene {
       const owned = materials.filter(item => (this.inventory[String(item.id)] ?? 0) > 0);
       if (owned.length === 0) this.text(488, 305, isSkill ? '種を所持していません。' : '栄養剤を所持していません。', 19, C.muted);
       else {
-        // 最大5種類を同時表示。0個の栄養剤と栄養剤以外は表示しない。
+        // 所持している強化素材を最大5種類表示する。
         const gap = 10, width = Math.min(232, (728 - gap * (owned.length - 1)) / owned.length);
         owned.forEach((item, index) => {
           const x = 488 + index * (width + gap), selected = this.material === item.id;
-          this.box(x, 302, width, 72, selected ? 0xffeac1 : 0xf1e6cf, 6, selected ? 0xcf943b : 0xd6c29b);
-          const image = this.add.image(x + 27, 338, `training-nutrient-${item.id}`);
+          this.box(x, 316, width, 72, selected ? 0xffeac1 : 0xf1e6cf, 6, selected ? 0xcf943b : 0xd6c29b);
+          const image = this.add.image(x + 27, 352, `training-nutrient-${item.id}`);
           image.setScale(40 / Math.max(image.width, image.height)); this.content.add(image);
-          this.text(x + 51, 314, item.name, 13);
-          this.text(x + 51, 341, `所持 ${this.inventory[String(item.id)]}個`, 13, C.muted);
-          if (selected) this.text(x + width - 6, 305, '✓', 12, C.green).setOrigin(1, 0);
-          const hit = this.add.zone(x + width / 2, 338, width, 72).setInteractive({ useHandCursor: true });
+          this.text(x + 51, 328, item.name, 13);
+          this.text(x + 51, 355, `所持 ${this.inventory[String(item.id)]}個`, 13, C.muted);
+          if (selected) this.text(x + width - 6, 319, '✓', 12, C.green).setOrigin(1, 0);
+          const hit = this.add.zone(x + width / 2, 352, width, 72).setInteractive({ useHandCursor: true });
           this.content.add(hit);
           hit.on('pointerup', () => { this.material = item.id; this.quantity = 1; this.render(); });
         });
-        this.text(488, 391, '使用数', 17);
-        this.button(590, 383, 42, 38, '−', () => { this.quantity = Math.max(1, this.quantity - 1); this.render(); }, false, this.quantity > 1);
-        this.text(668, 402, String(this.quantity), 24).setOrigin(.5);
-        this.button(703, 383, 42, 38, '＋', () => { this.quantity = Math.min(preview.maxQuantity, this.quantity + 1); this.render(); }, false, this.quantity < preview.maxQuantity);
-        this.text(780, 393, `/ 所持 ${count}個`, 16, C.muted);
+        this.text(488, 442, '使用数', 17);
+        this.button(590, 434, 42, 38, '−', () => { this.quantity = Math.max(1, this.quantity - 1); this.render(); }, false, this.quantity > 1);
+        this.text(668, 453, String(this.quantity), 24).setOrigin(.5);
+        this.button(703, 434, 42, 38, '＋', () => { this.quantity = Math.min(preview.maxQuantity, this.quantity + 1); this.render(); }, false, this.quantity < preview.maxQuantity);
+        this.text(780, 444, `/ 所持 ${count}個`, 16, C.muted);
       }
     }
-    const message = this.upgrading ? '強化しています…' : this.upgradeMessage || preview.reason ||
-      (preview.discarded ? `Lv.${maxLevel}到達時、余剰${preview.discarded}EXPは切り捨てます。` : `獲得EXP  +${preview.gain.toLocaleString('ja-JP')}${isSkill ? (skillPreview(flower.id, flower.skillLevel, flower.skillExp, this.material, count, this.quantity).perItem === 1000 ? '（同属性2倍）' : '（別属性）') : ''}　／　追加コインなし`);
-    this.upgradeStatusText = this.text(488, 447, this.wrapped(message, 30), 13, C.muted).setLineSpacing(3);
+    // 常時の補足文は置かず、保存結果や強化できない理由だけを素材と操作行の間に表示する。
+    const message = this.upgrading ? '強化しています…' : this.upgradeMessage || preview.reason;
+    this.upgradeStatusText = this.text(488, 400, this.wrapped(message, 48), 13, C.muted).setLineSpacing(3);
     this.upgradeButtonLabel = this.button(986, 430, 230, 46, this.upgrading ? '強化中…' : '強化する', () => { void this.upgradeLevel(flower); }, true,
       !this.upgrading && this.inventoryStatus === 'ready' && !preview.reason && preview.used > 0);
     // TODO: プレイヤーレベルが実装されたら、育成上限をmin(50, プレイヤーレベル)にする。
