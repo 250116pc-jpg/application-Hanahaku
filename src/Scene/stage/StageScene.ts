@@ -38,6 +38,7 @@ import { characterAnimations } from '../../animation/animationData.ts';
 import { Player } from './Player.ts';
 import { Enemy, isEnemyStats } from './Enemy.ts';
 import { StageHUD } from './StageHUD.ts';
+import { createStageMinimap } from './StageMinimap';
 import { createStageAtmosphere } from './StageAtmosphere';
 import { SCENE_KEYS } from '../sceneKeys';
 import { completeStage } from './StageProgress';
@@ -179,6 +180,8 @@ export class StageScene extends Phaser.Scene {
     this.hud.create(data.stageId, data.stageNumber);
     if (isBattlePreview) this.add.text(24, 218, '演出プレビュー · 保存なし', { fontSize: '14px', color: '#e6cf9c', backgroundColor: '#162330', padding: { x: 10, y: 6 } }).setScrollFactor(0).setDepth(2000);
     if (this.captive && !isBattlePreview) this.createRescuePoint(map.widthInPixels - 96);
+    createStageMinimap(this, map, this.player, this.enemies,
+      this.captive && !isBattlePreview ? { x: this.rescueX, y: 420 } : undefined);
   }
 
   private createRescuePoint(x: number): void {

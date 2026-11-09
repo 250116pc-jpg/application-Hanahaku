@@ -165,7 +165,7 @@ export class StageHUD {
   private createUtilityButtons(): void {
     this.imageButton(72, 170, 74, '', 'stage-bag', () => this.openInventory());
     const x = this.scene.scale.width - 68;
-    this.createRetreatDomButton(x, 150, 76);
+    this.createRetreatDomButton(x, 282, 76);
   }
 
   private createRetreatDomButton(x: number, y: number, size: number): void {
