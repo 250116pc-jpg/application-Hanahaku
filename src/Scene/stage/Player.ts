@@ -300,7 +300,11 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
   public jump(): void {
     const body = this.body as Phaser.Physics.Arcade.Body;
-    if (!this.dead && this.action === null && battleNow(this.scene) >= Math.max(this.chargeUntil, this.comboUntil) && !this.isGuarding() && body?.blocked.down) this.setVelocityY(-this.JUMP_POWER * JUMP_POWER_SCALE);
+    if (!this.dead && this.action === null && battleNow(this.scene) >= Math.max(this.chargeUntil, this.comboUntil) && !this.isGuarding() && body?.blocked.down) {
+      const takingOff = body.velocity.y >= 0;
+      this.setVelocityY(-this.JUMP_POWER * JUMP_POWER_SCALE);
+      if (takingOff) playSe(this.scene, 'player-jump', 0.5);
+    }
   }
 
   public attack(targets: readonly CombatTarget[] = []): void {
