@@ -1,6 +1,6 @@
 import Phaser from 'phaser'
 import { playUiSe } from '../../audio/BgmManager'
-import buttonImage from '../../assets/ui/button1.png'
+import buttonImage from '../../assets/images/encyclopedia/journal-button.png'
 import { getShopItemImageUrl } from './assets'
 import type { ShopItem } from './types'
 import './purchase-confirm.css'

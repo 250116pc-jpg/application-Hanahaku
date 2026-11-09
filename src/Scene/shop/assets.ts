@@ -1,7 +1,7 @@
 import recoveryImage from '../../assets/images/items/asset_110.png';
 import powerImage from '../../assets/images/items/asset_090.png';
 import guardImage from '../../assets/images/items/asset_105.png';
-import backgroundImage from '../../assets/images/background/2.png';
+import backgroundImage from '../../assets/images/encyclopedia/encyclopedia-background.png';
 import shopkeeperImage from '../../assets/characters/1003/1003_3.png';
 import redPotionImage from '../../assets/images/items/asset_075.png';
 import bluePotionImage from '../../assets/images/items/asset_076.png';
@@ -13,6 +13,9 @@ import flowerImage from '../../assets/images/items/asset_087.png';
 import seedImage from '../../assets/images/items/asset_088.png';
 import featherImage from '../../assets/images/items/asset_089.png';
 import crystalImage from '../../assets/images/items/asset_091.png';
+
+import frameImage from '../../assets/images/encyclopedia/journal-frame.png';
+import buttonImage from '../../assets/images/encyclopedia/journal-button.png';
 
 export const SHOP_BACKGROUND_KEY = 'shop-background';
 
@@ -34,6 +37,8 @@ const itemImages: Record<string, string> = {
 
 export function preloadShopAssets(scene: Phaser.Scene): void {
   scene.load.image(SHOP_BACKGROUND_KEY, backgroundImage);
+  scene.load.image('shop-frame', frameImage);
+  scene.load.image('shop-button', buttonImage);
   scene.load.image('shopkeeper', shopkeeperImage);
   for (const [key, image] of Object.entries(itemImages)) {
     scene.load.image(key, image);

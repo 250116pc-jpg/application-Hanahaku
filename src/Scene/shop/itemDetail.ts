@@ -1,10 +1,8 @@
 import type { ItemDetailView, ShopItem } from './types'
 import { getShopItemImageKey } from './assets'
 
-const PANEL_X = 840
-const PANEL_Y = 405
-const PANEL_WIDTH = 220
-const PANEL_HEIGHT = 532
+const PANEL_X = 781
+const PANEL_WIDTH = 300
 
 export function createItemDetail(
   scene: Phaser.Scene,
@@ -12,25 +10,17 @@ export function createItemDetail(
 ): ItemDetailView {
   let currentItem: ShopItem | null = null
 
-  scene.add.rectangle(
-    PANEL_X,
-    PANEL_Y,
-    PANEL_WIDTH,
-    PANEL_HEIGHT,
-    0xfff8e9,
-    0.98
-  ).setStrokeStyle(3, 0xc89d5a)
-  scene.add.text(PANEL_X, 163, '商品詳細', {
-    fontFamily: '"Yu Gothic", "Meiryo", sans-serif',
+  // A separate product card beside the display shelves.
+  scene.add.text(PANEL_X, 148, '商品詳細', {
+    fontFamily: '"UD Digi Kyokasho NP-R", "Yu Gothic", "Meiryo", sans-serif',
     fontSize: '17px',
     color: '#7b694a',
     fontStyle: 'bold',
   }).setOrigin(0.5)
-  scene.add.rectangle(PANEL_X, 274, 142, 142, 0xffffff)
-    .setStrokeStyle(2, 0xe1cfad)
+  scene.add.image(PANEL_X, 274, 'shop-frame').setDisplaySize(158, 158)
   const itemImage = scene.add.image(PANEL_X, 274, 'shop-flower').setDisplaySize(96, 96)
   const nameText = scene.add.text(PANEL_X, 375, '商品を選択してください', {
-    fontFamily: '"Yu Gothic", "Meiryo", sans-serif',
+    fontFamily: '"UD Digi Kyokasho NP-R", "Yu Gothic", "Meiryo", sans-serif',
     fontSize: '23px',
     color: '#263b31',
     fontStyle: 'bold',
@@ -39,7 +29,7 @@ export function createItemDetail(
   }).setOrigin(0.5)
   scene.add.rectangle(PANEL_X, 415, PANEL_WIDTH - 44, 2, 0xd9c59f)
   const descriptionText = scene.add.text(PANEL_X - PANEL_WIDTH / 2 + 28, 440, '', {
-    fontFamily: '"Yu Gothic", "Meiryo", sans-serif',
+    fontFamily: '"UD Digi Kyokasho NP-R", "Yu Gothic", "Meiryo", sans-serif',
     fontSize: '17px',
     color: '#47584a',
     wordWrap: { width: PANEL_WIDTH - 56 },
@@ -49,7 +39,7 @@ export function createItemDetail(
   let descriptionPages: string[] = []
   let descriptionPage = 0
   const pageButton = scene.add.text(PANEL_X, 510, '', {
-    fontFamily: '"Yu Gothic", "Meiryo", sans-serif', fontSize: '13px', color: '#486a4f'
+    fontFamily: '"UD Digi Kyokasho NP-R", "Yu Gothic", "Meiryo", sans-serif', fontSize: '13px', color: '#486a4f'
   }).setOrigin(0.5).setInteractive({ useHandCursor: true })
   pageButton.on('pointerup', () => {
     if (descriptionPages.length < 2) return
@@ -79,17 +69,17 @@ export function createItemDetail(
     showDescriptionPage()
   }
   const priceText = scene.add.text(PANEL_X - PANEL_WIDTH / 2 + 28, 526, '', {
-    fontFamily: '"Yu Gothic", "Meiryo", sans-serif',
+    fontFamily: '"UD Digi Kyokasho NP-R", "Yu Gothic", "Meiryo", sans-serif',
     fontSize: '20px',
     color: '#78521e',
     fontStyle: 'bold',
   })
   const countText = scene.add.text(PANEL_X - PANEL_WIDTH / 2 + 28, 565, '', {
-    fontFamily: '"Yu Gothic", "Meiryo", sans-serif',
+    fontFamily: '"UD Digi Kyokasho NP-R", "Yu Gothic", "Meiryo", sans-serif',
     fontSize: '17px',
     color: '#52685a',
   })
-  const buyButton = createTextButton(scene, PANEL_X, 630, '購入する', '#486a4f')
+  const buyButton = createTextButton(scene, PANEL_X, 630, '購入する')
 
   let buying=false
   buyButton.on('pointerdown', async () => {
@@ -123,14 +113,14 @@ function createTextButton(
   scene: Phaser.Scene,
   x: number,
   y: number,
-  label: string,
-  backgroundColor: string
+  label: string
 ) {
-  return scene.add.text(x, y, label, {
-    fontFamily: '"Yu Gothic", "Meiryo", sans-serif',
+  const art = scene.add.image(x, y, 'shop-button').setDisplaySize(222, 66)
+  const text = scene.add.text(x, y, label, {
+    fontFamily: '"UD Digi Kyokasho NP-R", "Yu Gothic", "Meiryo", sans-serif',
     fontSize: '20px',
     color: '#ffffff',
-    backgroundColor,
+    // Button artwork is shared with the encyclopedia.
     fontStyle: 'bold',
     padding: {
       left: 42,
@@ -141,6 +131,9 @@ function createTextButton(
   })
     .setOrigin(0.5)
     .setInteractive({ useHandCursor: true })
+  text.on('pointerover', () => art.setTint(0xffe6ac))
+  text.on('pointerout', () => art.clearTint())
+  return text
 }
 
 function formatCount(item: ShopItem) {
