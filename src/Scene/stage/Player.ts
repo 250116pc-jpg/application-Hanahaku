@@ -1,4 +1,5 @@
 import { showBattleNumber } from './BattleFeedback';
+import { playSe } from '../../audio/BgmManager';
 import { battleNow } from './BattleClock';
 import Phaser from 'phaser';
 import { changeCharacterAnimation } from '../../animation/animation.ts';
@@ -222,6 +223,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
 
   private guardHeld = false;
+  private wasCrouchGuarding = false;
 
   public setGuardHeld(held: boolean): void {
     this.guardHeld = held;
@@ -260,11 +262,17 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     if (this.cursors.up?.isDown && body.blocked.down) this.jump();
 
     const isGrounded = body.blocked.down;
+    const crouchGuarding = this.isGuarding();
+    if (crouchGuarding && !this.wasCrouchGuarding && !this.scene.sound.get('player-guard-hit')?.isPlaying) {
+      playSe(this.scene, 'player-crouch', 0.5);
+    }
+    this.wasCrouchGuarding = crouchGuarding;
+
     if (this.action !== null) {
       // Keep the action animation visible until it completes.
     } else if (battleNow(this.scene) < this.chargeUntil) {
       this.playAnimation('player-defend');
-    } else if (this.isGuarding()) {
+    } else if (crouchGuarding) {
       this.landingAnimationPlaying = false;
       this.playAnimation('player-defend');
     } else if (!isGrounded) {
@@ -282,7 +290,11 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
   public jump(): void {
     const body = this.body as Phaser.Physics.Arcade.Body;
-    if (!this.dead && this.action === null && battleNow(this.scene) >= Math.max(this.chargeUntil, this.comboUntil) && !this.isGuarding() && body?.blocked.down) this.setVelocityY(-this.JUMP_POWER);
+    if (!this.dead && this.action === null && battleNow(this.scene) >= Math.max(this.chargeUntil, this.comboUntil) && !this.isGuarding() && body?.blocked.down) {
+      const takingOff = body.velocity.y >= 0;
+      this.setVelocityY(-this.JUMP_POWER);
+      if (takingOff) playSe(this.scene, 'player-jump', 0.5);
+    }
   }
 
   public attack(targets: readonly CombatTarget[] = []): void {
@@ -296,6 +308,8 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   private landBasicAttack(targets: readonly CombatTarget[]): void {
     this.showSlash();
     const hits = this.getTargetsInRange(targets, 125, false);
+    if (hits.length > 0) playSe(this.scene, 'player-sword-hit', 0.65);
+    else playSe(this.scene, 'player-sword-swing');
     hits.slice(0, 1).forEach(target => {
       target.receiveDamage(this.applyPlayerCritical(this.applyAttackBonus(playerStats.physicalAttack)));
       this.showHit(target.x, target.y - 44);
@@ -494,6 +508,8 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     const buffDamageMultiplier = Math.max(0.1, 1 - activeDefenseBonus / 100);
     const damageMultiplier = statDamageMultiplier * buffDamageMultiplier * (defending ? 0.5 : 1);
     this.health = Math.max(0, this.health - Math.ceil(amount * damageMultiplier * (damageType === 'physical' && now < this.itemDefenseUntil ? 0.8 : 1)));
+    this.scene.sound.stopByKey('player-crouch');
+    playSe(this.scene, defending ? 'player-guard-hit' : 'player-damage', 0.65);
     this.invulnerableUntil = now + 700;
     this.emit('health-changed', this.health, this.maxHealth);
 

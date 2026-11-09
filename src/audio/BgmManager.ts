@@ -5,15 +5,26 @@ import stageBgm from '../assets/audio/PathOfAdventure/Peritune_Ancient_Gust_loop
 import shopBgm from '../assets/audio/PathOfAdventure/PerituneMaterial_Harvest6_loop.mp3'
 import encyclopediaBgm from '../assets/audio/PathOfAdventure/PerituneMaterial_Glimmering_Woods_loop.mp3'
 import clickSe from '../assets/audio/PathOfAdventure/NoLoop/line.wav'
+// CC0: artisticdude (Swishes Sound Pack).
+import playerSwordSwing from '../assets/audio/player-sword-swing.wav'
+import playerSwordHit from '../assets/audio/player-sword-hit.wav'
+import playerDamage from '../assets/audio/player-damage.wav'
+import gameOverSe from '../assets/audio/game-over.wav'
+// CC0: Fupi (Win Jingle, winfretless.ogg).
+import stageClearSe from '../assets/audio/stage-clear.ogg'
+// CC0: artisticdude (RPG Sound Pack, lighter cloth).
+import playerJumpSe from '../assets/audio/player-jump.wav'
+// CC0: StarNinjas (10 Impact/Shield Blocks, impact.2.ogg).
+import playerGuardHitSe from '../assets/audio/player-guard-hit.ogg'
 const seAssets = import.meta.glob('../assets/audio/se-lab/*.mp3', { eager: true, query: '?url', import: 'default' }) as Record<string, string>
 export type UiSe = 'confirm' | 'select' | 'cancel' | 'open' | 'purchase' | 'error' | 'recover' | 'confirm-wood'
 // Use ?se-confirm=wood to compare the wooden confirmation sound.
 const lastUiSound = new WeakMap<Phaser.Game, number>()
-export function playUiSe(scene: Phaser.Scene, kind: UiSe): void {
+export function playUiSe(scene: Phaser.Scene, kind: UiSe, volumeScale = 1): void {
   lastUiSound.set(scene.game, performance.now())
   resumeAudioFromGesture(scene)
   const selected = kind === 'confirm' && new URLSearchParams(location.search).get('se-confirm') === 'wood' ? 'confirm-wood' : kind
-  playSe(scene, `ui-${selected}`)
+  playSe(scene, `ui-${selected}`, volumeScale)
 }
 
 
@@ -97,6 +108,14 @@ export function preloadAudio(scene: Phaser.Scene): void {
   scene.load.audio(BGM_KEYS.shop, shopBgm)
   scene.load.audio(BGM_KEYS.encyclopedia, encyclopediaBgm)
   scene.load.audio(CLICK_SE_KEY, clickSe)
+  scene.load.audio('player-sword-swing', playerSwordSwing)
+  scene.load.audio('player-sword-hit', playerSwordHit)
+  scene.load.audio('player-damage', playerDamage)
+  scene.load.audio('game-over', gameOverSe)
+  scene.load.audio('stage-clear', stageClearSe)
+  scene.load.audio('player-jump', playerJumpSe)
+  scene.load.audio('player-crouch', playerJumpSe)
+  scene.load.audio('player-guard-hit', playerGuardHitSe)
   for (const [path, url] of Object.entries(seAssets)) scene.load.audio(`ui-${path.split('/').pop()!.replace('.mp3', '')}`, url)
 }
 
@@ -104,6 +123,8 @@ function sceneBgmKey(scene: Phaser.Scene): string | null {
   if (scene.scene.key === 'TitleScene') return BGM_KEYS.title
   // Overlays keep the BGM of the scene underneath, including paused battles.
   if (scene.scene.key === 'SettingsScene' || scene.scene.key === 'InventoryScene') return null
+  // Contract and result scenes manage their own jingles.
+  if (scene.scene.key === 'ContractScene' || scene.scene.key === 'StageResultScene') return null
   if (scene.scene.key === 'StageScene') return BGM_KEYS.stage
   if (scene.scene.key === 'ShopScene') return BGM_KEYS.shop
   if (scene.scene.key === 'EncyclopediaScene') return BGM_KEYS.encyclopedia
@@ -135,10 +156,11 @@ export function initializeAudio(scene: Phaser.Scene): void {
       const key = sceneBgmKey(target)
       if (key) playBgm(target, key)
 
-      target.input.on(Phaser.Input.Events.GAMEOBJECT_DOWN, () => {
+      target.input.on(Phaser.Input.Events.GAMEOBJECT_DOWN, (_pointer: Phaser.Input.Pointer, object: Phaser.GameObjects.GameObject) => {
         const webAudio = target.sound as Phaser.Sound.WebAudioSoundManager
         const wasSuspended = !!webAudio.context && webAudio.context.state !== 'running'
         resumeAudioFromGesture(target)
+        if (object.name === 'stage-attack' || object.name === 'stage-jump' || object.name === 'stage-guard') return
         if (target.sound.locked || wasSuspended) {
           state.pendingClick = true
           waitForUnlock(target, state)
@@ -223,6 +245,15 @@ export function resumeAudioFromGesture(scene: Phaser.Scene): void {
   }
 }
 
+export function stopBgm(scene: Phaser.Scene): void {
+  const state = stateFor(scene)
+  state.pendingKey = null
+  state.currentSound?.stop()
+  state.currentSound?.destroy()
+  state.currentSound = null
+  state.currentKey = null
+}
+
 export function playBgm(scene: Phaser.Scene, key: string): void {
   const state = stateFor(scene)
   state.pendingKey = key
@@ -236,10 +267,8 @@ export function playBgm(scene: Phaser.Scene, key: string): void {
   }
 
   // 旧曲を先に止めて、BGMが重ならないようにする。
-  state.currentSound?.stop()
-  state.currentSound?.destroy()
-  state.currentSound = null
-  state.currentKey = null
+  stopBgm(scene)
+  state.pendingKey = key
 
   if (scene.sound.locked) {
     waitForUnlock(scene, state)
@@ -265,8 +294,8 @@ export function startBgm(scene: Phaser.Scene): void {
   playBgm(scene, BGM_KEYS.title)
 }
 
-export function playSe(scene: Phaser.Scene, key: string): void {
+export function playSe(scene: Phaser.Scene, key: string, volumeScale = 1): void {
   if (!stateFor(scene).settings.isMuted && scene.cache.audio.exists(key)) {
-    scene.sound.play(key, { volume: stateFor(scene).settings.seVolume })
+    scene.sound.play(key, { volume: stateFor(scene).settings.seVolume * volumeScale })
   }
 }

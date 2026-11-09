@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { playSe, stopBgm } from '../../audio/BgmManager';
 import type { PrototypeFlower } from '../encyclopedia/contractPreview';
 
 import { SCENE_KEYS } from '../sceneKeys';
@@ -25,6 +26,9 @@ export class ContractScene extends Phaser.Scene {
 
   create(data: ContractSceneData): void {
     const scene = this;
+    stopBgm(scene);
+    playSe(scene, 'stage-clear', 0.75);
+    scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => scene.sound.stopByKey('stage-clear'));
     const { flower, stageId, stageNumber } = data;
     const owned = Boolean(readFlowerContracts()[flower.id]);
     let count: number | undefined;
@@ -111,7 +115,7 @@ export class ContractScene extends Phaser.Scene {
         return;
       }
       this.scene.start(SCENE_KEYS.RESULT, {
-        ...completion, stageId, stageNumber, victory: true, contractMessage,
+        ...completion, stageId, stageNumber, victory: true, contractMessage, fromContract: true,
       });
     };
     const yes = button(491, 'はい ・ 治療薬 ×1', true, async () => {
