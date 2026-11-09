@@ -526,7 +526,7 @@ export class StageHUD {
       art.generateTexture(key, 120, 120);
       art.destroy();
     }
-    const button = this.imageButton(x, y, 106, '', key, () => this.player?.guard());
+    const button = this.imageButton(x, y, 106, '', key, () => {}, held => this.player?.setGuardHeld(held));
     const label = this.text(x, y + 23, '防御', 19, '#f4dfb8', 'bold')
       .setOrigin(0.5).setDepth(this.depth + 4);
     this.scene.time.addEvent({ delay: 50, loop: true, callback: () => {
@@ -537,7 +537,7 @@ export class StageHUD {
     } });
   }
 
-  private imageButton(x: number, y: number, size: number, label: string, texture: string, onClick: () => void): Phaser.GameObjects.Image {
+  private imageButton(x: number, y: number, size: number, label: string, texture: string, onClick: () => void, onHoldChange?: (held: boolean) => void): Phaser.GameObjects.Image {
     const image = this.scene.add.image(x, y, texture).setDisplaySize(size, size)
       .setScrollFactor(0).setDepth(this.depth + 3);
     // Use a screen-fixed rectangular target independent of the PNG's transparent pixels.
@@ -558,6 +558,46 @@ export class StageHUD {
       onClick();
     });
     hitArea.on('pointerupoutside', () => image.setScale(baseScale));
+    if (onHoldChange) {
+      let heldPointer: Phaser.Input.Pointer | null = null;
+      const release = (): void => {
+        if (!heldPointer) return;
+        heldPointer = null;
+        image.setScale(baseScale);
+        onHoldChange(false);
+      };
+      hitArea.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
+        if (heldPointer || (!pointer.wasTouch && pointer.button !== 0)) return;
+        heldPointer = pointer;
+        onHoldChange(true);
+      });
+      const releasePointer = (pointer: Phaser.Input.Pointer): void => {
+        if (pointer === heldPointer) release();
+      };
+      const checkRelease = (): void => {
+        if (heldPointer && (!heldPointer.isDown || !this.scene.input.enabled)) release();
+      };
+      // Keep guarding while held, even when dragged off the button. Release anywhere.
+      this.scene.input.on('pointerup', releasePointer);
+      this.scene.input.on('pointerupoutside', releasePointer);
+      this.scene.input.on('gameout', release);
+      this.scene.events.on(Phaser.Scenes.Events.PRE_UPDATE, checkRelease);
+      this.scene.events.on(Phaser.Scenes.Events.PAUSE, release);
+      this.scene.events.on(Phaser.Scenes.Events.SLEEP, release);
+      window.addEventListener('blur', release);
+      this.scene.game.canvas.addEventListener('touchcancel', release);
+      this.scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+        release();
+        this.scene.input.off('pointerup', releasePointer);
+        this.scene.input.off('pointerupoutside', releasePointer);
+        this.scene.input.off('gameout', release);
+        this.scene.events.off(Phaser.Scenes.Events.PRE_UPDATE, checkRelease);
+        this.scene.events.off(Phaser.Scenes.Events.PAUSE, release);
+        this.scene.events.off(Phaser.Scenes.Events.SLEEP, release);
+        window.removeEventListener('blur', release);
+        this.scene.game.canvas.removeEventListener('touchcancel', release);
+      });
+    }
     return image;
   }
 

@@ -29,13 +29,13 @@ export class ShopScene extends Phaser.Scene {
     createShopBackground(this, screenWidth, screenHeight)
     this.createShopkeeper()
     recordShopVisit()
-    this.createHeader(screenWidth)
+    this.createHeader()
     this.createBackButton()
 
     this.createListPanel()
     const shopContainer = this.add.container(0, 0)
     const countLabels = new Map<number, Phaser.GameObjects.Text>()
-    const status=this.add.text(960,30,'所持品を確認中…',{fontSize:'18px',color:'#ffffff',wordWrap:{width:300}}).setDepth(100)
+    const status=this.add.text(960,30,'所持品を確認中…',{fontSize:'17px',color:'#ffedc0',wordWrap:{width:280}}).setDepth(100)
     let coin = 0
     let confirmation: PurchaseConfirm | null = null
     let ready=false
@@ -65,7 +65,6 @@ export class ShopScene extends Phaser.Scene {
     this.applyItemListMask(shopContainer)
     const disposeScroll = enableShopScroll(this, shopContainer, getMaxShopScroll(shopItems.length))
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, disposeScroll)
-
     const firstItem = shopItems[0]
     if (firstItem) { selected=firstItem; itemDetail.show(firstItem) }
   }
@@ -82,18 +81,17 @@ export class ShopScene extends Phaser.Scene {
     ]
     let lineIndex = Phaser.Math.Between(0, lines.length - 1)
 
-    this.add.rectangle(x, y, 308, 566, 0x17251f, 0.28)
-      .setStrokeStyle(2, 0xd8b36c, 0.75)
+    this.add.rectangle(x, y, 308, 566, 0x142433, 0.2)
     this.add.image(x, y, 'shopkeeper')
       .setDisplaySize(308, 566)
       .setDepth(2)
       .setInteractive({ useHandCursor: true })
       .on('pointerdown', () => {
         lineIndex = (lineIndex + 1) % lines.length
-        lineText.setText(lines[lineIndex])
+        lineText.setText(wrapShopkeeperLine(lines[lineIndex]!))
       })
-    const lineText = this.add.text(x, 530, lines[lineIndex], {
-      fontFamily: '"Yu Gothic", "Meiryo", sans-serif',
+    const lineText = this.add.text(x, 530, wrapShopkeeperLine(lines[lineIndex]!), {
+      fontFamily: '"UD Digi Kyokasho NP-R", "Yu Gothic", "Meiryo", sans-serif',
       fontSize: '18px',
       fixedWidth: 270,
       fixedHeight: 100,
@@ -106,31 +104,29 @@ export class ShopScene extends Phaser.Scene {
       strokeThickness: 5,
       shadow: { color: '#201a17', blur: 4, offsetX: 1, offsetY: 2, fill: true },
     }).setOrigin(0.5).setDepth(3)
-    this.add.rectangle(x, 694, 220, 34, 0x20392d, 0.9)
+    this.add.rectangle(x, 694, 220, 34, 0x193447, 0.9)
       .setStrokeStyle(1, 0xd8b36c, 0.9)
     this.add.text(x, 694, '花屋の店主', {
-      fontFamily: '"Yu Gothic", "Meiryo", sans-serif',
+      fontFamily: '"UD Digi Kyokasho NP-R", "Yu Gothic", "Meiryo", sans-serif',
       fontSize: '17px',
       color: '#fff4d9',
       fontStyle: 'bold',
     }).setOrigin(0.5)
   }
 
-  private createHeader(screenWidth: number): void {
-    this.add.rectangle(screenWidth / 2, 54, screenWidth, 108, 0x20392d, 0.88)
-    this.add.rectangle(screenWidth / 2, 106, screenWidth, 3, 0xd8b36c, 0.95)
-    this.add.text(screenWidth / 2, 37, '花屋の道具店', {
-      fontFamily: '"Yu Gothic", "Meiryo", sans-serif',
-      fontSize: '34px',
+  private createHeader(): void {
+    this.add.text(490, 40, '花屋の道具店', {
+      fontFamily: '"UD Digi Kyokasho NP-R", "Yu Gothic", "Meiryo", sans-serif',
+      fontSize: '30px',
       color: '#fff4d9',
       fontStyle: 'bold',
       stroke: '#263b31',
       strokeThickness: 3,
     }).setOrigin(0.5)
-    this.add.text(screenWidth / 2, 78, '育成に役立つ品を取りそろえています', {
-      fontFamily: '"Yu Gothic", "Meiryo", sans-serif',
+    this.add.text(490, 78, '育成に役立つ品を取りそろえています', {
+      fontFamily: '"UD Digi Kyokasho NP-R", "Yu Gothic", "Meiryo", sans-serif',
       fontSize: '16px',
-      color: '#e7dfc8',
+      color: '#e3d4b6',
     }).setOrigin(0.5)
   }
 
@@ -139,27 +135,25 @@ export class ShopScene extends Phaser.Scene {
       this.scene.start(SCENE_KEYS.HOME)
     }, {
       fontSize: 19,
-      bgColor: '#f7efd9',
-      hoverColor: '#ffffff',
-      downColor: '#dfd0ad',
+      bgColor: '#193447',
+      hoverColor: '#304f63',
+      downColor: '#142433',
       padding: { left: 17, right: 17, top: 10, bottom: 10 },
-    }).setDepth(1000)
+    }).setColor('#ffedc0').setDepth(1000)
   }
 
   private createListPanel(): void {
-    const { x, y, width, height } = SHOP_LIST_BOUNDS
-    this.add.rectangle(x + width / 2, y + height / 2, width, height, 0x20392d, 0.5)
-      .setStrokeStyle(2, 0xe0c184, 0.9)
-    this.add.text(x + 18, y - 13, '商品一覧', {
-      fontFamily: '"Yu Gothic", "Meiryo", sans-serif',
-      fontSize: '18px',
-      color: '#fff4d9',
+    const { x, width } = SHOP_LIST_BOUNDS
+    this.add.text(x + 8, 145, '商品一覧', {
+      fontFamily: '"UD Digi Kyokasho NP-R", "Yu Gothic", "Meiryo", sans-serif',
+      fontSize: '24px',
+      color: '#ffedc0',
       fontStyle: 'bold',
     }).setOrigin(0, 0.5)
-    this.add.text(x + width - 12, y - 13, 'ホイールでスクロール', {
-      fontFamily: '"Yu Gothic", "Meiryo", sans-serif',
+    this.add.text(x + width - 6, 149, '商品を選んで詳細を確認', {
+      fontFamily: '"UD Digi Kyokasho NP-R", "Yu Gothic", "Meiryo", sans-serif',
       fontSize: '14px',
-      color: '#fff4d9',
+      color: '#e3d4b6',
     }).setOrigin(1, 0.5)
   }
 
@@ -169,4 +163,8 @@ export class ShopScene extends Phaser.Scene {
     maskGraphics.fillRect(x, y, width, height)
     shopContainer.setMask(maskGraphics.createGeometryMask())
   }
+}
+
+function wrapShopkeeperLine(line: string): string {
+  return line.replace(/([^\n]{14})(?=[^\n])/gu, '$1\n')
 }

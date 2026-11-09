@@ -1,14 +1,13 @@
-skill	スキルデータ
-名前	内容	タイプ	いろいろ
-id	スキルid	id	PRIMARY、AI
-name	スキル名	text
-description	説明	text
-upgrade_data	スキルの内容	json
+スキルの固定データはskills.json、状態異常はstatuses.jsonで管理する。
+DBにskillやflowersマスタを作成・登録する必要はない。
 
-sql/hanahaku_users.sqlとsql/hanahaku_flowers.sqlを適用した後、
-sql/skill_seed.sqlを実行して初期スキル・花と契約状態を登録する。
-このSQLは既存ユーザーに花ID 1〜10を契約済みとして追加する。
-sql/player_skill_states.sqlも適用する。
+セットアップはREADME.mdのSQL適用順に従う。
+試遊用アカウントの作成後、プロジェクトルートで
+C:\xampp\php\php.exe scripts/seed-player-flowers.php
+を実行すると、既存ユーザーに花ID 1〜10の契約を追加する。
+既存の契約・育成値は上書きしない。
+
 スキルレベルの係数・戦闘効果はcommon.phpのbuildFlowerSkillで計算する。
 ステージ開始時にスキル状態と花の戦闘ステータスを一括取得し、
 戦闘中のMP・CTはクライアント内で更新する。発動ごとのDB通信は行わない。
+既存DBの旧マスタ削除についてはREADME.mdの移行手順を参照する。
