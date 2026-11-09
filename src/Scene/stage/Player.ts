@@ -7,6 +7,9 @@ import { playerStats } from './allyStats.ts';
 
 const BUFF_EFFECT_COLOR = 0xff5964;
 const SKILL_AREA_CELL_SIZE = 40;
+// Keep the quicker air gravity while reducing launch speed to two-thirds of the previous setting.
+const AIR_GRAVITY_SCALE = 4;
+const JUMP_POWER_SCALE = 1.4;
 // Phaser numbers animation frames from 1. The sword first extends on frame 2.
 const BASIC_ATTACK_IMPACT_FRAME = 2;
 export type DamageType = 'physical' | 'magical';
@@ -242,8 +245,11 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     const body = this.body as Phaser.Physics.Arcade.Body;
     if (!body || !this.cursors || this.dead) return;
 
-    // Preserve the jump arc on the way up, then make the descent a little snappier.
-    body.setGravityY(!body.blocked.down && body.velocity.y > 0 ? this.FALL_GRAVITY_BONUS : 0);
+    const worldGravity = this.scene.physics.world.gravity.y;
+    const extraGravity = body.velocity.y > 0 ? this.FALL_GRAVITY_BONUS : 0;
+    body.setGravityY(!body.blocked.down
+      ? (worldGravity + extraGravity) * AIR_GRAVITY_SCALE - worldGravity
+      : 0);
 
     if (this.action !== null || this.isGuarding() || battleNow(this.scene) < Math.max(this.chargeUntil, this.comboUntil)) {
       this.setVelocityX(0);
@@ -282,7 +288,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
   public jump(): void {
     const body = this.body as Phaser.Physics.Arcade.Body;
-    if (!this.dead && this.action === null && battleNow(this.scene) >= Math.max(this.chargeUntil, this.comboUntil) && !this.isGuarding() && body?.blocked.down) this.setVelocityY(-this.JUMP_POWER);
+    if (!this.dead && this.action === null && battleNow(this.scene) >= Math.max(this.chargeUntil, this.comboUntil) && !this.isGuarding() && body?.blocked.down) this.setVelocityY(-this.JUMP_POWER * JUMP_POWER_SCALE);
   }
 
   public attack(targets: readonly CombatTarget[] = []): void {
