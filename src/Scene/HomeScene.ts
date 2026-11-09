@@ -1,4 +1,10 @@
-﻿// 担当：たまおちゃん｜ホーム画面
+﻿/* ==================================
+ * 期末テスト提出プログラム
+ * 学籍番号: 250056
+ * 氏名: 斎藤永聖
+ * 担当範囲: 下記の担当コメントを参照（共同制作）
+ * ================================== */
+// 担当：たまおちゃん｜ホーム画面
 import { createSceneFade } from '../utils/ui/scene-fade'
 import Phaser from 'phaser'
 
@@ -222,6 +228,9 @@ export class HomeScene extends Phaser.Scene {
     player.play(key)
   }
 
+  /* === [ 担当 : 250056 斎藤永聖 ] ===
+   * 処理内容 : 共同編集のナビゲーションに、画面寸法から求めた倍率で各ボタンの座標を調整する処理を追加する。
+   * ================================== */
   private createNavigationButtons(ui: Phaser.GameObjects.Container, scaleX: number, scaleY: number): void {
 
     ui.add(createButton(this,1080 * scaleX,450 * scaleY,220,'エリア\n選択',() => {

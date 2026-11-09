@@ -1,3 +1,9 @@
+/* ==================================
+ * 期末テスト提出プログラム
+ * 学籍番号: 250056
+ * 氏名: 斎藤永聖
+ * 担当範囲: 下記の担当コメントを参照（共同制作）
+ * ================================== */
 // 担当：たまおちゃん｜キャラクター詳細画面
 import Phaser from 'phaser'
 import { preloadCharacterImages, addCharacterImage } from '../utils/characterImage'
@@ -76,6 +82,9 @@ export class CharacterDetailScene extends Phaser.Scene {
   }
 
   preload(): void {
+    /* === [ 担当 : 250056 斎藤永聖 ] ===
+     * 処理内容 : キャラクター別の画像を共通読込処理で準備する。
+     * ================================== */
     preloadCharacterImages(this)
     this.load.image('detailFlower', flowerImg)
   }
@@ -101,6 +110,9 @@ export class CharacterDetailScene extends Phaser.Scene {
     this.add.rectangle(310, 285, 360, 360, 0xffffff)
       .setStrokeStyle(2, BORDER_COLOR)
 
+    /* === [ 担当 : 250056 斎藤永聖 ] ===
+     * 処理内容 : 選択キャラクターの画像を共通描画処理で指定位置・表示範囲に配置する。
+     * ================================== */
     addCharacterImage(this, 310, 285, this.findCharacter().id, 'detailFlower', 0.75, 280)
   }
 

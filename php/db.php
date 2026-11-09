@@ -1,6 +1,15 @@
 <?php
+/* ==================================
+ * 期末テスト提出プログラム
+ * 学籍番号: 250056
+ * 氏名: 斎藤永聖
+ * 担当範囲: 下記の担当コメントを参照（共同制作）
+ * ================================== */
 declare(strict_types=1);
 
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 環境変数を優先し、未設定時は読み込み済みの.env設定から値を取得する。
+ * ================================== */
 function projectEnv(string $name): ?string
 {
     $environmentValue = getenv($name);
@@ -27,6 +36,9 @@ function projectEnv(string $name): ?string
     return isset($values[$name]) && $values[$name] !== '' ? $values[$name] : null;
 }
 
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 許可された接続元だけにCookie付きCORSを許可し、JSON以外のPOSTを拒否してOPTIONSへ応答する。
+ * ================================== */
 $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
 $configuredOrigins = array_filter(array_map(
     'trim',
@@ -56,6 +68,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit;
 }
 
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : HTTPステータスとJSONレスポンスを返し、以降の処理を終了する。
+ * ================================== */
 function respond(array $data, int $status = 200): void
 {
     http_response_code($status);
@@ -63,6 +78,9 @@ function respond(array $data, int $status = 200): void
     exit;
 }
 
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : リクエスト本文をJSONとして読み取り、配列として扱える入力か検査する。
+ * ================================== */
 function requestBody(): array
 {
     $body = json_decode(file_get_contents('php://input'), true);
@@ -72,6 +90,9 @@ function requestBody(): array
     return $body;
 }
 
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : usersの列構成を調べ、新旧のパスワード保存列名を判定する。
+ * ================================== */
 function passwordColumn(PDO $pdo): string
 {
     try {
@@ -91,6 +112,9 @@ function passwordColumn(PDO $pdo): string
 }
 
 try {
+    /* === [ 担当 : 250056 斎藤永聖 ] ===
+     * 処理内容 : 環境変数から接続情報を取得し、例外通知とプリペアド文を使用するPDO接続を作成する。
+     * ================================== */
     $host = getenv('HANAHAKU_DB_HOST') ?: '127.0.0.1';
     $database = getenv('HANAHAKU_DB_NAME') ?: 'hanahaku';
     $user = getenv('HANAHAKU_DB_USER') ?: 'root';

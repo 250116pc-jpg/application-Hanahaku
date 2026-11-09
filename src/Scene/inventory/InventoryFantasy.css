@@ -1,3 +1,12 @@
+/* ==================================
+ * 期末テスト提出プログラム
+ * 学籍番号: 250056
+ * 氏名: 斎藤永聖
+ * 担当範囲: 下記の担当コメントを参照（共同制作）
+ * ================================== */
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : インベントリにピクセル風の枠・ボタン・スロット素材を適用する。
+ * ================================== */
 .hanahaku-inventory.inventory-fantasy-preview{color:#3b281a}
 .hanahaku-inventory.inventory-fantasy-preview .inventory-panel{
  border:solid transparent;border-width:24px 30px;border-image:url('../../assets/inventory-fantasy/panel-frame.png') 220 330 fill / 24px 30px / 0 stretch;

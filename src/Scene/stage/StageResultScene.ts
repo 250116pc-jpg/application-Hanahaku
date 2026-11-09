@@ -1,3 +1,9 @@
+/* ==================================
+ * 期末テスト提出プログラム
+ * 学籍番号: 250056
+ * 氏名: 斎藤永聖
+ * 担当範囲: 下記の担当コメントを参照（共同制作）
+ * ================================== */
 // 担当：たまおちゃん｜戦闘結果画面
 import Phaser from 'phaser';
 import { SCENE_KEYS } from '../sceneKeys';
@@ -22,6 +28,9 @@ export class StageResultScene extends Phaser.Scene {
 
   create(data: StageResultData): void {
     showDebugSceneName(this);
+    /* === [ 担当 : 250056 斎藤永聖 ] ===
+     * 処理内容 : 結果画面ではBGMを止め、契約画面からの遷移でない場合のみ勝敗に応じた効果音を再生する。
+     * ================================== */
     stopBgm(this);
     if (!data.fromContract) {
       const resultSound = data.victory ? 'stage-clear' : 'game-over';

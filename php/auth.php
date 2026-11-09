@@ -1,7 +1,16 @@
 <?php
+/* ==================================
+ * 期末テスト提出プログラム
+ * 学籍番号: 250056
+ * 氏名: 斎藤永聖
+ * 担当範囲: 下記の担当コメントを参照（共同制作）
+ * ================================== */
 declare(strict_types=1);
 require_once __DIR__ . '/db.php';
 
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 認証Cookieの有効期限、送信範囲、HttpOnly・SameSite・HTTPS時のSecure属性を設定する。
+ * ================================== */
 function authCookie(string $value, int $expires): void {
     $path = rtrim(str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'])), '/') . '/';
     $path = implode('/', array_map('rawurlencode', explode('/', rawurldecode($path))));
@@ -11,11 +20,17 @@ function authCookie(string $value, int $expires): void {
         'httponly' => true, 'samesite' => 'Lax',
     ]);
 }
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : Cookie内のセッショントークンの形式を検査し、DB照合用のSHA-256ハッシュへ変換する。
+ * ================================== */
 function authHash(): ?string {
     $token = $_COOKIE['hanahaku_auth'] ?? '';
     return is_string($token) && preg_match('/^[a-f0-9]{64}$/D', $token) === 1
         ? hash('sha256', $token) : null;
 }
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 現在のCookieに対応するセッションをDBから削除する。
+ * ================================== */
 function revokeSession(PDO $pdo): void {
     $hash = authHash();
     if ($hash !== null) {
@@ -23,6 +38,9 @@ function revokeSession(PDO $pdo): void {
         $query->execute([$hash]);
     }
 }
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : ランダムトークンを発行し、旧セッションと期限切れデータを整理してハッシュをDBに保存し、Cookieを返す。
+ * ================================== */
 function issueSession(PDO $pdo, int $userId): void {
     try {
         $token = bin2hex(random_bytes(32));

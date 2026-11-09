@@ -1,3 +1,9 @@
+/* ==================================
+ * 期末テスト提出プログラム
+ * 学籍番号: 250056
+ * 氏名: 斎藤永聖
+ * 担当範囲: 下記の担当コメントを参照（共同制作）
+ * ================================== */
 // 担当：たまおちゃん｜ショップ機能・ShopApi
 import { getPhpBaseUrl } from '../../auth/PhpBaseUrl';
 import rawCatalog from '../../../php/shop/items.json?raw'
@@ -5,6 +11,9 @@ import type { ShopItem } from './types'
 import type { ItemCategory } from '../inventory/InventoryData'
 export const shopCatalog = JSON.parse(rawCatalog) as Array<ShopItem & { category: ItemCategory }>
 export type ShopState = { coin: number; items: Record<string, number> }
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 通常はPHP APIで所持品の取得・購入・消費を行い、開発時のshop-test指定に限り仮の所持金・所持品をsessionStorageで管理する。
+ * ================================== */
 export async function requestShop(action: 'state' | 'buy' | 'consume' = 'state', itemId?: number, quantity = 1): Promise<ShopState> {
  if (import.meta.env.DEV && new URLSearchParams(location.search).get('shop-test') === '1') {
   const key='hanahaku-shop-preview-v1'

@@ -1,3 +1,9 @@
+/* ==================================
+ * 期末テスト提出プログラム
+ * 学籍番号: 250056
+ * 氏名: 斎藤永聖
+ * 担当範囲: 下記の担当コメントを参照（共同制作）
+ * ================================== */
 // 担当：たまおちゃん｜花との契約画面
 import Phaser from 'phaser';
 import { playSe, stopBgm } from '../../audio/BgmManager';
@@ -27,6 +33,9 @@ export class ContractScene extends Phaser.Scene {
 
   create(data: ContractSceneData): void {
     const scene = this;
+    /* === [ 担当 : 250056 斎藤永聖 ] ===
+     * 処理内容 : 契約画面でBGMを止めてクリア音を再生し、シーン終了時に音を停止する。
+     * ================================== */
     stopBgm(scene);
     playSe(scene, 'stage-clear', 0.75);
     scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => scene.sound.stopByKey('stage-clear'));

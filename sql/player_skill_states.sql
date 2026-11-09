@@ -1,6 +1,15 @@
+/* ==================================
+ * 期末テスト提出プログラム
+ * 学籍番号: 250056
+ * 氏名: 斎藤永聖
+ * 担当範囲: 下記の担当コメントを参照（共同制作）
+ * ================================== */
 USE hanahaku;
 
 CREATE TABLE IF NOT EXISTS player_skill_states (
+  /* === [ 担当 : 250056 斎藤永聖 ] ===
+   * 処理内容 : スキル状態を利用者に紐付けるuser_id列を定義する。
+   * ================================== */
   user_id INT NOT NULL,
   flower_id INT UNSIGNED NOT NULL,
   mp INT UNSIGNED NOT NULL,

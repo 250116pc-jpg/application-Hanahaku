@@ -1,3 +1,9 @@
+/* ==================================
+ * 期末テスト提出プログラム
+ * 学籍番号: 250056
+ * 氏名: 斎藤永聖
+ * 担当範囲: 下記の担当コメントを参照（共同制作）
+ * ================================== */
 // 担当：たまおちゃん｜図鑑機能・EncyclopediaListView
 import Phaser from 'phaser'
 import { addCharacterImage } from '../../utils/characterImage'
@@ -7,6 +13,9 @@ import { getTextStyle } from '../../utils/ui'
 
 const SEASONS: Season[] = ['春', '夏', '秋', '冬']
 
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 季節別の花カード、未登録表示、季節タブとスクロール表示を生成する。
+ * ================================== */
 export class EncyclopediaListView {
   private scene: Phaser.Scene
   private characters: CharacterData[]

@@ -1,3 +1,9 @@
+/* ==================================
+ * 期末テスト提出プログラム
+ * 学籍番号: 250056
+ * 氏名: 斎藤永聖
+ * 担当範囲: 下記の担当コメントを参照（共同制作）
+ * ================================== */
 // 担当：たまおちゃん｜音声再生・設定・SettingsVoice
 import Phaser from 'phaser'
 import { loadAudioSettings, resumeAudioFromGesture, setVoiceDucking } from './BgmManager'
@@ -16,6 +22,9 @@ const files = import.meta.glob('../assets/audio/zundamon/*.wav', {
   eager: true, query: '?url', import: 'default',
 }) as Record<string, string>
 
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 設定操作に対応する案内音声を読み込む。
+ * ================================== */
 export function preloadSettingsVoice(scene: Phaser.Scene): void {
   for (const id of Object.values(lines)) {
     const url = files['../assets/audio/zundamon/' + id + '.wav']
@@ -35,6 +44,9 @@ export class SettingsVoice {
     scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.stop())
   }
 
+  /* === [ 担当 : 250056 斎藤永聖 ] ===
+   * 処理内容 : 再生中の案内音声を停止し、BGMの音量抑制を解除する。
+   * ================================== */
   stop(): void {
     if (this.pendingUnlock) this.scene.sound.off('unlocked', this.pendingUnlock)
     this.pendingUnlock = null
@@ -43,6 +55,9 @@ export class SettingsVoice {
     setVoiceDucking(this.scene, false)
   }
 
+  /* === [ 担当 : 250056 斎藤永聖 ] ===
+   * 処理内容 : 案内文に対応する音声を選んで再生し、音声中のBGM抑制と終了時の復元を管理する。
+   * ================================== */
   speak(message: string): void {
     this.stop()
     const id = lines[message]

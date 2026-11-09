@@ -1,3 +1,9 @@
+/* ==================================
+ * 期末テスト提出プログラム
+ * 学籍番号: 250056
+ * 氏名: 斎藤永聖
+ * 担当範囲: 下記の担当コメントを参照（共同制作）
+ * ================================== */
 // 担当：たまおちゃん｜ショップ機能・itemDetail
 import type { ItemDetailView, ShopItem } from './types'
 import { getShopItemImageKey } from './assets'
@@ -47,10 +53,16 @@ export function createItemDetail(
     descriptionPage = (descriptionPage + 1) % descriptionPages.length
     showDescriptionPage()
   })
+  /* === [ 担当 : 250056 斎藤永聖 ] ===
+   * 処理内容 : 現在の説明ページとページ番号を表示する。
+   * ================================== */
   function showDescriptionPage(): void {
     descriptionText.setText(descriptionPages[descriptionPage] ?? '')
     pageButton.setText(descriptionPages.length > 1 ? `説明 ${descriptionPage + 1}/${descriptionPages.length}　次へ ›` : '')
   }
+  /* === [ 担当 : 250056 斎藤永聖 ] ===
+   * 処理内容 : 文字の描画幅を測って説明を折り返し、2行ずつのページに分ける。
+   * ================================== */
   function setDescription(value: string): void {
     // Phaserの実際の折り返し行を使うため、幅や日本語の文字数が変わっても対応できる。
     const lines: string[] = []

@@ -1,3 +1,9 @@
+/* ==================================
+ * 期末テスト提出プログラム
+ * 学籍番号: 250056
+ * 氏名: 斎藤永聖
+ * 担当範囲: 下記の担当コメントを参照（共同制作）
+ * ================================== */
 // 担当：たまおちゃん｜設定画面
 import Phaser from 'phaser';
 import { DEFAULT_AUDIO_SETTINGS } from '../audio/AudioDefaults';
@@ -48,6 +54,9 @@ export class SettingsScene extends Phaser.Scene {
     this.returnScene = data.returnScene ?? 'HomeScene';
     this.resumeOnClose = data.resumeOnClose ?? false;
   }
+  /* === [ 担当 : 250056 斎藤永聖 ] ===
+   * 処理内容 : 設定画面の背景・パネル・タブ・リアクション画像と案内音声を読み込む。
+   * ================================== */
   preload(): void {
     preloadSettingsVoice(this);
     this.load.image('settings-background', background);
@@ -60,6 +69,9 @@ export class SettingsScene extends Phaser.Scene {
     }
   }
 
+  /* === [ 担当 : 250056 斎藤永聖 ] ===
+   * 処理内容 : 設定値を読み込み、1280×720を基準に縦横比を保って配置し、タブ・ドラッグイベント・終了時の取消処理を初期化する（共同編集）。
+   * ================================== */
   create(): void {
     const tabTexture = this.textures.get('settings-tab');
     if (!tabTexture.has('rect')) tabTexture.add('rect', 0, 8, 160, 1936, 460);
@@ -127,6 +139,9 @@ export class SettingsScene extends Phaser.Scene {
     applySmoothDisplay(this, ['settings-background', 'settings-panel', 'settings-button', 'settings-tab', ...Object.keys(reactionFiles).map(key => `settings-${key}`).filter(key => this.textures.exists(key))]);
   }
 
+  /* === [ 担当 : 250056 斎藤永聖 ] ===
+   * 処理内容 : 設定画面内の文字を共通の書体・解像度で生成し、指定コンテナへ追加する。
+   * ================================== */
   private text(parent: Phaser.GameObjects.Container, x: number, y: number, label: string, size = 22, color = INK): Phaser.GameObjects.Text {
     const text = this.add.text(x, y, label, { fontFamily: '"Yu Gothic", "Meiryo", sans-serif', fontSize: size, fontStyle: 'bold', color, resolution: 2 });
     parent.add(text);
@@ -141,6 +156,9 @@ export class SettingsScene extends Phaser.Scene {
     image.on('pointerup', () => { if (!this.leaving) { resumeAudioFromGesture(this); onClick(); } });
     return image;
   }
+  /* === [ 担当 : 250056 斎藤永聖 ] ===
+   * 処理内容 : 選択タブの見た目と内容を更新し、音量・画面設定のタブに保存操作を配置する。
+   * ================================== */
   private renderTab(tab: Tab): void {
     if (this.leaving) return;
     this.drag = undefined;
@@ -167,6 +185,9 @@ export class SettingsScene extends Phaser.Scene {
     }
   }
 
+  /* === [ 担当 : 250056 斎藤永聖 ] ===
+   * 処理内容 : 音量スライダー、ミュート、初期値復帰とキャラクターのリアクションを表示する。
+   * ================================== */
   private renderSound(): void {
     this.slider('bgmVolume', 'BGM音量', 270, 'bgmUp', 'bgmDown');
     this.slider('seVolume', 'SE音量', 337, 'seUp', 'seDown');
@@ -199,6 +220,9 @@ export class SettingsScene extends Phaser.Scene {
       this.renderTab('sound'); this.react('reset'); this.speak('最初の設定に戻したよ');
     });
   }
+  /* === [ 担当 : 250056 斎藤永聖 ] ===
+   * 処理内容 : 指・マウス位置をレイアウト内座標へ変換して音量を0～100%に制限し、試聴反映・数値表示・案内音声を更新する。
+   * ================================== */
   private slider(key: 'bgmVolume' | 'seVolume' | 'voiceVolume', name: string, y: number, up: keyof typeof reactionFiles, down: keyof typeof reactionFiles): void {
     const start = 550, width = 285;
     this.text(this.body, 410, y - 16, name, 23);
@@ -235,6 +259,9 @@ export class SettingsScene extends Phaser.Scene {
     });
   }
 
+  /* === [ 担当 : 250056 斎藤永聖 ] ===
+   * 処理内容 : 最大FPSと描画品質を選択し、保存後の再読み込みで反映する設定値を編集する。
+   * ================================== */
   private renderDisplay(): void {
     this.text(this.body, 410, 253, '最大FPS', 23);
     ([30, 60, 120] as const).forEach((fps, index) => {
@@ -253,12 +280,18 @@ export class SettingsScene extends Phaser.Scene {
     this.text(this.body, 410, 407, '画面設定は、保存後の再読み込みで反映されます。\n実際のFPSは端末やディスプレイによって異なります。', 17, '#786449').setLineSpacing(10);
     // TODO: 表示方法などの追加設定は、この画面設定タブに実装する。
   }
+  /* === [ 担当 : 250056 斎藤永聖 ] ===
+   * 処理内容 : 設定タブ、音量調整、保存と取消の操作方法を表示する。
+   * ================================== */
   private renderGuide(): void {
     this.text(this.body, 410, 247, '設定画面の使い方', 23);
     this.text(this.body, 410, 293,
       '① 左のタブから設定項目を選びます。\n② 音量はスライダーを左右に動かして調整します。\n③「保存して戻る」で変更を保存します。\n\n「もどる」は、音量の変更を取り消して戻ります。\n音声：VOICEVOX:ずんだもん', 18).setLineSpacing(13);
     // TODO: キー割り当て・タッチ操作などゲーム全体のガイドをここに追加する。
   }
+  /* === [ 担当 : 250056 斎藤永聖 ] ===
+   * 処理内容 : チーム、音声、BGM、効果音、画像素材、制作支援とゲームエンジンのクレジットを表示する。
+   * ================================== */
   private renderCredits(): void {
     this.text(this.body, 410, 245, 'フラワーリンク  − Flower link −', 23);
     this.text(this.body, 410, 287, [
@@ -277,6 +310,9 @@ export class SettingsScene extends Phaser.Scene {
       'ゲームエンジン：Phaser',
     ].join('\n'), 16).setLineSpacing(5);
   }
+  /* === [ 担当 : 250056 斎藤永聖 ] ===
+   * 処理内容 : 保存済みの利用者名・メールアドレスを表示し、ログアウト操作を配置する。
+   * ================================== */
   private renderAccount(): void {
     let user: { name?: unknown; email?: unknown } | null = null;
     try { user = JSON.parse(localStorage.getItem('hanahakuCurrentUser') ?? 'null'); } catch { /* 未ログイン表示 */ }
@@ -286,12 +322,21 @@ export class SettingsScene extends Phaser.Scene {
     this.text(this.body, 410, 406, 'ログアウトするとログイン画面に戻ります。', 18);
     this.artButton(this.body, 996, 492, 240, 58, 'ログアウト', () => { void this.logoutUser(); });
   }
+  /* === [ 担当 : 250056 斎藤永聖 ] ===
+   * 処理内容 : 操作に対応するリアクション画像へ切り替え、表示領域に収まる倍率に調整する。
+   * ================================== */
   private react(reaction: keyof typeof reactionFiles): void {
     if (!this.character || !this.textures.exists(`settings-${reaction}`)) return;
     this.character.setTexture(`settings-${reaction}`);
     this.character.setScale(Math.min(180 / this.character.width, 270 / this.character.height));
   }
+  /* === [ 担当 : 250056 斎藤永聖 ] ===
+   * 処理内容 : 案内メッセージを更新し、対応する音声を再生する。
+   * ================================== */
   private speak(message: string): void { this.message.setText(message); this.voice.speak(message); }
+  /* === [ 担当 : 250056 斎藤永聖 ] ===
+   * 処理内容 : 保存時は設定を書き込み、取消時は元の音量へ戻した後、呼び出し元シーンへ復帰する。
+   * ================================== */
   private closeSettings(save: boolean): void {
     if (this.leaving) return;
     if (save && this.displayChanged && !saveDisplaySettings(this.display)) {
@@ -304,6 +349,9 @@ export class SettingsScene extends Phaser.Scene {
     if (this.resumeOnClose) { this.scene.resume(this.returnScene); this.scene.stop(); }
     else this.scene.start(this.returnScene);
   }
+  /* === [ 担当 : 250056 斎藤永聖 ] ===
+   * 処理内容 : 操作を一時停止してログアウトAPIを呼び、成功時はログイン画面へ移動し、失敗時は操作を復旧する。
+   * ================================== */
   private async logoutUser(): Promise<void> {
     if (this.leaving) return;
     this.leaving = true;

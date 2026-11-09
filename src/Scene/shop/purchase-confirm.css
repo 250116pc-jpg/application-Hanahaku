@@ -1,3 +1,12 @@
+/* ==================================
+ * 期末テスト提出プログラム
+ * 学籍番号: 250056
+ * 氏名: 斎藤永聖
+ * 担当範囲: 下記の担当コメントを参照（共同制作）
+ * ================================== */
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 購入確認の背景・商品・個数操作・購入とキャンセルの配置を整え、画面サイズに応じて調整する。
+ * ================================== */
 .shop-purchase-confirm {
   position: fixed; inset: 0; z-index: 1200; display: flex; align-items: center; justify-content: center;
   padding: max(10px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(10px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));

@@ -1,10 +1,19 @@
-﻿// 担当：たまおちゃん｜認証機能・AuthLayout
+﻿/* ==================================
+ * 期末テスト提出プログラム
+ * 学籍番号: 250056
+ * 氏名: 斎藤永聖
+ * 担当範囲: 下記の担当コメントを参照（共同制作）
+ * ================================== */
+// 担当：たまおちゃん｜認証機能・AuthLayout
 import Phaser from 'phaser';
 import buttonImage from '../assets/ui/button1.png';
 import backgroundImage from '../assets/images/background/auth-meadow.png';
 import './auth-layout.css';
 
 // Native inputs remain usable with touch keyboards and browser password managers.
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 認証画面共通のDOMレイアウトを生成し、パスワード表示切替や戻る操作と破棄処理を提供する。
+ * ================================== */
 export function mountAuthLayout(
   scene: Phaser.Scene, form: HTMLFormElement, title: string, link: string, target: string,
   onNavigate?: (destination: string) => void

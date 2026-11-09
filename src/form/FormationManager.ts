@@ -1,3 +1,9 @@
+/* ==================================
+ * 期末テスト提出プログラム
+ * 学籍番号: 250056
+ * 氏名: 斎藤永聖
+ * 担当範囲: 下記の担当コメントを参照（共同制作）
+ * ================================== */
 // 担当：たまおちゃん｜編成機能・FormationManager
 import type { CharacterData } from '../Scene/test_data'
 
@@ -36,6 +42,9 @@ export class FormationManager {
   removeCharacter(id: number): boolean {
     const index = this.formation.indexOf(id)
     if (index < 0) return false
+    /* === [ 担当 : 250056 斎藤永聖 ] ===
+     * 処理内容 : 編成から外す対象の枠を空にし、変更成功を返す。
+     * ================================== */
     this.formation[index] = null
     return true
   }

@@ -1,3 +1,9 @@
+/* ==================================
+ * 期末テスト提出プログラム
+ * 学籍番号: 250056
+ * 氏名: 斎藤永聖
+ * 担当範囲: 下記の担当コメントを参照（共同制作）
+ * ================================== */
 // 担当：たまおちゃん｜ステージ戦闘の進行
 import { battleNow } from './BattleClock';
 import { isBattlePreview } from '../../debug';
@@ -45,6 +51,9 @@ import { SCENE_KEYS } from '../sceneKeys';
 import { completeStage } from './StageProgress';
 import testData from '../test_data';
 
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 編成用JSONから花IDと画像コードの対応表を作成する。
+ * ================================== */
 const flowerCodes: Record<number, string> = Object.fromEntries(formationData.characters.map(flower => [flower.id, flower.code]));
 const pixelFlowerUrls = import.meta.glob('../../assets/images/pixel_flowers/*.png', {
   eager: true, query: '?url', import: 'default',
@@ -58,6 +67,9 @@ const statusIconUrls = import.meta.glob('../../assets/images/status/*.png', {
 
 export class StageScene extends Phaser.Scene {
   private player!: Player;
+  /* === [ 担当 : 250056 斎藤永聖 ] ===
+   * 処理内容 : 所持品画面から使用可否の確認と回復・強化を行うため、現在のプレイヤーを取得できるようにする。
+   * ================================== */
   public getRecoveryPlayer(): Player { return this.player; }
   private hud!: StageHUD;
   private enemies: Enemy[] = [];
@@ -85,6 +97,9 @@ export class StageScene extends Phaser.Scene {
     if (this.captive && !this.textures.exists(this.captive.key)) {
       this.load.image(this.captive.key, this.captive.url);
     }
+    /* === [ 担当 : 250056 斎藤永聖 ] ===
+     * 処理内容 : 開発端末・スマートフォンの接続先に対応したPHP APIの基準URLを取得する。
+     * ================================== */
     const phpBaseUrl = getPhpBaseUrl();
     this.load.image('stage-terrain', terrainImg);
     this.load.image('stage-props', propsImg);

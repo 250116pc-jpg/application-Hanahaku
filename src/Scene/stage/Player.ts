@@ -1,3 +1,9 @@
+/* ==================================
+ * 期末テスト提出プログラム
+ * 学籍番号: 250056
+ * 氏名: 斎藤永聖
+ * 担当範囲: 下記の担当コメントを参照（共同制作）
+ * ================================== */
 // 担当：たまおちゃん｜プレイヤー操作・移動・戦闘
 import { showBattleNumber } from './BattleFeedback';
 import { playSe } from '../../audio/BgmManager';
@@ -69,6 +75,9 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   private itemAttackUntil = 0;
   private itemDefenseUntil = 0;
 
+  /* === [ 担当 : 250056 斎藤永聖 ] ===
+   * 処理内容 : 戦闘不能・対象外・効果継続中を調べ、アイテムを使用できない理由を返す（時間判定は共同編集）。
+   * ================================== */
   public itemUnavailable(id: number): string | null {
     if (id === 13) return this.recoveryPotionUnavailable;
     if (this.dead || !this.active) return '戦闘不能中は使用できません。';
@@ -81,6 +90,9 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     return this.active && !this.dead && battleNow(this.scene) < (id === 14 ? this.itemAttackUntil : this.itemDefenseUntil);
   }
 
+  /* === [ 担当 : 250056 斎藤永聖 ] ===
+   * 処理内容 : 使用可否を確認して回復薬または宝石効果を開始し、HUDへ使用イベントを送る（宝石の時間管理は共同編集）。
+   * ================================== */
   public startBattleItem(id: number): boolean {
     if (this.itemUnavailable(id)) return false;
     if (id === 13) return this.startRecoveryPotion();
@@ -93,6 +105,9 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   private potionRecovering = false;
   private regenerationTimers: Phaser.Time.TimerEvent[] = [];
 
+  /* === [ 担当 : 250056 斎藤永聖 ] ===
+   * 処理内容 : 持続回復タイマーを解除し、回復薬の使用状態と回復中表示を初期化する。
+   * ================================== */
   private clearRegeneration(): void {
     this.regenerationTimers.forEach(timer => timer.remove());
     this.regenerationTimers = [];
@@ -100,6 +115,9 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.emit('recovery-status', false);
   }
 
+  /* === [ 担当 : 250056 斎藤永聖 ] ===
+   * 処理内容 : 既存の持続回復を解除し、指定間隔で最大HPに対する割合回復を行う。時間制御は共同編集。
+   * ================================== */
   private startFlowerRegeneration(durationMs: number, intervalMs: number, percent: number, onHeal?: () => void): void {
     if (durationMs <= 0 || intervalMs <= 0) return;
     this.clearRegeneration();
@@ -116,6 +134,9 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   }
 
 
+  /* === [ 担当 : 250056 斎藤永聖 ] ===
+   * 処理内容 : 戦闘不能、回復薬の効果中、HP満タンの場合の使用不可理由を返す。
+   * ================================== */
   public get recoveryPotionUnavailable(): string | null {
     if (this.dead || !this.active) return '戦闘不能中は使用できません。';
     if (this.potionRecovering) return '回復薬の効果中です。';
@@ -123,6 +144,9 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     return null;
   }
 
+  /* === [ 担当 : 250056 斎藤永聖 ] ===
+   * 処理内容 : 最大HPの15%を10回に分けて回復し、丸め誤差を累積差分で補正する。終了・戦闘不能時はタイマーを解除する。
+   * ================================== */
   public startRecoveryPotion(): boolean {
     if (this.recoveryPotionUnavailable) return false;
     this.clearRegeneration();
@@ -272,6 +296,9 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     if (this.cursors.up?.isDown && body.blocked.down) this.jump();
 
     const isGrounded = body.blocked.down;
+    /* === [ 担当 : 250056 斎藤永聖 ] ===
+     * 処理内容 : 防御姿勢への切替時だけSEを鳴らし、防御被弾音との重複を避ける。
+     * ================================== */
     const crouchGuarding = this.isGuarding();
     if (crouchGuarding && !this.wasCrouchGuarding && !this.scene.sound.get('player-guard-hit')?.isPlaying) {
       playSe(this.scene, 'player-crouch', 0.5);
@@ -318,6 +345,9 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   private landBasicAttack(targets: readonly CombatTarget[]): void {
     this.showSlash();
     const hits = this.getTargetsInRange(targets, 125, false);
+    /* === [ 担当 : 250056 斎藤永聖 ] ===
+     * 処理内容 : 攻撃が命中した場合と空振りの場合で効果音を切り替える。
+     * ================================== */
     if (hits.length > 0) playSe(this.scene, 'player-sword-hit', 0.65);
     else playSe(this.scene, 'player-sword-swing');
     hits.slice(0, 1).forEach(target => {
@@ -517,6 +547,9 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     const statDamageMultiplier = 100 / (100 + defense);
     const buffDamageMultiplier = Math.max(0.1, 1 - activeDefenseBonus / 100);
     const damageMultiplier = statDamageMultiplier * buffDamageMultiplier * (defending ? 0.5 : 1);
+    /* === [ 担当 : 250056 斎藤永聖 ] ===
+     * 処理内容 : 守りの宝石の効果中は物理ダメージを軽減し、防御被弾か通常被弾かに応じてSEを再生する。
+     * ================================== */
     this.health = Math.max(0, this.health - Math.ceil(amount * damageMultiplier * (damageType === 'physical' && now < this.itemDefenseUntil ? 0.8 : 1)));
     this.scene.sound.stopByKey('player-crouch');
     playSe(this.scene, defending ? 'player-guard-hit' : 'player-damage', 0.65);

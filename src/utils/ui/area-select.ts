@@ -1,3 +1,9 @@
+/* ==================================
+ * 期末テスト提出プログラム
+ * 学籍番号: 250056
+ * 氏名: 斎藤永聖
+ * 担当範囲: 下記の担当コメントを参照（共同制作）
+ * ================================== */
 // 担当：たまおちゃん｜共通UI・area-select
 import Phaser from 'phaser';
 import { getTextStyle } from './styles';
@@ -16,6 +22,9 @@ export type MapSelectionButtonOptions = {
   depth?: number;
 };
 
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : エリアの選択・未選択・ロック状態に応じた丸いマーカーを生成し、選択操作を通知する。
+ * ================================== */
 export const createMapSelectionButton = (
   scene: Phaser.Scene,
   x: number,
@@ -84,6 +93,9 @@ export type SelectionDetailPanelOptions = {
   buttonFontSize?: number;
 };
 
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 選択したエリアの見出し・名称・説明・確定ボタンをまとめた詳細パネルを生成する。
+ * ================================== */
 export const createSelectionDetailPanel = (
   scene: Phaser.Scene,
   x: number,

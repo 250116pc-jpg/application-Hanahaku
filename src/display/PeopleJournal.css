@@ -1,3 +1,12 @@
+/* ==================================
+ * 期末テスト提出プログラム
+ * 学籍番号: 250056
+ * 氏名: 斎藤永聖
+ * 担当範囲: 下記の担当コメントを参照（共同制作）
+ * ================================== */
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 人物録の古い紙、一覧・詳細、暗幕と縦開閉時の紙裏・文字の切り抜きを定義する。
+ * ================================== */
 .people-journal { width:min(82vw,760px); max-height:85dvh; box-sizing:border-box; padding:clamp(12px,3vh,32px); border:3px double #866943; color:#442e20; background:linear-gradient(90deg,#f5e7c9 48%,#d7bf96 50%,#f5e7c9 52%); }
 .people-journal[open] { display:grid; grid-template-columns:1fr 1fr; gap:0 8%; }
 .people-journal::backdrop { background:rgb(9 13 16 / 67%); }

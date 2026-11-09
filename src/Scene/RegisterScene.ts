@@ -1,3 +1,9 @@
+/* ==================================
+ * 期末テスト提出プログラム
+ * 学籍番号: 250056
+ * 氏名: 斎藤永聖
+ * 担当範囲: 下記の担当コメントを参照（共同制作）
+ * ================================== */
 // 担当：たまおちゃん｜新規登録画面
 import { getPhpBaseUrl } from '../auth/PhpBaseUrl';
 import Phaser from 'phaser';
@@ -20,6 +26,9 @@ export class RegisterScene extends Phaser.Scene {
     super(SCENE_KEYS.REGISTER);
   }
 
+  /* === [ 担当 : 250056 斎藤永聖 ] ===
+   * 処理内容 : 新規登録フォームの入力を検査し、登録APIの結果に応じてログイン画面への案内またはエラーを表示する。
+   * ================================== */
   create(): void {
     const formElement = document.createElement('form');
     formElement.className = 'flower-auth-form';

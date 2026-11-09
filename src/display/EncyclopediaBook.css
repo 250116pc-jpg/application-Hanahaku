@@ -1,3 +1,12 @@
+/* ==================================
+ * 期末テスト提出プログラム
+ * 学籍番号: 250056
+ * 氏名: 斎藤永聖
+ * 担当範囲: 下記の担当コメントを参照（共同制作）
+ * ================================== */
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 図鑑の紙面、花カード、季節付箋とページめくり中の重なり・表示領域を定義する（共同編集）。
+ * ================================== */
 .encyclopedia-book-screen{position:fixed;inset:0;z-index:1100;background:#142433;display:grid;place-items:center;padding:2vh 7vw 2vh 2vw;color:#302519;font-family:Meiryo,sans-serif}.encyclopedia-book-screen *{box-sizing:border-box}.encyclopedia-book-screen [hidden]{display:none!important}.encyclopedia-book{position:relative;width:min(88vw,144vh);width:min(88vw,144dvh);aspect-ratio:3/2}.encyclopedia-book-art{width:100%;height:100%;image-rendering:pixelated;display:block}.encyclopedia-book-ui{position:absolute;inset:12% 9% 15%;display:flex;flex-direction:column;gap:3%;min-height:0}.encyclopedia-book-ui h1{font-size:clamp(14px,2vw,26px);margin:0;text-align:center}.encyclopedia-book-progress{font-size:clamp(10px,1.2vw,16px);margin:0;text-align:center}.encyclopedia-book-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr));gap:6% 5%;flex:1;min-height:0}.encyclopedia-book-card{min-height:0;display:flex;flex-direction:column;align-items:center;background:#fff4d9a6;border:1px solid #a57c3e;padding:3%;color:#233947;cursor:pointer}.encyclopedia-book-card img{width:100%;height:calc(100% - 20px);min-height:0;object-fit:contain}.encyclopedia-book-card span{font-size:clamp(9px,1.1vw,16px);line-height:20px}.encyclopedia-book-ui footer{display:flex;align-items:center;justify-content:space-between;gap:4px;font-size:clamp(9px,1.1vw,14px)}.encyclopedia-book-ui footer button{border:1px solid #aa8c57;background:#193447;color:#ffedc0;padding:5px 8px;border-radius:4px;font:inherit;cursor:pointer}.encyclopedia-book-ui button:disabled{opacity:.4;cursor:default}.encyclopedia-book-tabs{position:absolute;left:94%;top:23%;width:10%;display:flex;flex-direction:column;gap:8px}.encyclopedia-book-tabs button{background:var(--tab-color);color:#243846;border:1px solid #a57c3e;border-radius:0 6px 6px 0;padding:8px 2px;font:bold clamp(12px,1.6vw,22px) Meiryo;cursor:pointer;box-shadow:2px 3px 3px #0004}.encyclopedia-book-tabs button[aria-pressed=true]{outline:2px solid #eed69c;transform:translateX(4px)}.encyclopedia-book-screen button:focus-visible{outline:3px solid #277ca6;outline-offset:2px}
 
 /* Generated blank botanical journal assets; labels remain live text. */

@@ -1,3 +1,9 @@
+/* ==================================
+ * 期末テスト提出プログラム
+ * 学籍番号: 250056
+ * 氏名: 斎藤永聖
+ * 担当範囲: 下記の担当コメントを参照（共同制作）
+ * ================================== */
 // 担当：たまおちゃん｜ショップ機能・PurchaseConfirm
 import Phaser from 'phaser'
 import { playUiSe } from '../../audio/BgmManager'
@@ -6,6 +12,9 @@ import { getShopItemImageUrl } from './assets'
 import type { ShopItem } from './types'
 import './purchase-confirm.css'
 
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 購入確認ダイアログを生成し、個数・合計額・残金、購入中の操作制限、キーボードフォーカスと終了処理を管理する。
+ * ================================== */
 export class PurchaseConfirm {
   private scene: Phaser.Scene
   private root: HTMLDivElement
@@ -86,6 +95,9 @@ export class PurchaseConfirm {
     panel.append(title, content, actions)
     this.root.append(panel)
 
+    /* === [ 担当 : 250056 斎藤永聖 ] ===
+     * 処理内容 : 個数・合計額・購入後残金と操作ボタンの有効状態を更新する。
+     * ================================== */
     const update = (): void => {
       amount.value = String(this.quantity)
       total.textContent = `合計 ${(item.price * this.quantity).toLocaleString()} G`
@@ -96,12 +108,18 @@ export class PurchaseConfirm {
       cancel.disabled = this.buying
       buy.textContent = this.buying ? '購入中…' : '購入する'
     }
+    /* === [ 担当 : 250056 斎藤永聖 ] ===
+     * 処理内容 : 購入個数を1個から購入可能上限の範囲で変更し、表示を更新する。
+     * ================================== */
     const changeQuantity = (difference: number): void => {
       if (this.buying || this.maxQuantity < 1) return
       playUiSe(scene, 'select')
       this.quantity = Math.max(1, Math.min(this.maxQuantity, this.quantity + difference))
       update()
     }
+    /* === [ 担当 : 250056 斎藤永聖 ] ===
+     * 処理内容 : 購入要求を1回だけ実行し、成功時は確認画面を閉じ、失敗時はエラー表示と操作状態を復旧する。
+     * ================================== */
     const purchase = async (): Promise<void> => {
       if (this.buying || this.closed || this.maxQuantity < 1) return
       this.buying = true
@@ -148,6 +166,9 @@ export class PurchaseConfirm {
     return button
   }
 
+  /* === [ 担当 : 250056 斎藤永聖 ] ===
+   * 処理内容 : 確認用DOMと終了イベントを取り除き、元の入力状態とフォーカスを復元する。
+   * ================================== */
   private destroy(): void {
     if (this.closed) return
     this.closed = true

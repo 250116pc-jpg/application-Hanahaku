@@ -1,3 +1,9 @@
+/* ==================================
+ * 期末テスト提出プログラム
+ * 学籍番号: 250056
+ * 氏名: 斎藤永聖
+ * 担当範囲: 下記の担当コメントを参照（共同制作）
+ * ================================== */
 // 担当：たまおちゃん｜画面表示・設定・EncyclopediaBook
 import { openPeopleJournal } from './PeopleJournal'
 import { readFlowerContracts } from '../Scene/stage/flowerContracts'
@@ -6,6 +12,9 @@ import { prototypeFlowers, contractPreview, type PrototypeFlower } from '../Scen
 import './EncyclopediaBook.css'
 const images = import.meta.glob('../assets/settings-book/*.png', { eager: true, query: '?url', import: 'default' }) as Record<string,string>
 const asset = (name: string): string => images['../assets/settings-book/'+name]!
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 季節別の図鑑を本として表示し、ページ移動、紙のコマ送り、付箋の追従、カード選択と終了時の解除を管理する。
+ * ================================== */
 export function mountEncyclopediaBook(options: {
  season: Season; page: number; animate: boolean; turn?: number;
  unknown: Record<Season,{url:string}>;

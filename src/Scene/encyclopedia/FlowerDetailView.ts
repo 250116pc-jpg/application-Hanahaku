@@ -1,3 +1,9 @@
+/* ==================================
+ * 期末テスト提出プログラム
+ * 学籍番号: 250056
+ * 氏名: 斎藤永聖
+ * 担当範囲: 下記の担当コメントを参照（共同制作）
+ * ================================== */
 // 担当：たまおちゃん｜図鑑機能・FlowerDetailView
 import type { PrototypeFlower } from './contractPreview'
 import buttonImage from '../../assets/images/encyclopedia/journal-button.png'
@@ -13,6 +19,9 @@ function node<K extends keyof HTMLElementTagNameMap>(tag: K, className = '', tex
 }
 
 /** Read-only catalog pages. Contract testing never changes the real party or battle data. */
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 選択した花の画像・説明・能力等をDOMの詳細画面に表示し、タブ操作と画面の破棄を管理する。
+ * ================================== */
 export function mountFlowerDetail(flower: PrototypeFlower, options: {
   owned: boolean; unknownUrl: string; onClose: () => void; onHome: () => void; onContract: () => void
 }): () => void {

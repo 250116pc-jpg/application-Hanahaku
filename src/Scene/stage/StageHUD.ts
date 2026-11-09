@@ -1,3 +1,9 @@
+/* ==================================
+ * 期末テスト提出プログラム
+ * 学籍番号: 250056
+ * 氏名: 斎藤永聖
+ * 担当範囲: 下記の担当コメントを参照（共同制作）
+ * ================================== */
 // 担当：たまおちゃん｜戦闘画面UIと操作ボタン
 import { isBattlePreview } from '../../debug';
 import { battleNow } from './BattleClock';
@@ -106,6 +112,9 @@ export class StageHUD {
     this.panel(x, y, panelW, panelH, 14);
     this.text(x + 16, y + 10, `${leader.name}  Lv.${leader.level}`, compact ? 13 : 17, '#fff', 'bold');
     if (this.player) {
+      /* === [ 担当 : 250056 斎藤永聖 ] ===
+       * 処理内容 : 回復中アイコンと宝石の強化アイコンを生成し、効果イベント・更新処理に連動させ、終了時にイベントを解除する（演出の一部は共同編集）。
+       * ================================== */
       const icon = this.scene.add.image(x + panelW - 30, y + 21, 'status-buff_hp_regen')
         .setDisplaySize(22, 22).setScrollFactor(0).setDepth(this.depth + 3).setVisible(false);
       const onRecovery = (active: boolean): void => { icon.setVisible(active); };
@@ -204,6 +213,9 @@ export class StageHUD {
     window.addEventListener('resize', placeButton);
 
     // DOM controls must follow the same pause state as the canvas bag button.
+    /* === [ 担当 : 250056 斎藤永聖 ] ===
+     * 処理内容 : 停止・スリープ中はDOMの撤退ボタンを無効化し、再開時に表示位置と操作を復旧する。
+     * ================================== */
     const hideButton = (): void => {
       button.disabled = true;
       button.hidden = true;
@@ -261,6 +273,9 @@ export class StageHUD {
     Object.assign(panel.style, {
       boxSizing: 'border-box',
       width: 'min(650px, 90%)',
+      /* === [ 担当 : 250056 斎藤永聖 ] ===
+       * 処理内容 : 撤退確認の紙枠・余白・表示上限を調整し、小さい画面でも内容を閲覧できるようにする。
+       * ================================== */
       minHeight: 'min(280px, 84%)',
       maxHeight: '94%',
       overflowY: 'auto',
@@ -314,6 +329,9 @@ export class StageHUD {
       return action;
     };
     let closing = false;
+    /* === [ 担当 : 250056 斎藤永聖 ] ===
+     * 処理内容 : 撤退確認の多重終了を防ぎ、閉じる演出後にキャンセルなら戦闘再開、撤退ならステージ選択へ移動する。
+     * ================================== */
     const closeDialog = (retreat: boolean): void => {
       if (closing) return;
       playUiSe(this.scene, retreat ? 'confirm' : 'cancel', 0.5);

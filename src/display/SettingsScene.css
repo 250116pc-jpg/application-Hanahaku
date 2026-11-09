@@ -1,3 +1,12 @@
+/* ==================================
+ * 期末テスト提出プログラム
+ * 学籍番号: 250056
+ * 氏名: 斎藤永聖
+ * 担当範囲: 下記の担当コメントを参照（共同制作）
+ * ================================== */
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 設定画面で使用する共通表示スタイルを定義する。
+ * ================================== */
 .garden-settings{position:fixed;inset:0;z-index:2000;box-sizing:border-box;padding:max(12px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(12px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));background:linear-gradient(#1d302d66,#1d302daa),url('../assets/images/background/home_image1.png') center/cover;color:#44301e;font-family:Georgia,'Yu Mincho',serif;display:grid;place-items:center}
 .garden-settings *{box-sizing:border-box}.garden-settings [hidden]{display:none!important}
 .settings-shell{width:min(1120px,100%);height:min(720px,100%);min-height:0;display:grid;grid-template-rows:auto minmax(0,1fr) auto;gap:12px}

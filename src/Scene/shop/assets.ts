@@ -1,3 +1,9 @@
+/* ==================================
+ * 期末テスト提出プログラム
+ * 学籍番号: 250056
+ * 氏名: 斎藤永聖
+ * 担当範囲: 下記の担当コメントを参照（共同制作）
+ * ================================== */
 // 担当：たまおちゃん｜ショップ機能・assets
 import recoveryImage from '../../assets/images/items/asset_110.png';
 import powerImage from '../../assets/images/items/asset_090.png';
@@ -69,6 +75,9 @@ export function getShopItemImageKey(itemId: number): string {
 }
 
 // HTML images must use the original asset URL; Phaser revokes its loader blob URLs.
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 商品IDに対応する元画像URLを返し、DOM表示がPhaserの一時URL破棄に影響されないようにする。
+ * ================================== */
 export function getShopItemImageUrl(itemId: number): string {
   return itemImages[getShopItemImageKey(itemId)] ?? flowerImage;
 }

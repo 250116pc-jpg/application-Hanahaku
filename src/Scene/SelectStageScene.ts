@@ -1,3 +1,9 @@
+/* ==================================
+ * 期末テスト提出プログラム
+ * 学籍番号: 250056
+ * 氏名: 斎藤永聖
+ * 担当範囲: 下記の担当コメントを参照（共同制作）
+ * ================================== */
 // 担当：たまおちゃん｜ステージ選択画面
 import storyData from '../scenario_data/story_data.json';
 import { getContractPool } from './stage/flowerContracts';
@@ -450,6 +456,9 @@ export class SelectStageScene extends Phaser.Scene {
       return btnContainer;
     };
 
+    /* === [ 担当 : 250056 斎藤永聖 ] ===
+     * 処理内容 : 戦闘ステージの詳細から所持品画面を開き、元シーンを一時停止する。二重起動を防ぐ。
+     * ================================== */
     const inventoryBtn = isBattleStage ? createDialogButton(
       cardX + cardW / 2, cardY + cardH / 2 - 34,
       Math.min(220, cardW - 40), 44, '所持品を見る', 0x536878, 0x6d8396, () => {
@@ -464,6 +473,9 @@ export class SelectStageScene extends Phaser.Scene {
     // ボタンのサイズも少し大きく (150x48 → 160x56)
     const formationBtn = createDialogButton(-120, popupH / 2 - 55, 160, 56, '編成', 0x536878, 0x6d8396, () => {
       closePopup(() => {
+        /* === [ 担当 : 250056 斎藤永聖 ] ===
+         * 処理内容 : 編成画面へ戻り先を渡し、現在のステージ選択画面をスリープさせて復帰可能にする。
+         * ================================== */
         scene.scene.launch(SCENE_KEYS.FORM, { returnToStage: true });
         scene.scene.sleep();
       });

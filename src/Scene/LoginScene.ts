@@ -1,4 +1,10 @@
-﻿// 担当：たまおちゃん｜ログイン画面
+﻿/* ==================================
+ * 期末テスト提出プログラム
+ * 学籍番号: 250056
+ * 氏名: 斎藤永聖
+ * 担当範囲: 下記の担当コメントを参照（共同制作）
+ * ================================== */
+// 担当：たまおちゃん｜ログイン画面
 import { createSceneFade } from '../utils/ui/scene-fade';
 import { getPhpBaseUrl } from '../auth/PhpBaseUrl';
 import Phaser from 'phaser';
@@ -20,6 +26,9 @@ export class LoginScene extends Phaser.Scene {
     super('LoginScene');
   }
 
+  /* === [ 担当 : 250056 斎藤永聖 ] ===
+   * 処理内容 : ログイン用フォームを生成し、入力検証・認証API呼び出し・利用者情報保存・画面遷移とエラー表示を行う。
+   * ================================== */
   create(): void {
     this.input.enabled = true;
     const navigate = createSceneFade(this);

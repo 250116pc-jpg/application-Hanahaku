@@ -1,3 +1,9 @@
+/* ==================================
+ * 期末テスト提出プログラム
+ * 学籍番号: 250056
+ * 氏名: 斎藤永聖
+ * 担当範囲: 下記の担当コメントを参照（共同制作）
+ * ================================== */
 // 担当：たまおちゃん｜ショップ機能・shop
 import { recordShopVisit } from '../../display/PeopleJournal'
 import { shopCatalog, requestShop } from './ShopApi'
@@ -29,6 +35,9 @@ export class ShopScene extends Phaser.Scene {
 
     createShopBackground(this, screenWidth, screenHeight)
     this.createShopkeeper()
+    /* === [ 担当 : 250056 斎藤永聖 ] ===
+     * 処理内容 : ショップ訪問を記録し、人物録で店主を閲覧できるようにする。
+     * ================================== */
     recordShopVisit()
     this.createHeader()
     this.createBackButton()
@@ -41,12 +50,18 @@ export class ShopScene extends Phaser.Scene {
     let confirmation: PurchaseConfirm | null = null
     let ready=false
     let selected: ShopItem | undefined
+    /* === [ 担当 : 250056 斎藤永聖 ] ===
+     * 処理内容 : 取得した所持金・所持数を商品一覧と選択中の詳細へ反映する。
+     * ================================== */
     const applyState=(state: Awaited<ReturnType<typeof requestShop>>) => {
       coin = state.coin
       for(const item of shopItems){item.count=state.items[String(item.id)] ?? 0;countLabels.get(item.id)?.setText(`所持数  ${item.count}`)}
       status.setText(`所持コイン：${state.coin.toLocaleString()} G`)
       if(selected) itemDetail.show(selected)
     }
+    /* === [ 担当 : 250056 斎藤永聖 ] ===
+     * 処理内容 : 読込完了と確認画面の重複を検査し、購入確認から購入APIを実行して所持状態を再表示する。
+     * ================================== */
     const itemDetail = createItemDetail(this, async item => {
       if (!ready) { status.setText('ログイン・所持品の読み込みを確認してください'); return }
       if (confirmation) return

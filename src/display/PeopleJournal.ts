@@ -1,16 +1,31 @@
+/* ==================================
+ * 期末テスト提出プログラム
+ * 学籍番号: 250056
+ * 氏名: 斎藤永聖
+ * 担当範囲: 下記の担当コメントを参照（共同制作）
+ * ================================== */
 // 担当：たまおちゃん｜画面表示・設定・PeopleJournal
 import shopkeeper from '../assets/characters/1003/1003_3.png'
 import './PeopleJournal.css'
 
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : ユーザーIDまたはメールアドレスから、利用者ごとのショップ訪問記録キーを生成する。
+ * ================================== */
 function visitKey(): string {
   const user = JSON.parse(localStorage.getItem('hanahakuCurrentUser') ?? 'null')
   return 'hanahaku:people:shop:' + (user?.id ?? user?.email ?? 'guest')
 }
 
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : ショップを訪問したことを保存し、人物録の店主解放に利用する。
+ * ================================== */
 export function recordShopVisit(): void {
   try { localStorage.setItem(visitKey(), '1') } catch { /* Storage can be unavailable. */ }
 }
 
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 人物一覧・詳細・未記録表示を生成し、訪問済みの店主のみ表示可能にして人物録を開く。
+ * ================================== */
 export function openPeopleJournal(parent: HTMLElement): void {
   let metShopkeeper = false
   try { metShopkeeper = localStorage.getItem(visitKey()) === '1' } catch { /* Guest preview. */ }
@@ -57,6 +72,9 @@ export function openPeopleJournal(parent: HTMLElement): void {
   let timer: ReturnType<typeof setTimeout> | undefined
   let frame = 0
   let closing = false
+  /* === [ 担当 : 250056 斎藤永聖 ] ===
+   * 処理内容 : 9段階の角度から紙の投影と切り抜き範囲を算出し、文字のはみ出しを防ぎながら縦方向の開閉を再生する。
+   * ================================== */
   function fold(direction: 1 | -1): void {
     clearTimeout(timer)
     if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
@@ -87,6 +105,9 @@ export function openPeopleJournal(parent: HTMLElement): void {
       fold(direction)
     }, 43)
   }
+  /* === [ 担当 : 250056 斎藤永聖 ] ===
+   * 処理内容 : 閉じる操作の重複を防ぎ、紙のコマを逆順に再生して人物録を閉じる。
+   * ================================== */
   function closeJournal(): void {
     if (closing) return
     closing = true

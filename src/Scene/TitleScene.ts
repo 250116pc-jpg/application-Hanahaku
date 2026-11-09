@@ -1,4 +1,10 @@
-﻿// 担当：たまおちゃん｜タイトル画面
+﻿/* ==================================
+ * 期末テスト提出プログラム
+ * 学籍番号: 250056
+ * 氏名: 斎藤永聖
+ * 担当範囲: 下記の担当コメントを参照（共同制作）
+ * ================================== */
+// 担当：たまおちゃん｜タイトル画面
 import Phaser from 'phaser';
 import { restoreSession } from '../auth/Session';
 import { shouldSkipLogin } from '../debug';
@@ -48,9 +54,15 @@ export class TitleScene extends Phaser.Scene {
     bg.setDisplaySize(width, height);
 
     // 背景の上、ロゴとボタンの後ろに花びらを描画する。
+    /* === [ 担当 : 250056 斎藤永聖 ] ===
+     * 処理内容 : ロゴの背後へ花びら演出を追加する。
+     * ================================== */
     createTitlePetals(this);
 
     // 太陽の逆光をイメージした光を、文字の背後に重ねる。
+    /* === [ 担当 : 250056 斎藤永聖 ] ===
+     * 処理内容 : タイトルロゴの背後へ逆光の演出を重ねる。
+     * ================================== */
     createTitleLogoLight(this, width / 2, height / 3 + 80, 850);
 
     // ロゴは縦横比を保ったまま上部中央に表示する
@@ -69,6 +81,9 @@ export class TitleScene extends Phaser.Scene {
     this.createStartButton(width / 2, height / 2 + 200);
   }
 
+  /* === [ 担当 : 250056 斎藤永聖 ] ===
+   * 処理内容 : 開始画像の透明余白を除き、明滅・押下反応・連打防止・Enter操作とフェードによる開始演出を設定する。遷移先判定は共同編集。
+   * ================================== */
   private createStartButton(x: number, y: number): void {
     // ボタン全体の枠と飾りを含め、外側の透明な余白だけ除く。
     const texture = this.textures.get('title-start-button');

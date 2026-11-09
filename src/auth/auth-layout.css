@@ -1,3 +1,12 @@
+/* ==================================
+ * 期末テスト提出プログラム
+ * 学籍番号: 250056
+ * 氏名: 斎藤永聖
+ * 担当範囲: 下記の担当コメントを参照（共同制作）
+ * ================================== */
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : ログイン・登録画面の共通背景、フォーム、入力欄、エラー表示とレスポンシブ配置を定義する。
+ * ================================== */
 .flower-auth-screen {
   position: fixed; inset: 0; z-index: 20; overflow-y: auto; box-sizing: border-box;
   display: flex; flex-direction: column; align-items: center; padding: 28px 18px 70px;

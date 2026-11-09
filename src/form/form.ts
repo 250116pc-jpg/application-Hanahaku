@@ -1,3 +1,9 @@
+/* ==================================
+ * 期末テスト提出プログラム
+ * 学籍番号: 250056
+ * 氏名: 斎藤永聖
+ * 担当範囲: 下記の担当コメントを参照（共同制作）
+ * ================================== */
 // 担当：たまおちゃん｜編成機能・form
 import Phaser from 'phaser'
 import rawFormationData from '../../php/flower/formation.json?raw'
@@ -37,6 +43,9 @@ export class FormScene extends Phaser.Scene {
     for (const [path, url] of Object.entries(textures)) this.load.image(`form-${path.split('/').pop()!.replace(/\.png$/i, '')}`, url)
   }
 
+  /* === [ 担当 : 250056 斎藤永聖 ] ===
+   * 処理内容 : 入場経路に応じて戻り先を保持し、再利用されるシーンの古い入場データを消す（編成復帰処理は共同編集）。
+   * ================================== */
   init(data: { resumeFormation?: boolean; returnToStage?: boolean } = {}): void {
     if (!data.resumeFormation) this.returnToStage = data.returnToStage === true
     this.preserveDraft = this.preserveDraft && data.resumeFormation === true
@@ -159,6 +168,9 @@ export class FormScene extends Phaser.Scene {
     this.saved = [...formation]; this.refresh(); this.status.setText('編成を保存しました。このメンバーで冒険に出発できます')
   }
   private leave(): void {
+    /* === [ 担当 : 250056 斎藤永聖 ] ===
+     * 処理内容 : 編成の終了時、ステージ選択から来た場合は停止中の選択画面を再開し、それ以外はホームへ戻る。
+     * ================================== */
     const exit = () => {
       this.preserveDraft = false
       if (this.returnToStage && this.scene.isSleeping(SCENE_KEYS.SELECT_STAGE)) {

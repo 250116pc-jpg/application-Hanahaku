@@ -1,7 +1,16 @@
+/* ==================================
+ * 期末テスト提出プログラム
+ * 学籍番号: 250056
+ * 氏名: 斎藤永聖
+ * 担当範囲: 下記の担当コメントを参照（共同制作）
+ * ================================== */
 // 担当：たまおちゃん｜画面表示・設定・SettingsPanel
 import Phaser from 'phaser';
 import { loadDisplaySettings, saveDisplaySettings, type DisplaySettings } from './DisplaySettings';
 
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 画面設定・操作案内・クレジットのパネルを開き、設定値の変更、保存、初期化を行う。
+ * ================================== */
 export function openSettingsPanel(scene: Phaser.Scene): void {
   if (document.querySelector('.display-settings-dialog')) return;
   const previousFocus = document.activeElement;

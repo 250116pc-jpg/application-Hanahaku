@@ -1,3 +1,9 @@
+/* ==================================
+ * 期末テスト提出プログラム
+ * 学籍番号: 250056
+ * 氏名: 斎藤永聖
+ * 担当範囲: 下記の担当コメントを参照（共同制作）
+ * ================================== */
 // 担当：たまおちゃん｜画面表示・設定・SettingsBook
 import Phaser from 'phaser';
 import { DEFAULT_AUDIO_SETTINGS } from '../audio/AudioDefaults';
@@ -8,6 +14,9 @@ import { logout } from '../auth/Session';
 import './SettingsBook.css';
 const assets = import.meta.glob('../assets/settings-book/*.png', { eager: true, query: '?url', import: 'default' }) as Record<string,string>;
 const asset = (name: string): string => assets['../assets/settings-book/'+name]!;
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 本形式の設定UIを生成し、付箋で音量・ユーザー・画面設定を切り替え、試聴、保存、取消と開閉を管理する。
+ * ================================== */
 export function mountSettingsBook(scene: Phaser.Scene, onClose: () => void): void {
  const original = loadAudioSettings(scene), audio = {...original};
  let display = {...loadDisplaySettings()}, active = 0, busy = true, disposed = false, loggingOut = false;

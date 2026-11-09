@@ -1,3 +1,9 @@
+/* ==================================
+ * 期末テスト提出プログラム
+ * 学籍番号: 250056
+ * 氏名: 斎藤永聖
+ * 担当範囲: 下記の担当コメントを参照（共同制作）
+ * ================================== */
 // 担当：たまおちゃん｜認証機能・GoogleSignIn
 import { getPhpBaseUrl } from './PhpBaseUrl';
 export interface AuthenticatedUser {
@@ -57,6 +63,9 @@ let scriptPromise: Promise<void> | null = null;
 let initializedClientId = '';
 let credentialHandler: ((credential: string) => void) | null = null;
 
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : Googleログイン用スクリプトを重複なく読み込み、読み込み成功・失敗を通知する。
+ * ================================== */
 function loadGoogleIdentityServices(): Promise<void> {
   if (window.google?.accounts.id) return Promise.resolve();
   if (scriptPromise) return scriptPromise;
@@ -84,6 +93,9 @@ function loadGoogleIdentityServices(): Promise<void> {
 
 
 
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : Googleから受け取った資格情報をPHPへ送信し、認証結果を検査する。
+ * ================================== */
 async function authenticateWithGoogle(credential: string): Promise<AuthenticatedUser> {
   let response: Response;
   try {
@@ -109,6 +121,9 @@ async function authenticateWithGoogle(credential: string): Promise<Authenticated
   return result.user;
 }
 
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 認証済み利用者情報をブラウザの保存領域へ記録する。
+ * ================================== */
 export function saveCurrentUser(user: AuthenticatedUser): void {
   try {
     localStorage.setItem('hanahakuCurrentUser', JSON.stringify(user));
@@ -117,6 +132,9 @@ export function saveCurrentUser(user: AuthenticatedUser): void {
   }
 }
 
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : Googleログインボタンを配置し、資格情報の受信、認証中の制御、成功・失敗の通知と破棄を管理する。
+ * ================================== */
 export function mountGoogleSignInButton(
   container: HTMLElement,
   callbacks: GoogleButtonCallbacks

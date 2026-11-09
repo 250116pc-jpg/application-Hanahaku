@@ -1,3 +1,9 @@
+/* ==================================
+ * 期末テスト提出プログラム
+ * 学籍番号: 250056
+ * 氏名: 斎藤永聖
+ * 担当範囲: 下記の担当コメントを参照（共同制作）
+ * ================================== */
 // 担当：たまおちゃん｜花の図鑑画面
 import pageTurnSound from '../assets/audio/encyclopedia/page-turn-firefly.wav'
 import { playSe } from '../audio/BgmManager'
@@ -21,6 +27,9 @@ const unknownFlowers: Record<Season, { key: string; url: string }> = {
  '冬': { key: 'flower-unknown-winter', url: questionWinter },
 }
 
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 花図鑑の一覧・詳細画面と本の表示を切り替え、表示終了時の後片付けやテスト状態の初期化を行う。
+ * ================================== */
 export class EncyclopediaScene extends Phaser.Scene {
  private bookCleanup: (() => void) | null = null
  private bookTurn = 0

@@ -1,3 +1,9 @@
+/* ==================================
+ * 期末テスト提出プログラム
+ * 学籍番号: 250056
+ * 氏名: 斎藤永聖
+ * 担当範囲: 下記の担当コメントを参照（共同制作）
+ * ================================== */
 // 担当：たまおちゃん｜所持品画面
 import Phaser from 'phaser'
 import { playUiSe } from '../audio/BgmManager'
@@ -35,6 +41,9 @@ export class InventoryScene extends Phaser.Scene {
   create(): void {
     showDebugSceneName(this);
     // An overlay must not outlive the scene that opened it (retreat, results, etc.).
+    /* === [ 担当 : 250056 斎藤永聖 ] ===
+     * 処理内容 : 呼び出し元シーンの終了に連動して所持品画面を停止し、非同期読込後の無効な画面更新を防ぐ。
+     * ================================== */
     const owner = this.scene.manager.keys[this.returnScene]
     const stopWithOwner = (): void => { this.scene.stop() }
     owner?.events.once(Phaser.Scenes.Events.SHUTDOWN, stopWithOwner)
@@ -57,6 +66,9 @@ export class InventoryScene extends Phaser.Scene {
     this.view.create()
     playUiSe(this, 'open')
     this.refresh()
+    /* === [ 担当 : 250056 斎藤永聖 ] ===
+     * 処理内容 : サーバーの所持数を商品一覧と結合し、未知の商品IDも表示用データへ変換してID順に並べる。
+     * ================================== */
     void requestShop().then(state=>{
       if(!active || !this.sys.isActive())return
       const catalogItems: InventoryItem[] = shopCatalog.map(product => ({
@@ -72,6 +84,9 @@ export class InventoryScene extends Phaser.Scene {
     }).catch(error=>{if(active && this.sys.isActive())this.view.showMessage(error instanceof Error?error.message:'読み込みに失敗しました')})
   }
 
+  /* === [ 担当 : 250056 斎藤永聖 ] ===
+   * 処理内容 : 使用可否を確認し、消費API成功後に所持数と戦闘アイテム効果を更新する。処理中の連打と失敗時の表示も管理する（宝石対応は共同編集）。
+   * ================================== */
   private async useRecoveryPotion(): Promise<void> {
     if (this.usingItem || !this.selectedItem || ![13,14,15].includes(this.selectedItem.id) || this.returnScene !== SCENE_KEYS.STAGE) return
     const stage = this.scene.manager.keys[this.returnScene] as StageScene
@@ -97,6 +112,9 @@ export class InventoryScene extends Phaser.Scene {
     }
   }
 
+  /* === [ 担当 : 250056 斎藤永聖 ] ===
+   * 処理内容 : 使用通信中の終了を防ぎ、閉じる演出の後に元のシーンを再開して所持品画面を停止する。
+   * ================================== */
   private closeInventory(): void {
     if (this.usingItem) return
     playUiSe(this, 'cancel')
@@ -109,6 +127,9 @@ export class InventoryScene extends Phaser.Scene {
     })
   }
 
+  /* === [ 担当 : 250056 斎藤永聖 ] ===
+   * 処理内容 : 選択カテゴリを変更し、アイテム選択を解除して一覧を再描画する。
+   * ================================== */
   private selectCategory(category: InventoryFilter): void {
     playUiSe(this, 'select')
     this.selectedCategory = category
@@ -116,12 +137,18 @@ export class InventoryScene extends Phaser.Scene {
     this.refresh()
   }
 
+  /* === [ 担当 : 250056 斎藤永聖 ] ===
+   * 処理内容 : 選択したアイテムを保持し、選択音と詳細表示を更新する。
+   * ================================== */
   private selectItem(item: InventoryItem): void {
     playUiSe(this, 'select')
     this.selectedItem = item
     this.refresh()
   }
 
+  /* === [ 担当 : 250056 斎藤永聖 ] ===
+   * 処理内容 : カテゴリで一覧を絞り込み、所持数・戦闘状態に合わせて使用可否と詳細を更新する。
+   * ================================== */
   private refresh(): void {
     const visibleItems = this.selectedCategory === 'all'
       ? this.items

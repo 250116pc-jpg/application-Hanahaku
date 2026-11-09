@@ -1,3 +1,9 @@
+/* ==================================
+ * 期末テスト提出プログラム
+ * 学籍番号: 250056
+ * 氏名: 斎藤永聖
+ * 担当範囲: 下記の担当コメントを参照（共同制作）
+ * ================================== */
 // 担当：たまおちゃん｜図鑑機能・contractPreview
 import catalogSkills from '../../../php/flower/catalog-skills.json'
 import imagePaths from '../../../php/flower/path.json'
@@ -35,6 +41,9 @@ export const prototypeFlowers: PrototypeFlower[] = catalog.sort((a,b)=>(a.catalo
  imageVariants:entry.image_variants?.map(variant => ({name:variant.name,url:images[assetPath(imagePaths.game,variant.path)],hanakotoba:variant.hanakotoba}))
 }))
 // Prototype-only ownership. Never writes to accounts, the DB, or real party data.
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : プレビュー用の契約済み花IDを保持し、有効な花の登録と登録状態の初期化を行う。
+ * ================================== */
 export class ContractPreviewState {
  readonly owned = new Set<number>()
  contract(id: number): void { if (prototypeFlowers.some(f => f.id===id)) this.owned.add(id) }

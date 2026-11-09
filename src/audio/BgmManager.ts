@@ -1,3 +1,9 @@
+/* ==================================
+ * 期末テスト提出プログラム
+ * 学籍番号: 250056
+ * 氏名: 斎藤永聖
+ * 担当範囲: 下記の担当コメントを参照（共同制作）
+ * ================================== */
 // 担当：たまおちゃん｜音声再生・設定・BgmManager
 import { DEFAULT_AUDIO_SETTINGS } from './AudioDefaults'
 import titleBgm from '../assets/audio/PathOfAdventure/PeriTune_Frosylva.mp3'
@@ -21,6 +27,9 @@ const seAssets = import.meta.glob('../assets/audio/se-lab/*.mp3', { eager: true,
 export type UiSe = 'confirm' | 'select' | 'cancel' | 'open' | 'purchase' | 'error' | 'recover' | 'confirm-wood'
 // Use ?se-confirm=wood to compare the wooden confirmation sound.
 const lastUiSound = new WeakMap<Phaser.Game, number>()
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : UI操作の種類を効果音へ対応付け、指定倍率と保存済み音量で再生する。
+ * ================================== */
 export function playUiSe(scene: Phaser.Scene, kind: UiSe, volumeScale = 1): void {
   lastUiSound.set(scene.game, performance.now())
   resumeAudioFromGesture(scene)
@@ -64,12 +73,18 @@ type AudioState = {
 
 const states = new WeakMap<Phaser.Game, AudioState>()
 
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 保存値が有限の数値か検査し、音量として使用できる範囲に制限する。
+ * ================================== */
 function validVolume(value: unknown, fallback: number): number {
   return typeof value === 'number' && Number.isFinite(value)
     ? Phaser.Math.Clamp(value, 0, 1)
     : fallback
 }
 
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : ゲーム単位の音声状態を取得し、未作成なら保存設定から初期化する。
+ * ================================== */
 function stateFor(scene: Phaser.Scene): AudioState {
   const existing = states.get(scene.game)
   if (existing) return existing
@@ -102,6 +117,9 @@ function stateFor(scene: Phaser.Scene): AudioState {
   return state
 }
 
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 共通BGM・効果音をPhaserのローダーへ登録する。
+ * ================================== */
 export function preloadAudio(scene: Phaser.Scene): void {
   scene.load.audio(BGM_KEYS.title, titleBgm)
   scene.load.audio(BGM_KEYS.home, homeBgm)
@@ -120,6 +138,9 @@ export function preloadAudio(scene: Phaser.Scene): void {
   for (const [path, url] of Object.entries(seAssets)) scene.load.audio(`ui-${path.split('/').pop()!.replace('.mp3', '')}`, url)
 }
 
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : シーンに対応するBGMを判定し、重ねて表示する画面では元の音楽を扱えるようにする。
+ * ================================== */
 function sceneBgmKey(scene: Phaser.Scene): string | null {
   if (scene.scene.key === 'TitleScene') return BGM_KEYS.title
   // Overlays keep the BGM of the scene underneath, including paused battles.
@@ -133,6 +154,9 @@ function sceneBgmKey(scene: Phaser.Scene): string | null {
 }
 
 // TitleSceneのcreateから一度だけ呼ぶ。ゲーム処理のSceneには変更を加えない。
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 音声の初期状態、シーン切替とユーザー操作による再生制限解除のイベントを設定する。
+ * ================================== */
 export function initializeAudio(scene: Phaser.Scene): void {
   const state = stateFor(scene)
   if (state.installed) return
@@ -177,20 +201,32 @@ export function initializeAudio(scene: Phaser.Scene): void {
 }
 
 // Only the playing level is reduced; the user's stored BGM percentage is unchanged.
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : ミュート・BGM音量・音声案内中の抑制を反映した実際のBGM音量を求める。
+ * ================================== */
 function bgmLevel(state: AudioState): number {
   return state.settings.bgmVolume * (state.voiceDucking ? 0.15 : 1)
 }
 
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 案内音声の再生状態に応じてBGM音量を一時的に抑制・復元する。
+ * ================================== */
 export function setVoiceDucking(scene: Phaser.Scene, active: boolean): void {
   const state = stateFor(scene)
   state.voiceDucking = active
   state.currentSound?.setVolume(bgmLevel(state))
 }
 
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 現在の音量設定を取得する。
+ * ================================== */
 export function loadAudioSettings(scene: Phaser.Scene): AudioSettings {
   return { ...stateFor(scene).settings }
 }
 
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : BGM・SE・音声音量とミュート状態を更新し、再生中の音へ反映する。
+ * ================================== */
 export function applyAudioSettings(scene: Phaser.Scene, next: AudioSettings): void {
   const state = stateFor(scene)
   state.settings = {
@@ -207,6 +243,9 @@ export function applyAudioSettings(scene: Phaser.Scene, next: AudioSettings): vo
   scene.registry.set('isMuted', state.settings.isMuted)
 }
 
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 音量変更を反映してブラウザの保存領域へ記録する。
+ * ================================== */
 export function saveAudioSettings(scene: Phaser.Scene, next: AudioSettings): void {
   applyAudioSettings(scene, next)
   try {
@@ -216,6 +255,9 @@ export function saveAudioSettings(scene: Phaser.Scene, next: AudioSettings): voi
   }
 }
 
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 再生待ちのBGMがある場合、再生可能な状態で開始する。
+ * ================================== */
 function playPending(scene: Phaser.Scene, state: AudioState): void {
   if (scene.sound.locked) return
   if (state.pendingKey) playBgm(scene, state.pendingKey)
@@ -225,6 +267,9 @@ function playPending(scene: Phaser.Scene, state: AudioState): void {
   }
 }
 
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : ブラウザの音声制限が解除されるまで待ち、解除後に保留した再生を再開する。
+ * ================================== */
 function waitForUnlock(scene: Phaser.Scene, state: AudioState): void {
   if (state.unlockHooked) return
   state.unlockHooked = true
@@ -234,6 +279,9 @@ function waitForUnlock(scene: Phaser.Scene, state: AudioState): void {
   })
 }
 
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : クリック・タップなどの操作を契機に音声コンテキストを再開する。
+ * ================================== */
 export function resumeAudioFromGesture(scene: Phaser.Scene): void {
   const state = stateFor(scene)
   const webAudio = scene.sound as Phaser.Sound.WebAudioSoundManager
@@ -246,6 +294,9 @@ export function resumeAudioFromGesture(scene: Phaser.Scene): void {
   }
 }
 
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 現在のBGMと再生待ち状態を停止・解除する。
+ * ================================== */
 export function stopBgm(scene: Phaser.Scene): void {
   const state = stateFor(scene)
   state.pendingKey = null
@@ -255,6 +306,9 @@ export function stopBgm(scene: Phaser.Scene): void {
   state.currentKey = null
 }
 
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 指定BGMへ切り替え、同一曲の重複再生を避けながら音量と再生待ちを管理する。
+ * ================================== */
 export function playBgm(scene: Phaser.Scene, key: string): void {
   const state = stateFor(scene)
   state.pendingKey = key
@@ -291,10 +345,16 @@ export function playBgm(scene: Phaser.Scene, key: string): void {
 }
 
 // 既存のスタートボタンからの呼び出しを維持する。
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 現在のシーンに対応するBGMの再生を開始する。
+ * ================================== */
 export function startBgm(scene: Phaser.Scene): void {
   playBgm(scene, BGM_KEYS.title)
 }
 
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : ミュート設定とSE音量を反映して指定の効果音を再生する。
+ * ================================== */
 export function playSe(scene: Phaser.Scene, key: string, volumeScale = 1): void {
   if (!stateFor(scene).settings.isMuted && scene.cache.audio.exists(key)) {
     scene.sound.play(key, { volume: stateFor(scene).settings.seVolume * volumeScale })

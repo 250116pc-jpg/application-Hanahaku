@@ -1,3 +1,9 @@
+/* ==================================
+ * 期末テスト提出プログラム
+ * 学籍番号: 250056
+ * 氏名: 斎藤永聖
+ * 担当範囲: 下記の担当コメントを参照（共同制作）
+ * ================================== */
 // 担当：たまおちゃん｜所持品機能・InventoryView
 import './InventoryFantasy.css'
 import Phaser from 'phaser'
@@ -14,6 +20,9 @@ interface InventoryCallbacks {
   onItem: (item: InventoryItem) => void
 }
 
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 所持品の固定スロット・鍵表示・カテゴリ・詳細欄を生成し、選択、使用表示、開閉演出を管理する。
+ * ================================== */
 export class InventoryView {
   private root!: HTMLDivElement
   private grid!: HTMLDivElement
@@ -184,6 +193,9 @@ const categories = document.createElement('nav')
     })
   }
 
+  /* === [ 担当 : 250056 斎藤永聖 ] ===
+   * 処理内容 : 閉じる演出後に画面を破棄し、終了コールバックを実行する。
+   * ================================== */
   close(onClosed: () => void): void {
     if (this.closing) return
     this.closing = true
@@ -203,6 +215,9 @@ const categories = document.createElement('nav')
     animation.finished.then(finish, finish)
     window.setTimeout(finish, 250)
   }
+  /* === [ 担当 : 250056 斎藤永聖 ] ===
+   * 処理内容 : カテゴリで絞られた所持品をスロットに描画し、未所持の鍵と選択状態を反映する。
+   * ================================== */
   renderItems(items: InventoryItem[], selectedItemId: number | null): void {
     this.grid.replaceChildren()
     this.pager.replaceChildren()
@@ -246,6 +261,9 @@ const categories = document.createElement('nav')
     }
   }
 
+  /* === [ 担当 : 250056 斎藤永聖 ] ===
+   * 処理内容 : 選択アイテムの名称・所持数・効果説明を詳細欄へ表示する。
+   * ================================== */
   renderDetail(item: InventoryItem | null): void {
     this.detail.replaceChildren()
     const heading = document.createElement('h2')
@@ -266,12 +284,18 @@ const categories = document.createElement('nav')
     })
   }
 
+  /* === [ 担当 : 250056 斎藤永聖 ] ===
+   * 処理内容 : 使用ボタンを表示し、使用不可や通信中の場合は無効にする。
+   * ================================== */
   showRecoveryUse(disabled: boolean): void {
     const use = this.button('使用する', () => this.callbacks.onUse?.())
     use.disabled = disabled
     this.detail.append(use)
   }
 
+  /* === [ 担当 : 250056 斎藤永聖 ] ===
+   * 処理内容 : 所持品画面内に使用結果やエラーメッセージを表示する。
+   * ================================== */
   showMessage(message: string): void {
     this.message.textContent = message
     // Keep load failures visible until the inventory is closed.
