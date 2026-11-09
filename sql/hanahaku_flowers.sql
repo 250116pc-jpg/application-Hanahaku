@@ -1,82 +1,11 @@
+-- 固定データは php/ 配下のJSONで管理する。
+-- 旧ファイル名は既存のセットアップ手順との互換性のため残す。
 USE hanahaku;
 
-CREATE TABLE IF NOT EXISTS `skill` (
-    `id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    `name` TEXT NOT NULL,
-    `description` TEXT NULL,
-    `upgrade_data` JSON NULL
+CREATE TABLE IF NOT EXISTS player_flowers (
+  user_id BIGINT UNSIGNED NOT NULL,
+  flower_id INT NOT NULL,
+  contracted_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (user_id, flower_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-CREATE TABLE IF NOT EXISTS flowers (
- `id` INT NOT NULL AUTO_INCREMENT COMMENT 'ただのID',
- `name` VARCHAR(100) NOT NULL COMMENT '花の名前',
- `upgrade_id` INT NULL COMMENT '強化ID（参照先未作成）',
- `Game_image` VARCHAR(255) NULL COMMENT 'ゲームの花画像',
- `Real_image` VARCHAR(255) NULL COMMENT 'リアルな花画像',
- `skill_id` INT NULL COMMENT 'スキルの種類',
- `MP` INT NULL COMMENT '花の精神力',
- `ATK` INT NULL COMMENT '攻撃力ボーナス',
- `CRT_BONUS` FLOAT NULL COMMENT 'クリティカル率ボーナス（0～1）',
- `CD_BONUS` INT NULL COMMENT 'クリティカルダメージボーナス',
- `HP_BONUS` INT NULL,
- `EVA_BONUS` FLOAT NULL,
- `DEF_BONUS` INT NULL,
- `VIT_BONUS` INT NULL,
- `explain` TEXT NULL COMMENT '説明',
- `MP_BONUS` INT NULL,
- PRIMARY KEY (id),
- CONSTRAINT fk_flowers_skill FOREIGN KEY (skill_id) REFERENCES skill(id) ON DELETE RESTRICT ON UPDATE RESTRICT,
- CONSTRAINT chk_flower_critical_rate CHECK (CRT_BONUS IS NULL OR CRT_BONUS BETWEEN 0 AND 1)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-CREATE TABLE IF NOT EXISTS stages (
-    id INT NOT NULL AUTO_INCREMENT,
-    name TEXT NOT NULL,
-    description TEXT NULL,
-    drop_items JSON NULL,
-    enemies JSON NULL,
-    map_data JSON NULL,
-    area_data JSON NULL,
-    PRIMARY KEY (id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-CREATE TABLE IF NOT EXISTS items (
-    id INT NOT NULL AUTO_INCREMENT,
-    name TEXT NOT NULL,
-    description TEXT NULL,
-    drop_stage JSON NULL,
-    price INT NULL,
-    PRIMARY KEY (id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-CREATE TABLE IF NOT EXISTS ally (
-    id INT NOT NULL AUTO_INCREMENT,
-    name TEXT NOT NULL,
-    upgrade_id INT NULL,
-    skill_id INT NULL,
-    description TEXT NULL,
-    req_items JSON NULL,
-    PRIMARY KEY (id),
-    CONSTRAINT fk_ally_skill FOREIGN KEY (skill_id) REFERENCES skill(id) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-CREATE TABLE IF NOT EXISTS enemy (
-    id INT NOT NULL AUTO_INCREMENT,
-    name TEXT NOT NULL,
-    upgrade_id INT NULL,
-    flower_id INT NULL,
-    description TEXT NULL,
-    stages JSON NULL,
-    `HP` INT NULL,
-    `MP` INT NULL,
-    `EVA` FLOAT NULL,
-    `VIT` INT NULL,
-    `DEF` INT NULL,
-    `CRT` FLOAT NULL,
-    `CD` INT NULL,
-    `LEVEL` INT NULL,
-    `MS` FLOAT NULL,
-    `AS` FLOAT NULL,
-    PRIMARY KEY (id),
-    CONSTRAINT fk_enemy_flower FOREIGN KEY (flower_id) REFERENCES flowers(id) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+-- flower_id は php/flower/NNN.json のID。固定マスタへの外部キーは不要。

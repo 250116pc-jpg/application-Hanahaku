@@ -39,5 +39,5 @@ try {
     respond(['ok' => true, 'flowers' => $states]);
 } catch (PDOException $error) {
     error_log('Could not load skill states: ' . $error->getMessage());
-    respond(['ok' => false, 'error' => 'スキル・契約状態のテーブルを読み込めません。sql/skill_seed.sqlとsql/player_skill_states.sqlを適用してください。'], 500);
+    respond(['ok' => false, 'error' => 'スキル・契約状態のテーブルを読み込めません。sql/hanahaku_flowers.sqlとsql/player_skill_states.sqlを適用してください。'], 500);
 }
