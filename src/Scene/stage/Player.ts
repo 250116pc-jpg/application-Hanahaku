@@ -8,8 +8,9 @@ import { playerStats } from './allyStats.ts';
 
 const BUFF_EFFECT_COLOR = 0xff5964;
 const SKILL_AREA_CELL_SIZE = 40;
-// Keep the quicker air gravity while reducing launch speed to two-thirds of the previous setting.
+// Keep the quicker air gravity and soften only the descending part of the jump.
 const AIR_GRAVITY_SCALE = 4;
+const FALL_GRAVITY_REDUCTION = 0.9;
 const JUMP_POWER_SCALE = 1.4;
 // Phaser numbers animation frames from 1. The sword first extends on frame 2.
 const BASIC_ATTACK_IMPACT_FRAME = 2;
@@ -248,9 +249,11 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     if (!body || !this.cursors || this.dead) return;
 
     const worldGravity = this.scene.physics.world.gravity.y;
-    const extraGravity = body.velocity.y > 0 ? this.FALL_GRAVITY_BONUS : 0;
+    const isFalling = body.velocity.y > 0;
+    const extraGravity = isFalling ? this.FALL_GRAVITY_BONUS : 0;
+    const gravityScale = isFalling ? AIR_GRAVITY_SCALE * FALL_GRAVITY_REDUCTION : AIR_GRAVITY_SCALE;
     body.setGravityY(!body.blocked.down
-      ? (worldGravity + extraGravity) * AIR_GRAVITY_SCALE - worldGravity
+      ? (worldGravity + extraGravity) * gravityScale - worldGravity
       : 0);
 
     if (this.action !== null || this.isGuarding() || battleNow(this.scene) < Math.max(this.chargeUntil, this.comboUntil)) {
