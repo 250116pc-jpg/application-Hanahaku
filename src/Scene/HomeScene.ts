@@ -108,7 +108,7 @@ export class HomeScene extends Phaser.Scene {
     })
     const savedX = Phaser.Math.Clamp(this.registry.get(positionKey) ?? area.spawn, 32, area.width - 32)
     const player = createCharacterSprite(this, savedX * scaleX, 568 * scaleY, 'home-player-idle', 'home-player-idle')
-    player.setOrigin(.5, 1).setScale(2 * scaleX, 2 * scaleY).setDepth(10)
+    player.setOrigin(.5, 1).setScale(1.6 * scaleX, 1.6 * scaleY).setDepth(10)
     // 主人公は建物と道より手前に描画する。
     // スプライトシートの余白が、建物や看板のタッチを遮らないようにする。
     player.setInteractive({
