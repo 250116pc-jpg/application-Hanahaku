@@ -1,4 +1,4 @@
-﻿/* ==================================
+/* ==================================
  * 期末テスト提出プログラム
  * 学籍番号: 250056
  * 氏名: 斎藤永聖
@@ -18,6 +18,9 @@ import { loadCharacterAnimation, createCharacterSprite } from '../animation/anim
 import { homeAnimationData, homeAttackCombos, homeAnimationNames, homeClickActions, type HomeAttackName } from '../animation/homeAnimationData'
 
 import { createButton } from './HomeScene/buttons'
+import { villageAssets, createVillage, setupVillageScroll } from './HomeScene/village'
+import { getTownArea, townAreas, type TownAreaId, type VillageStop } from './HomeScene/townAreas'
+import { createTownMap } from './HomeScene/townMap'
 import { preloadTitlePetals, createTitlePetals } from './title/TitlePetals'
 //debug機能
 import { showDebugSceneName } from '../debug';
@@ -36,6 +39,7 @@ export class HomeScene extends Phaser.Scene {
 
   preload(): void {
     preloadTitlePetals(this)
+    Object.entries(villageAssets).forEach(([key, url]) => this.load.image(key, url))
     // 背景画像（表示順に4種類）
     this.load.image('bg1', bg1Img)
     this.load.image('bg2', bg2Img)
@@ -56,6 +60,10 @@ export class HomeScene extends Phaser.Scene {
     this.navigate = createSceneFade(this)
     showDebugSceneName(this);
 
+    const area = getTownArea(this.registry.get('home-town-area'))
+    this.registry.set('home-town-area', area.id)
+    const positionKey = 'home-town-x-' + area.id
+    let mapOpen = false
     const width = this.scale.width
     const height = this.scale.height
     const scaleX = width / 1280
@@ -67,16 +75,20 @@ export class HomeScene extends Phaser.Scene {
     
     // 背景画像を追加して画面サイズに合わせる
     const bg = this.add.image(width / 2, height / 2, bgKey)
-    bg.setDisplaySize(width, height)
+    bg.setDisplaySize(width, height).setScrollFactor(0)
 
     // タイトルと同じ花びらを、背景の上・主人公とボタンの後ろに表示する。
-    createTitlePetals(this, { night: bgKey === 'bg4' })
+    const beforePetals = new Set(this.children.list)
+    if (area.id !== 'atelier') createTitlePetals(this, { night: bgKey === 'bg4' })
+    this.children.list.forEach(child => {
+      if (!beforePetals.has(child) && child instanceof Phaser.GameObjects.Image) child.setScrollFactor(0)
+    })
 
     // 次回戻ってきたとき用にインデックスを更新
     this.registry.set('bgIndex', (bgIndex + 1) % this.backgroundKeys.length)
 
     // UI用のコンテナ
-    const ui = this.add.container(-40, 0)
+    const ui = this.add.container(0, 0).setScrollFactor(0).setDepth(40)
 
     // 2. 左側の主人公。速度と繰り返し回数はhomeAnimationData.tsで設定する。
     homeAnimationNames.forEach(action => {
@@ -94,12 +106,19 @@ export class HomeScene extends Phaser.Scene {
         })
       }
     })
-    const player = createCharacterSprite(this, 420 * scaleX, 390 * scaleY, 'home-player-idle', 'home-player-idle')
-    player.setScale(2.25)
-    ui.add(player)
-    player.setInteractive({ useHandCursor: true })
+    const savedX = Phaser.Math.Clamp(this.registry.get(positionKey) ?? area.spawn, 32, area.width - 32)
+    const player = createCharacterSprite(this, savedX * scaleX, 568 * scaleY, 'home-player-idle', 'home-player-idle')
+    player.setOrigin(.5, 1).setScale(2 * scaleX, 2 * scaleY).setDepth(10)
+    // 主人公は建物と道より手前に描画する。
+    // スプライトシートの余白が、建物や看板のタッチを遮らないようにする。
+    player.setInteractive({
+      hitArea: new Phaser.Geom.Rectangle(65, 27, 62, 101),
+      hitAreaCallback: Phaser.Geom.Rectangle.Contains,
+      useHandCursor: true,
+    })
     // 動作中は連打を受け付けず、完了後に位置・向き・待機を復元する。
     let isActing = false
+    let travelling = false
     // 何も押されていない待機が8〜15秒続いたらピースする。クリック動作中は割り込まない。
     let nextPeaceAt = 0
     const resetIdleTime = (): void => {
@@ -111,7 +130,7 @@ export class HomeScene extends Phaser.Scene {
       delay: 1000,
       loop: true,
       callback: () => {
-        if (isActing || document.hidden || this.time.now < nextPeaceAt) return
+        if (mapOpen || travelling || isActing || document.hidden || this.time.now < nextPeaceAt) return
         if (player.anims.currentAnim?.key !== 'home-player-idle') return
         isActing = true
         const originalFlipX = player.flipX
@@ -129,8 +148,8 @@ export class HomeScene extends Phaser.Scene {
       peaceTimer.remove(false)
       this.input.off('pointerdown', resetIdleTime)
     })
-    player.on('pointerdown', () => {
-      if (isActing) return
+    player.on('pointerup', (pointer: Phaser.Input.Pointer) => {
+      if (mapOpen || travelling || isActing || pointer.getDistance() >= 10) return
       isActing = true
       const action = Phaser.Utils.Array.GetRandom([...homeClickActions])
       const startX = player.x
@@ -182,8 +201,134 @@ export class HomeScene extends Phaser.Scene {
       }
     })
 
-    // 3. ナビゲーションボタンの配置
-    this.createNavigationButtons(ui, scaleX, scaleY)
+    // 自由移動と建物への移動を同じ更新処理で扱う。キー操作で目的地を変更できる。
+    const help = '道をタッチ / ← →・A Dで移動 · 出入口をタッチ · Mで街マップ'
+    let targetX: number | null = null
+    let destination: VillageStop | null = null
+    let entering = false
+    let marker: Phaser.GameObjects.Ellipse | undefined
+    const clampX = (x: number): number => Phaser.Math.Clamp(x, 32 * scaleX, (area.width - 32) * scaleX)
+    const clearTarget = (): void => {
+      targetX = null
+      destination = null
+      marker?.destroy()
+      marker = undefined
+    }
+    const moveTo = (x: number, stop: VillageStop | null = null): void => {
+      if (mapOpen || entering || isActing) return
+      clearTarget()
+      targetX = clampX(x)
+      destination = stop
+      travelling = true
+      resetIdleTime()
+      status.setText(stop ? stop.label + 'へ移動中…（方向キーで中断）' : help)
+      marker = this.add.ellipse(targetX, 572 * scaleY, 28 * scaleX, 8 * scaleY, 0xffdf81, .65).setDepth(9)
+    }
+    const status = createVillage(this, area, (stop: VillageStop) => moveTo(stop.door * scaleX, stop))
+    status.setText(help).setFontSize(15)
+    const keys = this.input.keyboard?.addKeys({
+      left: Phaser.Input.Keyboard.KeyCodes.LEFT, right: Phaser.Input.Keyboard.KeyCodes.RIGHT,
+      a: Phaser.Input.Keyboard.KeyCodes.A, d: Phaser.Input.Keyboard.KeyCodes.D,
+    }) as Record<'left' | 'right' | 'a' | 'd', Phaser.Input.Keyboard.Key> | undefined
+    const groundTap = (pointer: Phaser.Input.Pointer, objects: Phaser.GameObjects.GameObject[]): void => {
+      if (mapOpen || objects.length || pointer.getDistance() >= 10 || pointer.y < 558 * scaleY || pointer.y > 640 * scaleY) return
+      moveTo(this.cameras.main.getWorldPoint(pointer.x, pointer.y).x)
+    }
+    const movePlayer = (_time: number, delta: number): void => {
+      if (mapOpen || entering || isActing || !this.input.enabled || document.hidden) return
+      const direction = Number(!!(keys?.right.isDown || keys?.d.isDown)) - Number(!!(keys?.left.isDown || keys?.a.isDown))
+      const step = 310 * scaleX * Math.min(delta, 50) / 1000
+      const oldX = player.x
+      if (direction) {
+        clearTarget()
+        status.setText(help)
+        player.x = clampX(player.x + direction * step)
+      } else if (targetX !== null) {
+        const distance = targetX - player.x
+        player.x += Math.sign(distance) * Math.min(Math.abs(distance), step)
+        if (Math.abs(targetX - player.x) < .01) {
+          const arrived = destination
+          clearTarget()
+          if (arrived?.notice) {
+            status.setText(arrived.notice)
+          } else if (arrived) {
+            entering = true
+            status.setText(arrived.label + 'に到着しました')
+            this.time.delayedCall(180, () => {
+              if (arrived.area) visitArea(arrived.area)
+              else if (arrived.scene) this.navigate(arrived.scene)
+            })
+          }
+        }
+      }
+      travelling = player.x !== oldX || targetX !== null || entering
+      if (player.x !== oldX) {
+        player.setFlipX(player.x < oldX).play('home-player-run', true)
+        this.registry.set(positionKey, player.x / scaleX)
+        resetIdleTime()
+      }
+      if (!travelling || entering) player.play('home-player-idle', true)
+    }
+    const blur = (): void => {
+      if (entering || isActing) return
+      clearTarget()
+      travelling = false
+      Object.values(keys ?? {}).forEach(key => key.reset())
+      player.play('home-player-idle', true)
+    }
+    this.input.on('pointerup', groundTap)
+    this.events.on(Phaser.Scenes.Events.UPDATE, movePlayer)
+    this.game.events.on(Phaser.Core.Events.BLUR, blur)
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      this.input.off('pointerup', groundTap)
+      this.events.off(Phaser.Scenes.Events.UPDATE, movePlayer)
+      this.game.events.off(Phaser.Core.Events.BLUR, blur)
+      Object.values(keys ?? {}).forEach(key => this.input.keyboard?.removeKey(key, true))
+    })
+    const visitArea = (id: TownAreaId): void => {
+      this.registry.set('home-town-area', id)
+      this.registry.set('home-town-x-' + id, townAreas[id].spawn)
+      this.navigate('HomeScene')
+    }
+    let closeMap: (() => void) | undefined
+    const toggleMap = (): void => {
+      if (mapOpen) { closeMap?.(); return }
+      if (entering || !this.input.enabled) return
+      clearTarget()
+      travelling = false
+      // アクション途中でもマップを開けるように元の足元へ戻す。
+      this.tweens.killTweensOf(player)
+      player.removeAllListeners(Phaser.Animations.Events.ANIMATION_COMPLETE)
+      homeAnimationNames.forEach(action => player.removeAllListeners(Phaser.Animations.Events.ANIMATION_COMPLETE_KEY + 'home-player-' + action))
+      isActing = false
+      player.setY(568 * scaleY)
+      player.anims.timeScale = 1
+      player.play('home-player-idle', true)
+      Object.values(keys ?? {}).forEach(key => key.reset())
+      mapOpen = true
+      closeMap = createTownMap(this, area.id, visitArea, () => {
+        mapOpen = false
+        closeMap = undefined
+        Object.values(keys ?? {}).forEach(key => key.reset())
+        resetIdleTime()
+        status.setText(help)
+      })
+    }
+    const escapeMap = (): void => { if (mapOpen) closeMap?.() }
+    const mapKey = (event: KeyboardEvent): void => { if (!event.repeat) toggleMap() }
+    this.input.keyboard?.on('keydown-M', mapKey)
+    this.input.keyboard?.on('keydown-ESC', escapeMap)
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      this.input.keyboard?.off('keydown-M', mapKey)
+      this.input.keyboard?.off('keydown-ESC', escapeMap)
+    })
+    setupVillageScroll(this, player, () => travelling, area.width, () => mapOpen || entering)
+    ui.add(createButton(this, 990 * scaleX, 65 * scaleY, 175, '街マップ', toggleMap,
+      { key: 'button1', width: 175, height: 64 }))
+    ui.add(createButton(this, 1180 * scaleX, 65 * scaleY, 140, '設定', () => {
+      if (!mapOpen && !entering) this.navigate('SettingsScene')
+    }, { key: 'button1', width: 140, height: 64 }))
+    ui.list.forEach(child => (child as Phaser.GameObjects.Container).setScrollFactor(0))
   }
 
   // 単発・コンボ共通。回転攻撃だけ上昇→落下→着地を追加する。
@@ -228,44 +373,5 @@ export class HomeScene extends Phaser.Scene {
     player.play(key)
   }
 
-  /* === [ 担当 : 250056 斎藤永聖 ] ===
-   * 処理内容 : 共同編集のナビゲーションに、画面寸法から求めた倍率で各ボタンの座標を調整する処理を追加する。
-   * ================================== */
-  private createNavigationButtons(ui: Phaser.GameObjects.Container, scaleX: number, scaleY: number): void {
-
-    ui.add(createButton(this,1080 * scaleX,450 * scaleY,220,'エリア\n選択',() => {
-        this.navigate('AreaSelectScene')},{  key: 'button1',  width: 260,  height: 110
-
-        }
-    ))
-    ui.add(createButton(this, 510 * scaleX, 630 * scaleY, 200, '育成',() => {
-        this.navigate('TrainingScene')},{  key: 'button1',  width: 200,  height: 100
-
-        }
-    ))
-    ui.add(createButton(this, 740 * scaleX, 630 * scaleY, 200, '編成',() => {
-        this.navigate('FormScene')},{  key: 'button1',  width: 200,  height: 100
-
-        }
-    ))
-    ui.add(createButton(this, 970 * scaleX, 630 * scaleY, 200, '図鑑',() => {
-        this.navigate('EncyclopediaScene')},{  key: 'button1',  width: 200,  height: 100
-
-        }
-    ))
-
-    ui.add(createButton(this, 1200 * scaleX, 630 * scaleY, 200, 'ショップ',() => {
-        this.navigate('ShopScene')},{  key: 'button1',  width: 200,  height: 100
-
-        }
-    ))
-    ui.add(createButton(this, 1220 * scaleX, 70 * scaleY, 180, '設定',() => {
-        this.navigate('SettingsScene')},{  key: 'button1',  width: 150,  height: 80
-
-        }
-    ))
-  }
 }
-
-
 
