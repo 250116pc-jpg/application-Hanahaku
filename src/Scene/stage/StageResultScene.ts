@@ -10,6 +10,7 @@ import { SCENE_KEYS } from '../sceneKeys';
 import { BACK_BUTTON_POSITION, getTextStyle } from '../../utils/ui';
 import { showDebugSceneName } from '../../debug';
 import { playSe, stopBgm } from '../../audio/BgmManager';
+import { navigateToTownMap } from '../HomeScene/townMapNavigation';
 
 interface StageResultData {
   stageId: number;
@@ -73,8 +74,8 @@ export class StageResultScene extends Phaser.Scene {
     this.createButton(BACK_BUTTON_POSITION.x, BACK_BUTTON_POSITION.y, '‹ ステージ選択へ', 0x586f84, () => {
       this.scene.start(SCENE_KEYS.SELECT_STAGE, { areaId: 1 });
     });
-    this.createButton(width / 2 + (data.victory ? 0 : 110), buttonY, 'ホームへ', 0x80683e, () => {
-      this.scene.start(SCENE_KEYS.HOME);
+    this.createButton(width / 2 + (data.victory ? 0 : 110), buttonY, '町マップへ', 0x80683e, () => {
+      navigateToTownMap(this);
     });
   }
 

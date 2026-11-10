@@ -16,6 +16,7 @@ import type { ShopItem } from './types'
 import { PurchaseConfirm } from './PurchaseConfirm'
 import { SCENE_KEYS } from '../sceneKeys';
 import { BACK_BUTTON_POSITION, createTextButton } from '../../utils/ui'
+import { navigateToTownMap } from '../HomeScene/townMapNavigation'
 
 //--------------------------------------------------------------
 
@@ -147,8 +148,8 @@ export class ShopScene extends Phaser.Scene {
   }
 
   private createBackButton(): void {
-    createTextButton(this, BACK_BUTTON_POSITION.x, BACK_BUTTON_POSITION.y, '← ホーム', () => {
-      this.scene.start(SCENE_KEYS.HOME)
+    createTextButton(this, BACK_BUTTON_POSITION.x, BACK_BUTTON_POSITION.y, '← 町マップ', () => {
+      navigateToTownMap(this)
     }, {
       fontSize: 19,
       bgColor: '#193447',

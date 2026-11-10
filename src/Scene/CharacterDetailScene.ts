@@ -16,6 +16,7 @@ import rawSkillDefinitions from '../../php/skill/skills.json?raw'
 //debug機能
 import { showDebugSceneName } from '../debug';
 import { SCENE_KEYS } from './sceneKeys';
+import { navigateToTownMap } from './HomeScene/townMapNavigation'
 
 //--------------------------------------------------------------
 
@@ -192,8 +193,8 @@ export class CharacterDetailScene extends Phaser.Scene {
   }
 
   private createHomeButton(width: number, height: number): void {
-    createTextButton(this, width - 140, height - 65, 'ホームへ', () => {
-      this.scene.start(SCENE_KEYS.HOME)
+    createTextButton(this, width - 140, height - 65, '町マップへ', () => {
+      navigateToTownMap(this)
     }, { fontSize: 24, padding: { top: 10, bottom: 10, left: 18, right: 18 } })
   }
 

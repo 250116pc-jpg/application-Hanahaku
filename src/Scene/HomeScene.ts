@@ -307,9 +307,15 @@ export class HomeScene extends Phaser.Scene {
       this.registry.set('home-town-x-' + id, townAreas[id].spawn)
       this.navigate('HomeScene')
     }
-    const visitMapDestination = (_id: TownAreaId, stop: VillageStop): void => {
+    const visitMapDestination = (id: TownAreaId, stop: VillageStop): void => {
       if (stop.area) visitArea(stop.area)
-      else if (stop.scene) this.navigate(stop.scene)
+      else if (stop.scene) {
+        if (this.registry.get('home-town-area') !== id) {
+          this.registry.set('home-town-x-' + id, townAreas[id].spawn)
+        }
+        this.registry.set('home-town-area', id)
+        this.navigate(stop.scene)
+      }
     }
     let closeMap: (() => void) | undefined
     const toggleMap = (): void => {
@@ -350,6 +356,10 @@ export class HomeScene extends Phaser.Scene {
       if (!mapOpen && !entering) this.navigate('SettingsScene')
     }, { key: 'button1', width: 140, height: 64 }))
     ui.list.forEach(child => (child as Phaser.GameObjects.Container).setScrollFactor(0))
+    if (this.registry.get('home-open-town-map') === true) {
+      this.registry.set('home-open-town-map', false)
+      toggleMap()
+    }
   }
 
   // 単発・コンボ共通。回転攻撃だけ上昇→落下→着地を追加する。

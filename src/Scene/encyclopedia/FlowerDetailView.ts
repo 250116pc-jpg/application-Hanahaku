@@ -113,7 +113,7 @@ export function mountFlowerDetail(flower: PrototypeFlower, options: {
     }
     spread.append(left, right)
     const footer = node('footer', 'book-footer')
-    footer.append(node('span', 'book-folio', page === 'ability' ? 'I — 能力・スキル' : 'II — 花の説明'), button('ホームへ ›', options.onHome))
+    footer.append(node('span', 'book-folio', page === 'ability' ? 'I — 能力・スキル' : 'II — 花の説明'), button('町マップへ ›', options.onHome))
     book.append(header, spread, footer); root.append(book)
     const selected = nav.querySelector<HTMLButtonElement>('[aria-pressed="true"]'); selected?.focus({ preventScroll: true })
   }

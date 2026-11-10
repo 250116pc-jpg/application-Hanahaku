@@ -3,6 +3,7 @@ import Phaser from 'phaser';
 import testData, { getFlowerSkill } from './test_data';
 import type { CharacterData } from './test_data';
 import { SCENE_KEYS } from './sceneKeys';
+import { navigateToTownMap } from './HomeScene/townMapNavigation'
 import { applySmoothDisplay, BACK_BUTTON_POSITION } from '../utils/ui';
 import background from '../assets/ui/training_background.png';
 import parchment from '../assets/ui/training_panel.png';
@@ -184,7 +185,7 @@ export class TrainingScene extends Phaser.Scene {
       .setFontFamily('"Yu Mincho", "MS PMincho", serif').setFontStyle('normal')
       .setOrigin(.5).setShadow(0, 2, '#241008', 3, true, true);
     this.content.add(this.add.image(640, 74, 'training-title-ornament', 'divider').setScale(300 / 2172));
-    this.button(BACK_BUTTON_POSITION.x - 70, BACK_BUTTON_POSITION.y - 8, 140, 36, '‹  ホームへ', () => this.scene.start(SCENE_KEYS.HOME));
+    this.button(BACK_BUTTON_POSITION.x - 70, BACK_BUTTON_POSITION.y - 8, 140, 36, '‹  町マップへ', () => navigateToTownMap(this));
     this.content = content;
   }
 
@@ -539,7 +540,6 @@ export class TrainingScene extends Phaser.Scene {
     // 契約の登録は別の処理で行い、この画面はplayer_flowersの取得結果だけを表示する。
   }
 }
-
 
 
 

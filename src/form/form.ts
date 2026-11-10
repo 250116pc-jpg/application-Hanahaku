@@ -11,6 +11,7 @@ import { FormationManager } from './FormationManager'
 import { loadFormation, saveFormation } from './formationStorage'
 import { parseOwnedProgress, visibleFormationFlowers, type OwnedFormationFlower, type FormationSort } from './FormationData'
 import { SCENE_KEYS } from '../Scene/sceneKeys'
+import { navigateToTownMap } from '../Scene/HomeScene/townMapNavigation'
 import { getPhpBaseUrl } from '../auth/PhpBaseUrl'
 import { flowerStats, MAX_FLOWER_LEVEL } from '../Scene/training/trainingRules'
 import { applySmoothDisplay, smoothText, BACK_BUTTON_POSITION } from '../utils/ui'
@@ -195,7 +196,7 @@ export class FormScene extends Phaser.Scene {
   private dirty(): boolean { return JSON.stringify(this.saved) !== JSON.stringify(this.manager.getFormation()) }
   private refresh(): void {
     this.overlay?.destroy(); this.overlay = undefined; this.content.removeAll(true)
-    this.button(BACK_BUTTON_POSITION.x, BACK_BUTTON_POSITION.y + 10, 158, 43, this.returnToStage ? '‹ ステージ選択' : '‹ ホームへ', () => this.leave())
+    this.button(BACK_BUTTON_POSITION.x, BACK_BUTTON_POSITION.y + 10, 158, 43, this.returnToStage ? '‹ ステージ選択' : '‹ 町マップへ', () => this.leave())
     this.label(640, 39, '編成', 38, '#fff4dc').setOrigin(.5)
     this.content.add(this.add.image(640, 73, 'form-ornament', 'ui').setScale(290 / 2172))
     this.label(1240, 40, '花と旅する、四人の仲間', 16, '#fff4dc').setOrigin(1, .5)
@@ -296,7 +297,7 @@ export class FormScene extends Phaser.Scene {
     const exit = () => {
       this.preserveDraft = false
       if (this.returnToStage && this.scene.isSleeping(SCENE_KEYS.SELECT_STAGE)) { this.scene.wake(SCENE_KEYS.SELECT_STAGE); this.scene.stop() }
-      else this.scene.start(SCENE_KEYS.HOME)
+      else navigateToTownMap(this)
     }
     if (this.dirty() && !this.loading && !this.loadError) this.confirm('未保存の変更を破棄して戻りますか？', exit)
     else exit()

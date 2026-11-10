@@ -4,6 +4,7 @@ import backgroundImage from '../assets/ui/eria_back.png';
 import buttonImage from '../assets/ui/eria_btn.png';
 import { preloadBackButton, createBackButton, applySmoothDisplay, smoothText, getHeadingTextStyle, FONT_FAMILY } from '../utils/ui';
 import { SCENE_KEYS } from './sceneKeys';
+import { navigateToTownMap } from './HomeScene/townMapNavigation'
 
 type AreaInfo = { id: number; name: string; description: string; x: number; y: number; unlocked: boolean; difficulty: string };
 
@@ -80,7 +81,7 @@ export class AreaSelectScene extends Phaser.Scene {
     // 共通の高さを使い、背景に描かれた見出しの右に置く。
     createBackButton(this,
       { width: 180, height: 55, fontSize: 23 },
-      () => this.scene.start(SCENE_KEYS.HOME)
+      () => navigateToTownMap(this)
     ).setX(560);
     this.confirmButton = this.addImageButton('confirm', 1355, 714, 455, 96, () => {
       const area = this.areas.find(item => item.id === this.selectedAreaId);
