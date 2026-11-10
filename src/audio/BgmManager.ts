@@ -7,7 +7,8 @@
 // 担当：たまおちゃん｜音声再生・設定・BgmManager
 import { DEFAULT_AUDIO_SETTINGS } from './AudioDefaults'
 import titleBgm from '../assets/audio/PathOfAdventure/PeriTune_Frosylva.mp3'
-import homeBgm from '../assets/audio/PathOfAdventure/auau.mp3'
+import homeBgm from '../assets/audio/PathOfAdventure/PeriTune_Harbor_Morning_loop.mp3'
+import houseBgm from '../assets/audio/PathOfAdventure/auau.mp3'
 import stageBgm from '../assets/audio/PathOfAdventure/Peritune_Ancient_Gust_loop.mp3'
 import shopBgm from '../assets/audio/PathOfAdventure/PerituneMaterial_Harvest6_loop.mp3'
 import encyclopediaBgm from '../assets/audio/PathOfAdventure/PerituneMaterial_Glimmering_Woods_loop.mp3'
@@ -41,6 +42,7 @@ export function playUiSe(scene: Phaser.Scene, kind: UiSe, volumeScale = 1): void
 export const BGM_KEYS = {
   title: 'bgmTitle',
   home: 'bgmHome',
+  house: 'bgmHouse',
   stage: 'bgmStage',
   shop: 'bgmShop',
   encyclopedia: 'bgmEncyclopedia'
@@ -128,6 +130,7 @@ function stateFor(scene: Phaser.Scene): AudioState {
 export function preloadAudio(scene: Phaser.Scene): void {
   scene.load.audio(BGM_KEYS.title, titleBgm)
   scene.load.audio(BGM_KEYS.home, homeBgm)
+  scene.load.audio(BGM_KEYS.house, houseBgm)
   scene.load.audio(BGM_KEYS.stage, stageBgm)
   scene.load.audio(BGM_KEYS.shop, shopBgm)
   scene.load.audio(BGM_KEYS.encyclopedia, encyclopediaBgm)
@@ -155,6 +158,7 @@ function sceneBgmKey(scene: Phaser.Scene): string | null {
   if (scene.scene.key === 'StageScene') return BGM_KEYS.stage
   if (scene.scene.key === 'ShopScene') return BGM_KEYS.shop
   if (scene.scene.key === 'EncyclopediaScene') return BGM_KEYS.encyclopedia
+  if (scene.scene.key === 'HomeScene' && scene.registry.get('home-town-area') === 'atelier') return BGM_KEYS.house
   return BGM_KEYS.home
 }
 

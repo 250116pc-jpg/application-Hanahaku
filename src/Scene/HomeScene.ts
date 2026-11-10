@@ -224,7 +224,24 @@ export class HomeScene extends Phaser.Scene {
       status.setText(stop ? stop.label + 'へ移動中…（方向キーで中断）' : help)
       marker = this.add.ellipse(targetX, 572 * scaleY, 28 * scaleX, 8 * scaleY, 0xffdf81, .65).setDepth(9)
     }
-    const status = createVillage(this, area, (stop: VillageStop) => moveTo(stop.door * scaleX, stop))
+    const status = createVillage(this, area, (stop: VillageStop) => {
+      if (mapOpen || entering || isActing) return
+      if (stop.notice) {
+        moveTo(stop.door * scaleX, stop)
+        return
+      }
+      if (stop.area) {
+        entering = true
+        clearTarget()
+        travelling = false
+        visitArea(stop.area)
+      } else if (stop.scene) {
+        entering = true
+        clearTarget()
+        travelling = false
+        this.navigate(stop.scene)
+      }
+    })
     status.setText(help).setFontSize(15)
     const keys = this.input.keyboard?.addKeys({
       left: Phaser.Input.Keyboard.KeyCodes.LEFT, right: Phaser.Input.Keyboard.KeyCodes.RIGHT,
