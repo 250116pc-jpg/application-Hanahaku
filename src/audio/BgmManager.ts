@@ -8,6 +8,7 @@
 import { DEFAULT_AUDIO_SETTINGS } from './AudioDefaults'
 import titleBgm from '../assets/audio/PathOfAdventure/PeriTune_Frosylva.mp3'
 import homeBgm from '../assets/audio/PathOfAdventure/PeriTune_Harbor_Morning_loop.mp3'
+import houseBgm from '../assets/audio/PathOfAdventure/auau.mp3'
 import stageBgm from '../assets/audio/PathOfAdventure/Peritune_Ancient_Gust_loop.mp3'
 import shopBgm from '../assets/audio/PathOfAdventure/PerituneMaterial_Harvest6_loop.mp3'
 import encyclopediaBgm from '../assets/audio/PathOfAdventure/PerituneMaterial_Glimmering_Woods_loop.mp3'
@@ -41,6 +42,7 @@ export function playUiSe(scene: Phaser.Scene, kind: UiSe, volumeScale = 1): void
 export const BGM_KEYS = {
   title: 'bgmTitle',
   home: 'bgmHome',
+  house: 'bgmHouse',
   stage: 'bgmStage',
   shop: 'bgmShop',
   encyclopedia: 'bgmEncyclopedia'
@@ -48,6 +50,7 @@ export const BGM_KEYS = {
 
 const CLICK_SE_KEY = 'seClick'
 const STORAGE_KEY = 'hanahakuAudioSettings'
+const BGM_NORMALIZATION_PEAK = 0.95
 
 export interface AudioSettings {
   bgmVolume: number
@@ -64,6 +67,8 @@ type AudioState = {
   settings: AudioSettings
   currentKey: string | null
   currentSound: AdjustableSound | null
+  currentNormalization: number
+  bgmNormalizations: Map<string, number> | null
   pendingKey: string | null
   pendingClick: boolean
   unlockHooked: boolean
@@ -106,6 +111,8 @@ function stateFor(scene: Phaser.Scene): AudioState {
     },
     currentKey: null,
     currentSound: null,
+    currentNormalization: 1,
+    bgmNormalizations: null,
     pendingKey: null,
     pendingClick: false,
     unlockHooked: false,
@@ -123,6 +130,7 @@ function stateFor(scene: Phaser.Scene): AudioState {
 export function preloadAudio(scene: Phaser.Scene): void {
   scene.load.audio(BGM_KEYS.title, titleBgm)
   scene.load.audio(BGM_KEYS.home, homeBgm)
+  scene.load.audio(BGM_KEYS.house, houseBgm)
   scene.load.audio(BGM_KEYS.stage, stageBgm)
   scene.load.audio(BGM_KEYS.shop, shopBgm)
   scene.load.audio(BGM_KEYS.encyclopedia, encyclopediaBgm)
@@ -150,6 +158,7 @@ function sceneBgmKey(scene: Phaser.Scene): string | null {
   if (scene.scene.key === 'StageScene') return BGM_KEYS.stage
   if (scene.scene.key === 'ShopScene') return BGM_KEYS.shop
   if (scene.scene.key === 'EncyclopediaScene') return BGM_KEYS.encyclopedia
+  if (scene.scene.key === 'HomeScene' && scene.registry.get('home-town-area') === 'atelier') return BGM_KEYS.house
   return BGM_KEYS.home
 }
 
@@ -208,13 +217,56 @@ function bgmLevel(state: AudioState): number {
   return state.settings.bgmVolume * (state.voiceDucking ? 0.15 : 1)
 }
 
+function measureBgmLevel(buffer: AudioBuffer): { rms: number; peak: number } {
+  const stride = Math.max(1, Math.floor(buffer.sampleRate / 1000))
+  let sumSquares = 0
+  let sampleCount = 0
+  let peak = 0
+
+  for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
+    const samples = buffer.getChannelData(channel)
+    for (let index = 0; index < samples.length; index++) {
+      const sample = samples[index]
+      peak = Math.max(peak, Math.abs(sample))
+      if (index % stride === 0) {
+        sumSquares += sample * sample
+        sampleCount++
+      }
+    }
+  }
+
+  return { rms: Math.sqrt(sumSquares / sampleCount), peak }
+}
+
+function getBgmNormalization(scene: Phaser.Scene, state: AudioState, key: string): number {
+  if (!state.bgmNormalizations) {
+    const levels: { key: string; rms: number; peak: number }[] = []
+    for (const bgmKey of Object.values(BGM_KEYS)) {
+      if (!scene.cache.audio.exists(bgmKey)) return 1
+      const sound = scene.sound.add(bgmKey)
+      if (!(sound instanceof Phaser.Sound.WebAudioSound)) {
+        sound.destroy()
+        return 1
+      }
+      const level = measureBgmLevel(sound.audioBuffer)
+      sound.destroy()
+      if (!Number.isFinite(level.rms) || level.rms <= 0 || !Number.isFinite(level.peak) || level.peak <= 0) return 1
+      levels.push({ key: bgmKey, ...level })
+    }
+
+    const targetRms = Math.min(...levels.map(({ rms, peak }) => rms * BGM_NORMALIZATION_PEAK / peak))
+    state.bgmNormalizations = new Map(levels.map(({ key: bgmKey, rms }) => [bgmKey, targetRms / rms]))
+  }
+  return state.bgmNormalizations.get(key) ?? 1
+}
+
 /* === [ 担当 : 250056 斎藤永聖 ] ===
  * 処理内容 : 案内音声の再生状態に応じてBGM音量を一時的に抑制・復元する。
  * ================================== */
 export function setVoiceDucking(scene: Phaser.Scene, active: boolean): void {
   const state = stateFor(scene)
   state.voiceDucking = active
-  state.currentSound?.setVolume(bgmLevel(state))
+  state.currentSound?.setVolume(bgmLevel(state) * state.currentNormalization)
 }
 
 /* === [ 担当 : 250056 斎藤永聖 ] ===
@@ -236,7 +288,7 @@ export function applyAudioSettings(scene: Phaser.Scene, next: AudioSettings): vo
     isMuted: Boolean(next.isMuted)
   }
   scene.sound.mute = state.settings.isMuted
-  state.currentSound?.setVolume(bgmLevel(state))
+  state.currentSound?.setVolume(bgmLevel(state) * state.currentNormalization)
   scene.registry.set('bgmVolume', state.settings.bgmVolume)
   scene.registry.set('seVolume', state.settings.seVolume)
   scene.registry.set('voiceVolume', state.settings.voiceVolume)
@@ -304,6 +356,7 @@ export function stopBgm(scene: Phaser.Scene): void {
   state.currentSound?.destroy()
   state.currentSound = null
   state.currentKey = null
+  state.currentNormalization = 1
 }
 
 /* === [ 担当 : 250056 斎藤永聖 ] ===
@@ -330,13 +383,15 @@ export function playBgm(scene: Phaser.Scene, key: string): void {
     return
   }
 
+  const normalization = getBgmNormalization(scene, state, key)
   const sound = scene.sound.add(key, {
     loop: true,
-    volume: bgmLevel(state)
+    volume: bgmLevel(state) * normalization
   }) as AdjustableSound
   if (sound.play()) {
     state.currentSound = sound
     state.currentKey = key
+    state.currentNormalization = normalization
     state.pendingKey = null
   } else {
     sound.destroy()

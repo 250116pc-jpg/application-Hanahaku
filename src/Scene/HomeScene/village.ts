@@ -104,14 +104,6 @@ export function setupVillageScroll(scene: Phaser.Scene, player: Phaser.GameObjec
   scene.input.on('pointermove', move)
   scene.input.on('wheel', wheel)
   scene.events.on(Phaser.Scenes.Events.UPDATE, update)
-  for (const direction of worldWidth > 1280 ? [-1, 1] : []) {
-    const arrow = scene.add.text(direction < 0 ? 42 * sx : scene.scale.width - 42 * sx, 668 * scene.scale.height / 720, direction < 0 ? '‹' : '›', {
-      fontFamily: 'sans-serif', fontSize: '40px', color: '#f6e8c6', backgroundColor: '#4c3b29', padding: { x: 16, y: 0 },
-    }).setOrigin(.5).setScrollFactor(0).setDepth(31).setInteractive({ useHandCursor: true })
-    arrow.on('pointerup', (pointer: Phaser.Input.Pointer) => {
-      if (!blocked() && !travelling() && pointer.getDistance() < 10) camera.scrollX = clamp(camera.scrollX + direction * scene.scale.width * .65)
-    })
-  }
   scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
     scene.input.off('pointerdown', down)
     scene.input.off('pointermove', move)

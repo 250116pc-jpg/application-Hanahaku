@@ -39,7 +39,7 @@ export function createTownMap(
     card.on('pointerup', (pointer: Phaser.Input.Pointer) => {
       if (pointer.getDistance() >= 10) return
       close()
-      if (!here) travel(area.id)
+      if (area.id === 'gate' || !here) travel(area.id)
     })
   }
   const button = add(scene.add.rectangle(1110, 100, 116, 44, 0x594e3c).setInteractive({ useHandCursor: true }))

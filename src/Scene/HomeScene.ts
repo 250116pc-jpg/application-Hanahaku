@@ -224,7 +224,24 @@ export class HomeScene extends Phaser.Scene {
       status.setText(stop ? stop.label + 'へ移動中…（方向キーで中断）' : help)
       marker = this.add.ellipse(targetX, 572 * scaleY, 28 * scaleX, 8 * scaleY, 0xffdf81, .65).setDepth(9)
     }
-    const status = createVillage(this, area, (stop: VillageStop) => moveTo(stop.door * scaleX, stop))
+    const status = createVillage(this, area, (stop: VillageStop) => {
+      if (mapOpen || entering || isActing) return
+      if (stop.notice) {
+        moveTo(stop.door * scaleX, stop)
+        return
+      }
+      if (stop.area) {
+        entering = true
+        clearTarget()
+        travelling = false
+        visitArea(stop.area)
+      } else if (stop.scene) {
+        entering = true
+        clearTarget()
+        travelling = false
+        this.navigate(stop.scene)
+      }
+    })
     status.setText(help).setFontSize(15)
     const keys = this.input.keyboard?.addKeys({
       left: Phaser.Input.Keyboard.KeyCodes.LEFT, right: Phaser.Input.Keyboard.KeyCodes.RIGHT,
@@ -290,6 +307,13 @@ export class HomeScene extends Phaser.Scene {
       this.registry.set('home-town-x-' + id, townAreas[id].spawn)
       this.navigate('HomeScene')
     }
+    const visitMapArea = (id: TownAreaId): void => {
+      if (id === 'gate') {
+        this.navigate('AreaSelectScene')
+        return
+      }
+      visitArea(id)
+    }
     let closeMap: (() => void) | undefined
     const toggleMap = (): void => {
       if (mapOpen) { closeMap?.(); return }
@@ -306,7 +330,7 @@ export class HomeScene extends Phaser.Scene {
       player.play('home-player-idle', true)
       Object.values(keys ?? {}).forEach(key => key.reset())
       mapOpen = true
-      closeMap = createTownMap(this, area.id, visitArea, () => {
+      closeMap = createTownMap(this, area.id, visitMapArea, () => {
         mapOpen = false
         closeMap = undefined
         Object.values(keys ?? {}).forEach(key => key.reset())
@@ -374,4 +398,3 @@ export class HomeScene extends Phaser.Scene {
   }
 
 }
-
