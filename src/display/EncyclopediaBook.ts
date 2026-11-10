@@ -66,47 +66,48 @@ export function mountEncyclopediaBook(options: {
    // Outer paper edges in the original 384px-wide Gridwright frames.
    const edges=[341,317,292,264,219,167,115,67,28]
    const percent=(x:number):number=>Math.max(0,Math.min(100,(x/384-0.09)/0.82*100))
-   // Measure the two resting slots so the ribbon lands in the same place at any book size.
-   const from = seasons.indexOf(options.season)
-   const to = seasons.indexOf(targetSeason)
-   const artBounds = art.getBoundingClientRect()
-   const ribbons = Array.from(tabs.querySelectorAll('button')).flatMap((tab, index) => {
-    const crosses = index >= Math.min(from, to) && index < Math.max(from, to)
-    if (!crosses && !(from === to && index === from)) return []
-    const wasLeft = index < from
-    tab.classList.add('season-turning')
-    tab.style.transform = 'none'
-    tab.style.transformOrigin = wasLeft ? 'right center' : 'left center'
-    const rect = tab.getBoundingClientRect()
-    const rootX = wasLeft ? rect.right : rect.left
-    return [{ tab, crosses, wasLeft, rootX }]
+   // しおりは幅を変えずにページへ追従させる。完成後の配置を基準に移動する。
+   const from=seasons.indexOf(options.season),to=seasons.indexOf(targetSeason)
+   const seasonTabs=Array.from(tabs.querySelectorAll('button'))
+   const starts=seasonTabs.map(tab=>tab.getBoundingClientRect())
+   const startLabels=seasonTabs.map(tab=>tab.firstElementChild!.getBoundingClientRect())
+   seasonTabs.forEach((tab,index)=>{
+    tab.classList.toggle('season-past',index<to)
+    tab.setAttribute('aria-pressed',String(index===to));tab.style.gridColumn=index<to?'1':'2'
    })
-   // Inked outer contour at bookmark height in each 384px sprite.
-   const ribbonEdges = [341, 317, 291, 264, 235, 166, 115, 67, 30]
+   const ends=seasonTabs.map(tab=>tab.getBoundingClientRect())
+   const endLabels=seasonTabs.map(tab=>tab.firstElementChild!.getBoundingClientRect())
+   const ribbons=seasonTabs.flatMap((tab,index)=>{
+    if((index<from)===(index<to)) return []
+    tab.classList.add('season-turning')
+    return [{tab,index,start:starts[index]!,end:ends[index]!,startLabel:startLabels[index]!,endLabel:endLabels[index]!}]
+   })
+   // 戻るときは元の季節を手前に残し、右へ閉じる紙で徐々に覆う。
+   const retiring=direction<0 && from!==to ? seasonTabs[from] : undefined
+   const paperBounds=book.getBoundingClientRect()
+   const retiringBounds=retiring?.getBoundingClientRect()
+   const retiringCover=retiringBounds ? Math.max(0,Math.min(100,(paperBounds.right-paperBounds.width*.035-retiringBounds.left)/retiringBounds.width*100)) : 0
+   retiring?.classList.add('season-retiring')
+   const ribbonEdges=[341,317,291,264,235,166,115,67,30]
    let frame=direction<0?8:0,stepNumber=0
    const step=():void=>{
     if(disposed)return
     art.src=asset(`turn_next_${String(frame).padStart(2,'0')}.png`)
     const edge=edges[frame]!,leftEdge=Math.min(192,edge),rightEdge=Math.max(192,edge)
-    // The same sprite frame controls the paper and its attached ribbons.
-    const progress = (edges[0]! - edge) / (edges[0]! - edges[8]!)
-    const lift = Math.sin(Math.PI * progress)
-    for (const { tab, crosses, wasLeft, rootX } of ribbons) {
-     if (!crosses) {
-      // An index for the same chapter stays in its stack, flexing as the sheet passes.
-      tab.style.transform = `rotate(${-5 * lift}deg) scaleX(${1 - .12 * lift})`
-      continue
-     }
-     const paperX = ribbonEdges[frame]!
-     const side = Math.sign(paperX - 192)
-     const widthRatio = Math.abs(paperX - 192) / (side > 0 ? 149 : 162)
-     // Keep the glued end just inside the paper; compress only the free end.
-     const travel = artBounds.left + (paperX - side * 2) * artBounds.width / 384 - rootX
-     const face = (wasLeft ? -1 : 1) * side * Math.max(.24, widthRatio)
-     tab.style.zIndex = '1'
-     const label = tab.firstElementChild as HTMLElement
-     label.style.transform = face < 0 ? 'scaleX(-1)' : 'none'
-     tab.style.transform = `translateX(${travel}px) rotate(${-8 * lift}deg) scaleX(${face})`
+    const paperX=ribbonEdges[frame]!
+    const fraction=direction>0 ? (ribbonEdges[0]!-paperX)/(ribbonEdges[0]!-ribbonEdges[8]!) : (paperX-ribbonEdges[8]!)/(ribbonEdges[0]!-ribbonEdges[8]!)
+    if(retiring){
+     const coverage=Math.max(0,Math.min(1,(fraction-.65)/.35))
+     retiring.style.clipPath=`inset(0 0 0 ${retiringCover*coverage}%)`
+    }
+    for(const {tab,index,start,end,startLabel,endLabel} of ribbons){
+     const remaining=1-fraction
+     const dx=(start.left-end.left)*remaining,dy=(start.top-end.top)*remaining
+     tab.style.transform=`translate(${dx}px,${dy}px)`
+     const label=tab.firstElementChild as HTMLElement
+     label.style.transform=`translate(${((startLabel.left-start.left)-(endLabel.left-end.left))*remaining}px,${((startLabel.top-start.top)-(endLabel.top-end.top))*remaining}px)`
+     const ribbon=tab.querySelector<HTMLImageElement>('.encyclopedia-season-ribbon')!
+     ribbon.style.transform=(fraction<.5 ? index<from : index<to)?'scaleX(-1)':'none'
     }
     // Stationary pages are occluded by the turning sheet, never swapped at the spine.
     ui.style.clipPath=direction<0?`inset(0 0 0 ${percent(rightEdge)}%)`:`inset(0 ${100-percent(leftEdge)}% 0 0)`
@@ -119,7 +120,16 @@ export function mountEncyclopediaBook(options: {
     moving.style.transformOrigin='50% 50%'
     moving.style.transform=`scaleX(${Math.min(1,Math.abs(edge-192)/(384*0.41))})`
     moving.hidden=false
-    if(stepNumber===8){timer=setTimeout(()=>{if(!disposed)change()},55);return}
+    if(stepNumber===8){
+     ribbons.forEach(({tab})=>{
+      tab.classList.remove('season-turning');tab.style.removeProperty('transform')
+      ;(tab.firstElementChild as HTMLElement).style.removeProperty('transform')
+      tab.querySelector<HTMLElement>('.encyclopedia-season-ribbon')?.style.removeProperty('transform')
+     })
+     retiring?.classList.remove('season-retiring');retiring?.style.removeProperty('clip-path')
+     art.src=asset('open.png');moving.hidden=true;ui.hidden=true;preview.style.clipPath='none'
+     timer=setTimeout(()=>{if(!disposed)change()},55);return
+    }
     frame+=direction<0?-1:1;stepNumber++
     timer=setTimeout(step,55)
    }
