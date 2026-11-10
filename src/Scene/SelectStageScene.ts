@@ -1,3 +1,4 @@
+import { transitionWithLoading, openSceneWithLoading } from '../utils/ui/scene-loading';
 /* ==================================
  * 期末テスト提出プログラム
  * 学籍番号: 250056
@@ -136,7 +137,7 @@ export class SelectStageScene extends Phaser.Scene {
     // ----------------------------------------
     createBackButton(this,
       { width: 180, height: 60, fontSize: 23, depth: 10 },
-      () => this.scene.start(SCENE_KEYS.AREA_SELECT)
+      () => transitionWithLoading(this, SCENE_KEYS.AREA_SELECT)
     );
 
 
@@ -463,8 +464,7 @@ export class SelectStageScene extends Phaser.Scene {
       cardX + cardW / 2, cardY + cardH / 2 - 34,
       Math.min(220, cardW - 40), 44, '所持品を見る', 0x536878, 0x6d8396, () => {
         if (scene.scene.isActive(SCENE_KEYS.INVENTORY)) return;
-        scene.scene.launch(SCENE_KEYS.INVENTORY, { returnScene: scene.scene.key });
-        scene.scene.pause();
+        openSceneWithLoading(scene, SCENE_KEYS.INVENTORY, { returnScene: scene.scene.key });
       }
     ) : null;
     // Reserve space only when the inventory button is shown.
@@ -476,8 +476,7 @@ export class SelectStageScene extends Phaser.Scene {
         /* === [ 担当 : 250056 斎藤永聖 ] ===
          * 処理内容 : 編成画面へ戻り先を渡し、現在のステージ選択画面をスリープさせて復帰可能にする。
          * ================================== */
-        scene.scene.launch(SCENE_KEYS.FORM, { returnToStage: true });
-        scene.scene.sleep();
+        openSceneWithLoading(scene, SCENE_KEYS.FORM, { returnToStage: true }, 'sleep');
       });
     });
 
@@ -487,9 +486,9 @@ export class SelectStageScene extends Phaser.Scene {
         const stageIndex = this.stages.findIndex(item => item.id === stage.id);
         const stageType = this.stagePositions[stageIndex]?.type;
         if(stageType === 'battle') {
-          scene.scene.start(SCENE_KEYS.STAGE, { stageId: stage.id, stageNumber: stage.name });
+          transitionWithLoading(scene, SCENE_KEYS.STAGE, { stageId: stage.id, stageNumber: stage.name });
         } else if(stageType === 'story') {
-          scene.scene.start(SCENE_KEYS.STORY, {
+          transitionWithLoading(scene, SCENE_KEYS.STORY, {
             chapter: this.currentChapter,
             stage: stage.id
           });

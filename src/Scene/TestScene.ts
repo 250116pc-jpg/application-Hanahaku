@@ -1,3 +1,4 @@
+import { transitionWithLoading } from '../utils/ui/scene-loading';
 // 担当：たまおちゃん｜テスト用画面
 import Phaser from 'phaser';
 import { getTextStyle, createTextButton, showRetreatDialog } from '../utils/ui/index.ts';
@@ -31,10 +32,10 @@ export class TestScene extends Phaser.Scene {
     this.add.rectangle(195, 80, 200, 22, 0x16a9b5);
 
     // === ui.ts を使ったボタン生成（大幅削減） ===
-    createTextButton(this, 100, 130, '← 戻る', () => this.scene.start(SCENE_KEYS.HOME), { fontSize: 25 });
+    createTextButton(this, 100, 130, '← 戻る', () => transitionWithLoading(this, SCENE_KEYS.HOME), { fontSize: 25 });
     createTextButton(this, 100, 220, 'バッグ', () => console.log('インベントリは後で実装します'), { fontSize: 25 });
     createTextButton(this, width - 120, 100, '撤退', () => {
-      showRetreatDialog(this, () => this.scene.start(SCENE_KEYS.HOME));
+      showRetreatDialog(this, () => transitionWithLoading(this, SCENE_KEYS.HOME));
     }, { fontSize: 25 });
 
     // アクションサークル

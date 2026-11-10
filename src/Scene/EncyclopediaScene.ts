@@ -1,3 +1,4 @@
+import { deferSceneLoading, waitForSceneReveal } from '../utils/ui/scene-loading';
 /* ==================================
  * 期末テスト提出プログラム
  * 学籍番号: 250056
@@ -78,7 +79,10 @@ export class EncyclopediaScene extends Phaser.Scene {
  private list(): void {
   this.closeBook()
   this.children.removeAll(true)
+  const loaded=deferSceneLoading(this)
   this.bookCleanup=mountEncyclopediaBook({
+   onReady:loaded,
+   beforeOpen:()=>waitForSceneReveal(this),
    season:this.season,page:this.page,animate:!this.bookOpened,turn:this.bookTurn,unknown:unknownFlowers,
    onTurn:()=>playSe(this,'encyclopedia-page-turn'),
    onSeason:(season,page=0)=>{this.bookTurn=(['春','夏','秋','冬'].indexOf(season)-['春','夏','秋','冬'].indexOf(this.season));this.season=season;this.page=page;this.list()},

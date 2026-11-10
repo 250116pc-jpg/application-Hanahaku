@@ -6,6 +6,7 @@
  * ================================== */
 // 担当：たまおちゃん｜編成機能・form
 import Phaser from 'phaser'
+import { transitionWithLoading, returnWithLoading, trackSceneLoading } from '../utils/ui/scene-loading'
 import testData, { type CharacterData } from '../Scene/test_data'
 import { FormationManager } from './FormationManager'
 import { loadFormation, saveFormation } from './formationStorage'
@@ -177,7 +178,7 @@ export class FormScene extends Phaser.Scene {
       this.dragStart = undefined; this.clearFlowerDrag(); this.rosterMask?.destroy(); this.rosterClip?.destroy()
       this.rosterMask = undefined; this.rosterClip = undefined
     })
-    this.refresh(); void this.loadOwned(draft)
+    this.refresh(); trackSceneLoading(this, this.loadOwned(draft))
     applySmoothDisplay(this, ['form-garden', 'form-card-artwork', 'form-flower-card-artwork', 'form-wood', 'form-amber', 'form-square', 'form-ornament'])
   }
   private async loadOwned(draft?: Array<number | null>): Promise<void> {
@@ -299,7 +300,7 @@ export class FormScene extends Phaser.Scene {
     this.label(51, 469, `HP ${selected.stats.hp}　 MP ${selected.stats.mp}\n攻撃 ${selected.stats.atk}　防御 ${selected.stats.def}\n速さ ${selected.stats.speed}`, 16).setLineSpacing(5)
     this.button(167, 558, 230, 37, '花の詳細  ›', () => {
       this.preserveDraft = true
-      this.scene.start(SCENE_KEYS.CHARACTER_DETAIL, { characterId: selected.id, ownedCharacter: selected, returnScene: SCENE_KEYS.FORM, returnLabel: '編成画面へ', returnData: { resumeFormation: true } })
+      transitionWithLoading(this, SCENE_KEYS.CHARACTER_DETAIL, { characterId: selected.id, ownedCharacter: selected, returnScene: SCENE_KEYS.FORM, returnLabel: '編成画面へ', returnData: { resumeFormation: true } })
     })
   }
   private partyPanel(): void {
@@ -420,7 +421,7 @@ export class FormScene extends Phaser.Scene {
      * ================================== */
     const exit = () => {
       this.preserveDraft = false
-      if (this.returnToStage && this.scene.isSleeping(SCENE_KEYS.SELECT_STAGE)) { this.scene.wake(SCENE_KEYS.SELECT_STAGE); this.scene.stop() }
+      if (this.returnToStage && this.scene.isSleeping(SCENE_KEYS.SELECT_STAGE)) returnWithLoading(this, SCENE_KEYS.SELECT_STAGE, 'wake')
       else navigateToTownMap(this)
     }
     if (this.dirty() && !this.loading && !this.loadError) this.confirm('未保存の変更を破棄して戻りますか？', exit)

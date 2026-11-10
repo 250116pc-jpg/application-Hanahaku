@@ -1,3 +1,4 @@
+import { transitionWithLoading } from '../../utils/ui/scene-loading';
 /* ==================================
  * 期末テスト提出プログラム
  * 学籍番号: 250056
@@ -246,7 +247,7 @@ export class StageScene extends Phaser.Scene {
     const flower = this.captive;
     if (!flower || !this.rescued || this.isEnding || !this.canReachRescuePoint()) return;
     this.isEnding = true;
-    this.scene.start(SCENE_KEYS.CONTRACT, { flower, stageId: this.stageId, stageNumber: this.stageNumber });
+    transitionWithLoading(this, SCENE_KEYS.CONTRACT, { flower, stageId: this.stageId, stageNumber: this.stageNumber });
   }
 
   private createSkillEffectAnimations(): void {
@@ -489,7 +490,7 @@ export class StageScene extends Phaser.Scene {
   private async openResult(victory: boolean): Promise<void> {
     if (victory) {
       const completion = await completeStage(this.stageId);
-      this.scene.start(SCENE_KEYS.RESULT, {
+      transitionWithLoading(this, SCENE_KEYS.RESULT, {
         stageId: this.stageId,
         stageNumber: this.stageNumber,
         victory,
@@ -501,7 +502,7 @@ export class StageScene extends Phaser.Scene {
       return;
     }
 
-    this.scene.start(SCENE_KEYS.RESULT, {
+    transitionWithLoading(this, SCENE_KEYS.RESULT, {
       stageId: this.stageId,
       stageNumber: this.stageNumber,
       victory,

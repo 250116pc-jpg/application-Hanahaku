@@ -1,4 +1,5 @@
-﻿/* ==================================
+import { transitionWithLoading, openSceneWithLoading, trackSceneLoading } from '../utils/ui/scene-loading';
+/* ==================================
  * 期末テスト提出プログラム
  * 学籍番号: 250056
  * 氏名: 斎藤永聖
@@ -40,12 +41,12 @@ export class TitleScene extends Phaser.Scene {
       this.input.enabled = false;
       let active = true;
       this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => { active = false; });
-      void restoreSession().then(loggedIn => {
+      trackSceneLoading(this, restoreSession().then(loggedIn => {
         if (!active) return;
-        if (loggedIn) this.scene.start(SCENE_KEYS.HOME);
+        if (loggedIn) transitionWithLoading(this, SCENE_KEYS.HOME);
       }).catch(() => {
         // Keep manual login available when offline or the server is unavailable.
-      }).finally(() => { if (active) this.input.enabled = true; });
+      }).finally(() => { if (active) this.input.enabled = true; }));
     }
     const width = this.scale.width;
     const height = this.scale.height;
@@ -70,11 +71,10 @@ export class TitleScene extends Phaser.Scene {
     logo.setScale(850 / logo.width);
 
     const settingsButton = createTextImageButton(this, width - 140, 75, 180, '設定', () => {
-      this.scene.launch('SettingsScene', {
+      openSceneWithLoading(this, 'SettingsScene', {
         returnScene: 'TitleScene',
         resumeOnClose: true,
       });
-      this.scene.pause();
     }, { key: 'title-settings-button', width: 180, height: 65 });
     applySmoothDisplay(this, ['title_bg', 'title-logo', 'title-settings-button', 'title-start-button'], [settingsButton]);
 
@@ -118,10 +118,7 @@ export class TitleScene extends Phaser.Scene {
       startBgm(this);
       animateScale(1);
       this.tweens.add({ targets: [prompt, hint], alpha: 0, duration: 240 });
-      this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
-        this.scene.start(shouldSkipLogin() ? SCENE_KEYS.HOME : SCENE_KEYS.LOGIN);
-      });
-      this.cameras.main.fadeOut(280, 15, 24, 36);
+      transitionWithLoading(this, shouldSkipLogin() ? SCENE_KEYS.HOME : SCENE_KEYS.LOGIN);
     };
     prompt.on('pointerover', () => {
       if (starting) return;

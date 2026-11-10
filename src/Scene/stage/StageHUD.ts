@@ -1,3 +1,4 @@
+import { transitionWithLoading, trackSceneLoading } from '../../utils/ui/scene-loading';
 /* ==================================
  * 期末テスト提出プログラム
  * 学籍番号: 250056
@@ -90,7 +91,7 @@ export class StageHUD {
     this.createPartyHud();
     this.createMovementPad();
     this.createActionButtons();
-    void this.initializeFlowerSkills(stageId ?? 2);
+    trackSceneLoading(this.scene, this.initializeFlowerSkills(stageId ?? 2));
   }
 
   public updateHealth(current: number, maximum: number): void {
@@ -344,10 +345,10 @@ export class StageHUD {
         if (!dialog.isConnected) return;
         dialog.remove();
         this.retreatDialog = null;
-        if (retreat) this.scene.scene.start(SCENE_KEYS.SELECT_STAGE);
+        if (retreat) transitionWithLoading(this.scene, SCENE_KEYS.SELECT_STAGE);
         else this.scene.scene.resume(SCENE_KEYS.STAGE);
       };
-      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || typeof dialog.animate !== 'function') {
+      if (!retreat || window.matchMedia('(prefers-reduced-motion: reduce)').matches || typeof dialog.animate !== 'function') {
         finish();
         return;
       }

@@ -1,4 +1,5 @@
-﻿// 担当：たまおちゃん｜エリア選択画面
+import { transitionWithLoading } from '../utils/ui/scene-loading';
+// 担当：たまおちゃん｜エリア選択画面
 import Phaser from 'phaser';
 import backgroundImage from '../assets/ui/eria_back.png';
 import buttonImage from '../assets/ui/eria_btn.png';
@@ -85,7 +86,7 @@ export class AreaSelectScene extends Phaser.Scene {
     ).setX(560);
     this.confirmButton = this.addImageButton('confirm', 1355, 714, 455, 96, () => {
       const area = this.areas.find(item => item.id === this.selectedAreaId);
-      if (area?.unlocked) this.scene.start(SCENE_KEYS.SELECT_STAGE, { areaId: area.id, areaName: area.name });
+      if (area?.unlocked) transitionWithLoading(this, SCENE_KEYS.SELECT_STAGE, { areaId: area.id, areaName: area.name });
     });
     this.selectArea(this.selectedAreaId);
   }

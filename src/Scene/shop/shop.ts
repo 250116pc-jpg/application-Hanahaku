@@ -1,3 +1,4 @@
+import { trackSceneLoading } from '../../utils/ui/scene-loading';
 /* ==================================
  * 期末テスト提出プログラム
  * 学籍番号: 250056
@@ -71,7 +72,7 @@ export class ShopScene extends Phaser.Scene {
         if (this.sys.isActive()) applyState(state)
       }, () => { confirmation = null })
     })
-    void requestShop().then(state=>{if(this.sys.isActive()){ready=true;applyState(state)}}).catch(error=>{if(this.sys.isActive())status.setText(error instanceof Error?error.message:'読み込みに失敗しました')})
+    trackSceneLoading(this, requestShop().then(state=>{if(this.sys.isActive()){ready=true;applyState(state)}}).catch(error=>{if(this.sys.isActive())status.setText(error instanceof Error?error.message:'読み込みに失敗しました')}))
     createShopItemList(
       this,
       shopContainer,

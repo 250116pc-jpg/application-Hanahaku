@@ -1,4 +1,5 @@
-﻿/* ==================================
+import { transitionWithLoading } from '../utils/ui/scene-loading';
+/* ==================================
  * 期末テスト提出プログラム
  * 学籍番号: 250056
  * 氏名: 斎藤永聖
@@ -70,7 +71,7 @@ export function mountAuthLayout(
     });
     field.append(toggle);
   });
-  const navigate = onNavigate ?? ((destination: string): void => { scene.scene.start(destination); });
+  const navigate = onNavigate ?? ((destination: string): void => { transitionWithLoading(scene, destination); });
   const next = document.createElement('button');
   next.type = 'button'; next.className = 'auth-route-link'; next.textContent = `${link} ›`;
   next.addEventListener('click', () => navigate(target));

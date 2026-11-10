@@ -1,3 +1,4 @@
+import { transitionWithLoading } from '../../utils/ui/scene-loading';
 // 担当：たまおちゃん｜ストーリー画面と会話進行
 import Phaser from 'phaser';
 
@@ -79,7 +80,7 @@ export class StoryScene extends Phaser.Scene {
 
     if (!stageData) {
       console.error(`シナリオが見つかりません: chapter=${data.chapter}, stage=${data.stage}`);
-      this.scene.start(SCENE_KEYS.SELECT_STAGE, { areaId: data.chapter });
+      transitionWithLoading(this, SCENE_KEYS.SELECT_STAGE, { areaId: data.chapter });
       return;
     }
 
@@ -228,7 +229,7 @@ export class StoryScene extends Phaser.Scene {
     }
 
     // 次の画面へ
-    this.scene.start(SCENE_KEYS.SELECT_STAGE, { areaId: this.currentChapter });
+    transitionWithLoading(this, SCENE_KEYS.SELECT_STAGE, { areaId: this.currentChapter });
   }
 
   // ==================================================
@@ -242,7 +243,7 @@ export class StoryScene extends Phaser.Scene {
 
   private openExitPopup(): void {
     this.openConfirmPopup('シナリオを終了しますか？', () => {
-      this.scene.start(SCENE_KEYS.HOME);
+      transitionWithLoading(this, SCENE_KEYS.HOME);
     });
   }
 

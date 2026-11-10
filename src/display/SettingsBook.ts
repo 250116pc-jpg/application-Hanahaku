@@ -1,3 +1,4 @@
+import { transitionWithLoading } from '../utils/ui/scene-loading';
 /* ==================================
  * 期末テスト提出プログラム
  * 学籍番号: 250056
@@ -69,7 +70,7 @@ export function mountSettingsBook(scene: Phaser.Scene, onClose: () => void): voi
    for(const text of [typeof user?.name==='string'?user.name:'未ログイン',typeof user?.email==='string'?user.email:'']){const p=document.createElement('p');p.textContent=text;left.append(p);}
    heading(right,'アカウント');button(right,'ログアウト',()=>{
     if(loggingOut)return;loggingOut=true; root.querySelectorAll<HTMLButtonElement>('button').forEach(b=>b.disabled=true);
-    void logout().then(()=>{applyAudioSettings(scene,original);clean();for(const other of scene.scene.manager.getScenes(false)){if(other!==scene)scene.scene.stop(other.scene.key);}scene.scene.start('LoginScene');}).catch(()=>{if(disposed)return;loggingOut=false;root.querySelectorAll<HTMLButtonElement>('button').forEach(b=>b.disabled=false);status.textContent='ログアウトできません。接続を確認してください。';});
+    void logout().then(()=>{applyAudioSettings(scene,original);clean();for(const other of scene.scene.manager.getScenes(false)){if(other!==scene)scene.scene.stop(other.scene.key);}transitionWithLoading(scene, 'LoginScene');}).catch(()=>{if(disposed)return;loggingOut=false;root.querySelectorAll<HTMLButtonElement>('button').forEach(b=>b.disabled=false);status.textContent='ログアウトできません。接続を確認してください。';});
    });
   }else{
    heading(left,'画面設定');

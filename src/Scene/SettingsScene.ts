@@ -1,3 +1,4 @@
+import { transitionWithLoading, returnWithLoading } from '../utils/ui/scene-loading';
 /* ==================================
  * 期末テスト提出プログラム
  * 学籍番号: 250056
@@ -346,8 +347,8 @@ export class SettingsScene extends Phaser.Scene {
     this.voice.stop();
     if (save) saveAudioSettings(this, this.audio);
     else applyAudioSettings(this, this.original);
-    if (this.resumeOnClose) { this.scene.resume(this.returnScene); this.scene.stop(); }
-    else this.scene.start(this.returnScene);
+    if (this.resumeOnClose) returnWithLoading(this, this.returnScene);
+    else transitionWithLoading(this, this.returnScene);
   }
   /* === [ 担当 : 250056 斎藤永聖 ] ===
    * 処理内容 : 操作を一時停止してログアウトAPIを呼び、成功時はログイン画面へ移動し、失敗時は操作を復旧する。
@@ -363,7 +364,7 @@ export class SettingsScene extends Phaser.Scene {
       this.voice.stop();
       applyAudioSettings(this, this.original);
       for (const scene of this.scene.manager.getScenes(false)) if (scene !== this) this.scene.stop(scene.scene.key);
-      this.scene.start('LoginScene');
+      transitionWithLoading(this, 'LoginScene');
     } catch {
       if (!this.active) return;
       this.leaving = false;

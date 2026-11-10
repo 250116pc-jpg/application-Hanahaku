@@ -1,3 +1,4 @@
+import { transitionWithLoading } from '../utils/ui/scene-loading';
 /* ==================================
  * 期末テスト提出プログラム
  * 学籍番号: 250056
@@ -101,7 +102,7 @@ export class CharacterDetailScene extends Phaser.Scene {
     const character = this.findCharacter()
 
     createStandardSceneFrame(this, 'キャラ詳細', `← ${this.returnLabel}`, () => {
-      this.scene.start(this.returnScene, this.returnData)
+      transitionWithLoading(this, this.returnScene, this.returnData)
     })
     this.createCharacterImage()
     this.createBasicInfo(character)

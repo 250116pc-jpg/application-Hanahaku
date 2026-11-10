@@ -20,6 +20,7 @@ export function mountEncyclopediaBook(options: {
  season: Season; page: number; animate: boolean; turn?: number;
  unknown: Record<Season,{url:string}>;
  onTurn: () => void; onSeason: (season: Season, page?: number) => void; onPage: (page:number) => void;
+ onReady?: () => void; beforeOpen?: () => Promise<void>;
  onSelect: (flower:PrototypeFlower) => void; onHome: () => void; onReset: () => void
 }): () => void {
  const root=document.createElement('section'); root.className='encyclopedia-book-screen'
@@ -183,7 +184,14 @@ export function mountEncyclopediaBook(options: {
  document.body.append(root)
  const ready=():void=>{ui.hidden=false;tabs.hidden=false;tabs.querySelector<HTMLButtonElement>('[aria-pressed=true]')?.focus()}
  const preload=['open.png',...Array.from({length:8},(_,i)=>`opening_${String(i).padStart(2,'0')}.png`),...Array.from({length:9},(_,i)=>`turn_next_${String(i).padStart(2,'0')}.png`)].map(name=>{const img=new Image();img.src=asset(name);return img.decode().catch(()=>undefined)})
- if(options.animate) void Promise.all(preload).then(()=>{if(!disposed)animate(false,ready)});
- else {busy=false;ready()}
+ // 画像準備だけをロード待機に含め、本を開く演出は画面が見えてから始める。
+ void Promise.all(preload).then(async()=>{
+  if(disposed)return
+  options.onReady?.()
+  await options.beforeOpen?.()
+  if(disposed)return
+  if(options.animate)animate(false,ready)
+  else {busy=false;ready()}
+ })
  return ()=>{disposed=true;clearTimeout(timer);paperSync.disconnect();root.remove();previous?.focus()}
 }

@@ -1,3 +1,4 @@
+import { returnWithLoading, trackSceneLoading } from '../utils/ui/scene-loading';
 /* ==================================
  * 期末テスト提出プログラム
  * 学籍番号: 250056
@@ -69,7 +70,7 @@ export class InventoryScene extends Phaser.Scene {
     /* === [ 担当 : 250056 斎藤永聖 ] ===
      * 処理内容 : サーバーの所持数を商品一覧と結合し、未知の商品IDも表示用データへ変換してID順に並べる。
      * ================================== */
-    void requestShop().then(state=>{
+    trackSceneLoading(this, requestShop().then(state=>{
       if(!active || !this.sys.isActive())return
       const catalogItems: InventoryItem[] = shopCatalog.map(product => ({
         id: product.id, name: product.name, category: product.category,
@@ -81,7 +82,7 @@ export class InventoryScene extends Phaser.Scene {
         .map(([id, count]) => ({ id: Number(id), name: `アイテム ${id}`, category: 'important', effect: '詳細未登録', count, usable: false }))
       this.items = [...catalogItems, ...otherItems].sort((a, b) => a.id - b.id)
       this.refresh()
-    }).catch(error=>{if(active && this.sys.isActive())this.view.showMessage(error instanceof Error?error.message:'読み込みに失敗しました')})
+    }).catch(error=>{if(active && this.sys.isActive())this.view.showMessage(error instanceof Error?error.message:'読み込みに失敗しました')}))
   }
 
   /* === [ 担当 : 250056 斎藤永聖 ] ===
@@ -118,12 +119,17 @@ export class InventoryScene extends Phaser.Scene {
   private closeInventory(): void {
     if (this.usingItem) return
     playUiSe(this, 'cancel')
+    // 戦闘へ戻る場合は閉じる演出とロードを挟まず、そのまま再開する。
+    if (this.returnScene === SCENE_KEYS.STAGE) {
+      this.scene.resume(this.returnScene)
+      this.scene.stop()
+      return
+    }
     this.view.close(() => {
       if (!this.sys.isActive()) return
       if (this.scene.manager.keys[this.returnScene]) {
-        this.scene.resume(this.returnScene)
-      }
-      this.scene.stop()
+        returnWithLoading(this, this.returnScene)
+      } else this.scene.stop()
     })
   }
 

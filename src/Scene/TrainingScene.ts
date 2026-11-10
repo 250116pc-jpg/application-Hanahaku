@@ -1,5 +1,6 @@
 // 担当：たまおちゃん｜育成画面
 import Phaser from 'phaser';
+import { transitionWithLoading, trackSceneLoading } from '../utils/ui/scene-loading';
 import testData, { getFlowerSkill } from './test_data';
 import type { CharacterData } from './test_data';
 import { SCENE_KEYS } from './sceneKeys';
@@ -124,8 +125,8 @@ export class TrainingScene extends Phaser.Scene {
     this.ownedFlowers = [];
     this.flowersStatus = 'loading';
     this.render();
-    void this.loadInventory();
-    void this.loadOwnedFlowers();
+    trackSceneLoading(this, this.loadInventory());
+    trackSceneLoading(this, this.loadOwnedFlowers());
     applySmoothDisplay(this, ['training-garden', 'training-parchment', 'training-button', 'training-tab', 'training-compact-button', 'training-title-ornament']);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       this.inventoryRequest++; // 終了後や再入場前の通信結果を描画しない。
@@ -243,7 +244,7 @@ export class TrainingScene extends Phaser.Scene {
     this.portraitLevel = this.text(62, 459, `Lv.${flower.level}`, 24);
     this.text(129, 466, `/ ${flower.maxLevel}`, 16, C.muted);
     this.button(276, 449, 133, 35, '花の詳細  ›', () => {
-      this.scene.start(SCENE_KEYS.CHARACTER_DETAIL, { characterId: flower.id, returnScene: SCENE_KEYS.TRAINING, returnLabel: '育成へ' });
+      transitionWithLoading(this, SCENE_KEYS.CHARACTER_DETAIL, { characterId: flower.id, returnScene: SCENE_KEYS.TRAINING, returnLabel: '育成へ' });
     });
   }
   private renderStatus(flower: TrainingFlower): void {

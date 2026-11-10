@@ -1,3 +1,4 @@
+import { transitionWithLoading } from '../utils/ui/scene-loading';
 /* ==================================
  * 期末テスト提出プログラム
  * 学籍番号: 250056
@@ -71,7 +72,7 @@ export class RegisterScene extends Phaser.Scene {
       submitButton.textContent = '登録完了';
       this.time.delayedCall(700, () => {
         dom.destroy();
-        this.scene.start(SCENE_KEYS.HOME);
+        transitionWithLoading(this, SCENE_KEYS.HOME);
       });
     };
 
@@ -126,7 +127,7 @@ export class RegisterScene extends Phaser.Scene {
         submitButton.textContent = '登録完了';
         this.time.delayedCall(1200, () => {
           dom.destroy();
-          this.scene.start(SCENE_KEYS.LOGIN);
+          transitionWithLoading(this, SCENE_KEYS.LOGIN);
         });
       } catch (error) {
         const text = error instanceof Error ? error.message : 'サーバーに接続できませんでした。';

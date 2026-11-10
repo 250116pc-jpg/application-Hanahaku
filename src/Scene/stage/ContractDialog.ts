@@ -1,3 +1,4 @@
+import { transitionWithLoading, trackSceneLoading } from '../../utils/ui/scene-loading';
 /* ==================================
  * 期末テスト提出プログラム
  * 学籍番号: 250056
@@ -121,7 +122,7 @@ export class ContractScene extends Phaser.Scene {
     const finish = async (contracted: boolean) => {
       const completion = await completeStage(stageId);
       if (!contracted) {
-        this.scene.start(SCENE_KEYS.SELECT_STAGE, { areaId: 1, clearReward: completion.reward });
+        transitionWithLoading(this, SCENE_KEYS.SELECT_STAGE, { areaId: 1, clearReward: completion.reward });
         return;
       }
       this.scene.start(SCENE_KEYS.RESULT, {
@@ -169,11 +170,11 @@ export class ContractScene extends Phaser.Scene {
     };
     yes.hit.disableInteractive();
     yes.caption.setAlpha(0.5);
-    void requestShop().then(state => {
+    trackSceneLoading(this, requestShop().then(state => {
       if (!this.sys.isActive()) return;
       count = state.items[String(potionId)] ?? 0;
       updateCount();
-    }).catch(() => { if (this.sys.isActive()) updateCount(); });
+    }).catch(() => { if (this.sys.isActive()) updateCount(); }));
 
     button(572, 'いいえ ・ 報酬だけ受け取る', false, async () => {
       if (busy || pendingContract || contractMessage) return;

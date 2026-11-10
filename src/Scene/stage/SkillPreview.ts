@@ -1,3 +1,4 @@
+import { transitionWithLoading } from '../../utils/ui/scene-loading';
 // 担当：たまおちゃん｜開発用スキルプレビュー
 import definitions from '../../../php/skill/skills.json';
 import type { FlowerSkillState, ServerFlowerSkill, StageFlowerStats } from './SkillApi';
@@ -50,7 +51,7 @@ export function attachPreviewControls(
   const onKey = (event: KeyboardEvent): void => {
     if (event.repeat) return;
     if (/^[0-9]$/.test(event.key)) cast(event.key === '0' ? 10 : Number(event.key));
-    if (event.key.toLowerCase() === 'r') scene.scene.restart();
+    if (event.key.toLowerCase() === 'r') transitionWithLoading(scene, scene.scene.key);
   };
   scene.input.keyboard?.on('keydown', onKey);
   scene.events.once('shutdown', () => scene.input.keyboard?.off('keydown', onKey));

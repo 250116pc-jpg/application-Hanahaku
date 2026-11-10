@@ -1,3 +1,4 @@
+import { transitionWithLoading } from '../../utils/ui/scene-loading';
 /* ==================================
  * 期末テスト提出プログラム
  * 学籍番号: 250056
@@ -69,10 +70,10 @@ export class StageResultScene extends Phaser.Scene {
     }
     const buttonY = height - 105;
     if (!data.victory) this.createButton(width / 2 - 110, buttonY, 'もう一度', 0x527c63, () => {
-      this.scene.start(SCENE_KEYS.STAGE, { stageId: data.stageId, stageNumber: data.stageNumber });
+      transitionWithLoading(this, SCENE_KEYS.STAGE, { stageId: data.stageId, stageNumber: data.stageNumber });
     });
     this.createButton(BACK_BUTTON_POSITION.x, BACK_BUTTON_POSITION.y, '‹ ステージ選択へ', 0x586f84, () => {
-      this.scene.start(SCENE_KEYS.SELECT_STAGE, { areaId: 1 });
+      transitionWithLoading(this, SCENE_KEYS.SELECT_STAGE, { areaId: 1 });
     });
     this.createButton(width / 2 + (data.victory ? 0 : 110), buttonY, '町マップへ', 0x80683e, () => {
       navigateToTownMap(this);
