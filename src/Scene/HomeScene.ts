@@ -19,7 +19,7 @@ import { homeAnimationData, homeAttackCombos, homeAnimationNames, homeClickActio
 
 import { createButton } from './HomeScene/buttons'
 import { villageAssets, createVillage, setupVillageScroll } from './HomeScene/village'
-import { getTownArea, townAreas, type TownAreaId, type VillageStop } from './HomeScene/townAreas'
+import { getTownArea, townAreas, type TownAreaId, type TownMapDestination, type VillageStop } from './HomeScene/townAreas'
 import { createTownMap } from './HomeScene/townMap'
 import { preloadTitlePetals, createTitlePetals } from './title/TitlePetals'
 //debug機能
@@ -302,19 +302,31 @@ export class HomeScene extends Phaser.Scene {
       this.game.events.off(Phaser.Core.Events.BLUR, blur)
       Object.values(keys ?? {}).forEach(key => this.input.keyboard?.removeKey(key, true))
     })
-    const visitArea = (id: TownAreaId): void => {
+    const visitArea = (id: TownAreaId, fromArea?: TownAreaId, position?: number): void => {
+      const spawnX = position ?? (fromArea
+        ? townAreas[id].stops.find(stop => stop.area === fromArea)?.door
+        : undefined) ?? townAreas[id].spawn
       this.registry.set('home-town-area', id)
-      this.registry.set('home-town-x-' + id, townAreas[id].spawn)
+      this.registry.set('home-town-x-' + id, spawnX)
+      if (id === area.id) {
+        player.setPosition(spawnX * scaleX, 568 * scaleY).play('home-player-idle', true)
+        this.cameras.main.scrollX = Phaser.Math.Clamp(
+          player.x - width / 2,
+          0,
+          Math.max(0, area.width * scaleX - width)
+        )
+        return
+      }
       this.navigate('HomeScene')
     }
-    const visitMapDestination = (id: TownAreaId, stop: VillageStop): void => {
-      if (stop.area) visitArea(stop.area)
-      else if (stop.scene) {
+    const visitMapDestination = (id: TownAreaId, destination: TownMapDestination): void => {
+      if (destination.area) visitArea(destination.area, id, destination.x)
+      else if (destination.scene) {
         if (this.registry.get('home-town-area') !== id) {
           this.registry.set('home-town-x-' + id, townAreas[id].spawn)
         }
         this.registry.set('home-town-area', id)
-        this.navigate(stop.scene)
+        this.navigate(destination.scene)
       }
     }
     let closeMap: (() => void) | undefined

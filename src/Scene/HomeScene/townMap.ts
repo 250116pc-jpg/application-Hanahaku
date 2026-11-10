@@ -1,17 +1,22 @@
 import Phaser from 'phaser'
-import { townAreas, townRoads, type TownAreaId, type VillageStop } from './townAreas'
+import { townAreas, townRoads, type TownAreaId, type TownMapDestination } from './townAreas'
 
 // 街マップは同じシーン上のモーダル。閉じると元の位置・カメラへ戻る。
 export function createTownMap(
   scene: Phaser.Scene, current: TownAreaId,
-  travel: (area: TownAreaId, stop: VillageStop) => void, onClose: () => void,
+  travel: (area: TownAreaId, destination: TownMapDestination) => void, onClose: () => void,
 ): () => void {
   const root = scene.add.container(0, 0).setScale(scene.scale.width / 1280, scene.scale.height / 720).setScrollFactor(0).setDepth(1000)
-  const add = <T extends Phaser.GameObjects.GameObject>(object: T): T => { root.add(object); return object }
+  const add = <T extends Phaser.GameObjects.GameObject & Phaser.GameObjects.Components.ScrollFactor>(object: T): T => {
+    root.add(object)
+    // Phaser hit-tests each child with its own scroll factor, not the container's.
+    object.setScrollFactor(0)
+    return object
+  }
   const text = (x: number, y: number, value: string, size = 20, color = '#463d2d'): Phaser.GameObjects.Text => add(scene.add.text(x, y, value, { fontFamily: 'sans-serif', fontSize: size + 'px', color }))
   const mapX = (area: TownAreaId): number => 100 + townAreas[area].mapX * .66
   // 全画面の入力面で下の建物・道にタッチを通さない。
-  add(scene.add.rectangle(640, 360, 1280, 720, 0x142720, .8).setInteractive())
+  add(scene.add.rectangle(640, 360, 1280, 720, 0x142720, .8)).setInteractive()
   add(scene.add.rectangle(640, 360, 1160, 634, 0xe7d8b2).setStrokeStyle(4, 0x94764b))
   add(scene.add.rectangle(640, 360, 1138, 612).setStrokeStyle(1, 0xb59a6d))
   text(106, 77, '花咲く街の地図', 30)
@@ -30,10 +35,11 @@ export function createTownMap(
   }
   const cards: { area: TownAreaId; card: Phaser.GameObjects.Rectangle; title: Phaser.GameObjects.Text; caption: Phaser.GameObjects.Text }[] = []
   let selectedArea = current
-  const details = add(scene.add.container(0, 0).setScrollFactor(0))
+  const details = add(scene.add.container(0, 0))
   for (const area of Object.values(townAreas)) {
     const here = area.id === current
-    const card = add(scene.add.rectangle(mapX(area.id), area.mapY, 180, 90).setInteractive({ useHandCursor: true }))
+    const card = add(scene.add.rectangle(mapX(area.id), area.mapY, 180, 90))
+    card.setInteractive({ useHandCursor: true })
     card.setName('town-map-' + area.id)
     const title = text(mapX(area.id), area.mapY - 17, area.name, 18).setOrigin(.5)
     const caption = text(mapX(area.id), area.mapY + 16, here ? '● 現在地' : '行き先を見る', 14, '#78694f').setOrigin(.5)
@@ -46,7 +52,8 @@ export function createTownMap(
       renderDestinations()
     })
   }
-  const button = add(scene.add.rectangle(1110, 100, 116, 44, 0x594e3c).setInteractive({ useHandCursor: true }))
+  const button = add(scene.add.rectangle(1110, 100, 116, 44, 0x594e3c))
+  button.setInteractive({ useHandCursor: true })
   text(1110, 100, '閉じる ×', 18, '#fff0ce').setOrigin(.5)
   let closed = false
   const close = (): void => {
@@ -70,17 +77,14 @@ export function createTownMap(
     details.add(scene.add.text(1035, 190, area.id === current ? '現在地から利用できる施設' : 'このエリアで利用できる施設', {
       fontFamily: 'sans-serif', fontSize: '14px', color: '#78694f',
     }).setOrigin(.5))
-    const destinations = area.stops.filter(stop => stop.scene || stop.notice)
-    if (destinations.length === 0) {
-      details.add(scene.add.text(1035, 360, 'このエリアに施設はありません', {
-        fontFamily: 'sans-serif', fontSize: '16px', color: '#78694f',
-      }).setOrigin(.5))
-    }
-    destinations.forEach((stop, index) => {
-      const y = 244 + index * 78
-      const available = !!stop.scene
-      const row = scene.add.rectangle(1035, y, 286, 64, available ? 0xe7d8b2 : 0xd7d0c2)
+    const destinations = area.mapDestinations
+    destinations.forEach((destination, index) => {
+      const y = 244 + index * 62
+      const available = !destination.notice
+      const row = scene.add.rectangle(1035, y, 286, 54, available ? 0xe7d8b2 : 0xd7d0c2)
         .setStrokeStyle(2, available ? 0xb59a6d : 0xb8b1a3)
+        .setScrollFactor(0)
+      details.add(row)
       if (available) {
         row.setInteractive({ useHandCursor: true })
         row.on('pointerover', () => row.setFillStyle(0xf0dfbb))
@@ -88,16 +92,17 @@ export function createTownMap(
         row.on('pointerup', (pointer: Phaser.Input.Pointer) => {
           if (pointer.getDistance() < 10) {
             close()
-            travel(area.id, stop)
+            travel(area.id, destination)
           }
         })
       }
-      details.add(row)
-      details.add(scene.add.text(1035, y - 7, stop.label, {
-        fontFamily: 'sans-serif', fontSize: '17px', color: available ? '#443c2f' : '#827b70',
+      details.add(scene.add.text(1035, y - 6, destination.label, {
+        fontFamily: 'sans-serif', fontSize: '16px', color: available ? '#443c2f' : '#827b70',
       }).setOrigin(.5))
-      const destination = stop.notice ? 'ロック中' : stop.scene === 'AreaSelectScene' ? 'エリア選択へ' : '移動する'
-      details.add(scene.add.text(1035, y + 15, destination, {
+      const action = destination.notice ? 'ロック中'
+        : destination.scene === 'AreaSelectScene' ? 'エリア選択へ'
+          : destination.kind === 'outdoor' ? 'このエリアへ移動' : '施設へ移動'
+      details.add(scene.add.text(1035, y + 14, action, {
         fontFamily: 'sans-serif', fontSize: '12px', color: '#78694f',
       }).setOrigin(.5))
     })
