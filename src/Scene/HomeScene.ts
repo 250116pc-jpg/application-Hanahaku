@@ -307,12 +307,9 @@ export class HomeScene extends Phaser.Scene {
       this.registry.set('home-town-x-' + id, townAreas[id].spawn)
       this.navigate('HomeScene')
     }
-    const visitMapArea = (id: TownAreaId): void => {
-      if (id === 'gate') {
-        this.navigate('AreaSelectScene')
-        return
-      }
-      visitArea(id)
+    const visitMapDestination = (_id: TownAreaId, stop: VillageStop): void => {
+      if (stop.area) visitArea(stop.area)
+      else if (stop.scene) this.navigate(stop.scene)
     }
     let closeMap: (() => void) | undefined
     const toggleMap = (): void => {
@@ -330,7 +327,7 @@ export class HomeScene extends Phaser.Scene {
       player.play('home-player-idle', true)
       Object.values(keys ?? {}).forEach(key => key.reset())
       mapOpen = true
-      closeMap = createTownMap(this, area.id, visitMapArea, () => {
+      closeMap = createTownMap(this, area.id, visitMapDestination, () => {
         mapOpen = false
         closeMap = undefined
         Object.values(keys ?? {}).forEach(key => key.reset())
