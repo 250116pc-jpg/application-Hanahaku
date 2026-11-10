@@ -5,6 +5,7 @@
  * 担当範囲: 下記の担当コメントを参照（共同制作）
  * ================================== */
 // 担当：たまおちゃん｜花の図鑑画面
+import trainingButton from '../assets/ui/training_button_wood.png'
 import pageTurnSound from '../assets/audio/encyclopedia/page-turn-firefly.wav'
 import { playSe } from '../audio/BgmManager'
 import { readFlowerContracts } from './stage/flowerContracts'
@@ -15,10 +16,11 @@ import questionFall from '../assets/images/encyclopedia/unknown-autumn.png'
 import questionWinter from '../assets/images/encyclopedia/unknown-winter.png'
 import Phaser from 'phaser'
 import type { Season } from './test_data'
-import { BACK_BUTTON_POSITION, createTextButton, getTextStyle } from '../utils/ui'
+import { BACK_BUTTON_POSITION, getTextStyle } from '../utils/ui'
 import { prototypeFlowers, contractPreview } from './encyclopedia/contractPreview'
 import type { PrototypeFlower } from './encyclopedia/contractPreview'
 import { mountFlowerDetail } from './encyclopedia/FlowerDetailView'
+import '../display/encyclopedia-buttons.css'
 
 const unknownFlowers: Record<Season, { key: string; url: string }> = {
  '春': { key: 'flower-unknown-spring', url: questionSpring },
@@ -39,6 +41,7 @@ export class EncyclopediaScene extends Phaser.Scene {
  private detailCleanup: (() => void) | null = null
  constructor() { super('EncyclopediaScene') }
  preload(): void {
+  this.load.image('encyclopedia-wood-button', trainingButton)
   if (!this.cache.audio.exists('encyclopedia-page-turn')) this.load.audio('encyclopedia-page-turn',pageTurnSound)
   for (const {key,url} of Object.values(unknownFlowers)) if (!this.textures.exists(key)) this.load.image(key,url)
   for (const flower of prototypeFlowers) if (!this.textures.exists(flower.key)) this.load.image(flower.key,flower.url)
@@ -54,7 +57,13 @@ export class EncyclopediaScene extends Phaser.Scene {
   return this.add.text(x,y,value,{...getTextStyle(size),wordWrap:{width:620},lineSpacing:8})
  }
  private button(x:number,y:number,label:string,action:()=>void): void {
-  createTextButton(this,x,y,label,action,{fontSize:20,padding:{top:10,bottom:10,left:16,right:16}})
+  const texture = this.textures.get('encyclopedia-wood-button')
+  if (!texture.has('button')) texture.add('button',0,25,122,2122,459)
+  texture.setFilter(Phaser.Textures.FilterMode.LINEAR)
+  const image = this.add.image(x,y,'encyclopedia-wood-button','button').setDisplaySize(160,46).setInteractive({useHandCursor:true})
+  this.add.text(x,y,label,{...getTextStyle(18),backgroundColor:undefined,color:'#fff5df'}).setOrigin(.5)
+  image.on('pointerover',()=>image.setAlpha(.8)).on('pointerout',()=>image.setAlpha(1))
+  image.on('pointerdown',()=>image.setAlpha(.65)).on('pointerup',action)
  }
  private frame(title:string): void {
   this.children.each(child => { if (child.input) child.disableInteractive(true) })
@@ -71,7 +80,7 @@ export class EncyclopediaScene extends Phaser.Scene {
   this.bookCleanup=mountEncyclopediaBook({
    season:this.season,page:this.page,animate:!this.bookOpened,turn:this.bookTurn,unknown:unknownFlowers,
    onTurn:()=>playSe(this,'encyclopedia-page-turn'),
-   onSeason:season=>{this.bookTurn=(['春','夏','秋','冬'].indexOf(season)-['春','夏','秋','冬'].indexOf(this.season));this.season=season;this.page=0;this.list()},
+   onSeason:(season,page=0)=>{this.bookTurn=(['春','夏','秋','冬'].indexOf(season)-['春','夏','秋','冬'].indexOf(this.season));this.season=season;this.page=page;this.list()},
    onPage:page=>{this.bookTurn=page-this.page;this.page=page;this.list()},
    onSelect:flower=>{this.closeBook();this.detail(flower)},
    onHome:()=>this.scene.start('HomeScene'),

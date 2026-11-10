@@ -1,0 +1,186 @@
+/* 育成画面と同じ木目ボタン。画像の透明余白を背景サイズで除いて表示する。 */
+.encyclopedia-book-screen, .flower-book-screen {
+  --encyclopedia-button: url('../assets/ui/training_button_wood.png');
+  --encyclopedia-button-selected: url('../assets/ui/training_tab_wood_selected.png');
+}
+.encyclopedia-book-ui footer button,
+.encyclopedia-book-screen .encyclopedia-book-back,
+.encyclopedia-book-tabs button,
+.flower-book-screen .book-button,
+.flower-book-screen .book-tab {
+  position: relative;
+  isolation: isolate;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  color: #fff5df;
+  text-shadow: 0 1px 2px #241008;
+  font-family: "Yu Gothic", Meiryo, sans-serif;
+  font-weight: bold;
+  cursor: pointer;
+  transition: filter 70ms ease;
+}
+.encyclopedia-book-ui footer button::before,
+.encyclopedia-book-screen .encyclopedia-book-back::before,
+.encyclopedia-book-tabs button::before,
+.flower-book-screen .book-button::before,
+.flower-book-screen .book-tab::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--encyclopedia-button) 50% 46.04% / 102.36% 157.73% no-repeat;
+  transform: none;
+  pointer-events: none;
+}
+.encyclopedia-book-tabs button[aria-pressed=true]::before,
+.flower-book-screen .book-tab[aria-pressed=true]::before {
+  background-image: var(--encyclopedia-button-selected);
+  background-size: 100.84% 147.15%;
+  background-position: 50% 43.97%;
+}
+.encyclopedia-book-tabs button,
+.encyclopedia-book-tabs .season-past {
+  padding: 0;
+  aspect-ratio: 2.4;
+}
+.encyclopedia-book-tabs button[aria-pressed=true],
+.flower-book-screen .book-tab[aria-pressed=true] {
+  color: #fff5df;
+  text-decoration: none;
+  box-shadow: none;
+  filter: none;
+}
+/* 育成画面の左上ボタンと同じ余白・寸法（1280×720基準）。 */
+.encyclopedia-book-screen .encyclopedia-book-back {
+  position: absolute;
+  /* 育成の当たり判定140×36に対する、画像の表示寸法148×43に合わせる。 */
+  left: max(env(safe-area-inset-left), 3.59375cqw);
+  top: max(env(safe-area-inset-top), 4.652778cqh);
+  width: 11.5625cqw;
+  height: 5.972222cqh;
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  font-size: 1.40625cqw;
+  z-index: 10;
+}
+.flower-book-screen .book-button { padding: 8px 20px; }
+.flower-book-screen .book-tab { min-height: 44px; padding: 9px 20px; }
+.encyclopedia-book-screen button:not(:disabled):hover,
+.flower-book-screen button:not(:disabled):hover { filter: brightness(1.12); }
+.encyclopedia-book-screen button:not(:disabled):active,
+.flower-book-screen button:not(:disabled):active { filter: brightness(.86); }
+.encyclopedia-book-screen button:disabled,
+.flower-book-screen button:disabled { opacity: .4; cursor: default; }
+.encyclopedia-book-screen button:focus-visible,
+.flower-book-screen button:focus-visible { outline: 2px solid #f5cf80; outline-offset: 3px; }
+
+/* PhaserのFIT表示と同じ16:9に収め、外側の余白を覆わない。 */
+.encyclopedia-book-screen, .flower-book-screen {
+  inset: 0;
+  margin: auto;
+  width: min(100vw, 177.777778dvh);
+  height: min(100dvh, 56.25vw);
+  box-sizing: border-box;
+  container-type: size;
+}
+/* 外枠のpaddingをなくし、ボタンの基準をゲーム画面全体にそろえる。 */
+.encyclopedia-book-screen { padding: 0; }
+/* 上部に戻るボタン用の空間を確保し、本は中央から24px下げる。 */
+.encyclopedia-book {
+  width: min(88cqw, 132cqh);
+  translate: 0 3.333333cqh;
+}
+.flower-book-screen .flower-book {
+  height: 100%;
+  max-height: 100%;
+}
+
+
+/* 育成画面の花一覧と同じ四角い画像・46pxの表示サイズ。 */
+.encyclopedia-book-ui footer .encyclopedia-footer-page .encyclopedia-page-prev,
+.encyclopedia-book-ui footer .encyclopedia-footer-page .encyclopedia-page-next {
+  width: 3.59375cqw;
+  height: 3.59375cqw;
+  flex-shrink: 0;
+  aspect-ratio: 1;
+  padding: 0;
+  font-size: 1.875cqw;
+  line-height: 1;
+}
+.encyclopedia-page-prev::before,
+.encyclopedia-page-next::before {
+  background-image: url('../assets/ui/training_button_wood_square.png') !important;
+  background-size: 113.3816% 114.2077% !important;
+  background-position: 50% 51.9231% !important;
+}
+
+/* 季節の切替は布のしおり。本をめくって左へ移ったものは先端も反転する。 */
+.encyclopedia-book-tabs button {
+  --bookmark-color: none;
+  aspect-ratio: 2.7;
+  color: #fff7df;
+  padding: 0 10% 0 0;
+  filter: drop-shadow(1px 2px 2px #24100866);
+}
+/* 布の質感を残しながら、古い本になじむ桜色・緑色・柿色・藍色にする。 */
+.encyclopedia-book-tabs button:nth-child(1) { --bookmark-color: grayscale(1) sepia(1) saturate(3) hue-rotate(280deg) brightness(1.65) saturate(.25); }
+.encyclopedia-book-tabs button:nth-child(2) { --bookmark-color: grayscale(1) sepia(1) saturate(3) hue-rotate(65deg) brightness(1.4) saturate(.4); }
+.encyclopedia-book-tabs button:nth-child(3) { --bookmark-color: grayscale(1) sepia(1) saturate(5) hue-rotate(345deg) brightness(1.5) saturate(.38); }
+.encyclopedia-book-tabs button:nth-child(4) { --bookmark-color: grayscale(1) sepia(1) saturate(4) hue-rotate(185deg) brightness(1.35) saturate(.38); }
+/* 背景の上書き順に依存しないよう、専用画像をタブ自身に持たせる。 */
+.encyclopedia-book-screen .encyclopedia-book-tabs button::before { content: none; }
+.encyclopedia-book-screen .encyclopedia-book-tabs button { background: transparent; }
+.encyclopedia-season-ribbon {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+  scale: 1 1.32;
+  clip-path: inset(12% 0);
+  z-index: -1;
+  pointer-events: none;
+  filter: var(--bookmark-color);
+}
+.encyclopedia-book-tabs .season-past { padding: 0 0 0 10%; }
+.encyclopedia-book-tabs .season-past .encyclopedia-season-ribbon { transform: scaleX(-1); }
+.encyclopedia-book-tabs button[aria-pressed=true] {
+  color: #fffbea;
+  filter: drop-shadow(0 0 3px #efc976);
+}
+.encyclopedia-book-tabs button[aria-pressed=true] .encyclopedia-season-ribbon {
+  filter: var(--bookmark-color) brightness(1.06);
+}
+
+/* 選択中以外のしおりは紙の下に挟み、外にはみ出す先端だけ見せる。 */
+.encyclopedia-book { isolation: isolate; }
+.encyclopedia-book-art { position: relative; z-index: 0; }
+/* 紙面だけを重ねる。表紙・小口の上に残る布が、ページの間から出て見える。 */
+.encyclopedia-book-paper {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+  clip-path: inset(3% 3.5% 5% 3.5%);
+  image-rendering: pixelated;
+  pointer-events: none;
+}
+.encyclopedia-book-ui { z-index: 3; }
+.encyclopedia-book-tabs { z-index: auto; }
+.encyclopedia-book-tabs button { z-index: 1; }
+.encyclopedia-book-tabs button[aria-pressed=true],
+.encyclopedia-book-tabs button.season-turning { z-index: 5 !important; }
+.encyclopedia-book-tabs button:not([aria-pressed=true]):not(.season-turning) > span {
+  position: absolute;
+  left: 47%;
+  top: 50%;
+  width: 32%;
+  translate: 0 -50%;
+  text-align: center;
+}
+.encyclopedia-book-tabs button.season-past:not([aria-pressed=true]):not(.season-turning) > span { left: 17%; }
+
