@@ -15,7 +15,7 @@ export function createTownMap(
   add(scene.add.rectangle(640, 360, 1160, 634, 0xe7d8b2).setStrokeStyle(4, 0x94764b))
   add(scene.add.rectangle(640, 360, 1138, 612).setStrokeStyle(1, 0xb59a6d))
   text(106, 77, '花咲く街の地図', 30)
-  text(108, 120, 'エリアを選び、行き先を選択', 16, '#78694f')
+  text(108, 120, 'エリアを選び、施設を選択', 16, '#78694f')
   text(118, 620, '現在地：' + townAreas[current].name, 17)
   text(520, 620, 'M / Esc で閉じる', 16, '#78694f')
   const ink = scene.add.graphics()
@@ -67,12 +67,18 @@ export function createTownMap(
     const area = townAreas[selectedArea]
     details.add(scene.add.rectangle(1035, 360, 330, 476, 0xf8efd8).setStrokeStyle(3, 0x94764b))
     details.add(scene.add.text(1035, 158, area.name, { fontFamily: 'sans-serif', fontSize: '22px', color: '#443c2f' }).setOrigin(.5))
-    details.add(scene.add.text(1035, 190, area.id === current ? '現在地から行ける場所' : 'このエリアから行ける場所', {
+    details.add(scene.add.text(1035, 190, area.id === current ? '現在地から利用できる施設' : 'このエリアで利用できる施設', {
       fontFamily: 'sans-serif', fontSize: '14px', color: '#78694f',
     }).setOrigin(.5))
-    area.stops.forEach((stop, index) => {
+    const destinations = area.stops.filter(stop => stop.scene || stop.notice)
+    if (destinations.length === 0) {
+      details.add(scene.add.text(1035, 360, 'このエリアに施設はありません', {
+        fontFamily: 'sans-serif', fontSize: '16px', color: '#78694f',
+      }).setOrigin(.5))
+    }
+    destinations.forEach((stop, index) => {
       const y = 244 + index * 78
-      const available = !!(stop.area || stop.scene)
+      const available = !!stop.scene
       const row = scene.add.rectangle(1035, y, 286, 64, available ? 0xe7d8b2 : 0xd7d0c2)
         .setStrokeStyle(2, available ? 0xb59a6d : 0xb8b1a3)
       if (available) {
@@ -90,14 +96,11 @@ export function createTownMap(
       details.add(scene.add.text(1035, y - 7, stop.label, {
         fontFamily: 'sans-serif', fontSize: '17px', color: available ? '#443c2f' : '#827b70',
       }).setOrigin(.5))
-      const destination = stop.area ? townAreas[stop.area].name + 'へ移動' : stop.notice ? '未実装' : stop.scene === 'AreaSelectScene' ? 'エリア選択へ' : '移動する'
+      const destination = stop.notice ? 'ロック中' : stop.scene === 'AreaSelectScene' ? 'エリア選択へ' : '移動する'
       details.add(scene.add.text(1035, y + 15, destination, {
         fontFamily: 'sans-serif', fontSize: '12px', color: '#78694f',
       }).setOrigin(.5))
     })
-    details.add(scene.add.text(1035, 564, '未実装の場所は選べません', {
-      fontFamily: 'sans-serif', fontSize: '12px', color: '#78694f',
-    }).setOrigin(.5))
   }
   renderDestinations()
   button.on('pointerup', close)
