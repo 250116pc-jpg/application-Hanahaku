@@ -33,6 +33,7 @@ export class FormScene extends Phaser.Scene {
   private manager = new FormationManager([], [])
   private flowers: OwnedFormationFlower[] = []
   private selectedId: number | null = null
+  private portraitIdle?: Phaser.Tweens.Tween
   private filter = 'すべて'
   private sort: FormationSort = '戦力'
   private descending = true
@@ -114,7 +115,7 @@ export class FormScene extends Phaser.Scene {
     this.layout.add(this.add.rectangle(640, 360, 1280, 720, 0x20120a, .14))
     this.content = this.add.container(0, 0); this.layout.add(this.content)
     this.overlay = undefined
-    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => { this.request++; this.overlay?.destroy(); this.overlay = undefined })
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => { this.request++; this.portraitIdle?.remove(); this.portraitIdle = undefined; this.overlay?.destroy(); this.overlay = undefined })
     const wheel = (pointer: Phaser.Input.Pointer, _objects: Phaser.GameObjects.GameObject[], dx: number, dy: number) => {
       if (!this.dragPreview && !this.dragStart && this.rosterContains(pointer)) this.scrollRoster(this.rosterScroll + (Math.abs(dx) > Math.abs(dy) ? dx : dy) * .5)
     }
@@ -234,10 +235,10 @@ export class FormScene extends Phaser.Scene {
     const hit = this.add.zone(x, y, w, h).setInteractive({ useHandCursor: true }); this.content.add(hit)
     hit.on('pointerover', () => image.setAlpha(.82)).on('pointerout', () => image.setAlpha(1)).on('pointerup', () => { if (this.dragDistance <= 6) action() })
   }
-  private picture(flower: CharacterData, x: number, y: number, size: number): void {
+  private picture(flower: CharacterData, x: number, y: number, size: number): Phaser.GameObjects.Image | undefined {
     const key = `form-${flower.code}`
     if (!this.textures.exists(key)) { this.label(x, y, '画像準備中', 13).setOrigin(.5); return }
-    const image = this.add.image(x, y, key); image.setScale(size / Math.max(image.width, image.height)); this.content.add(image)
+    const image = this.add.image(x, y, key); image.setScale(size / Math.max(image.width, image.height)); this.content.add(image); return image
   }
   private element(flower: CharacterData, x: number, y: number): void {
     this.content.add(this.add.circle(x, y, 13, ELEMENT_COLORS[flower.element] ?? 0x79694f).setStrokeStyle(1, 0xfff4df))
@@ -265,6 +266,7 @@ export class FormScene extends Phaser.Scene {
   }
   private dirty(): boolean { return JSON.stringify(this.saved) !== JSON.stringify(this.manager.getFormation()) }
   private refresh(): void {
+    this.portraitIdle?.remove(); this.portraitIdle = undefined
     this.dragStart = undefined; this.clearFlowerDrag()
     this.rosterMask?.destroy(); this.rosterClip?.destroy()
     this.rosterMask = undefined; this.rosterClip = undefined; this.rosterBody = undefined; this.scrollThumb = undefined
@@ -287,7 +289,10 @@ export class FormScene extends Phaser.Scene {
     const selected = this.flowers.find(f => f.id === this.selectedId)
     if (!selected) { this.label(167, 315, this.loading ? '読み込み中…' : '花を選択してください', 18, '#79694f').setOrigin(.5); return }
     const halo = this.add.graphics().lineStyle(1, 0xc8a86c, .5).strokeCircle(167, 251, 99).strokeCircle(167, 251, 107)
-    this.content.add(halo); this.picture(selected, 167, 248, 170)
+    this.content.add(halo)
+    const portrait = this.picture(selected, 167, 248, 170)
+    // 育成画面と同じ5px・2.3秒のゆっくりした上下運動。花以外のUIは固定する。
+    if (portrait) this.portraitIdle = this.tweens.add({ targets: portrait, y: 243, duration: 2300, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' })
     this.label(167, 367, selected.name, 28).setOrigin(.5)
     this.label(167, 402, `Lv.${selected.level}　${selected.element}属性 / ${selected.role}`, 15).setOrigin(.5)
     this.label(167, 439, `戦力 ${this.manager.getPower(selected).toLocaleString()}`, 24).setOrigin(.5)
@@ -391,7 +396,7 @@ export class FormScene extends Phaser.Scene {
     const content = this.content; this.content = this.beginOverlay()
     if (this.menu === 'filter') {
       // ボタンの下ではなく、同じ行の右側の空きスペースへ展開する。
-      this.panel(491, 335 + ROSTER_TOOLBAR_OFFSET_Y, 479, 51)
+      this.content.add(this.add.nineslice(491 + 479 / 2, 335 + ROSTER_TOOLBAR_OFFSET_Y + 51 / 2, 'form-flower-card-ui', undefined, 479, 51, 12, 12, 12, 12))
       const elements = ['すべて', ...new Set(testData.characters.map(f => f.element))]
       const step = 394 / elements.length
       elements.forEach((element, index) => this.button(500 + step * (index + .5), 360 + ROSTER_TOOLBAR_OFFSET_Y, step - 4, 32, element, () => { this.filter = element; this.rosterScroll = 0; this.refresh() }, this.filter === element))
