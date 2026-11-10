@@ -8,7 +8,7 @@ export interface VillageStop {
   notice?: string
   scene?: string
   area?: TownAreaId
-  prop?: 'workbench' | 'bookshelf' | 'exit' | 'gate'
+  prop?: 'workbench'
 }
 export interface TownArea {
   id: TownAreaId
@@ -26,12 +26,12 @@ export const townAreas: Record<TownAreaId, TownArea> = {
     width: 1280, spawn: 650, mapX: 285, mapY: 225,
     stops: [
       { x: 355, door: 355, key: '', label: '育成', width: 230, scene: 'TrainingScene', prop: 'workbench' },
-      { x: 790, door: 790, key: '', label: '図鑑', width: 180, scene: 'EncyclopediaScene', prop: 'bookshelf' },
-      { x: 1140, door: 1140, key: '', label: '外へ · 広場', width: 130, area: 'plaza', prop: 'exit' },
+      { x: 790, door: 790, key: '', label: '図鑑', width: 180, scene: 'EncyclopediaScene' },
+      { x: 1140, door: 1140, key: '', label: '外へ · 広場', width: 130, area: 'plaza' },
     ],
   },
   plaza: {
-    id: 'plaza', name: '花時計の広場', description: '噴水を囲む街の中心。クエスト掲示板はこちら。',
+    id: 'plaza', name: '花時計の広場', description: '街の中心。クエスト掲示板はこちら。',
     width: 1800, spawn: 620, mapX: 610, mapY: 350,
     stops: [
       { x: 300, door: 300, key: 'home-house1', label: '家へ', width: 296, area: 'atelier' },
@@ -64,7 +64,7 @@ export const townAreas: Record<TownAreaId, TownArea> = {
     width: 1800, spawn: 450, mapX: 1000, mapY: 480,
     stops: [
       { x: 145, door: 145, key: '', label: '大通りへ', width: 140, area: 'avenue' },
-      { x: 1240, door: 1240, key: '', label: '冒険へ', width: 500, scene: 'AreaSelectScene', prop: 'gate' },
+      { x: 1240, door: 1240, key: '', label: '冒険へ', width: 150, scene: 'AreaSelectScene' },
     ],
   },
 }
