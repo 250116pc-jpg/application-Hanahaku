@@ -37,7 +37,14 @@ export class FormScene extends Phaser.Scene {
   private sort: FormationSort = '戦力'
   private descending = true
   private partyOnly = false
-  private page = 0
+  private rosterScroll = 0
+  private rosterBody?: Phaser.GameObjects.Container
+  private rosterMask?: Phaser.Display.Masks.GeometryMask
+  private rosterClip?: Phaser.GameObjects.Graphics
+  private scrollThumb?: Phaser.GameObjects.Rectangle
+  private maxRosterScroll = 0
+  private dragStart?: { y: number; scroll: number }
+  private dragDistance = 0
   private saved: Array<number | null> = [null, null, null, null]
   private layout!: Phaser.GameObjects.Container
   private content!: Phaser.GameObjects.Container
@@ -93,7 +100,7 @@ export class FormScene extends Phaser.Scene {
       }
     }
     const draft = this.preserveDraft ? this.manager.getFormation() : undefined
-    if (!this.preserveDraft) { this.slot = 0; this.page = 0; this.filter = 'すべて'; this.partyOnly = false; this.selectedId = null }
+    if (!this.preserveDraft) { this.slot = 0; this.rosterScroll = 0; this.filter = 'すべて'; this.partyOnly = false; this.selectedId = null }
     this.preserveDraft = false; this.menu = null; this.confirmation = undefined
     this.manager = new FormationManager([], [])
     this.loading = true; this.loadError = ''; this.flowers = []; this.status = '契約済みの花を読み込んでいます…'
@@ -105,6 +112,26 @@ export class FormScene extends Phaser.Scene {
     this.content = this.add.container(0, 0); this.layout.add(this.content)
     this.overlay = undefined
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => { this.request++; this.overlay?.destroy(); this.overlay = undefined })
+    const wheel = (pointer: Phaser.Input.Pointer, _objects: Phaser.GameObjects.GameObject[], _dx: number, dy: number) => {
+      if (this.rosterContains(pointer)) this.scrollRoster(this.rosterScroll + dy * .5)
+    }
+    const down = (pointer: Phaser.Input.Pointer) => {
+      this.dragDistance = 0
+      if (this.rosterContains(pointer)) this.dragStart = { y: pointer.y, scroll: this.rosterScroll }
+    }
+    const move = (pointer: Phaser.Input.Pointer) => {
+      if (!this.dragStart || !pointer.isDown) return
+      const delta = (pointer.y - this.dragStart.y) / this.layout.scaleY
+      this.dragDistance = Math.max(this.dragDistance, Math.abs(delta))
+      if (this.dragDistance > 6) this.scrollRoster(this.dragStart.scroll - delta)
+    }
+    const up = () => { this.dragStart = undefined }
+    this.input.on('wheel', wheel).on('pointerdown', down).on('pointermove', move).on('pointerup', up).on('pointerupoutside', up)
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      this.input.off('wheel', wheel).off('pointerdown', down).off('pointermove', move).off('pointerup', up).off('pointerupoutside', up)
+      this.dragStart = undefined; this.rosterMask?.destroy(); this.rosterClip?.destroy()
+      this.rosterMask = undefined; this.rosterClip = undefined
+    })
     this.refresh(); void this.loadOwned(draft)
     applySmoothDisplay(this, ['form-garden', 'form-card-artwork', 'form-flower-card-artwork', 'form-wood', 'form-amber', 'form-square', 'form-ornament'])
   }
@@ -135,7 +162,7 @@ export class FormScene extends Phaser.Scene {
       this.saved = normalize(loadFormation())
       this.manager = new FormationManager(this.flowers, normalize(draft ?? this.saved))
       if (!owned.has(this.selectedId ?? -1)) this.selectedId = this.manager.getFormation().find(id => id !== null) ?? this.flowers[0]?.id ?? null
-      this.status = progress.length > this.flowers.length ? '一部の所持花は編成用の基本データが未登録です。' : this.flowers.length ? '花を選び、出撃枠を選んで配置してください。' : '契約済みの花がありません。図鑑・花契の案内を確認してください。'
+      this.status = progress.length > this.flowers.length ? '一部の所持花は編成用の基本データが未登録です。' : this.flowers.length ? '' : '契約済みの花がありません。図鑑・花契の案内を確認してください。'
     } catch (error) {
       if (request !== this.request || !this.sys.isActive()) return
       this.flowers = []; this.manager = new FormationManager([], []); this.saved = [null, null, null, null]
@@ -194,14 +221,14 @@ export class FormScene extends Phaser.Scene {
   }
   private dirty(): boolean { return JSON.stringify(this.saved) !== JSON.stringify(this.manager.getFormation()) }
   private refresh(): void {
+    this.rosterMask?.destroy(); this.rosterClip?.destroy()
+    this.rosterMask = undefined; this.rosterClip = undefined; this.rosterBody = undefined; this.scrollThumb = undefined
     this.overlay?.destroy(); this.overlay = undefined; this.content.removeAll(true)
     this.button(BACK_BUTTON_POSITION.x, BACK_BUTTON_POSITION.y + 10, 158, 43, this.returnToStage ? '‹ ステージ選択' : '‹ ホームへ', () => this.leave())
     this.label(640, 39, '編成', 38, '#fff4dc').setOrigin(.5)
     this.content.add(this.add.image(640, 73, 'form-ornament', 'ui').setScale(290 / 2172))
-    this.label(1240, 40, '花と旅する、四人の仲間', 16, '#fff4dc').setOrigin(1, .5)
     this.panel(28, 100, 278, 522); this.panel(322, 100, 930, 220); this.panel(322, 333, 930, 300)
     this.selectedPanel(); this.partyPanel(); this.roster()
-    this.label(32, 643, '① 花を選択　② 枠を選択　③「この枠に配置」', 15, '#fff4dc')
     this.label(32, 674, this.status, 13, '#fff4dc').setWordWrapWidth(610)
     this.button(787, 670, 210, 50, '変更を戻す', () => {
       if (this.dirty()) this.confirm('保存前の編成に戻しますか？', () => { this.manager = new FormationManager(this.flowers, this.saved); this.status = '保存済みの編成に戻しました'; this.refresh() })
@@ -247,19 +274,50 @@ export class FormScene extends Phaser.Scene {
     const filterLabel = `${this.filter}${this.partyOnly ? ' / 編成中' : ''}`
     this.label(502, 360 + ROSTER_TOOLBAR_OFFSET_Y, filterLabel, 15, '#79694f').setOrigin(0, .5)
     this.button(1053, 360 + ROSTER_TOOLBAR_OFFSET_Y, 134, 35, `${this.sort}順  ▾`, () => { this.menu = this.menu === 'sort' ? null : 'sort'; this.refresh() }, this.menu === 'sort', !this.loading && !this.loadError)
-    this.button(1187, 360 + ROSTER_TOOLBAR_OFFSET_Y, 95, 35, this.descending ? '↓ 降順' : '↑ 昇順', () => { this.descending = !this.descending; this.page = 0; this.refresh() }, false, !this.loading && !this.loadError)
+    this.button(1187, 360 + ROSTER_TOOLBAR_OFFSET_Y, 95, 35, this.descending ? '↓ 降順' : '↑ 昇順', () => { this.descending = !this.descending; this.rosterScroll = 0; this.refresh() }, false, !this.loading && !this.loadError)
     const visible = visibleFormationFlowers(this.flowers, formation, this.filter, this.partyOnly, this.sort, this.descending, f => this.manager.getPower(f))
-    const pages = Math.max(1, Math.ceil(visible.length / 10)); this.page = Math.max(0, Math.min(this.page, pages - 1))
-    visible.slice(this.page * 10, this.page * 10 + 10).forEach((flower, index) => this.card(flower, 345 + index % 5 * 178, 397 + Math.floor(index / 5) * 106, 164, 99, flower.id === this.selectedId, () => { this.selectedId = flower.id; this.refresh() }, formation.includes(flower.id)))
+    const viewportHeight = 205
+    this.maxRosterScroll = Math.max(0, Math.ceil(visible.length / 5) * 106 - 7 - viewportHeight)
+    this.rosterScroll = Phaser.Math.Clamp(this.rosterScroll, 0, this.maxRosterScroll)
+    const content = this.content
+    const body = this.add.container(0, 397 - this.rosterScroll); content.add(body); this.rosterBody = body
+    this.content = body
+    visible.forEach((flower, index) => this.card(flower, 345 + index % 5 * 178, Math.floor(index / 5) * 106, 164, 99, flower.id === this.selectedId, () => {
+      // ドラッグ終了時や、枠の外に隠れたカードは選択しない。
+      if (this.dragDistance > 6 || !this.rosterContains(this.input.activePointer)) return
+      this.selectedId = flower.id; this.refresh()
+    }, formation.includes(flower.id)))
+    this.content = content
+    // Phaserの描画マスクは入力判定を切らないため、一覧の外側ではヒットさせない。
+    body.list.forEach(object => {
+      if (object.input) object.input.hitAreaCallback = (area: Phaser.Geom.Rectangle, x: number, y: number) =>
+        Phaser.Geom.Rectangle.Contains(area, x, y) && this.rosterContains(this.input.activePointer)
+    })
+    const topLeft = this.layout.getWorldTransformMatrix().transformPoint(341, 397)
+    this.rosterClip = this.add.graphics().setVisible(false).fillStyle(0xffffff).fillRect(topLeft.x, topLeft.y, 895 * this.layout.scaleX, viewportHeight * this.layout.scaleY)
+    this.rosterMask = this.rosterClip.createGeometryMask(); body.setMask(this.rosterMask)
+    if (this.maxRosterScroll > 0) {
+      this.content.add(this.add.rectangle(1240, 397, 4, viewportHeight, 0xd7c6a1).setOrigin(.5, 0))
+      const height = Math.max(24, viewportHeight * viewportHeight / (viewportHeight + this.maxRosterScroll))
+      this.scrollThumb = this.add.rectangle(1240, 397, 4, height, 0x9d7945).setOrigin(.5, 0); this.content.add(this.scrollThumb)
+      this.scrollRoster(this.rosterScroll)
+    }
     if (!visible.length) {
       const message = this.loading ? '契約済みの花を読み込んでいます…' : this.loadError || (this.flowers.length ? '条件に合う花がありません。絞り込みを変更してください。' : '契約済みの花がありません。')
       this.label(785, 472, message, 17, '#79694f').setOrigin(.5).setWordWrapWidth(800).setAlign('center')
       if (this.loadError) this.button(785, 530, 190, 38, '再読み込み', () => void this.loadOwned())
     }
     this.label(352, 605, `所持 ${this.flowers.length}体 / 表示 ${visible.length}体`, 12, '#79694f')
-    this.button(1137, 606, 27, 27, '‹', () => { this.page--; this.refresh() }, false, this.page > 0)
-    this.label(1179, 606, `${this.page + 1}/${pages}`, 12).setOrigin(.5)
-    this.button(1220, 606, 27, 27, '›', () => { this.page++; this.refresh() }, false, this.page < pages - 1)
+  }
+  private rosterContains(pointer: Phaser.Input.Pointer): boolean {
+    if (this.menu || this.confirmation || this.loading || this.loadError) return false
+    const local = this.layout.getWorldTransformMatrix().applyInverse(pointer.x, pointer.y)
+    return local.x >= 341 && local.x <= 1236 && local.y >= 397 && local.y <= 602
+  }
+  private scrollRoster(value: number): void {
+    this.rosterScroll = Phaser.Math.Clamp(value, 0, this.maxRosterScroll)
+    this.rosterBody?.setY(397 - this.rosterScroll)
+    if (this.scrollThumb) this.scrollThumb.y = 397 + (205 - this.scrollThumb.height) * this.rosterScroll / this.maxRosterScroll
   }
   private beginOverlay(): Phaser.GameObjects.Container {
     const overlay = this.add.container(0, 0); this.layout.add(overlay); this.overlay = overlay
@@ -274,11 +332,11 @@ export class FormScene extends Phaser.Scene {
       this.panel(491, 335 + ROSTER_TOOLBAR_OFFSET_Y, 479, 51)
       const elements = ['すべて', ...new Set(testData.characters.map(f => f.element))]
       const step = 394 / elements.length
-      elements.forEach((element, index) => this.button(500 + step * (index + .5), 360 + ROSTER_TOOLBAR_OFFSET_Y, step - 4, 32, element, () => { this.filter = element; this.page = 0; this.refresh() }, this.filter === element))
-      this.button(928, 360 + ROSTER_TOOLBAR_OFFSET_Y, 68, 32, '編成中', () => { this.partyOnly = !this.partyOnly; this.page = 0; this.refresh() }, this.partyOnly)
+      elements.forEach((element, index) => this.button(500 + step * (index + .5), 360 + ROSTER_TOOLBAR_OFFSET_Y, step - 4, 32, element, () => { this.filter = element; this.rosterScroll = 0; this.refresh() }, this.filter === element))
+      this.button(928, 360 + ROSTER_TOOLBAR_OFFSET_Y, 68, 32, '編成中', () => { this.partyOnly = !this.partyOnly; this.rosterScroll = 0; this.refresh() }, this.partyOnly)
     } else {
       this.panel(977, 383 + ROSTER_TOOLBAR_OFFSET_Y, 152, 151)
-      ;(['戦力', '入手', 'レベル'] as FormationSort[]).forEach((sort, index) => this.button(1053, 411 + ROSTER_TOOLBAR_OFFSET_Y + index * 47, 130, 36, `${sort}順`, () => { this.sort = sort; this.menu = null; this.page = 0; this.refresh() }, this.sort === sort))
+      ;(['戦力', '入手', 'レベル'] as FormationSort[]).forEach((sort, index) => this.button(1053, 411 + ROSTER_TOOLBAR_OFFSET_Y + index * 47, 130, 36, `${sort}順`, () => { this.sort = sort; this.menu = null; this.rosterScroll = 0; this.refresh() }, this.sort === sort))
     }
     this.content = content
   }
