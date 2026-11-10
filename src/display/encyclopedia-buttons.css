@@ -173,8 +173,9 @@
 .encyclopedia-book-tabs { z-index: auto; }
 .encyclopedia-book-tabs button { z-index: 1; }
 .encyclopedia-book-tabs button[aria-pressed=true],
-.encyclopedia-book-tabs button.season-turning { z-index: 5 !important; }
-.encyclopedia-book-tabs button:not([aria-pressed=true]):not(.season-turning) > span {
+.encyclopedia-book-tabs button.season-turning,
+.encyclopedia-book-tabs button.season-retiring { z-index: 5; }
+.encyclopedia-book-tabs button > span {
   position: absolute;
   left: 47%;
   top: 50%;
@@ -182,5 +183,17 @@
   translate: 0 -50%;
   text-align: center;
 }
-.encyclopedia-book-tabs button.season-past:not([aria-pressed=true]):not(.season-turning) > span { left: 17%; }
+.encyclopedia-book-tabs button.season-past > span { left: 17%; }
 
+
+
+
+
+
+/* 文字が絶対配置になる季節でも、各しおりの行の高さを固定する。 */
+.encyclopedia-book-tabs {
+  grid-template-rows: repeat(4, min(4.2383cqw, 6.3574cqh));
+  align-items: stretch;
+}
+.encyclopedia-book-tabs button { height: 100%; min-height: 0; }
+.encyclopedia-book-tabs button[aria-pressed=true] { transform: none; }
