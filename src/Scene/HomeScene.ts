@@ -108,7 +108,7 @@ export class HomeScene extends Phaser.Scene {
     })
     const savedX = Phaser.Math.Clamp(this.registry.get(positionKey) ?? area.spawn, 32, area.width - 32)
     const player = createCharacterSprite(this, savedX * scaleX, 568 * scaleY, 'home-player-idle', 'home-player-idle')
-    player.setOrigin(.5, 1).setScale(2 * scaleX, 2 * scaleY).setDepth(10)
+    player.setOrigin(.5, 1).setScale(1.6 * scaleX, 1.6 * scaleY).setDepth(10)
     // 主人公は建物と道より手前に描画する。
     // スプライトシートの余白が、建物や看板のタッチを遮らないようにする。
     player.setInteractive({
@@ -307,12 +307,15 @@ export class HomeScene extends Phaser.Scene {
       this.registry.set('home-town-x-' + id, townAreas[id].spawn)
       this.navigate('HomeScene')
     }
-    const visitMapArea = (id: TownAreaId): void => {
-      if (id === 'gate') {
-        this.navigate('AreaSelectScene')
-        return
+    const visitMapDestination = (id: TownAreaId, stop: VillageStop): void => {
+      if (stop.area) visitArea(stop.area)
+      else if (stop.scene) {
+        if (this.registry.get('home-town-area') !== id) {
+          this.registry.set('home-town-x-' + id, townAreas[id].spawn)
+        }
+        this.registry.set('home-town-area', id)
+        this.navigate(stop.scene)
       }
-      visitArea(id)
     }
     let closeMap: (() => void) | undefined
     const toggleMap = (): void => {
@@ -330,7 +333,7 @@ export class HomeScene extends Phaser.Scene {
       player.play('home-player-idle', true)
       Object.values(keys ?? {}).forEach(key => key.reset())
       mapOpen = true
-      closeMap = createTownMap(this, area.id, visitMapArea, () => {
+      closeMap = createTownMap(this, area.id, visitMapDestination, () => {
         mapOpen = false
         closeMap = undefined
         Object.values(keys ?? {}).forEach(key => key.reset())
@@ -353,6 +356,10 @@ export class HomeScene extends Phaser.Scene {
       if (!mapOpen && !entering) this.navigate('SettingsScene')
     }, { key: 'button1', width: 140, height: 64 }))
     ui.list.forEach(child => (child as Phaser.GameObjects.Container).setScrollFactor(0))
+    if (this.registry.get('home-open-town-map') === true) {
+      this.registry.set('home-open-town-map', false)
+      toggleMap()
+    }
   }
 
   // 単発・コンボ共通。回転攻撃だけ上昇→落下→着地を追加する。

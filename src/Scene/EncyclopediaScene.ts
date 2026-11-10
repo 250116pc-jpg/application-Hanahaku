@@ -20,6 +20,7 @@ import { BACK_BUTTON_POSITION, getTextStyle } from '../utils/ui'
 import { prototypeFlowers, contractPreview } from './encyclopedia/contractPreview'
 import type { PrototypeFlower } from './encyclopedia/contractPreview'
 import { mountFlowerDetail } from './encyclopedia/FlowerDetailView'
+import { navigateToTownMap } from './HomeScene/townMapNavigation'
 import '../display/encyclopedia-buttons.css'
 
 const unknownFlowers: Record<Season, { key: string; url: string }> = {
@@ -71,7 +72,7 @@ export class EncyclopediaScene extends Phaser.Scene {
   this.cameras.main.setBackgroundColor('#edf4ec')
   this.text(420,25,title,30)
   this.text(270,75,'花を選ぶと詳細を表示します。テストの花契状態は再読み込みでリセットされます。',17)
-  this.button(BACK_BUTTON_POSITION.x,BACK_BUTTON_POSITION.y,'← ホーム',()=>this.scene.start('HomeScene'))
+  this.button(BACK_BUTTON_POSITION.x,BACK_BUTTON_POSITION.y,'← 町マップ',()=>navigateToTownMap(this))
  }
  private closeBook(): void { this.bookCleanup?.(); this.bookCleanup=null }
  private list(): void {
@@ -83,7 +84,7 @@ export class EncyclopediaScene extends Phaser.Scene {
    onSeason:(season,page=0)=>{this.bookTurn=(['春','夏','秋','冬'].indexOf(season)-['春','夏','秋','冬'].indexOf(this.season));this.season=season;this.page=page;this.list()},
    onPage:page=>{this.bookTurn=page-this.page;this.page=page;this.list()},
    onSelect:flower=>{this.closeBook();this.detail(flower)},
-   onHome:()=>this.scene.start('HomeScene'),
+   onHome:()=>navigateToTownMap(this),
    onReset:()=>{this.closeBook();this.confirmReset()},
   })
   this.bookOpened=true
@@ -101,7 +102,7 @@ export class EncyclopediaScene extends Phaser.Scene {
    owned: contractPreview.owned.has(flower.id) || !!readFlowerContracts()[flower.id],
    unknownUrl: unknownFlowers[flower.season].url,
    onClose: () => { this.closeDetail(); this.list() },
-   onHome: () => { this.closeDetail(); this.scene.start('HomeScene') },
+   onHome: () => { this.closeDetail(); navigateToTownMap(this) },
    onContract: () => contractPreview.contract(flower.id),
   })
  }
