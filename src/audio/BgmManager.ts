@@ -16,6 +16,8 @@ import clickSe from '../assets/audio/PathOfAdventure/NoLoop/line.wav'
 // CC0: artisticdude (Swishes Sound Pack).
 import playerSwordSwing from '../assets/audio/player-sword-swing.wav'
 import playerSwordHit from '../assets/audio/player-sword-hit.wav'
+// げーむのおと「Energy Fade」 https://game-no-oto.com/category/fantasy
+import enemyVanishSe from '../assets/audio/enemy-vanish-energy.mp3'
 import playerDamage from '../assets/audio/player-damage.wav'
 import gameOverSe from '../assets/audio/game-over.wav'
 // CC0: Fupi (Win Jingle, winfretless.ogg).
@@ -128,6 +130,13 @@ function stateFor(scene: Phaser.Scene): AudioState {
  * 処理内容 : 共通BGM・効果音をPhaserのローダーへ登録する。
  * ================================== */
 export function preloadAudio(scene: Phaser.Scene): void {
+  // Trial audio from Lentikula, StarNinjas, artisticdude, and Sound Effect Lab.
+  const skillAudio = import.meta.glob<string>('../assets/audio/skill-preview/*.{wav,ogg,mp3}', {
+    eager: true, query: '?url', import: 'default',
+  })
+  for (const [path, url] of Object.entries(skillAudio)) {
+    scene.load.audio(path.slice(path.lastIndexOf('/') + 1, path.lastIndexOf('.')), url)
+  }
   scene.load.audio(BGM_KEYS.title, titleBgm)
   scene.load.audio(BGM_KEYS.home, homeBgm)
   scene.load.audio(BGM_KEYS.house, houseBgm)
@@ -137,6 +146,7 @@ export function preloadAudio(scene: Phaser.Scene): void {
   scene.load.audio(CLICK_SE_KEY, clickSe)
   scene.load.audio('player-sword-swing', playerSwordSwing)
   scene.load.audio('player-sword-hit', playerSwordHit)
+  scene.load.audio('enemy-vanish', enemyVanishSe)
   scene.load.audio('player-damage', playerDamage)
   scene.load.audio('game-over', gameOverSe)
   scene.load.audio('stage-clear', stageClearSe)

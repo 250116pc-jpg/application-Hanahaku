@@ -214,7 +214,10 @@ export class StageScene extends Phaser.Scene {
     const keyboard = this.input.keyboard;
     const onConfirm = () => this.contractRescuedFlower();
     keyboard?.on('keydown-E', onConfirm);
-    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => keyboard?.off('keydown-E', onConfirm));
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      keyboard?.off('keydown-E', onConfirm);
+      this.sound.stopByKey('enemy-vanish');
+    });
   }
 
   private canReachRescuePoint(): boolean {

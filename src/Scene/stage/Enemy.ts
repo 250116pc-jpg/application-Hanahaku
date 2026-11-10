@@ -1,5 +1,6 @@
 // 担当：たまおちゃん｜敵キャラクターの行動と状態
 import { showBattleNumber } from './BattleFeedback';
+import { playSe } from '../../audio/BgmManager';
 import { battleNow } from './BattleClock';
 import Phaser from 'phaser';
 import type { DamageType, Player } from './Player.ts';
@@ -155,6 +156,11 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
       const body = this.body as Phaser.Physics.Arcade.Body;
       body.enable = false;
       this.playVisual('enemy-death');
+      // とどめの命中音と消滅音が重なるのを防ぐ。
+      this.scene.sound.stopByKey('player-sword-hit');
+      if (!this.scene.sound.getAllPlaying().some(sound => sound.key === 'enemy-vanish')) {
+        playSe(this.scene, 'enemy-vanish', 0.42);
+      }
       return;
     }
 

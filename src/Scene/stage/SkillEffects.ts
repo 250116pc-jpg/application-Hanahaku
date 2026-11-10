@@ -1,5 +1,6 @@
 // 担当：たまおちゃん｜スキル発動演出
 import { SkillSound } from './SkillSound';
+import { playSe } from '../../audio/BgmManager';
 import { battleNow } from './BattleClock';
 import Phaser from 'phaser';
 import type { Player, CombatTarget, SkillVisualPhase } from './Player';
@@ -18,6 +19,22 @@ const palettes: Record<ServerFlowerSkill['type'], [number, number, string]> = {
   heal: [0x73e9b0, 0xf3ffdf, '09_heal'],
   evasion: [0xa98bff, 0xeae2ff, '10_stealth'],
 };
+
+const trialSounds: Partial<Record<ServerFlowerSkill['type'], Partial<Record<SkillVisualPhase, string>>>> = {
+  multiHit: { impact: 'skill-zinnia' },
+  charge: { charge: 'skill-sunflower-charge', impact: 'skill-sunflower-beam' },
+  balanced: { cast: 'skill-sarusuberi' },
+  continuous: { cast: 'skill-mukuge' },
+  maple: { buff: 'skill-kochia-green', impact: 'skill-kochia-red' },
+  // Healing Spell Impacts by Lentikula (CC0).
+  defensiveRecovery: { cast: 'skill-suiren' },
+  heal: { cast: 'skill-ajisai' },
+  // Shield and Debuff: https://game-no-oto.com/category/fantasy
+  fortify: { buff: 'skill-hasu' },
+  slowAttack: { impact: 'skill-rurimatsuri' },
+  evasion: { cast: 'skill-hangesho' },
+};
+const trialSoundKeys = Object.values(trialSounds).flatMap(sounds => Object.values(sounds));
 
 /** World-space spell choreography. HUD stays above all lights and overlays. */
 export class SkillEffects {
@@ -41,12 +58,29 @@ export class SkillEffects {
       scene.events.off(Phaser.Scenes.Events.POST_UPDATE, update);
       this.followers.clear();
       this.auras.clear();
+      for (const key of trialSoundKeys) scene.sound.stopByKey(key);
     });
+  }
+
+  private playSound(type: ServerFlowerSkill['type'], phase: SkillVisualPhase): void {
+    if (phase === 'projectile') return;
+    const sounds = trialSounds[type];
+    const key = sounds?.[phase];
+    if (key && this.scene.cache.audio.exists(key)) {
+      if (!this.scene.sound.getAllPlaying().some(sound => sound.key === key)) {
+        playSe(this.scene, key, 0.4);
+      }
+      return;
+    }
+
+    const beamImpact = type === 'charge' && phase === 'impact';
+    const hasTrialAudio = sounds && Object.values(sounds).some(sound => this.scene.cache.audio.exists(sound));
+    if (!hasTrialAudio || beamImpact) this.sound.play(phase, beamImpact);
   }
 
   play(skill: Pick<ServerFlowerSkill, 'type' | 'durationMs'> & { name?: string }, phase: SkillVisualPhase, targets: readonly CombatTarget[], area: readonly (readonly number[])[]): void {
     if (!this.player.active || this.player.health <= 0) return;
-    if (phase !== 'projectile') this.sound.play(phase, skill.type === 'charge' && phase === 'impact');
+    this.playSound(skill.type, phase);
     let [color, light, sheet] = palettes[skill.type];
     if (skill.type === 'maple' && phase !== 'impact') { color = 0x85dd9e; sheet = '06a_leaf_green'; }
     const x = this.player.x;
