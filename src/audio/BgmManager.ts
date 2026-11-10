@@ -24,6 +24,10 @@ import gameOverSe from '../assets/audio/game-over.wav'
 import stageClearSe from '../assets/audio/stage-clear.ogg'
 // CC0: artisticdude (RPG Sound Pack, lighter cloth).
 import playerJumpSe from '../assets/audio/player-jump.wav'
+// Sound Effect Lab: grass running footsteps.
+import playerRunStep1 from '../assets/audio/player-run-step-1.wav'
+import playerRunStep2 from '../assets/audio/player-run-step-2.wav'
+import playerRunStep3 from '../assets/audio/player-run-step-3.wav'
 // CC0: StarNinjas (10 Impact/Shield Blocks, impact.2.ogg).
 import playerGuardHitSe from '../assets/audio/player-guard-hit.ogg'
 const seAssets = import.meta.glob('../assets/audio/se-lab/*.mp3', { eager: true, query: '?url', import: 'default' }) as Record<string, string>
@@ -49,6 +53,9 @@ export const BGM_KEYS = {
   shop: 'bgmShop',
   encyclopedia: 'bgmEncyclopedia'
 } as const
+
+const playerRunSteps = [playerRunStep1, playerRunStep2, playerRunStep3]
+export const PLAYER_RUN_STEP_KEYS = playerRunSteps.map((_, index) => 'player-run-step-' + (index + 1))
 
 const CLICK_SE_KEY = 'seClick'
 const STORAGE_KEY = 'hanahakuAudioSettings'
@@ -151,6 +158,7 @@ export function preloadAudio(scene: Phaser.Scene): void {
   scene.load.audio('game-over', gameOverSe)
   scene.load.audio('stage-clear', stageClearSe)
   scene.load.audio('player-jump', playerJumpSe)
+  playerRunSteps.forEach((url, index) => scene.load.audio(PLAYER_RUN_STEP_KEYS[index], url))
   scene.load.audio('player-crouch', playerJumpSe)
   scene.load.audio('player-guard-hit', playerGuardHitSe)
   for (const [path, url] of Object.entries(seAssets)) scene.load.audio(`ui-${path.split('/').pop()!.replace('.mp3', '')}`, url)

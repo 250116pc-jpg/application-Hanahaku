@@ -334,7 +334,7 @@ export class StageHUD {
      * ================================== */
     const closeDialog = (retreat: boolean): void => {
       if (closing) return;
-      playUiSe(this.scene, retreat ? 'confirm' : 'cancel', 0.5);
+      playUiSe(this.scene, 'cancel', 0.5);
       closing = true;
       dialog.style.pointerEvents = 'none';
       let finished = false;

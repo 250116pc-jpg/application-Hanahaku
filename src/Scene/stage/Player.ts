@@ -6,7 +6,8 @@
  * ================================== */
 // 担当：たまおちゃん｜プレイヤー操作・移動・戦闘
 import { showBattleNumber } from './BattleFeedback';
-import { playSe } from '../../audio/BgmManager';
+import { PLAYER_RUN_STEP_KEYS, playSe } from '../../audio/BgmManager';
+import { SCENE_KEYS } from '../sceneKeys';
 import { battleNow } from './BattleClock';
 import Phaser from 'phaser';
 import { changeCharacterAnimation } from '../../animation/animation.ts';
@@ -47,6 +48,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   private readonly JUMP_POWER = playerStats.jumpPower;
   private readonly FALL_GRAVITY_BONUS = playerStats.fallGravityBonus;
   private wasGrounded = true;
+  private nextRunStep = 0;
   private landingAnimationPlaying = false;
   private action: string | null = null;
   private dead = false;
@@ -185,6 +187,9 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.cursors = cursors;
     this.once(Phaser.GameObjects.Events.DESTROY, () => this.clearRegeneration());
     this.on(Phaser.Animations.Events.ANIMATION_UPDATE, (animation: Phaser.Animations.Animation, frame: Phaser.Animations.AnimationFrame) => {
+      if (animation.key === 'player-run' && (frame.index === 3 || frame.index === 7)) {
+        this.playRunStep();
+      }
       if (animation.key !== 'player-attack' || frame.index < BASIC_ATTACK_IMPACT_FRAME || !this.basicAttackTargets) return;
       const targets = this.basicAttackTargets;
       this.basicAttackTargets = null;
@@ -323,6 +328,16 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     }
 
     this.wasGrounded = isGrounded;
+  }
+
+  private playRunStep(): void {
+    if (this.scene.scene.key !== SCENE_KEYS.STAGE) return;
+    const body = this.body as Phaser.Physics.Arcade.Body | null;
+    if (!body?.enable || this.dead || this.action !== null || this.scene.physics.world.isPaused ||
+        !body.blocked.down || body.velocity.x === 0 || Math.abs(body.deltaX()) < 0.01) return;
+
+    playSe(this.scene, PLAYER_RUN_STEP_KEYS[this.nextRunStep], 0.4);
+    this.nextRunStep = (this.nextRunStep + 1) % PLAYER_RUN_STEP_KEYS.length;
   }
 
   public jump(): void {
