@@ -195,7 +195,7 @@ export class FormScene extends Phaser.Scene {
   private dirty(): boolean { return JSON.stringify(this.saved) !== JSON.stringify(this.manager.getFormation()) }
   private refresh(): void {
     this.overlay?.destroy(); this.overlay = undefined; this.content.removeAll(true)
-    this.button(BACK_BUTTON_POSITION.x, BACK_BUTTON_POSITION.y, 158, 43, this.returnToStage ? '‹ ステージ選択' : '‹ ホームへ', () => this.leave())
+    this.button(BACK_BUTTON_POSITION.x, BACK_BUTTON_POSITION.y + 10, 158, 43, this.returnToStage ? '‹ ステージ選択' : '‹ ホームへ', () => this.leave())
     this.label(640, 39, '編成', 38, '#fff4dc').setOrigin(.5)
     this.content.add(this.add.image(640, 73, 'form-ornament', 'ui').setScale(290 / 2172))
     this.label(1240, 40, '花と旅する、四人の仲間', 16, '#fff4dc').setOrigin(1, .5)

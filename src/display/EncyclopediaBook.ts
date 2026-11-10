@@ -10,6 +10,7 @@ import { readFlowerContracts } from '../Scene/stage/flowerContracts'
 import type { Season } from '../Scene/test_data'
 import { prototypeFlowers, contractPreview, type PrototypeFlower } from '../Scene/encyclopedia/contractPreview'
 import './EncyclopediaBook.css'
+import bookmarkImage from '../assets/ui/encyclopedia_bookmark.png'
 const images = import.meta.glob('../assets/settings-book/*.png', { eager: true, query: '?url', import: 'default' }) as Record<string,string>
 const asset = (name: string): string => images['../assets/settings-book/'+name]!
 /* === [ 担当 : 250056 斎藤永聖 ] ===
@@ -18,13 +19,16 @@ const asset = (name: string): string => images['../assets/settings-book/'+name]!
 export function mountEncyclopediaBook(options: {
  season: Season; page: number; animate: boolean; turn?: number;
  unknown: Record<Season,{url:string}>;
- onTurn: () => void; onSeason: (season: Season) => void; onPage: (page:number) => void;
+ onTurn: () => void; onSeason: (season: Season, page?: number) => void; onPage: (page:number) => void;
  onSelect: (flower:PrototypeFlower) => void; onHome: () => void; onReset: () => void
 }): () => void {
  const root=document.createElement('section'); root.className='encyclopedia-book-screen'
  root.setAttribute('role','dialog');root.setAttribute('aria-label','花の図鑑');root.setAttribute('aria-modal','true')
  const book=document.createElement('div');book.className='encyclopedia-book';root.append(book)
  const art=document.createElement('img');art.className='encyclopedia-book-art';art.alt='花の図鑑';art.src=asset(options.animate?'opening_00.png':'open.png');book.append(art)
+ // 表紙と開いた紙を別の層にして、その間にしおりを挟む。
+ const paper=art.cloneNode() as HTMLImageElement;paper.className='encyclopedia-book-paper';paper.alt='';paper.setAttribute('aria-hidden','true');book.append(paper)
+ const paperSync=new MutationObserver(()=>{paper.src=art.src});paperSync.observe(art,{attributes:true,attributeFilter:['src']})
  const ui=document.createElement('div');ui.className='encyclopedia-book-ui';ui.hidden=true;book.append(ui)
  const tabs=document.createElement('nav');tabs.className='encyclopedia-book-tabs';tabs.setAttribute('aria-label','季節');tabs.hidden=true;book.append(tabs)
  const previous=document.activeElement instanceof HTMLElement?document.activeElement:null
@@ -70,6 +74,7 @@ export function mountEncyclopediaBook(options: {
     const crosses = index >= Math.min(from, to) && index < Math.max(from, to)
     if (!crosses && !(from === to && index === from)) return []
     const wasLeft = index < from
+    tab.classList.add('season-turning')
     tab.style.transform = 'none'
     tab.style.transformOrigin = wasLeft ? 'right center' : 'left center'
     const rect = tab.getBoundingClientRect()
@@ -154,19 +159,21 @@ export function mountEncyclopediaBook(options: {
  drawCards(grid,options.season,page)
  const footer=document.createElement('footer');ui.append(footer)
  const leftFooter=document.createElement('div');leftFooter.className='encyclopedia-footer-page';const rightFooter=document.createElement('div');rightFooter.className='encyclopedia-footer-page';footer.append(leftFooter,rightFooter)
- const back=button(root,'← ホーム',close);back.className='encyclopedia-book-back';root.prepend(back)
+ const back=button(root,'‹  ホームへ',close);back.className='encyclopedia-book-back';root.prepend(back)
  const seasonIndex=seasons.indexOf(options.season)
  const previousSeason=seasons[Math.max(0,seasonIndex-1)]!
- const prev=button(leftFooter,'← 前',()=>page>0?turn(-1,options.season,page-1,()=>options.onPage(page-1)):turn(-1,previousSeason,0,()=>options.onSeason(previousSeason)));prev.disabled=page===0&&seasonIndex===0
+ const previousLastPage=Math.max(0,Math.ceil(prototypeFlowers.filter(f=>f.season===previousSeason).length/8)-1)
+ const nextSeason=seasons[Math.min(seasons.length-1,seasonIndex+1)]!
+ const prev=button(leftFooter,'‹',()=>page>0?turn(-1,options.season,page-1,()=>options.onPage(page-1)):turn(-1,previousSeason,previousLastPage,()=>options.onSeason(previousSeason,previousLastPage)));prev.className='encyclopedia-page-prev';prev.setAttribute('aria-label','前のページ');prev.disabled=page===0&&seasonIndex===0
  const count=document.createElement('span');count.textContent=`${page+1} / ${pages}`;leftFooter.append(count)
- const next=button(rightFooter,'次 →',()=>turn(1,options.season,page+1,()=>options.onPage(page+1)));next.disabled=page===pages-1
  button(rightFooter,'テストを初期化',options.onReset)
- ;seasons.forEach((season,i)=>{const tab=button(tabs,season,()=>{if(season!==options.season)turn(i-seasonIndex,season,0,()=>options.onSeason(season))});const label=document.createElement('span');label.textContent=season;label.style.display='inline-block';tab.replaceChildren(label);tab.style.setProperty('--tab-color',['#e6b5bf','#b7cfaa','#d5b075','#b8cadd'][i]!);tab.setAttribute('aria-pressed',String(season===options.season));tab.classList.toggle('season-past',i<seasonIndex);tab.style.gridRow=String(i+1);tab.style.gridColumn=i<seasonIndex?'1':'2'})
+ const next=button(rightFooter,'›',()=>page<pages-1?turn(1,options.season,page+1,()=>options.onPage(page+1)):turn(1,nextSeason,0,()=>options.onSeason(nextSeason,0)));next.className='encyclopedia-page-next';next.setAttribute('aria-label','次のページ');next.disabled=page===pages-1&&seasonIndex===seasons.length-1
+ ;seasons.forEach((season,i)=>{const tab=button(tabs,season,()=>{if(season!==options.season)turn(i-seasonIndex,season,0,()=>options.onSeason(season))});const label=document.createElement('span');label.textContent=season;label.style.display='inline-block';const ribbon=document.createElement('img');ribbon.src=bookmarkImage;ribbon.alt='';ribbon.className='encyclopedia-season-ribbon';ribbon.setAttribute('aria-hidden','true');tab.replaceChildren(label,ribbon);tab.style.setProperty('--tab-color',['#e6b5bf','#b7cfaa','#d5b075','#b8cadd'][i]!);tab.setAttribute('aria-pressed',String(season===options.season));tab.classList.toggle('season-past',i<seasonIndex);tab.style.gridRow=String(i+1);tab.style.gridColumn=i<seasonIndex?'1':'2'})
  root.addEventListener('keydown',event=>{if(event.key==='Escape'){event.preventDefault();close()}if(event.key==='Tab'){const list=[...root.querySelectorAll<HTMLButtonElement>('button:not(:disabled)')].filter(b=>b.getClientRects().length);const first=list[0],last=list[list.length-1];if(event.shiftKey&&document.activeElement===first){event.preventDefault();last?.focus()}else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first?.focus()}}})
  document.body.append(root)
  const ready=():void=>{ui.hidden=false;tabs.hidden=false;tabs.querySelector<HTMLButtonElement>('[aria-pressed=true]')?.focus()}
  const preload=['open.png',...Array.from({length:8},(_,i)=>`opening_${String(i).padStart(2,'0')}.png`),...Array.from({length:9},(_,i)=>`turn_next_${String(i).padStart(2,'0')}.png`)].map(name=>{const img=new Image();img.src=asset(name);return img.decode().catch(()=>undefined)})
  if(options.animate) void Promise.all(preload).then(()=>{if(!disposed)animate(false,ready)});
  else {busy=false;ready()}
- return ()=>{disposed=true;clearTimeout(timer);root.remove();previous?.focus()}
+ return ()=>{disposed=true;clearTimeout(timer);paperSync.disconnect();root.remove();previous?.focus()}
 }

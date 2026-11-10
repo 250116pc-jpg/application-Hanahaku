@@ -184,7 +184,7 @@ export class TrainingScene extends Phaser.Scene {
       .setFontFamily('"Yu Mincho", "MS PMincho", serif').setFontStyle('normal')
       .setOrigin(.5).setShadow(0, 2, '#241008', 3, true, true);
     this.content.add(this.add.image(640, 74, 'training-title-ornament', 'divider').setScale(300 / 2172));
-    this.button(BACK_BUTTON_POSITION.x - 70, BACK_BUTTON_POSITION.y - 18, 140, 36, '‹  ホームへ', () => this.scene.start(SCENE_KEYS.HOME));
+    this.button(BACK_BUTTON_POSITION.x - 70, BACK_BUTTON_POSITION.y - 8, 140, 36, '‹  ホームへ', () => this.scene.start(SCENE_KEYS.HOME));
     this.content = content;
   }
 
