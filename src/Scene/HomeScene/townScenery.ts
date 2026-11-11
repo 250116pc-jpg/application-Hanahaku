@@ -1,15 +1,32 @@
+/* ==================================
+ * 期末テスト提出プログラム
+ * 学籍番号：250116
+ * 氏名：中村伊安
+ * ================================== */
 import Phaser from 'phaser'
 import type { TownArea, VillageStop } from './townAreas'
 
+/* === [ 担当 : 250116 中村伊安 ] ===
+ * 処理内容 : 受け渡すデータの型と共通設定を定義する
+ * ================================== */
 type World = Phaser.GameObjects.Container
+/* === [ 担当 : 250116 中村伊安 ] ===
+ * 処理内容 : 町の景観用の矩形を描く
+ * ================================== */
 function rect(scene: Phaser.Scene, world: World, x: number, y: number, w: number, h: number, color: number, alpha = 1): Phaser.GameObjects.Rectangle {
   const object = scene.add.rectangle(x, y, w, h, color, alpha)
   world.add(object)
   return object
 }
+/* === [ 担当 : 250116 中村伊安 ] ===
+ * 処理内容 : 指定した小物画像を町へ配置する
+ * ================================== */
 export function addTownProp(scene: Phaser.Scene, world: World, frame: string, x: number, y: number, scale = 3): void {
   world.add(scene.add.image(x, y, 'home-props', frame).setOrigin(.5, 1).setScale(scale))
 }
+/* === [ 担当 : 250116 中村伊安 ] ===
+ * 処理内容 : 町の小物画像を切り出して利用できるようにする
+ * ================================== */
 export function prepareTownProps(scene: Phaser.Scene): void {
   const texture = scene.textures.get('home-props')
   const frames: [string, number, number, number, number][] = [
@@ -20,6 +37,9 @@ export function prepareTownProps(scene: Phaser.Scene): void {
   frames.forEach(([name, x, y, w, h]) => { if (!texture.has(name)) texture.add(name, 0, x, y, w, h) })
   texture.setFilter(Phaser.Textures.FilterMode.NEAREST)
 }
+/* === [ 担当 : 250116 中村伊安 ] ===
+ * 処理内容 : 町の地面・道・植え込みを描く
+ * ================================== */
 export function drawTownGround(scene: Phaser.Scene, world: World, area: TownArea): void {
   const indoor = area.id === 'atelier'
   rect(scene, world, area.width / 2, 640, area.width, 164, indoor ? 0x584033 : 0x514f45)
@@ -36,6 +56,9 @@ export function drawTownGround(scene: Phaser.Scene, world: World, area: TownArea
     }
   }
 }
+/* === [ 担当 : 250116 中村伊安 ] ===
+ * 処理内容 : エリアに応じた建物や景観を描く
+ * ================================== */
 export function drawTownFeature(scene: Phaser.Scene, world: World, area: TownArea): void {
   if (area.id === 'atelier') {
     rect(scene, world, 640, 279, 1280, 558, 0x9e8768)
@@ -56,6 +79,9 @@ export function drawTownFeature(scene: Phaser.Scene, world: World, area: TownAre
     addTownProp(scene, world, 'tree', 390, 558, 2.2)
   }
 }
+/* === [ 担当 : 250116 中村伊安 ] ===
+ * 処理内容 : タッチで選べる施設・出入口を配置する
+ * ================================== */
 export function drawInteractiveProp(scene: Phaser.Scene, world: World, stop: VillageStop): void {
   addTownProp(scene, world, 'table', stop.x, 558, 3.2)
 }

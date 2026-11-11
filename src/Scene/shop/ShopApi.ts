@@ -1,20 +1,21 @@
 /* ==================================
  * 期末テスト提出プログラム
- * 学籍番号: 250056
- * 氏名: 斎藤永聖
- * 担当範囲: 下記の担当コメントを参照（共同制作）
+ * 学籍番号：250056、250116
+ * 氏名：斎藤永聖、中村伊安
  * ================================== */
-// 担当：たまおちゃん｜ショップ機能・ShopApi
 import { getPhpBaseUrl } from '../../auth/PhpBaseUrl';
 import rawCatalog from '../../../php/shop/items.json?raw'
 import type { ShopItem } from './types'
 import type { ItemCategory } from '../inventory/InventoryData'
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 所持品通信を定義する
+ * ================================== */
 export const shopCatalog = JSON.parse(rawCatalog) as Array<ShopItem & { category: ItemCategory }>
 export type ShopState = { coin: number; items: Record<string, number> }
-/* === [ 担当 : 250056 斎藤永聖 ] ===
- * 処理内容 : 通常はPHP APIで所持品の取得・購入・消費を行い、開発時のshop-test指定に限り仮の所持金・所持品をsessionStorageで管理する。
- * ================================== */
 export async function requestShop(action: 'state' | 'buy' | 'consume' = 'state', itemId?: number, quantity = 1): Promise<ShopState> {
+ /* === [ 担当 : 250056 斎藤永聖 / 250116 中村伊安 ] ===
+  * 処理内容 : 画像・文字・パネルを配置する
+  * ================================== */
  if (import.meta.env.DEV && new URLSearchParams(location.search).get('shop-test') === '1') {
   const key='hanahaku-shop-preview-v1'
   let state: ShopState
@@ -45,6 +46,9 @@ export async function requestShop(action: 'state' | 'buy' | 'consume' = 'state',
   sessionStorage.setItem(key,JSON.stringify(state))
   return state
  }
+ /* === [ 担当 : 250056 斎藤永聖 ] ===
+  * 処理内容 : 所持品取得・購入・消費のAPIを呼ぶ
+  * ================================== */
  const base=getPhpBaseUrl()
  const response=await fetch(`${base}/shop/state.php`,{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify({action,itemId,quantity})})
  const result=await response.json()

@@ -1,6 +1,14 @@
 <?php
+/* ==================================
+ * 期末テスト提出プログラム
+ * 学籍番号：250116
+ * 氏名：中村伊安
+ * ================================== */
 declare(strict_types=1);
 
+/* === [ 担当 : 250116 中村伊安 ] ===
+ * 処理内容 : 送信方法が許可されているか確認する
+ * ================================== */
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, OPTIONS');
 header('Content-Type: application/json; charset=utf-8');
@@ -26,6 +34,9 @@ if (!in_array($stageId, [2, 4, 6, 8, 10], true)) {
 
 $stagePath = __DIR__ . '/stage' . $stageId . '.json';
 $stageJson = file_get_contents($stagePath);
+/* === [ 担当 : 250116 中村伊安 ] ===
+ * 処理内容 : ステージと敵の成長後データを返す
+ * ================================== */
 if ($stageJson === false) {
     http_response_code(500);
     echo json_encode(['error' => 'ステージデータを読み込めません。'], JSON_UNESCAPED_UNICODE);

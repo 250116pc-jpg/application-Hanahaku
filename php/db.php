@@ -1,14 +1,13 @@
 <?php
 /* ==================================
  * 期末テスト提出プログラム
- * 学籍番号: 250056
- * 氏名: 斎藤永聖
- * 担当範囲: 下記の担当コメントを参照（共同制作）
+ * 学籍番号：250056
+ * 氏名：斎藤永聖
  * ================================== */
 declare(strict_types=1);
 
 /* === [ 担当 : 250056 斎藤永聖 ] ===
- * 処理内容 : 環境変数を優先し、未設定時は読み込み済みの.env設定から値を取得する。
+ * 処理内容 : 接続設定を環境変数などから取得する
  * ================================== */
 function projectEnv(string $name): ?string
 {
@@ -37,7 +36,7 @@ function projectEnv(string $name): ?string
 }
 
 /* === [ 担当 : 250056 斎藤永聖 ] ===
- * 処理内容 : 許可された接続元だけにCookie付きCORSを許可し、JSON以外のPOSTを拒否してOPTIONSへ応答する。
+ * 処理内容 : 送信方法が許可されているか確認する
  * ================================== */
 $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
 $configuredOrigins = array_filter(array_map(
@@ -63,13 +62,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !str_starts_with(strtolower($_SERVE
     respond(['ok' => false, 'error' => 'JSONで送信してください。'], 415);
 }
 
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 送信方法が許可されているか確認する
+ * ================================== */
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(204);
     exit;
 }
 
 /* === [ 担当 : 250056 斎藤永聖 ] ===
- * 処理内容 : HTTPステータスとJSONレスポンスを返し、以降の処理を終了する。
+ * 処理内容 : HTTPステータスとJSON応答を返す
  * ================================== */
 function respond(array $data, int $status = 200): void
 {
@@ -79,7 +81,7 @@ function respond(array $data, int $status = 200): void
 }
 
 /* === [ 担当 : 250056 斎藤永聖 ] ===
- * 処理内容 : リクエスト本文をJSONとして読み取り、配列として扱える入力か検査する。
+ * 処理内容 : 送信されたJSONを読み取る
  * ================================== */
 function requestBody(): array
 {
@@ -91,7 +93,7 @@ function requestBody(): array
 }
 
 /* === [ 担当 : 250056 斎藤永聖 ] ===
- * 処理内容 : usersの列構成を調べ、新旧のパスワード保存列名を判定する。
+ * 処理内容 : usersの列構成からパスワード保存列を判定する
  * ================================== */
 function passwordColumn(PDO $pdo): string
 {
@@ -111,10 +113,10 @@ function passwordColumn(PDO $pdo): string
     respond(['ok' => false, 'error' => 'usersテーブルにパスワード列がありません。'], 500);
 }
 
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 接続設定・入力検証・JSON応答を用意する
+ * ================================== */
 try {
-    /* === [ 担当 : 250056 斎藤永聖 ] ===
-     * 処理内容 : 環境変数から接続情報を取得し、例外通知とプリペアド文を使用するPDO接続を作成する。
-     * ================================== */
     $host = getenv('HANAHAKU_DB_HOST') ?: '127.0.0.1';
     $database = getenv('HANAHAKU_DB_NAME') ?: 'hanahaku';
     $user = getenv('HANAHAKU_DB_USER') ?: 'root';

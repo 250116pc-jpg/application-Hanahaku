@@ -1,4 +1,8 @@
-// 担当：たまおちゃん｜スキル発動演出
+/* ==================================
+ * 期末テスト提出プログラム
+ * 学籍番号：250056、250116
+ * 氏名：斎藤永聖、中村伊安
+ * ================================== */
 import { SkillSound } from './SkillSound';
 import { playSe } from '../../audio/BgmManager';
 import { battleNow } from './BattleClock';
@@ -7,6 +11,9 @@ import type { Player, CombatTarget, SkillVisualPhase } from './Player';
 import type { ServerFlowerSkill } from './SkillApi';
 import { ensureBattleTextures } from './StageAtmosphere';
 
+/* === [ 担当 : 250056 斎藤永聖 / 250116 中村伊安 ] ===
+ * 処理内容 : スキル演出を定義する
+ * ================================== */
 const palettes: Record<ServerFlowerSkill['type'], [number, number, string]> = {
   multiHit: [0xff623d, 0xffd18b, '01_fire_slash'],
   defensiveRecovery: [0x75bbff, 0xe2f4ff, '02_guard_buff'],
@@ -38,6 +45,9 @@ const trialSoundKeys = Object.values(trialSounds).flatMap(sounds => Object.value
 
 /** World-space spell choreography. HUD stays above all lights and overlays. */
 export class SkillEffects {
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 状態・能力値・操作対象を保持する
+   * ================================== */
   private readonly scene: Phaser.Scene;
   private readonly player: Player;
   private readonly followers = new Set<() => void>();
@@ -47,6 +57,9 @@ export class SkillEffects {
   private readonly reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   private banner?: Phaser.GameObjects.Container;
 
+  /* === [ 担当 : 250056 斎藤永聖 / 250116 中村伊安 ] ===
+   * 処理内容 : 演出用の画像・効果音と更新・終了処理を準備する
+   * ================================== */
   constructor(scene: Phaser.Scene, player: Player) {
     this.scene = scene;
     this.player = player;
@@ -62,6 +75,9 @@ export class SkillEffects {
     });
   }
 
+  /* === [ 担当 : 250056 斎藤永聖 ] ===
+   * 処理内容 : 音声の再生状態と音量を管理する
+   * ================================== */
   private playSound(type: ServerFlowerSkill['type'], phase: SkillVisualPhase): void {
     if (phase === 'projectile') return;
     const sounds = trialSounds[type];
@@ -79,6 +95,9 @@ export class SkillEffects {
   }
 
   play(skill: Pick<ServerFlowerSkill, 'type' | 'durationMs'> & { name?: string }, phase: SkillVisualPhase, targets: readonly CombatTarget[], area: readonly (readonly number[])[]): void {
+    /* === [ 担当 : 250056 斎藤永聖 / 250116 中村伊安 ] ===
+     * 処理内容 : 発動段階に合わせてスキル名・発光・溜め演出を表示する
+     * ================================== */
     if (!this.player.active || this.player.health <= 0) return;
     this.playSound(skill.type, phase);
     let [color, light, sheet] = palettes[skill.type];
@@ -122,6 +141,9 @@ export class SkillEffects {
     } else if (skill.type === 'continuous') {
       this.wave(area, color);
     }
+    /* === [ 担当 : 250116 中村伊安 ] ===
+     * 処理内容 : 命中対象へスプライト・発光・粒子と画面揺れを表示する
+     * ================================== */
     const points = targets.length ? targets : [{ x: x + facing * 80, y: this.player.y }];
     points.slice(0, 8).forEach(target => {
       const hitY = target.y - 34;
@@ -142,22 +164,34 @@ export class SkillEffects {
     }
   }
 
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 演出を薄くして消去する
+   * ================================== */
   private fade(object: Phaser.GameObjects.GameObject, duration: number, extra: object = {}): void {
     this.scene.tweens.add({ targets: object, alpha: 0, duration, ...extra, onComplete: () => object.destroy() });
   }
 
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 命中位置などに広がる発光を表示する
+   * ================================== */
   private light(x: number, y: number, color: number, size: number, duration: number): void {
     const glow = this.scene.add.image(x, y, 'battle-glow').setTint(color).setDisplaySize(size, size)
       .setBlendMode(Phaser.BlendModes.ADD).setAlpha(.75).setDepth(24);
     this.fade(glow, duration, { scaleX: glow.scaleX * 1.5, scaleY: glow.scaleY * 1.5 });
   }
 
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 広がる輪の演出を表示する
+   * ================================== */
   private ring(x: number, y: number, color: number, size: number, duration: number, ground = true): void {
     const ring = this.scene.add.ellipse(x, y, size, ground ? size * .27 : size, color, .05)
       .setStrokeStyle(2, color, .8).setBlendMode(Phaser.BlendModes.ADD).setDepth(25).setScale(.3);
     this.fade(ring, duration, { scale: 1.5, ease: 'Cubic.Out' });
   }
 
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 散開・集合・上昇する光の粒子を表示する
+   * ================================== */
   private sparks(x: number, y: number, color: number, count: number, radius: number, duration: number, gather = false, rise = false): void {
     if (this.reducedMotion) count = Math.ceil(count / 2);
     for (let i = 0; i < count; i++) {
@@ -173,6 +207,9 @@ export class SkillEffects {
     }
   }
 
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : スキル用スプライトシートをアニメーション再生する
+   * ================================== */
   private sprite(x: number, y: number, sheet: string, size: number, flip = false): void {
     const key = `skill-effect-${sheet}`;
     if (!this.scene.anims.exists(key)) return;
@@ -182,6 +219,9 @@ export class SkillEffects {
     sprite.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => sprite.destroy());
   }
 
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 向きと大きさに合わせた斬撃を表示する
+   * ================================== */
   private slash(x: number, y: number, color: number, light: number, direction: number, scale: number): void {
     const arc = this.scene.add.graphics({ x, y }).setDepth(34).setBlendMode(Phaser.BlendModes.ADD);
     arc.lineStyle(19, color, .15).beginPath().arc(0, 0, 65, -1.3, 1.3).strokePath();
@@ -191,6 +231,9 @@ export class SkillEffects {
     this.fade(arc, 230, { rotation: .6 * direction, x: x + 25 * direction });
   }
 
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 攻撃範囲に沿って光線を表示する
+   * ================================== */
   private beam(area: readonly (readonly number[])[], color: number, light: number): void {
     const originRow = area.findIndex(row => row.includes(1));
     if (originRow < 0) return;
@@ -211,6 +254,9 @@ export class SkillEffects {
     this.light(this.player.x, this.player.y - 30, color, 310, 400);
   }
 
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 攻撃範囲に沿って波状の演出を表示する
+   * ================================== */
   private wave(area: readonly (readonly number[])[], color: number): void {
     const row = area.find(r => r.includes(1));
     const reach = row ? (row.lastIndexOf(2) - row.indexOf(1)) * 40 : 120;
@@ -222,6 +268,9 @@ export class SkillEffects {
     }
   }
 
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 主人公を追従する強化・溜めのオーラを表示する
+   * ================================== */
   private aura(key: string, color: number, duration: number, charging = false): void {
     this.auras.get(key)?.destroy();
     const aura = this.scene.add.container(this.player.x, this.player.y).setDepth(22);
@@ -248,6 +297,9 @@ export class SkillEffects {
     this.scene.time.delayedCall(duration, () => { if (aura.active) this.fade(aura, 160); });
   }
 
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 主人公から対象へ飛ぶ光弾を表示する
+   * ================================== */
   private projectile(target: CombatTarget, color: number): void {
     const startX = this.player.x;
     const startY = this.player.y - 40;
@@ -259,6 +311,9 @@ export class SkillEffects {
     }, onComplete: () => orb.destroy() });
   }
 
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 発動したスキル名を一時表示する
+   * ================================== */
   private announce(skillName: string, color: number): void {
     if (this.banner?.active) { this.scene.tweens.killTweensOf(this.banner); this.banner.destroy(); }
     const x = this.scene.scale.width / 2;

@@ -1,7 +1,14 @@
-// 担当：たまおちゃん｜契約可能な花の管理
+/* ==================================
+ * 期末テスト提出プログラム
+ * 学籍番号：250116
+ * 氏名：中村伊安
+ * ================================== */
 import roster from '../../../php/flower/formation.json';
 import { prototypeFlowers } from '../encyclopedia/contractPreview';
 
+/* === [ 担当 : 250116 中村伊安 ] ===
+ * 処理内容 : ユーザーごとの花契約データの保存キーを作る
+ * ================================== */
 function storageKey(): string {
   let userId: string | number = 'guest';
   try {
@@ -11,11 +18,17 @@ function storageKey(): string {
   return `hanahaku.flower-contracts.v1:${userId}`;
 }
 
+/* === [ 担当 : 250116 中村伊安 ] ===
+ * 処理内容 : 契約候補の抽選・ローカル保存を定義する
+ * ================================== */
 const candidates = roster.characters.flatMap(character => {
   const flower = prototypeFlowers.find(entry => entry.code === character.code);
   return flower ? [{ flower, rarity: character.rarity }] : [];
 });
 
+/* === [ 担当 : 250116 中村伊安 ] ===
+ * 処理内容 : ステージとレア度に応じた契約候補・抽選確率を作る
+ * ================================== */
 export function getContractPool(stageNumber?: string) {
   const match = /^1-([1-5])$/.exec(stageNumber ?? '');
   if (!match) return [];
@@ -27,6 +40,9 @@ export function getContractPool(stageNumber?: string) {
   }));
 }
 
+/* === [ 担当 : 250116 中村伊安 ] ===
+ * 処理内容 : 契約候補から花を抽選する
+ * ================================== */
 export function drawContractFlower(stageNumber?: string) {
   const pool = getContractPool(stageNumber);
   let roll = Math.random() * 100;
@@ -37,6 +53,9 @@ export function drawContractFlower(stageNumber?: string) {
   return pool.at(-1)?.flower;
 }
 
+/* === [ 担当 : 250116 中村伊安 ] ===
+ * 処理内容 : 端末に保存された花ごとの契約数を読み込む
+ * ================================== */
 export function readFlowerContracts(): Record<number, number> {
   try {
     return JSON.parse(localStorage.getItem(storageKey()) ?? '{}') ?? {};
@@ -45,6 +64,9 @@ export function readFlowerContracts(): Record<number, number> {
   }
 }
 
+/* === [ 担当 : 250116 中村伊安 ] ===
+ * 処理内容 : 契約結果を用意し、確定時に端末の契約数を更新する
+ * ================================== */
 export function prepareFlowerContract(id: number): () => 'new' | 'duplicate' {
   const saved = readFlowerContracts();
   const key = storageKey();

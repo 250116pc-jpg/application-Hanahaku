@@ -1,6 +1,14 @@
+/* ==================================
+ * 期末テスト提出プログラム
+ * 学籍番号：250082
+ * 氏名：武田優人
+ * ================================== */
 import Phaser from 'phaser';
 import './scene-loading.css';
 
+/* === [ 担当 : 250082 武田優人 ] ===
+ * 処理内容 : ロード・遷移共通を定義する
+ * ================================== */
 type Mode = 'start' | 'launch' | 'resume' | 'wake';
 type Request = { source: Phaser.Scene; destination: string; data?: object; mode: Mode; preserve?: 'pause' | 'sleep' };
 type Job = { target: Phaser.Scene; next?: Request; follow?: () => void };
@@ -10,6 +18,9 @@ const jobs = new WeakMap<Phaser.Game, Job>();
 const pending = new WeakMap<Phaser.Scene, Set<Promise<unknown>>>();
 
 /** create()で始める初期データ取得を登録する。失敗時も画面側のエラー表示が完成するまで待つ。 */
+/* === [ 担当 : 250082 武田優人 ] ===
+ * 処理内容 : 初期通信や画像準備の完了をロード表示へ登録する
+ * ================================== */
 export function trackSceneLoading(scene: Phaser.Scene, work: Promise<unknown>): void {
   let tasks = pending.get(scene);
   if (!tasks) {
@@ -22,6 +33,9 @@ export function trackSceneLoading(scene: Phaser.Scene, work: Promise<unknown>): 
 }
 
 /** 画像・演出の準備をコールバックで知らせる画面向け。終了時にも待機を解除する。 */
+/* === [ 担当 : 250082 武田優人 ] ===
+ * 処理内容 : 準備完了の通知を待つ処理を作る
+ * ================================== */
 export function deferSceneLoading(scene: Phaser.Scene): () => void {
   let finish!: () => void;
   const work = new Promise<void>(resolve => { finish = resolve; });
@@ -32,6 +46,9 @@ export function deferSceneLoading(scene: Phaser.Scene): () => void {
 }
 
 /** ロードの幕が外れた後に、入場演出を始めたい画面で使う。 */
+/* === [ 担当 : 250082 武田優人 ] ===
+ * 処理内容 : ロード表示が消えるまで待つ
+ * ================================== */
 export function waitForSceneReveal(scene: Phaser.Scene): Promise<void> {
   if (jobs.get(scene.game)?.target !== scene) return Promise.resolve();
   return new Promise(resolve => {
@@ -45,17 +62,29 @@ export function waitForSceneReveal(scene: Phaser.Scene): Promise<void> {
   });
 }
 
+/* === [ 担当 : 250082 武田優人 ] ===
+ * 処理内容 : ロード表示を挟んで画面を切り替える
+ * ================================== */
 export function transitionWithLoading(source: Phaser.Scene, destination: string, data?: object): void {
   begin({ source, destination, data, mode: 'start' });
 }
+/* === [ 担当 : 250082 武田優人 ] ===
+ * 処理内容 : 呼び出し元を保持して別画面を開く
+ * ================================== */
 export function openSceneWithLoading(source: Phaser.Scene, destination: string, data?: object, preserve: 'pause' | 'sleep' = 'pause'): void {
   begin({ source, destination, data, mode: 'launch', preserve });
 }
+/* === [ 担当 : 250082 武田優人 ] ===
+ * 処理内容 : 保持していた画面へ戻る
+ * ================================== */
 export function returnWithLoading(source: Phaser.Scene, destination: string, mode: 'resume' | 'wake' = 'resume'): void {
   begin({ source, destination, mode });
 }
 
 function begin(request: Request): void {
+  /* === [ 担当 : 250082 武田優人 ] ===
+   * 処理内容 : 画面遷移の重複を制御し、ロード表示の状態を作る
+   * ================================== */
   const game = request.source.game;
   const previous = jobs.get(game);
   if (previous) {
@@ -67,12 +96,18 @@ function begin(request: Request): void {
   let disposed = false, started = false, finishing = false, assetFailed = false, version = 0;
   let startTimer: number | undefined, watchdog: number | undefined, closeTimer: number | undefined, indicatorTimer: number | undefined;
   let detach = (): void => {};
+  /* === [ 担当 : 250082 武田優人 ] ===
+   * 処理内容 : ロード表示の背景と表示枠をDOMへ作る
+   * ================================== */
   const root = document.createElement('section'); root.className = 'scene-loading'; root.tabIndex = -1;
   root.setAttribute('role', 'status'); root.setAttribute('aria-live', 'polite'); root.setAttribute('aria-busy', 'true');
   root.innerHTML = '<div class="scene-loading-content"><div class="scene-loading-flower" aria-hidden="true">' +
     Array.from({ length: 6 }, (_, index) => `<i class="scene-loading-petal" style="--petal:${index}"></i>`).join('') +
     '</div><p class="scene-loading-label">読み込み中…</p><button type="button" class="scene-loading-back" hidden>ホームに戻る</button></div>';
   const content = root.querySelector<HTMLDivElement>('.scene-loading-content')!;
+  /* === [ 担当 : 250082 武田優人 ] ===
+   * 処理内容 : ロード内容と入力制御・解除処理を準備する
+   * ================================== */
   content.setAttribute('aria-hidden', 'true');
   const showIndicator = (): void => {
     if (disposed) return;
@@ -98,6 +133,9 @@ function begin(request: Request): void {
   };
   const sourceStopped = (): void => { if (!started) cleanup(); };
   const error = (message: string): void => { cancelIndicator(); showIndicator(); label.textContent = message; root.setAttribute('aria-busy', 'false'); back.hidden = false; };
+  /* === [ 担当 : 250082 武田優人 ] ===
+   * 処理内容 : クリック・キー操作と終了時の後片付けを設定する
+   * ================================== */
   const commit = (route: Request): void => {
     if (disposed) return;
     detach(); clearTimeout(watchdog);
@@ -162,6 +200,9 @@ function begin(request: Request): void {
       if (target.sys.isActive()) onReady();
     } else route.source.scene.start(route.destination, route.data);
   };
+  /* === [ 担当 : 250082 武田優人 ] ===
+   * 処理内容 : 連続した画面遷移があれば次のロード処理へ引き継ぐ
+   * ================================== */
   job.follow = () => {
     if (!finishing || !job.next || disposed) return;
     clearTimeout(closeTimer); root.classList.add('is-visible');
@@ -174,6 +215,9 @@ function begin(request: Request): void {
     transitionWithLoading(source, 'HomeScene');
   };
   document.body.append(root); position(); root.focus({ preventScroll: true });
+  /* === [ 担当 : 250082 武田優人 ] ===
+   * 処理内容 : クリック・キー操作と終了時の後片付けを設定する
+   * ================================== */
   window.addEventListener('resize', position);
   window.addEventListener('keydown', blockKeyboard, true); window.addEventListener('keyup', blockKeyboard, true);
   request.source.events.once(Phaser.Scenes.Events.SHUTDOWN, sourceStopped);

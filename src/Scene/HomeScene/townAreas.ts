@@ -1,3 +1,11 @@
+/* ==================================
+ * 期末テスト提出プログラム
+ * 学籍番号：250116
+ * 氏名：中村伊安
+ * ================================== */
+/* === [ 担当 : 250116 中村伊安 ] ===
+ * 処理内容 : 町エリア定義を定義する
+ * ================================== */
 export type TownAreaId = 'atelier' | 'plaza' | 'market' | 'avenue' | 'gate'
 export interface VillageStop {
   x: number
@@ -97,9 +105,15 @@ export const townAreas: Record<TownAreaId, TownArea> = {
     ],
   },
 }
+/* === [ 担当 : 250116 中村伊安 ] ===
+ * 処理内容 : エリアIDに対応する町の定義を取得する
+ * ================================== */
 export function getTownArea(value: unknown): TownArea {
   return typeof value === 'string' && Object.hasOwn(townAreas, value) ? townAreas[value as TownAreaId] : townAreas.atelier
 }
+/* === [ 担当 : 250116 中村伊安 ] ===
+ * 処理内容 : 町エリア定義を定義する
+ * ================================== */
 export const townRoads: [TownAreaId, TownAreaId][] = [
   ['atelier', 'plaza'], ['plaza', 'market'], ['plaza', 'avenue'], ['market', 'avenue'], ['avenue', 'gate'],
 ]

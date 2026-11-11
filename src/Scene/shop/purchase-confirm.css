@@ -1,11 +1,10 @@
 /* ==================================
  * 期末テスト提出プログラム
- * 学籍番号: 250056
- * 氏名: 斎藤永聖
- * 担当範囲: 下記の担当コメントを参照（共同制作）
+ * 学籍番号：250056、250116
+ * 氏名：斎藤永聖、中村伊安
  * ================================== */
-/* === [ 担当 : 250056 斎藤永聖 ] ===
- * 処理内容 : 購入確認の背景・商品・個数操作・購入とキャンセルの配置を整え、画面サイズに応じて調整する。
+/* === [ 担当 : 250056 斎藤永聖 / 250116 中村伊安 ] ===
+ * 処理内容 : 画面・パネルの背景と共通レイアウトを整える
  * ================================== */
 .shop-purchase-confirm {
   position: fixed; inset: 0; z-index: 1200; display: flex; align-items: center; justify-content: center;
@@ -19,11 +18,17 @@
   border: 3px solid #c89d5a; border-radius: 3px; background: linear-gradient(135deg, #fffaf0, #f5e7c9);
   box-shadow: 0 0 0 3px #193447, 0 14px 42px #0007;
 }
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 説明文と見出しの表示を整える
+ * ================================== */
 .shop-purchase-confirm .purchase-title {
   display: flex; align-items: center; justify-content: center; width: min(240px, 80%); aspect-ratio: 798 / 226;
   margin: 0 auto 18px; background: var(--shop-button-image) center / contain no-repeat;
   color: #fff4d9; font-size: 24px; letter-spacing: .12em;
 }
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 画面・パネルの背景と共通レイアウトを整える
+ * ================================== */
 .shop-purchase-confirm .purchase-content { display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 28px; align-items: start; }
 .shop-purchase-confirm .purchase-product {
   display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 16px 8px;
@@ -33,6 +38,9 @@
 .shop-purchase-confirm .purchase-product strong { font-size: 18px; }
 .shop-purchase-confirm .purchase-info { min-width: 0; }
 .shop-purchase-confirm .purchase-question { margin: 0 0 12px; font-size: 20px; font-weight: bold; overflow-wrap: anywhere; }
+/* === [ 担当 : 250056 斎藤永聖 / 250116 中村伊安 ] ===
+ * 処理内容 : 操作ボタンの外観と反応を整える
+ * ================================== */
 .shop-purchase-confirm button {
   min-height: 48px; padding: 8px 16px; border: 2px solid #c89d5a; border-radius: 7px;
   background: #fff8e9; color: #193447; font: bold 18px "Yu Gothic", "Meiryo", sans-serif;
@@ -41,17 +49,32 @@
 .shop-purchase-confirm button:hover:not(:disabled) { filter: brightness(1.1); }
 .shop-purchase-confirm button:focus-visible { outline: 3px solid #486a4f; outline-offset: 3px; }
 .shop-purchase-confirm button:disabled { opacity: .45; cursor: default; }
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 画面・パネルの背景と共通レイアウトを整える
+ * ================================== */
 .shop-purchase-confirm .purchase-quantity { display: flex; align-items: center; gap: 10px; }
+/* === [ 担当 : 250116 中村伊安 ] ===
+ * 処理内容 : 操作ボタンの外観と反応を整える
+ * ================================== */
 .shop-purchase-confirm .purchase-quantity button { width: 48px; padding: 0; background: #193447; color: #fff4d9; font-size: 26px; }
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 画面・パネルの背景と共通レイアウトを整える
+ * ================================== */
 .shop-purchase-confirm output { min-width: 80px; padding: 6px 12px; border: 2px solid #d9c59f; border-radius: 5px; background: #fffdf5; font-size: 22px; text-align: center; }
 .shop-purchase-confirm .purchase-total { margin: 12px 0 4px; color: #78521e; font-size: 24px; font-weight: bold; }
 .shop-purchase-confirm .purchase-balance { margin: 4px 0; color: #52685a; font-size: 14px; }
 .shop-purchase-confirm .purchase-error { margin: 6px 0 0; min-height: 24px; color: #a12929; overflow-wrap: anywhere; }
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 操作ボタンの外観と反応を整える
+ * ================================== */
 .shop-purchase-confirm .purchase-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 12px; padding-top: 14px; border-top: 1px solid #d9c59f; }
 .shop-purchase-confirm .purchase-actions { justify-content: center; grid-template-columns: repeat(2, minmax(0, 212px)); align-items: center; }
 .shop-purchase-confirm .purchase-actions button { width: 100%; height: 60px; min-height: 0; padding: 8px 12px; justify-self: center; }
 .shop-purchase-confirm .purchase-actions button:not(.purchase-submit) { border: 4px double #94601e; border-radius: 8px; background: linear-gradient(135deg, #fffdf5, #f4dfb8); color: #382a1a; box-shadow: inset 0 0 0 2px #e5c58c, 0 2px 3px #54300d40; }
 .shop-purchase-confirm .purchase-actions .purchase-submit { border: 0; border-radius: 0; background: var(--shop-button-image) center / 100% 100% no-repeat; color: #fff4d9; }
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 画面サイズなどの条件に合わせて表示を調整する
+ * ================================== */
 @media (max-height: 480px) {
   .shop-purchase-confirm .purchase-panel { padding: 12px 20px; }
   .shop-purchase-confirm .purchase-title { width: min(180px, 80%); font-size: 20px; margin-bottom: 12px; }
@@ -64,6 +87,9 @@
   .shop-purchase-confirm .purchase-error { min-height: 20px; margin-top: 2px; }
   .shop-purchase-confirm .purchase-actions { margin-top: 8px; padding-top: 8px; }
 }
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 画面サイズなどの条件に合わせて表示を調整する
+ * ================================== */
 @media (max-width: 560px) {
   .shop-purchase-confirm .purchase-content { grid-template-columns: 100px minmax(0, 1fr); gap: 12px; }
   .shop-purchase-confirm .purchase-product img { width: 72px; height: 72px; }

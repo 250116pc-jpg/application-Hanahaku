@@ -1,7 +1,14 @@
-// 担当：たまおちゃん｜育成機能・trainingRules
+/* ==================================
+ * 期末テスト提出プログラム
+ * 学籍番号：250082
+ * 氏名：武田優人
+ * ================================== */
 import rules from '../../../php/flower/training.json';
 import upgrades from '../../../php/ally/upgrades.json';
 
+/* === [ 担当 : 250082 武田優人 ] ===
+ * 処理内容 : 成長計算を定義する
+ * ================================== */
 type Definition = { id: number; enhance_id: number | null; element: number; status_bonus: Record<string, number> };
 const definitions = Object.values(import.meta.glob('../../../php/flower/[0-9][0-9][0-9].json', { eager: true, import: 'default' })) as Definition[];
 export const MAX_FLOWER_LEVEL = rules.maxLevel;
@@ -9,6 +16,9 @@ export const experienceThresholds = [0];
 for (let level = 1; level < MAX_FLOWER_LEVEL; level++) {
   experienceThresholds.push(experienceThresholds[level - 1] + Math.ceil(rules.experienceCurve[level - 1] * rules.experienceScale));
 }
+/* === [ 担当 : 250082 武田優人 ] ===
+ * 処理内容 : 花のレベルに応じた能力値を計算する
+ * ================================== */
 export function flowerStats(id: number, level: number): Record<string, number> | null {
   const definition = definitions.find(flower => flower.id === id);
   const upgrade = upgrades.upgrades.find(item => item.upgrade_id === definition?.enhance_id);
@@ -21,6 +31,9 @@ export function flowerStats(id: number, level: number): Record<string, number> |
   }
   return stats; // 回復力の基本値は未決定なので推測で追加しない。
 }
+/* === [ 担当 : 250082 武田優人 ] ===
+ * 処理内容 : レベル強化前後の値と使用可能数を計算する
+ * ================================== */
 export function levelPreview(id: number, level: number, exp: string, itemId: number | null, count: number, quantity: number) {
   const perItem = (rules.nutrientExp as Record<string, number>)[String(itemId)] ?? 0;
   const cap = experienceThresholds[MAX_FLOWER_LEVEL - 1];
@@ -40,7 +53,13 @@ export function levelPreview(id: number, level: number, exp: string, itemId: num
 }
 
 // スキルEXPは累積値。無属性には一致する種がないので全種類が通常倍率。
+/* === [ 担当 : 250082 武田優人 ] ===
+ * 処理内容 : 成長計算を定義する
+ * ================================== */
 export const skillThresholds = rules.skill.thresholds;
+/* === [ 担当 : 250082 武田優人 ] ===
+ * 処理内容 : スキル強化前後の値と使用可能数を計算する
+ * ================================== */
 export function skillPreview(id: number, level: number, exp: string, itemId: number | null, count: number, quantity: number) {
   const element = definitions.find(flower => flower.id === id)?.element;
   const seed = (rules.skill.seedElements as Record<string, number>)[String(itemId)];

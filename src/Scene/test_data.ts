@@ -1,13 +1,14 @@
 /* ==================================
  * 期末テスト提出プログラム
- * 学籍番号: 250056
- * 氏名: 斎藤永聖
- * 担当範囲: 下記の担当コメントを参照（共同制作）
+ * 学籍番号：250056、250116
+ * 氏名：斎藤永聖、中村伊安
  * ================================== */
-// 担当：たまおちゃん｜ゲームのテストデータ
 import formationData from '../../php/flower/formation.json'
 import skillData from '../../php/skill/skills.json'
 
+/* === [ 担当 : 250056 斎藤永聖 / 250116 中村伊安 ] ===
+ * 処理内容 : 共通データを定義する
+ * ================================== */
 export type Season = '春' | '夏' | '秋' | '冬'
 export type CharacterRole = '攻撃' | '回復' | '防御' | '補助'
 export type FlowerSkillType =
@@ -150,20 +151,20 @@ const shopItems = [
   }
 ]
 
-/* === [ 担当 : 250056 斎藤永聖 ] ===
- * 処理内容 : 編成用JSONからキャラクター一覧と初期編成を取得する。
- * ================================== */
 const characters = formationData.characters as CharacterData[]
 const formation: Array<number | null> = [...formationData.formation]
 
+/* === [ 担当 : 250056 斎藤永聖 / 250116 中村伊安 ] ===
+ * 処理内容 : 花IDに対応するスキルの種類・名前・説明・消費MPを返す
+ * ================================== */
 export function getFlowerSkill(flowerId: number): FlowerSkill | undefined {
-  /* === [ 担当 : 250056 斎藤永聖 ] ===
-   * 処理内容 : 花IDに対応するスキルをJSONから検索し、画面で使う種類・名称・説明・消費MPへ変換する。
-   * ================================== */
   const skill = skillData.skills.find(skill => skill.id === flowerId)
   return skill ? {type: skill.type as FlowerSkillType, name: skill.name, description: skill.description, mpCost: skill.mpCost} : undefined
 }
 
+/* === [ 担当 : 250116 中村伊安 ] ===
+ * 処理内容 : 共通データを定義する
+ * ================================== */
 const stages = [
   {
     id: 1,

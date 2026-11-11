@@ -1,6 +1,13 @@
-// 担当：たまおちゃん｜ショップ機能・scroll
+/* ==================================
+ * 期末テスト提出プログラム
+ * 学籍番号：250116
+ * 氏名：中村伊安
+ * ================================== */
 import { SHOP_LIST_BOUNDS } from './itemList'
 
+/* === [ 担当 : 250116 中村伊安 ] ===
+ * 処理内容 : 商品一覧のスクロール操作と表示範囲を制御する
+ * ================================== */
 export function enableShopScroll(
   scene: Phaser.Scene,
   shopContainer: Phaser.GameObjects.Container,

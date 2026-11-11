@@ -1,3 +1,8 @@
+/* ==================================
+ * 期末テスト提出プログラム
+ * 学籍番号：250116
+ * 氏名：中村伊安
+ * ================================== */
 import Phaser from 'phaser'
 import { townAreas, townRoads, type TownAreaId, type TownMapDestination } from './townAreas'
 
@@ -6,6 +11,9 @@ export function createTownMap(
   scene: Phaser.Scene, current: TownAreaId,
   travel: (area: TownAreaId, destination: TownMapDestination) => void, onClose: () => void,
 ): () => void {
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 町全体のマップと施設選択を表示する
+   * ================================== */
   const root = scene.add.container(0, 0).setScale(scene.scale.width / 1280, scene.scale.height / 720).setScrollFactor(0).setDepth(1000)
   const add = <T extends Phaser.GameObjects.GameObject & Phaser.GameObjects.Components.ScrollFactor>(object: T): T => {
     root.add(object)
@@ -19,6 +27,9 @@ export function createTownMap(
   add(scene.add.rectangle(640, 360, 1280, 720, 0x142720, .8)).setInteractive()
   add(scene.add.rectangle(640, 360, 1160, 634, 0xe7d8b2).setStrokeStyle(4, 0x94764b))
   add(scene.add.rectangle(640, 360, 1138, 612).setStrokeStyle(1, 0xb59a6d))
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 町全体のマップと施設選択を表示する
+   * ================================== */
   text(106, 77, '花咲く街の地図', 30)
   text(108, 120, 'エリアを選び、施設を選択', 16, '#78694f')
   text(118, 620, '現在地：' + townAreas[current].name, 17)
@@ -35,6 +46,9 @@ export function createTownMap(
   }
   const cards: { area: TownAreaId; card: Phaser.GameObjects.Rectangle; title: Phaser.GameObjects.Text; caption: Phaser.GameObjects.Text }[] = []
   let selectedArea = current
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : クリック・キー操作と終了時の後片付けを設定する
+   * ================================== */
   const details = add(scene.add.container(0, 0))
   for (const area of Object.values(townAreas)) {
     const here = area.id === current
@@ -53,6 +67,9 @@ export function createTownMap(
     })
   }
   const button = add(scene.add.rectangle(1110, 100, 116, 44, 0x594e3c))
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 町全体のマップと施設選択を表示する
+   * ================================== */
   button.setInteractive({ useHandCursor: true })
   text(1110, 100, '閉じる ×', 18, '#fff0ce').setOrigin(.5)
   let closed = false
@@ -62,6 +79,9 @@ export function createTownMap(
     root.destroy(true)
     onClose()
   }
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : クリック・キー操作と終了時の後片付けを設定する
+   * ================================== */
   function renderDestinations(): void {
     cards.forEach(({ area, card, title, caption }) => {
       const selected = area === selectedArea

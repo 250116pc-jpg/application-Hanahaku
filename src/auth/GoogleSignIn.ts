@@ -1,11 +1,12 @@
 /* ==================================
  * 期末テスト提出プログラム
- * 学籍番号: 250056
- * 氏名: 斎藤永聖
- * 担当範囲: 下記の担当コメントを参照（共同制作）
+ * 学籍番号：250056
+ * 氏名：斎藤永聖
  * ================================== */
-// 担当：たまおちゃん｜認証機能・GoogleSignIn
 import { getPhpBaseUrl } from './PhpBaseUrl';
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : Googleログイン操作を定義する
+ * ================================== */
 export interface AuthenticatedUser {
   id: number;
   name: string;
@@ -64,7 +65,7 @@ let initializedClientId = '';
 let credentialHandler: ((credential: string) => void) | null = null;
 
 /* === [ 担当 : 250056 斎藤永聖 ] ===
- * 処理内容 : Googleログイン用スクリプトを重複なく読み込み、読み込み成功・失敗を通知する。
+ * 処理内容 : Googleログイン用のスクリプトを一度だけ読み込む
  * ================================== */
 function loadGoogleIdentityServices(): Promise<void> {
   if (window.google?.accounts.id) return Promise.resolve();
@@ -94,7 +95,7 @@ function loadGoogleIdentityServices(): Promise<void> {
 
 
 /* === [ 担当 : 250056 斎藤永聖 ] ===
- * 処理内容 : Googleから受け取った資格情報をPHPへ送信し、認証結果を検査する。
+ * 処理内容 : Googleの認証トークンをPHPへ送りユーザー情報を受け取る
  * ================================== */
 async function authenticateWithGoogle(credential: string): Promise<AuthenticatedUser> {
   let response: Response;
@@ -122,7 +123,7 @@ async function authenticateWithGoogle(credential: string): Promise<Authenticated
 }
 
 /* === [ 担当 : 250056 斎藤永聖 ] ===
- * 処理内容 : 認証済み利用者情報をブラウザの保存領域へ記録する。
+ * 処理内容 : ログイン中のユーザー情報をブラウザに保存する
  * ================================== */
 export function saveCurrentUser(user: AuthenticatedUser): void {
   try {
@@ -132,13 +133,13 @@ export function saveCurrentUser(user: AuthenticatedUser): void {
   }
 }
 
-/* === [ 担当 : 250056 斎藤永聖 ] ===
- * 処理内容 : Googleログインボタンを配置し、資格情報の受信、認証中の制御、成功・失敗の通知と破棄を管理する。
- * ================================== */
 export function mountGoogleSignInButton(
   container: HTMLElement,
   callbacks: GoogleButtonCallbacks
 ): () => void {
+  /* === [ 担当 : 250056 斎藤永聖 ] ===
+   * 処理内容 : Googleログインボタンの配置と認証コールバックを準備する
+   * ================================== */
   const defaultClientId =
     '459400588148-ko1ehqsnf6ve6mbu24v72gdg2t01vud4.apps.googleusercontent.com';
   const configuredClientId = String(import.meta.env.VITE_GOOGLE_CLIENT_ID ?? '').trim();
@@ -180,6 +181,9 @@ export function mountGoogleSignInButton(
   };
 
   let resizeObserver: ResizeObserver | undefined;
+  /* === [ 担当 : 250056 斎藤永聖 ] ===
+   * 処理内容 : Googleスクリプトを読み込み、ボタンの生成・失敗表示を行う
+   * ================================== */
   void loadGoogleIdentityServices()
     .then(() => {
       if (!active || !window.google?.accounts.id) return;

@@ -1,17 +1,15 @@
-// 仮花カタログの能力・契約条件設定機能で使用予定（再利用候補・未確定。現在の図鑑では未参照）。
 /* ==================================
  * 期末テスト提出プログラム
- * 学籍番号: 250056
- * 氏名: 斎藤永聖
- * 担当範囲: 下記の担当コメントを参照（共同制作）
+ * 学籍番号：250056
+ * 氏名：斎藤永聖
  * ================================== */
-// 担当：たまおちゃん｜図鑑機能・flowerCatalog
+// 仮花カタログの能力・契約条件設定機能で使用予定（再利用候補・未確定。現在の図鑑では未参照）。
 import type { CharacterData, Season } from '../test_data'
 
 // Names and seasons are provisional game settings, not botanical identifications.
 // IDs are stable and independent of display order; missing assets are not registered.
 /* === [ 担当 : 250056 斎藤永聖 ] ===
- * 処理内容 : 図鑑用に花の画像番号・名前・季節の対応表を定義する。
+ * 処理内容 : 仮花カタログを定義する
  * ================================== */
 const definitions: Array<[number, string, Season]> = [
   [
@@ -114,9 +112,6 @@ const images = import.meta.glob('../../assets/images/hanahaku_assets_v2/flower/*
   eager: true, query: '?url', import: 'default'
 }) as Record<string, string>
 
-/* === [ 担当 : 250056 斎藤永聖 ] ===
- * 処理内容 : 花の定義から図鑑表示用のキャラクターデータを組み立てる。
- * ================================== */
 export const flowerCatalog: CharacterData[] = definitions.map(([asset, name, season]) => ({
   id: 1000 + asset, name, season,
   textureKey: 'catalog-flower-' + asset,
@@ -126,9 +121,6 @@ export const flowerCatalog: CharacterData[] = definitions.map(([asset, name, sea
   stats: { hp: 0, mp: 0, atk: 0, def: 0, speed: 0 }, skills: [],
 }))
 
-/* === [ 担当 : 250056 斎藤永聖 ] ===
- * 処理内容 : 花の画像定義からPhaserで読み込むテクスチャ情報を作る。
- * ================================== */
 export const flowerTextures = definitions.map(([asset]) => {
   const file = 'asset_' + String(asset).padStart(3, '0') + '.png'
   const url = images['../../assets/images/hanahaku_assets_v2/flower/' + file]
@@ -139,7 +131,7 @@ export const flowerTextures = definitions.map(([asset]) => {
 // Future contract completion should supply registeredCharacterIds from the player's
 // saved contract data. Preview never writes to that data or grants party ownership.
 /* === [ 担当 : 250056 斎藤永聖 ] ===
- * 処理内容 : 保存された登録IDを検査し、実在するキャラクターIDだけを重複のない集合にする。
+ * 処理内容 : 受け取った値の形式と利用条件を確認する
  * ================================== */
 export function getRegisteredIds(value: unknown, characters: CharacterData[]): Set<number> {
   const knownIds = new Set(characters.map(character => character.id))

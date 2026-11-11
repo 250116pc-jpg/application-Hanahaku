@@ -1,10 +1,17 @@
-// 担当：たまおちゃん｜敵キャラクターの行動と状態
+/* ==================================
+ * 期末テスト提出プログラム
+ * 学籍番号：250056、250116
+ * 氏名：斎藤永聖、中村伊安
+ * ================================== */
 import { showBattleNumber } from './BattleFeedback';
 import { playSe } from '../../audio/BgmManager';
 import { battleNow } from './BattleClock';
 import Phaser from 'phaser';
 import type { DamageType, Player } from './Player.ts';
 
+/* === [ 担当 : 250116 中村伊安 ] ===
+ * 処理内容 : 受け渡すデータの型と共通設定を定義する
+ * ================================== */
 export interface EnemyStats {
   level: number;
   enhancementId: number;
@@ -23,6 +30,9 @@ export interface EnemyStats {
   contractFlowerId: number;
 }
 
+/* === [ 担当 : 250116 中村伊安 ] ===
+ * 処理内容 : 受け取った値の形式と利用条件を確認する
+ * ================================== */
 export function isEnemyStats(value: unknown): value is EnemyStats {
   if (typeof value !== 'object' || value === null) return false;
   const stats = value as Record<string, unknown>;
@@ -34,6 +44,9 @@ export function isEnemyStats(value: unknown): value is EnemyStats {
 }
 
 export class Enemy extends Phaser.Physics.Arcade.Sprite {
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 状態・能力値・操作対象を保持する
+   * ================================== */
   private readonly player: Player;
   private readonly homeX: number;
   private readonly maxHealth: number;
@@ -64,6 +77,9 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
   private visualBottomPadding = 2;
   private readonly enemyId: number;
 
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 敵の能力値・当たり判定・表示とHPバーを初期化する
+   * ================================== */
   constructor(scene: Phaser.Scene, x: number, y: number, player: Player, stats: EnemyStats, enemyId = 1) {
     super(scene, x, y, 'stage-enemy-idle');
     this.player = player;
@@ -109,6 +125,9 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
       .setDepth(11);
   }
 
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 操作と現在の状態を表示へ反映する
+   * ================================== */
   public update(time: number): void {
     if (this.dead || !this.body || !this.body.enable) return;
 
@@ -137,6 +156,9 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
   }
 
   public receiveDamage(amount: number, damageType: DamageType = 'physical'): void {
+    /* === [ 担当 : 250116 中村伊安 ] ===
+     * 処理内容 : 被ダメージと無敵・撃破処理を行う
+     * ================================== */
     if (this.dead || amount <= 0) return;
     const defense = Math.max(0, damageType === 'magical' ? this.stats.magicDefense : this.stats.physicalDefense);
     const mitigatedDamage = amount * 100 / (100 + defense);
@@ -149,6 +171,9 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
       if (this.visual.active && !this.dead) this.visual.clearTint();
     });
 
+    /* === [ 担当 : 250056 斎藤永聖 / 250116 中村伊安 ] ===
+     * 処理内容 : HPが0なら撃破処理を行い、生存時は被弾動作へ切り替える
+     * ================================== */
     if (this.health === 0) {
       this.dead = true;
       this.locked = true;
@@ -169,12 +194,18 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     this.playVisual('enemy-hurt');
   }
 
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 攻撃速度を下げる割合と効果の終了時刻を更新する
+   * ================================== */
   public applyAttackSpeedSlow(percent: number, durationMs: number): void {
     this.attackSpeedSlowPercent = Math.max(this.attackSpeedSlowPercent, percent);
     this.attackSpeedSlowUntil = Math.max(this.attackSpeedSlowUntil, battleNow(this.scene) + durationMs);
     this.applyStatusIcon('debuff_atk_down', durationMs);
   }
 
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 敵の状態効果アイコンを一定時間表示する
+   * ================================== */
   public applyStatusIcon(iconKey: string, durationMs: number): void {
     if (this.dead || durationMs <= 0 || !this.scene.textures.exists(`status-${iconKey}`)) return;
     this.statusIconUntil = Math.max(this.statusIconUntil, battleNow(this.scene) + durationMs);
@@ -200,15 +231,24 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     });
   }
 
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 敵を攻撃方向へ押し戻す
+   * ================================== */
   public applyKnockback(direction: number): void {
     if (this.dead || !Number.isFinite(direction)) return;
     this.setVelocityX(Math.sign(direction) * 300);
   }
 
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 敵が撃破済みかを返す
+   * ================================== */
   public get isDefeated(): boolean {
     return this.dead;
   }
 
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 敵の移動方向と速度を更新する
+   * ================================== */
   private move(direction: number, speed: number): void {
     this.setVelocityX(direction * speed * this.stats.agility / 100);
     this.setFlipX(direction < 0);
@@ -216,6 +256,9 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     this.playVisual('enemy-run');
   }
 
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 通常攻撃を行う
+   * ================================== */
   private attack(time: number): void {
     const slowPercent = time < this.attackSpeedSlowUntil ? this.attackSpeedSlowPercent : 0;
     if (slowPercent === 0) this.attackSpeedSlowPercent = 0;
@@ -238,6 +281,9 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     });
   }
 
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 敵の種類に応じたアニメーションを再生する
+   * ================================== */
   private playVisual(animationKey: string): void {
     const variantKey = `${animationKey}-${this.enemyId}`;
     if (this.scene.anims.exists(variantKey)) animationKey = variantKey;
@@ -246,6 +292,9 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     }
   }
 
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : アニメーションごとの画像の足元の余白を返す
+   * ================================== */
   private getVisualBottomPadding(animationKey: string): number {
     switch (animationKey) {
       case 'enemy-attack': return 12;
@@ -255,6 +304,9 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     }
   }
 
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 敵の表示画像・HPバー・状態アイコンを本体の位置に合わせる
+   * ================================== */
   private syncVisualAndHealthBar(): void {
     this.visual.setPosition(
       this.x,
@@ -271,12 +323,18 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     this.statusIcon?.setPosition(this.x + 36, barY);
   }
 
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 残りHPの割合に合わせて敵のHPバーの幅と位置を更新する
+   * ================================== */
   private updateHealthBar(): void {
     const width = 44 * this.health / this.maxHealth;
     this.healthBar.setSize(width, 4)
       .setPosition(this.x - 22 + width / 2, this.y - this.healthBarOffsetY);
   }
 
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 画面終了時に表示とイベントを解除する
+   * ================================== */
   public override destroy(fromScene?: boolean): void {
     this.visual.destroy();
     this.healthBarBackground.destroy();

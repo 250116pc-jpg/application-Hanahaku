@@ -1,17 +1,15 @@
 /* ==================================
  * 期末テスト提出プログラム
- * 学籍番号: 250056
- * 氏名: 斎藤永聖
- * 担当範囲: 下記の担当コメントを参照（共同制作）
+ * 学籍番号：250082、250116
+ * 氏名：武田優人、中村伊安
  * ================================== */
-// 担当：たまおちゃん｜スキル状態の取得と使用
 import { isBattlePreview } from '../../debug';
-/* === [ 担当 : 250056 斎藤永聖 ] ===
- * 処理内容 : PHP接続先を共通関数へ統一するためのインポートを追加する。以降のAPI処理本体は共同制作者の担当。
- * ================================== */
 import { getPhpBaseUrl } from '../../auth/PhpBaseUrl';
 import type { FlowerSkillType } from '../test_data.ts';
 
+/* === [ 担当 : 250116 中村伊安 ] ===
+ * 処理内容 : 受け渡すデータの型と共通設定を定義する
+ * ================================== */
 export interface FlowerSkillStage {
   damagePercent: number;
   range: number;
@@ -56,6 +54,9 @@ export interface FlowerSkillState {
 
 
 
+/* === [ 担当 : 250082 武田優人 / 250116 中村伊安 ] ===
+ * 処理内容 : 認証Cookie付きでスキル開始APIへ送り、成功・失敗を判定する
+ * ================================== */
 async function postSkillRequest(
   endpoint: 'begin',
   body: Record<string, unknown> = {}
@@ -79,6 +80,9 @@ async function postSkillRequest(
 }
 
 function parseSkill(value: unknown): ServerFlowerSkill {
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : サーバーのスキル情報と各段階・攻撃範囲の形式を検証する
+   * ================================== */
   if (typeof value !== 'object' || value === null) {
     throw new Error('サーバーから不正なスキル情報が返されました。');
   }
@@ -126,6 +130,9 @@ function parseSkill(value: unknown): ServerFlowerSkill {
     throw new Error('サーバーから不正なスキル範囲が返されました。');
   }
 
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 検証済みの応答を戦闘用スキルデータへ整える
+   * ================================== */
   return {
     type: record.type as FlowerSkillType,
     name: record.name,
@@ -154,18 +161,27 @@ function parseSkill(value: unknown): ServerFlowerSkill {
   };
 }
 
+/* === [ 担当 : 250116 中村伊安 ] ===
+ * 処理内容 : 受け取った値の形式と利用条件を確認する
+ * ================================== */
 function isAreaPattern(value: unknown): value is number[][] {
   return Array.isArray(value) && value.length > 0 && value.every(row =>
     Array.isArray(row) && row.length > 0 && row.every(cell => cell === 0 || cell === 1 || cell === 2)
   );
 }
 
+/* === [ 担当 : 250116 中村伊安 ] ===
+ * 処理内容 : 受け渡すデータの型と共通設定を定義する
+ * ================================== */
 export interface StageFlowerStats {
   flowerId: number;
   level: number;
   attackPower: number;
 }
 
+/* === [ 担当 : 250116 中村伊安 ] ===
+ * 処理内容 : 戦闘開始時のスキル情報を取得する
+ * ================================== */
 export async function beginStageSkillStates(
   stageId: number,
   flowers: readonly StageFlowerStats[]

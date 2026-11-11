@@ -1,4 +1,8 @@
-// 担当：たまおちゃん｜アニメーション・animationData
+/* ==================================
+ * 期末テスト提出プログラム
+ * 学籍番号：250116
+ * 氏名：中村伊安
+ * ================================== */
 
 import playerIdle from '../assets/characters/player/Red Cape Knight Character Asset/Player_Red sheets/Red_idle.png'
 import playerRun from '../assets/characters/player/Red Cape Knight Character Asset/Player_Red sheets/Red_Running.png'
@@ -12,6 +16,9 @@ import playerDeath from '../assets/characters/player/Red Cape Knight Character A
 import playerDrink from '../assets/characters/player/Red Cape Knight Character Asset/Player_Red sheets/Red_drinking.png'
 
 
+/* === [ 担当 : 250116 中村伊安 ] ===
+ * 処理内容 : キャラクターアニメーション定義を定義する
+ * ================================== */
 export const characterAnimations = {
   player: {
     run: {

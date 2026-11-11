@@ -1,10 +1,8 @@
 /* ==================================
  * 期末テスト提出プログラム
- * 学籍番号: 250056
- * 氏名: 斎藤永聖
- * 担当範囲: 下記の担当コメントを参照（共同制作）
+ * 学籍番号：250056、250116
+ * 氏名：斎藤永聖、中村伊安
  * ================================== */
-// 担当：たまおちゃん｜ショップ機能・assets
 import recoveryImage from '../../assets/images/items/asset_110.png';
 import powerImage from '../../assets/images/items/asset_090.png';
 import guardImage from '../../assets/images/items/asset_105.png';
@@ -24,6 +22,9 @@ import crystalImage from '../../assets/images/items/asset_091.png';
 import frameImage from '../../assets/images/encyclopedia/journal-frame.png';
 import buttonImage from '../../assets/images/encyclopedia/journal-button.png';
 
+/* === [ 担当 : 250056 斎藤永聖 / 250116 中村伊安 ] ===
+ * 処理内容 : ショップ画像の読込・参照を定義する
+ * ================================== */
 export const SHOP_BACKGROUND_KEY = 'shop-background';
 
 const itemImages: Record<string, string> = {
@@ -42,6 +43,9 @@ const itemImages: Record<string, string> = {
   'shop-guard': guardImage,
 };
 
+/* === [ 担当 : 250116 中村伊安 ] ===
+ * 処理内容 : ショップの画像を読み込む
+ * ================================== */
 export function preloadShopAssets(scene: Phaser.Scene): void {
   scene.load.image(SHOP_BACKGROUND_KEY, backgroundImage);
   scene.load.image('shop-frame', frameImage);
@@ -52,6 +56,9 @@ export function preloadShopAssets(scene: Phaser.Scene): void {
   }
 }
 
+/* === [ 担当 : 250056 斎藤永聖 / 250116 中村伊安 ] ===
+ * 処理内容 : アイテムに対応する画像キーを返す
+ * ================================== */
 export function getShopItemImageKey(itemId: number): string {
   const imageKeys = [
     'shop-potion-red',
@@ -76,7 +83,7 @@ export function getShopItemImageKey(itemId: number): string {
 
 // HTML images must use the original asset URL; Phaser revokes its loader blob URLs.
 /* === [ 担当 : 250056 斎藤永聖 ] ===
- * 処理内容 : 商品IDに対応する元画像URLを返し、DOM表示がPhaserの一時URL破棄に影響されないようにする。
+ * 処理内容 : アイテムに対応する画像URLを返す
  * ================================== */
 export function getShopItemImageUrl(itemId: number): string {
   return itemImages[getShopItemImageKey(itemId)] ?? flowerImage;

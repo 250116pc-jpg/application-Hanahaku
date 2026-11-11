@@ -1,10 +1,8 @@
 /* ==================================
  * 期末テスト提出プログラム
- * 学籍番号: 250056
- * 氏名: 斎藤永聖
- * 担当範囲: 下記の担当コメントを参照（共同制作）
+ * 学籍番号：250056
+ * 氏名：斎藤永聖
  * ================================== */
-// 担当：たまおちゃん｜ショップ機能・PurchaseConfirm
 import Phaser from 'phaser'
 import { playUiSe } from '../../audio/BgmManager'
 import buttonImage from '../../assets/images/encyclopedia/journal-button.png'
@@ -12,10 +10,10 @@ import { getShopItemImageUrl } from './assets'
 import type { ShopItem } from './types'
 import './purchase-confirm.css'
 
-/* === [ 担当 : 250056 斎藤永聖 ] ===
- * 処理内容 : 購入確認ダイアログを生成し、個数・合計額・残金、購入中の操作制限、キーボードフォーカスと終了処理を管理する。
- * ================================== */
 export class PurchaseConfirm {
+  /* === [ 担当 : 250056 斎藤永聖 ] ===
+   * 処理内容 : 状態・能力値・操作対象を保持する
+   * ================================== */
   private scene: Phaser.Scene
   private root: HTMLDivElement
   private quantity = 1
@@ -34,6 +32,9 @@ export class PurchaseConfirm {
     onPurchase: (quantity: number) => Promise<void>,
     onClose: () => void
   ) {
+    /* === [ 担当 : 250056 斎藤永聖 ] ===
+     * 処理内容 : 購入可能数を計算し、確認ダイアログの土台を作る
+     * ================================== */
     this.scene = scene
     this.onClose = onClose
     this.inputWasEnabled = scene.input.enabled
@@ -48,6 +49,9 @@ export class PurchaseConfirm {
     panel.setAttribute('role', 'dialog')
     panel.setAttribute('aria-modal', 'true')
     panel.setAttribute('aria-label', '購入確認')
+    /* === [ 担当 : 250056 斎藤永聖 ] ===
+     * 処理内容 : 購入確認の見出しと商品画像を用意する
+     * ================================== */
     const title = document.createElement('h2')
     title.className = 'purchase-title'
     title.textContent = '購入確認'
@@ -59,6 +63,9 @@ export class PurchaseConfirm {
     image.src = getShopItemImageUrl(item.id)
     image.alt = item.name
     const name = document.createElement('strong')
+    /* === [ 担当 : 250056 斎藤永聖 ] ===
+     * 処理内容 : 商品名・確認文・購入数を減らすボタンを作る
+     * ================================== */
     name.textContent = item.name
     product.append(image, name)
     const info = document.createElement('div')
@@ -70,6 +77,9 @@ export class PurchaseConfirm {
     quantityControls.className = 'purchase-quantity'
     const minus = this.button('−', () => changeQuantity(-1))
     minus.setAttribute('aria-label', '購入数を減らす')
+    /* === [ 担当 : 250056 斎藤永聖 ] ===
+     * 処理内容 : 購入数と合計額・残金の表示部品を作る
+     * ================================== */
     const amount = document.createElement('output')
     amount.setAttribute('aria-label', '購入数')
     amount.setAttribute('aria-live', 'polite')
@@ -80,6 +90,9 @@ export class PurchaseConfirm {
     total.className = 'purchase-total'
     total.setAttribute('aria-live', 'polite')
     const balance = document.createElement('p')
+    /* === [ 担当 : 250056 斎藤永聖 ] ===
+     * 処理内容 : 購入・キャンセルボタンとエラー表示を作る
+     * ================================== */
     balance.className = 'purchase-balance'
     const error = document.createElement('p')
     error.className = 'purchase-error'
@@ -90,14 +103,14 @@ export class PurchaseConfirm {
     const buy = this.button('購入する', () => { void purchase() })
     buy.className = 'purchase-submit'
     actions.append(cancel, buy)
+    /* === [ 担当 : 250056 斎藤永聖 ] ===
+     * 処理内容 : 数量変更・購入処理・ダイアログの終了処理を設定する
+     * ================================== */
     info.append(question, quantityControls, total, balance, error)
     content.append(product, info)
     panel.append(title, content, actions)
     this.root.append(panel)
 
-    /* === [ 担当 : 250056 斎藤永聖 ] ===
-     * 処理内容 : 個数・合計額・購入後残金と操作ボタンの有効状態を更新する。
-     * ================================== */
     const update = (): void => {
       amount.value = String(this.quantity)
       total.textContent = `合計 ${(item.price * this.quantity).toLocaleString()} G`
@@ -109,7 +122,7 @@ export class PurchaseConfirm {
       buy.textContent = this.buying ? '購入中…' : '購入する'
     }
     /* === [ 担当 : 250056 斎藤永聖 ] ===
-     * 処理内容 : 購入個数を1個から購入可能上限の範囲で変更し、表示を更新する。
+     * 処理内容 : 購入数の変更・購入実行と購入できない理由の表示を設定する
      * ================================== */
     const changeQuantity = (difference: number): void => {
       if (this.buying || this.maxQuantity < 1) return
@@ -117,9 +130,6 @@ export class PurchaseConfirm {
       this.quantity = Math.max(1, Math.min(this.maxQuantity, this.quantity + difference))
       update()
     }
-    /* === [ 担当 : 250056 斎藤永聖 ] ===
-     * 処理内容 : 購入要求を1回だけ実行し、成功時は確認画面を閉じ、失敗時はエラー表示と操作状態を復旧する。
-     * ================================== */
     const purchase = async (): Promise<void> => {
       if (this.buying || this.closed || this.maxQuantity < 1) return
       this.buying = true
@@ -141,6 +151,9 @@ export class PurchaseConfirm {
       error.textContent = coin < item.price ? 'コインが足りません。' : '所持数の上限です。'
       balance.textContent = `所持コイン：${coin.toLocaleString()} G`
     }
+    /* === [ 担当 : 250056 斎藤永聖 ] ===
+     * 処理内容 : 購入確認を表示し、終了時の解除とEsc・Tabキー操作を設定する
+     * ================================== */
     update()
     if (this.maxQuantity < 1) balance.textContent = `所持コイン：${coin.toLocaleString()} G`
     document.body.append(this.root)
@@ -158,6 +171,9 @@ export class PurchaseConfirm {
     cancel.focus()
   }
 
+  /* === [ 担当 : 250056 斎藤永聖 ] ===
+   * 処理内容 : 操作可能なボタンとクリック時の処理を作る
+   * ================================== */
   private button(label: string, onClick: () => void): HTMLButtonElement {
     const button = document.createElement('button')
     button.type = 'button'
@@ -167,7 +183,7 @@ export class PurchaseConfirm {
   }
 
   /* === [ 担当 : 250056 斎藤永聖 ] ===
-   * 処理内容 : 確認用DOMと終了イベントを取り除き、元の入力状態とフォーカスを復元する。
+   * 処理内容 : 画面終了時に表示とイベントを解除する
    * ================================== */
   private destroy(): void {
     if (this.closed) return

@@ -1,21 +1,19 @@
 /* ==================================
  * 期末テスト提出プログラム
- * 学籍番号: 250056
- * 氏名: 斎藤永聖
- * 担当範囲: 下記の担当コメントを参照（共同制作）
+ * 学籍番号：250056
+ * 氏名：斎藤永聖
  * ================================== */
-// 担当：たまおちゃん｜認証機能・Session
 import { getPhpBaseUrl } from './PhpBaseUrl';
 import { saveCurrentUser, type AuthenticatedUser } from './GoogleSignIn';
 
 /* === [ 担当 : 250056 斎藤永聖 ] ===
- * 処理内容 : ブラウザに保存された利用者情報を削除する。
+ * 処理内容 : ブラウザに保持したログインユーザー情報を削除する
  * ================================== */
 function clearUser(): void {
   try { localStorage.removeItem('hanahakuCurrentUser'); } catch { /* Storage may be unavailable. */ }
 }
 /* === [ 担当 : 250056 斎藤永聖 ] ===
- * 処理内容 : 認証Cookieを付けてセッションAPIへ送信し、タイムアウトとレスポンスを検査する。
+ * 処理内容 : 認証APIへCookie付きで送信し、応答を取得する
  * ================================== */
 async function request(endpoint: string): Promise<{ ok: boolean; user?: AuthenticatedUser | null; error?: string }> {
   const base = getPhpBaseUrl();
@@ -32,7 +30,7 @@ async function request(endpoint: string): Promise<{ ok: boolean; user?: Authenti
   } finally { window.clearTimeout(timeout); }
 }
 /* === [ 担当 : 250056 斎藤永聖 ] ===
- * 処理内容 : サーバーのセッションを照合し、有効なら利用者情報を復元し、無効ならローカル情報を消す。
+ * 処理内容 : 認証セッションを確認してログイン情報を復元する
  * ================================== */
 export async function restoreSession(): Promise<boolean> {
   clearUser();
@@ -42,7 +40,7 @@ export async function restoreSession(): Promise<boolean> {
   return true;
 }
 /* === [ 担当 : 250056 斎藤永聖 ] ===
- * 処理内容 : サーバーのセッションを終了してブラウザの利用者情報を消す。
+ * 処理内容 : ログアウトAPIを呼び、ブラウザのログイン情報を消す
  * ================================== */
 export async function logout(): Promise<void> {
   await request('logout');

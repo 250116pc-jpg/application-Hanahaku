@@ -1,14 +1,15 @@
 /* ==================================
  * 期末テスト提出プログラム
- * 学籍番号: 250056
- * 氏名: 斎藤永聖
- * 担当範囲: 下記の担当コメントを参照（共同制作）
+ * 学籍番号：250056、250116
+ * 氏名：斎藤永聖、中村伊安
  * ================================== */
-// 担当：たまおちゃん｜図鑑機能・contractPreview
 import catalogSkills from '../../../php/flower/catalog-skills.json'
 import imagePaths from '../../../php/flower/path.json'
 import type { Season } from '../test_data'
 
+/* === [ 担当 : 250056 斎藤永聖 / 250116 中村伊安 ] ===
+ * 処理内容 : 花データ共通を定義する
+ * ================================== */
 export type CatalogSkill = { name: string; description: string; descriptionLevel1?: string; mp: number | null; cooldown: number | null; element: string; category: string; icon: string }
 export type FlowerImageVariant = { name: string; url: string; hanakotoba: string[] }
 export type PrototypeFlower = { imageVariants?: FlowerImageVariant[]; id: number; code: string; name: string; season: Season; url: string; key: string; element: string | null; skillId?: number; skill: CatalogSkill | null; statusBonus?: Record<string, number>; hanakotoba: string[]; origin?: string; habitat?: string; features?: string }
@@ -41,13 +42,22 @@ export const prototypeFlowers: PrototypeFlower[] = catalog.sort((a,b)=>(a.catalo
  imageVariants:entry.image_variants?.map(variant => ({name:variant.name,url:images[assetPath(imagePaths.game,variant.path)],hanakotoba:variant.hanakotoba}))
 }))
 // Prototype-only ownership. Never writes to accounts, the DB, or real party data.
-/* === [ 担当 : 250056 斎藤永聖 ] ===
- * 処理内容 : プレビュー用の契約済み花IDを保持し、有効な花の登録と登録状態の初期化を行う。
- * ================================== */
 export class ContractPreviewState {
+ /* === [ 担当 : 250056 斎藤永聖 ] ===
+  * 処理内容 : 状態・能力値・操作対象を保持する
+  * ================================== */
  readonly owned = new Set<number>()
+ /* === [ 担当 : 250056 斎藤永聖 ] ===
+  * 処理内容 : 仮契約した花IDを画面内の所持状態へ追加する
+  * ================================== */
  contract(id: number): void { if (prototypeFlowers.some(f => f.id===id)) this.owned.add(id) }
 
+ /* === [ 担当 : 250056 斎藤永聖 ] ===
+  * 処理内容 : 画面内の仮契約状態を初期化する
+  * ================================== */
  reset(): void { this.owned.clear() }
 }
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 花データ共通を定義する
+ * ================================== */
 export const contractPreview = new ContractPreviewState()

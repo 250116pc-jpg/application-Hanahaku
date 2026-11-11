@@ -1,8 +1,15 @@
-// 担当：たまおちゃん｜共通UI・dialogs
+/* ==================================
+ * 期末テスト提出プログラム
+ * 学籍番号：250116
+ * 氏名：中村伊安
+ * ================================== */
 import Phaser from 'phaser';
 import { getTextStyle } from './styles';
 
 // 撤退確認ポップアップ共通化 (TestScene と StageScene で共通)
+/* === [ 担当 : 250116 中村伊安 ] ===
+ * 処理内容 : 確認UIを定義する
+ * ================================== */
 export const showRetreatDialog = (
   scene: Phaser.Scene,
   onRetreat: () => void

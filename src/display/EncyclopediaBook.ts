@@ -1,21 +1,19 @@
 /* ==================================
  * 期末テスト提出プログラム
- * 学籍番号: 250056
- * 氏名: 斎藤永聖
- * 担当範囲: 下記の担当コメントを参照（共同制作）
+ * 学籍番号：250082、250056、250116
+ * 氏名：武田優人、斎藤永聖、中村伊安
  * ================================== */
-// 担当：たまおちゃん｜画面表示・設定・EncyclopediaBook
 import { openPeopleJournal } from './PeopleJournal'
 import { readFlowerContracts } from '../Scene/stage/flowerContracts'
 import type { Season } from '../Scene/test_data'
 import { prototypeFlowers, contractPreview, type PrototypeFlower } from '../Scene/encyclopedia/contractPreview'
 import './EncyclopediaBook.css'
 import bookmarkImage from '../assets/ui/encyclopedia_bookmark.png'
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 本・ページ・しおりの表示と演出を定義する
+ * ================================== */
 const images = import.meta.glob('../assets/settings-book/*.png', { eager: true, query: '?url', import: 'default' }) as Record<string,string>
 const asset = (name: string): string => images['../assets/settings-book/'+name]!
-/* === [ 担当 : 250056 斎藤永聖 ] ===
- * 処理内容 : 季節別の図鑑を本として表示し、ページ移動、紙のコマ送り、付箋の追従、カード選択と終了時の解除を管理する。
- * ================================== */
 export function mountEncyclopediaBook(options: {
  season: Season; page: number; animate: boolean; turn?: number;
  unknown: Record<Season,{url:string}>;
@@ -23,15 +21,30 @@ export function mountEncyclopediaBook(options: {
  onReady?: () => void; beforeOpen?: () => Promise<void>;
  onSelect: (flower:PrototypeFlower) => void; onHome: () => void; onReset: () => void
 }): () => void {
+ /* === [ 担当 : 250082 武田優人 / 250056 斎藤永聖 ] ===
+  * 処理内容 : 本型図鑑のダイアログと背景画像の領域を作る
+  * ================================== */
  const root=document.createElement('section'); root.className='encyclopedia-book-screen'
  root.setAttribute('role','dialog');root.setAttribute('aria-label','花の図鑑');root.setAttribute('aria-modal','true')
  const book=document.createElement('div');book.className='encyclopedia-book';root.append(book)
- const art=document.createElement('img');art.className='encyclopedia-book-art';art.alt='花の図鑑';art.src=asset(options.animate?'opening_00.png':'open.png');book.append(art)
+ const art=document.createElement('img');
+ /* === [ 担当 : 250082 武田優人 / 250056 斎藤永聖 ] ===
+  * 処理内容 : 開閉用の本の画像と紙面レイヤーを準備する
+  * ================================== */
+ art.className='encyclopedia-book-art';art.alt='花の図鑑';art.src=asset(options.animate?'opening_00.png':'open.png');book.append(art)
  // 表紙と開いた紙を別の層にして、その間にしおりを挟む。
- const paper=art.cloneNode() as HTMLImageElement;paper.className='encyclopedia-book-paper';paper.alt='';paper.setAttribute('aria-hidden','true');book.append(paper)
+ const paper=art.cloneNode() as HTMLImageElement;paper.className='encyclopedia-book-paper';paper.alt='';paper.setAttribute('aria-hidden','true');
+ /* === [ 担当 : 250082 武田優人 / 250056 斎藤永聖 ] ===
+  * 処理内容 : 画像・文字・パネルを配置する
+  * ================================== */
+ book.append(paper)
  const paperSync=new MutationObserver(()=>{paper.src=art.src});paperSync.observe(art,{attributes:true,attributeFilter:['src']})
  const ui=document.createElement('div');ui.className='encyclopedia-book-ui';ui.hidden=true;book.append(ui)
- const tabs=document.createElement('nav');tabs.className='encyclopedia-book-tabs';tabs.setAttribute('aria-label','季節');tabs.hidden=true;book.append(tabs)
+ const tabs=document.createElement('nav');
+ /* === [ 担当 : 250056 斎藤永聖 ] ===
+  * 処理内容 : 季節タブ・操作制御と本を開閉する演出を用意する
+  * ================================== */
+ tabs.className='encyclopedia-book-tabs';tabs.setAttribute('aria-label','季節');tabs.hidden=true;book.append(tabs)
  const previous=document.activeElement instanceof HTMLElement?document.activeElement:null
  let disposed=false,busy=true,timer:ReturnType<typeof setTimeout>|undefined
  const button=(parent:HTMLElement,label:string,action:()=>void):HTMLButtonElement=>{const b=document.createElement('button');b.type='button';b.textContent=label;b.onclick=()=>{if(!busy)action()};parent.append(b);return b}
@@ -43,6 +56,9 @@ export function mountEncyclopediaBook(options: {
  }
  const reduced=():boolean=>matchMedia('(prefers-reduced-motion: reduce)').matches
  const seasons: Season[]=['春','夏','秋','冬']
+ /* === [ 担当 : 250082 武田優人 / 250056 斎藤永聖 ] ===
+  * 処理内容 : 移動先の紙面を準備し、ページとしおりを連動してめくる
+  * ================================== */
  const turn=(direction:number,targetSeason:Season,targetPage:number,change:()=>void):void=>{
   if(busy)return
   busy=true;root.setAttribute('aria-busy','true')
@@ -137,6 +153,9 @@ export function mountEncyclopediaBook(options: {
    step()
   })
  }
+ /* === [ 担当 : 250056 斎藤永聖 ] ===
+  * 処理内容 : 画像・文字・パネルを配置する
+  * ================================== */
  const close=():void=>{if(busy)return;animate(true,options.onHome)}
  const title=document.createElement('h1');title.textContent='花の図鑑';ui.append(title)
  const peopleLink=button(title,'キャラ',()=>openPeopleJournal(root))
@@ -155,8 +174,14 @@ export function mountEncyclopediaBook(options: {
   }
   peopleLink.prepend(paper)
  }
+ /* === [ 担当 : 250056 斎藤永聖 ] ===
+  * 処理内容 : 花契済みの件数と花一覧の領域を表示する
+  * ================================== */
  const progress=document.createElement('p');progress.className='encyclopedia-book-progress';progress.textContent=`花契済み ${new Set([...contractPreview.owned, ...Object.keys(readFlowerContracts()).map(Number)]).size} / ${prototypeFlowers.length}`;ui.append(progress)
  const grid=document.createElement('div');grid.className='encyclopedia-book-grid';ui.append(grid)
+ /* === [ 担当 : 250056 斎藤永聖 ] ===
+  * 処理内容 : 季節とページで花を抽出し、契約状況に応じたカードを表示する
+  * ================================== */
  const flowers=prototypeFlowers.filter(f=>f.season===options.season)
  const pages=Math.max(1,Math.ceil(flowers.length/8)),page=Math.min(options.page,pages-1)
  function drawCards(parent:HTMLElement,season:Season,targetPage:number):void {
@@ -168,17 +193,30 @@ export function mountEncyclopediaBook(options: {
  })
  }
  drawCards(grid,options.season,page)
+ /* === [ 担当 : 250056 斎藤永聖 ] ===
+  * 処理内容 : 画像・文字・パネルを配置する
+  * ================================== */
  const footer=document.createElement('footer');ui.append(footer)
  const leftFooter=document.createElement('div');leftFooter.className='encyclopedia-footer-page';const rightFooter=document.createElement('div');rightFooter.className='encyclopedia-footer-page';footer.append(leftFooter,rightFooter)
+ /* === [ 担当 : 250082 武田優人 / 250056 斎藤永聖 / 250116 中村伊安 ] ===
+  * 処理内容 : 町マップへ戻る操作と前のページ・季節への移動を設定する
+  * ================================== */
  const back=button(root,'‹  町マップへ',close);back.className='encyclopedia-book-back';root.prepend(back)
  const seasonIndex=seasons.indexOf(options.season)
  const previousSeason=seasons[Math.max(0,seasonIndex-1)]!
  const previousLastPage=Math.max(0,Math.ceil(prototypeFlowers.filter(f=>f.season===previousSeason).length/8)-1)
  const nextSeason=seasons[Math.min(seasons.length-1,seasonIndex+1)]!
  const prev=button(leftFooter,'‹',()=>page>0?turn(-1,options.season,page-1,()=>options.onPage(page-1)):turn(-1,previousSeason,previousLastPage,()=>options.onSeason(previousSeason,previousLastPage)));prev.className='encyclopedia-page-prev';prev.setAttribute('aria-label','前のページ');prev.disabled=page===0&&seasonIndex===0
+ /* === [ 担当 : 250082 武田優人 / 250056 斎藤永聖 ] ===
+  * 処理内容 : ページ番号・テスト初期化・次のページへの操作を作る
+  * ================================== */
  const count=document.createElement('span');count.textContent=`${page+1} / ${pages}`;leftFooter.append(count)
  button(rightFooter,'テストを初期化',options.onReset)
- const next=button(rightFooter,'›',()=>page<pages-1?turn(1,options.season,page+1,()=>options.onPage(page+1)):turn(1,nextSeason,0,()=>options.onSeason(nextSeason,0)));next.className='encyclopedia-page-next';next.setAttribute('aria-label','次のページ');next.disabled=page===pages-1&&seasonIndex===seasons.length-1
+ const next=button(rightFooter,'›',()=>page<pages-1?turn(1,options.season,page+1,()=>options.onPage(page+1)):turn(1,nextSeason,0,()=>options.onSeason(nextSeason,0)));next.className='encyclopedia-page-next';next.setAttribute('aria-label','次のページ');
+ /* === [ 担当 : 250082 武田優人 / 250056 斎藤永聖 ] ===
+  * 処理内容 : 季節しおり・キー操作・素材の先読みと初期表示を設定する
+  * ================================== */
+ next.disabled=page===pages-1&&seasonIndex===seasons.length-1
  ;seasons.forEach((season,i)=>{const tab=button(tabs,season,()=>{if(season!==options.season)turn(i-seasonIndex,season,0,()=>options.onSeason(season))});const label=document.createElement('span');label.textContent=season;label.style.display='inline-block';const ribbon=document.createElement('img');ribbon.src=bookmarkImage;ribbon.alt='';ribbon.className='encyclopedia-season-ribbon';ribbon.setAttribute('aria-hidden','true');tab.replaceChildren(label,ribbon);tab.style.setProperty('--tab-color',['#e6b5bf','#b7cfaa','#d5b075','#b8cadd'][i]!);tab.setAttribute('aria-pressed',String(season===options.season));tab.classList.toggle('season-past',i<seasonIndex);tab.style.gridRow=String(i+1);tab.style.gridColumn=i<seasonIndex?'1':'2'})
  root.addEventListener('keydown',event=>{if(event.key==='Escape'){event.preventDefault();close()}if(event.key==='Tab'){const list=[...root.querySelectorAll<HTMLButtonElement>('button:not(:disabled)')].filter(b=>b.getClientRects().length);const first=list[0],last=list[list.length-1];if(event.shiftKey&&document.activeElement===first){event.preventDefault();last?.focus()}else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first?.focus()}}})
  document.body.append(root)

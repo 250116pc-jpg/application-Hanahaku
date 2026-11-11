@@ -1,14 +1,12 @@
 /* ==================================
  * 期末テスト提出プログラム
- * 学籍番号: 250056
- * 氏名: 斎藤永聖
- * 担当範囲: 下記の担当コメントを参照（共同制作）
- * ================================== */
-// 担当：たまおちゃん｜ステージ進行状況
-/* === [ 担当 : 250056 斎藤永聖 ] ===
- * 処理内容 : PHP接続先を共通関数へ統一するためのインポートを追加する。以降のAPI処理本体は共同制作者の担当。
+ * 学籍番号：250116
+ * 氏名：中村伊安
  * ================================== */
 import { getPhpBaseUrl } from '../../auth/PhpBaseUrl';
+/* === [ 担当 : 250116 中村伊安 ] ===
+ * 処理内容 : 受け渡すデータの型と共通設定を定義する
+ * ================================== */
 export interface StageProgress {
   completedStageIds: number[];
   coins: number;
@@ -22,6 +20,9 @@ export interface StageCompletion extends StageProgress {
 
 
 
+/* === [ 担当 : 250116 中村伊安 ] ===
+ * 処理内容 : ユーザーごとの進行状況の保存キーを作る
+ * ================================== */
 function localProgressKey(): string {
   let userKey = 'guest';
   try {
@@ -31,6 +32,9 @@ function localProgressKey(): string {
   return `hanahakuStageProgress:${userKey}`;
 }
 
+/* === [ 担当 : 250116 中村伊安 ] ===
+ * 処理内容 : 端末に保存されたクリア状況とコインを読み込む
+ * ================================== */
 function readLocalProgress(): StageProgress {
   try {
     const saved = JSON.parse(localStorage.getItem(localProgressKey()) ?? 'null') as Partial<StageProgress> | null;
@@ -42,10 +46,16 @@ function readLocalProgress(): StageProgress {
   } catch { return { completedStageIds: [], coins: 0 }; }
 }
 
+/* === [ 担当 : 250116 中村伊安 ] ===
+ * 処理内容 : クリア状況とコインを端末へ保存する
+ * ================================== */
 function writeLocalProgress(progress: StageProgress): void {
   try { localStorage.setItem(localProgressKey(), JSON.stringify(progress)); } catch { /* Browser storage can be disabled. */ }
 }
 
+/* === [ 担当 : 250116 中村伊安 ] ===
+ * 処理内容 : サーバーから受け取った進行データの形式を検証する
+ * ================================== */
 function parseProgress(value: unknown): StageProgress {
   if (typeof value !== 'object' || value === null || !('completedStageIds' in value) || !Array.isArray(value.completedStageIds) || !('coins' in value) || typeof value.coins !== 'number') {
     throw new Error('進行状況のデータを読み取れませんでした。');
@@ -56,6 +66,9 @@ function parseProgress(value: unknown): StageProgress {
   };
 }
 
+/* === [ 担当 : 250116 中村伊安 ] ===
+ * 処理内容 : 進行取得・クリア保存APIへ送信し、応答を検証する
+ * ================================== */
 async function request(endpoint: 'progress' | 'complete', body: Record<string, number> = {}): Promise<unknown> {
   const controller = new AbortController();
   const timeout = window.setTimeout(() => controller.abort(), 8000);
@@ -74,6 +87,9 @@ async function request(endpoint: 'progress' | 'complete', body: Record<string, n
   } finally { window.clearTimeout(timeout); }
 }
 
+/* === [ 担当 : 250116 中村伊安 ] ===
+ * 処理内容 : 進行状況をサーバーから取得し、失敗時は端末保存を読む
+ * ================================== */
 export async function loadStageProgress(): Promise<StageProgress> {
   try {
     const result = await request('progress');
@@ -84,6 +100,9 @@ export async function loadStageProgress(): Promise<StageProgress> {
   } catch { return readLocalProgress(); }
 }
 
+/* === [ 担当 : 250116 中村伊安 ] ===
+ * 処理内容 : クリア報酬と進行状況を保存し、失敗時は端末保存へ切り替える
+ * ================================== */
 export async function completeStage(stageId: number, fallbackReward = 100): Promise<StageCompletion> {
   try {
     const result = await request('complete', { stageId });

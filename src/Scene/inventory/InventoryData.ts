@@ -1,10 +1,11 @@
 /* ==================================
  * 期末テスト提出プログラム
- * 学籍番号: 250056
- * 氏名: 斎藤永聖
- * 担当範囲: 下記の担当コメントを参照（共同制作）
+ * 学籍番号：250056
+ * 氏名：斎藤永聖
  * ================================== */
-// 担当：たまおちゃん｜所持品機能・InventoryData
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 受け渡すデータの型と共通設定を定義する
+ * ================================== */
 export type ItemCategory = 'heal' | 'material' | 'important'
 export type InventoryFilter = 'all' | ItemCategory
 
@@ -18,7 +19,7 @@ export interface InventoryItem {
 }
 
 /* === [ 担当 : 250056 斎藤永聖 ] ===
- * 処理内容 : 所持品画面を確認するための仮アイテム一覧を生成する。
+ * 処理内容 : 表示確認用の仮アイテム一覧を作る
  * ================================== */
 export function createMockItems(): InventoryItem[] {
   return [
@@ -44,7 +45,7 @@ export function createMockItems(): InventoryItem[] {
 }
 
 /* === [ 担当 : 250056 斎藤永聖 ] ===
- * 処理内容 : 内部カテゴリ値を画面表示用の日本語名へ変換する。
+ * 処理内容 : アイテムの分類を画面用の名前に変換する
  * ================================== */
 export function getCategoryName(category: ItemCategory): string {
   if (category === 'heal') return '回復'

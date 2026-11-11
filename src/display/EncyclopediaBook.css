@@ -1,63 +1,145 @@
 /* ==================================
  * 期末テスト提出プログラム
- * 学籍番号: 250056
- * 氏名: 斎藤永聖
- * 担当範囲: 下記の担当コメントを参照（共同制作）
+ * 学籍番号：250056、250116
+ * 氏名：斎藤永聖、中村伊安
  * ================================== */
 /* === [ 担当 : 250056 斎藤永聖 ] ===
- * 処理内容 : 図鑑の紙面、花カード、季節付箋とページめくり中の重なり・表示領域を定義する（共同編集）。
+ * 処理内容 : 本とページの見た目・重なりを整える
  * ================================== */
-.encyclopedia-book-screen{position:fixed;inset:0;z-index:1100;background:#142433;display:grid;place-items:center;padding:2vh 7vw 2vh 2vw;color:#302519;font-family:Meiryo,sans-serif}.encyclopedia-book-screen *{box-sizing:border-box}.encyclopedia-book-screen [hidden]{display:none!important}.encyclopedia-book{position:relative;width:min(88vw,144vh);width:min(88vw,144dvh);aspect-ratio:3/2}.encyclopedia-book-art{width:100%;height:100%;image-rendering:pixelated;display:block}.encyclopedia-book-ui{position:absolute;inset:12% 9% 15%;display:flex;flex-direction:column;gap:3%;min-height:0}.encyclopedia-book-ui h1{font-size:clamp(14px,2vw,26px);margin:0;text-align:center}.encyclopedia-book-progress{font-size:clamp(10px,1.2vw,16px);margin:0;text-align:center}.encyclopedia-book-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr));gap:6% 5%;flex:1;min-height:0}.encyclopedia-book-card{min-height:0;display:flex;flex-direction:column;align-items:center;background:#fff4d9a6;border:1px solid #a57c3e;padding:3%;color:#233947;cursor:pointer}.encyclopedia-book-card img{width:100%;height:calc(100% - 20px);min-height:0;object-fit:contain}.encyclopedia-book-card span{font-size:clamp(9px,1.1vw,16px);line-height:20px}.encyclopedia-book-ui footer{display:flex;align-items:center;justify-content:space-between;gap:4px;font-size:clamp(9px,1.1vw,14px)}.encyclopedia-book-ui footer button{border:1px solid #aa8c57;background:#193447;color:#ffedc0;padding:5px 8px;border-radius:4px;font:inherit;cursor:pointer}.encyclopedia-book-ui button:disabled{opacity:.4;cursor:default}.encyclopedia-book-tabs{position:absolute;left:94%;top:23%;width:10%;display:flex;flex-direction:column;gap:8px}.encyclopedia-book-tabs button{background:var(--tab-color);color:#243846;border:1px solid #a57c3e;border-radius:0 6px 6px 0;padding:8px 2px;font:bold clamp(12px,1.6vw,22px) Meiryo;cursor:pointer;box-shadow:2px 3px 3px #0004}.encyclopedia-book-tabs button[aria-pressed=true]{outline:2px solid #eed69c;transform:translateX(4px)}.encyclopedia-book-screen button:focus-visible{outline:3px solid #277ca6;outline-offset:2px}
+.encyclopedia-book-screen{position:fixed;inset:0;z-index:1100;background:#142433;display:grid;place-items:center;padding:2vh 7vw 2vh 2vw;color:#302519;font-family:Meiryo,sans-serif}.encyclopedia-book-screen *{box-sizing:border-box}.encyclopedia-book-screen [hidden]{display:none!important}.encyclopedia-book{position:relative;width:min(88vw,144vh);width:min(88vw,144dvh);aspect-ratio:3/2}.encyclopedia-book-art{width:100%;height:100%;image-rendering:pixelated;display:block}.encyclopedia-book-ui{position:absolute;inset:12% 9% 15%;display:flex;flex-direction:column;gap:3%;min-height:0}.encyclopedia-book-ui h1{font-size:clamp(14px,2vw,26px);margin:0;text-align:center}.encyclopedia-book-progress{font-size:clamp(10px,1.2vw,16px);margin:0;text-align:center}
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 一覧・カードの配置と選択表示を整える
+ * ================================== */
+.encyclopedia-book-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr));gap:6% 5%;flex:1;min-height:0}.encyclopedia-book-card{min-height:0;display:flex;flex-direction:column;align-items:center;background:#fff4d9a6;border:1px solid #a57c3e;padding:3%;color:#233947;cursor:pointer}.encyclopedia-book-card img{width:100%;height:calc(100% - 20px);min-height:0;object-fit:contain}.encyclopedia-book-card span{font-size:clamp(9px,1.1vw,16px);line-height:20px}
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 本とページの見た目・重なりを整える
+ * ================================== */
+.encyclopedia-book-ui footer{display:flex;align-items:center;justify-content:space-between;gap:4px;font-size:clamp(9px,1.1vw,14px)}
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 操作ボタンの外観と反応を整える
+ * ================================== */
+.encyclopedia-book-ui footer button{border:1px solid #aa8c57;background:#193447;color:#ffedc0;padding:5px 8px;border-radius:4px;font:inherit;cursor:pointer}.encyclopedia-book-ui button:disabled{opacity:.4;cursor:default}
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : タブとしおりの位置・選択表示を整える
+ * ================================== */
+.encyclopedia-book-tabs{position:absolute;left:94%;top:23%;width:10%;display:flex;flex-direction:column;gap:8px}
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 操作ボタンの外観と反応を整える
+ * ================================== */
+.encyclopedia-book-tabs button{background:var(--tab-color);color:#243846;border:1px solid #a57c3e;border-radius:0 6px 6px 0;padding:8px 2px;font:bold clamp(12px,1.6vw,22px) Meiryo;cursor:pointer;box-shadow:2px 3px 3px #0004}.encyclopedia-book-tabs button[aria-pressed=true]{outline:2px solid #eed69c;transform:translateX(4px)}.encyclopedia-book-screen button:focus-visible{outline:3px solid #277ca6;outline-offset:2px}
 
 /* Generated blank botanical journal assets; labels remain live text. */
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 本とページの見た目・重なりを整える
+ * ================================== */
 .encyclopedia-book-screen{font-family:'UD Digi Kyokasho NP-R','Klee','Hiragino Maru Gothic ProN','Yu Gothic',sans-serif}
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 一覧・カードの配置と選択表示を整える
+ * ================================== */
 .encyclopedia-book-card{background:transparent;border:0;padding:0;gap:2px}
 .encyclopedia-book-card .encyclopedia-book-picture{display:grid;place-items:center;position:relative;width:100%;flex:1;min-height:0;background:url('../assets/images/encyclopedia/journal-frame.png') center/contain no-repeat}
 .encyclopedia-book-card .encyclopedia-book-picture img{width:72%;height:72%;object-fit:contain}
 .encyclopedia-book-card>span:last-child{flex:none;font-family:inherit}
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : タブとしおりの位置・選択表示を整える
+ * ================================== */
 .encyclopedia-book-tabs{width:13%;left:92%;gap:4px}
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 操作ボタンの外観と反応を整える
+ * ================================== */
 .encyclopedia-book-tabs button{background: url('../assets/images/encyclopedia/journal-tab.png') center/contain no-repeat;border:0;border-radius:0;box-shadow:none;aspect-ratio:2.05;padding:0 0 0 17%;font-family:inherit;font-size:clamp(12px,1.7vw,22px);filter:drop-shadow(1px 2px 1px #0004)}
 .encyclopedia-book-tabs button[aria-pressed=true]{outline:0;transform:translateX(5px);filter:drop-shadow(0 0 3px #e5b052)}
 .encyclopedia-book-ui footer button{background:url('../assets/images/encyclopedia/journal-button.png') center/contain no-repeat;border:0;border-radius:0;aspect-ratio:3;width:21%;padding:5px 12px;color:#ffedc0;font-family:inherit;white-space:nowrap}
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 本とページの見た目・重なりを整える
+ * ================================== */
 .encyclopedia-book-ui footer{gap:2px}
 
 /* Keep all footer controls on their own page, clear of the book binding. */
 .encyclopedia-book-ui footer{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:10%}
 .encyclopedia-footer-page{display:flex;align-items:center;justify-content:space-between;gap:4px;min-width:0}
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 操作ボタンの外観と反応を整える
+ * ================================== */
 .encyclopedia-book-ui footer .encyclopedia-footer-page button{width:43%;min-width:0;font-size:clamp(8px,1vw,14px);padding:4px;aspect-ratio:3}
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 本とページの見た目・重なりを整える
+ * ================================== */
 .encyclopedia-book-ui footer .encyclopedia-footer-page span{white-space:nowrap;flex-shrink:0;font-size:clamp(8px,1vw,13px)}
 
 .encyclopedia-book-ui h1{width:44%;text-align:left;padding-left:3%}
 .encyclopedia-book{perspective:1200px}
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 画面・パネルの背景と共通レイアウトを整える
+ * ================================== */
 .encyclopedia-turn-sheet{position:absolute;top:12%;bottom:15%;left:50%;width:41%;z-index:5;pointer-events:none;transform-origin:left center;background:linear-gradient(90deg,#c7a877,#f8ebcc 13%,#f6e7c5 92%,#d8bc8d);border:1px solid #ba965b;box-shadow:6px 2px 14px #38241144;backface-visibility:visible}
 .encyclopedia-turn-sheet.turn-out{animation:encyclopedia-page-out 140ms ease-in forwards}
 .encyclopedia-turn-sheet.turn-in{animation:encyclopedia-page-in 140ms ease-out forwards}
 .encyclopedia-turn-sheet.turn-back{left:9%;transform-origin:right center}
 .encyclopedia-turn-sheet.turn-back.turn-out{animation-name:encyclopedia-page-back-out}
 .encyclopedia-turn-sheet.turn-back.turn-in{animation-name:encyclopedia-page-back-in}
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 共通の表示設定とアニメーションを定義する
+ * ================================== */
 @keyframes encyclopedia-page-out{from{transform:rotateY(0)}to{transform:rotateY(-90deg)}}
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 共通の表示設定とアニメーションを定義する
+ * ================================== */
 @keyframes encyclopedia-page-in{from{transform:rotateY(-90deg)}to{transform:rotateY(-180deg)}}
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 共通の表示設定とアニメーションを定義する
+ * ================================== */
 @keyframes encyclopedia-page-back-out{from{transform:rotateY(0)}to{transform:rotateY(90deg)}}
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 共通の表示設定とアニメーションを定義する
+ * ================================== */
 @keyframes encyclopedia-page-back-in{from{transform:rotateY(90deg)}to{transform:rotateY(180deg)}}
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 画面サイズなどの条件に合わせて表示を調整する
+ * ================================== */
 @media(prefers-reduced-motion:reduce){.encyclopedia-turn-sheet{animation:none!important}}
 
 /* Keep the journal title on the left page, away from the binding. */
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 本とページの見た目・重なりを整える
+ * ================================== */
 .encyclopedia-book-ui h1{align-self:flex-start;width:43%;margin:0;padding-left:3%;text-align:left;overflow-wrap:anywhere}
 
 .encyclopedia-book-progress{align-self:flex-start;width:43%;text-align:left;padding-left:3%}
 .encyclopedia-page-preview{pointer-events:none}
 
 /* Keep each season in its original physical bookmark slot. */
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : タブとしおりの位置・選択表示を整える
+ * ================================== */
 .encyclopedia-book-tabs{display:grid;grid-template-rows:repeat(4,1fr)}
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 本とページの見た目・重なりを整える
+ * ================================== */
 .encyclopedia-page-preview{z-index:2}
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 画面・パネルの背景と共通レイアウトを整える
+ * ================================== */
 .encyclopedia-turn-content{z-index:3;pointer-events:none}
 
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 本とページの見た目・重なりを整える
+ * ================================== */
 .encyclopedia-book-screen { padding-inline: 6vw; }
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : タブとしおりの位置・選択表示を整える
+ * ================================== */
 .encyclopedia-book-tabs {
   left: -4%; width: 109%; grid-template-columns: 11.93% 11.93%;
   justify-content: space-between; pointer-events: none; z-index: 5;
 }
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 操作ボタンの外観と反応を整える
+ * ================================== */
 .encyclopedia-book-tabs button { pointer-events: auto; }
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : タブとしおりの位置・選択表示を整える
+ * ================================== */
 .encyclopedia-book-tabs .season-past {
   position: relative;
   isolation: isolate;
@@ -76,6 +158,9 @@
 
 
 /* Background behind the open encyclopedia book. */
+/* === [ 担当 : 250056 斎藤永聖 / 250116 中村伊安 ] ===
+ * 処理内容 : 本とページの見た目・重なりを整える
+ * ================================== */
 .encyclopedia-book-screen { background: #142433 url('../assets/images/encyclopedia/encyclopedia-background.png') center / cover no-repeat; }
 .encyclopedia-book-back {
   position: absolute;

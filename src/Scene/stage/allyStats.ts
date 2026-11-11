@@ -1,7 +1,14 @@
-// 担当：たまおちゃん｜プレイヤー能力値
+/* ==================================
+ * 期末テスト提出プログラム
+ * 学籍番号：250116
+ * 氏名：中村伊安
+ * ================================== */
 import playerAlly from '../../../php/ally/1001.json';
 import allyUpgradeData from '../../../php/ally/upgrades.json';
 
+/* === [ 担当 : 250116 中村伊安 ] ===
+ * 処理内容 : 主人公の能力値を定義する
+ * ================================== */
 export interface PlayerStats {
   hp: number;
   mp: number;

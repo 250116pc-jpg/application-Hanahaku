@@ -1,6 +1,13 @@
-// 担当：たまおちゃん｜共通UI・styles
+/* ==================================
+ * 期末テスト提出プログラム
+ * 学籍番号：250082、250116
+ * 氏名：武田優人、中村伊安
+ * ================================== */
 import Phaser from 'phaser';
 
+/* === [ 担当 : 250082 武田優人 / 250116 中村伊安 ] ===
+ * 処理内容 : 文字スタイル共通を定義する
+ * ================================== */
 export const HEADING_FONT_FAMILY = '"Yu Mincho", "MS PMincho", serif';
 export const FONT_FAMILY = '"Yu Gothic", "Meiryo", sans-serif';
 

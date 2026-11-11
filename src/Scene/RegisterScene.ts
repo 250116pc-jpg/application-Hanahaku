@@ -1,11 +1,9 @@
-import { transitionWithLoading } from '../utils/ui/scene-loading';
 /* ==================================
  * 期末テスト提出プログラム
- * 学籍番号: 250056
- * 氏名: 斎藤永聖
- * 担当範囲: 下記の担当コメントを参照（共同制作）
+ * 学籍番号：250082、250056、250116
+ * 氏名：武田優人、斎藤永聖、中村伊安
  * ================================== */
-// 担当：たまおちゃん｜新規登録画面
+import { transitionWithLoading } from '../utils/ui/scene-loading';
 import { getPhpBaseUrl } from '../auth/PhpBaseUrl';
 import Phaser from 'phaser';
 import { mountAuthLayout } from '../auth/AuthLayout';
@@ -16,6 +14,9 @@ import {
 } from '../auth/GoogleSignIn';
 import { SCENE_KEYS } from './sceneKeys';
 
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 受け渡すデータの型と共通設定を定義する
+ * ================================== */
 interface RegisterResponse {
   ok: boolean;
   id?: number;
@@ -23,14 +24,17 @@ interface RegisterResponse {
 }
 
 export class RegisterScene extends Phaser.Scene {
+  /* === [ 担当 : 250056 斎藤永聖 / 250116 中村伊安 ] ===
+   * 処理内容 : 初期状態と画面キーを設定する
+   * ================================== */
   constructor() {
     super(SCENE_KEYS.REGISTER);
   }
 
-  /* === [ 担当 : 250056 斎藤永聖 ] ===
-   * 処理内容 : 新規登録フォームの入力を検査し、登録APIの結果に応じてログイン画面への案内またはエラーを表示する。
-   * ================================== */
   create(): void {
+    /* === [ 担当 : 250056 斎藤永聖 ] ===
+     * 処理内容 : 新規登録の入力フォームとメッセージ欄を作る
+     * ================================== */
     const formElement = document.createElement('form');
     formElement.className = 'flower-auth-form';
     formElement.innerHTML = `
@@ -64,6 +68,9 @@ export class RegisterScene extends Phaser.Scene {
     const submitButton = formElement.querySelector<HTMLButtonElement>('button[type="submit"]');
     const googleButton = formElement.querySelector<HTMLDivElement>('.google-signin-button');
 
+    /* === [ 担当 : 250082 武田優人 / 250056 斎藤永聖 ] ===
+     * 処理内容 : ボタン操作に応じて画面を切り替える
+     * ================================== */
     const finishGoogleRegistration = (user: AuthenticatedUser): void => {
       if (!message || !submitButton) return;
       saveCurrentUser(user);
@@ -76,6 +83,9 @@ export class RegisterScene extends Phaser.Scene {
       });
     };
 
+    /* === [ 担当 : 250056 斎藤永聖 ] ===
+     * 処理内容 : Googleログインの操作と成功・失敗時の処理を接続する
+     * ================================== */
     const disposeGoogleButton = googleButton
       ? mountGoogleSignInButton(googleButton, {
         onStart: () => {
@@ -91,6 +101,9 @@ export class RegisterScene extends Phaser.Scene {
       : () => undefined;
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, disposeGoogleButton);
 
+    /* === [ 担当 : 250082 武田優人 / 250056 斎藤永聖 ] ===
+     * 処理内容 : ボタン操作に応じて画面を切り替える
+     * ================================== */
     formElement.addEventListener('submit', async (event) => {
       event.preventDefault();
       if (!message || !submitButton) return;
@@ -139,6 +152,9 @@ export class RegisterScene extends Phaser.Scene {
 
   }
 
+  /* === [ 担当 : 250056 斎藤永聖 ] ===
+   * 処理内容 : 認証の結果やエラーを文字色・表示状態へ反映する
+   * ================================== */
   private setMessage(
     element: HTMLParagraphElement,
     text: string,

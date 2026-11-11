@@ -1,11 +1,9 @@
-import { transitionWithLoading } from '../../utils/ui/scene-loading';
 /* ==================================
  * 期末テスト提出プログラム
- * 学籍番号: 250056
- * 氏名: 斎藤永聖
- * 担当範囲: 下記の担当コメントを参照（共同制作）
+ * 学籍番号：250082、250056、250116
+ * 氏名：武田優人、斎藤永聖、中村伊安
  * ================================== */
-// 担当：たまおちゃん｜戦闘結果画面
+import { transitionWithLoading } from '../../utils/ui/scene-loading';
 import Phaser from 'phaser';
 import { SCENE_KEYS } from '../sceneKeys';
 import { BACK_BUTTON_POSITION, getTextStyle } from '../../utils/ui';
@@ -13,6 +11,9 @@ import { showDebugSceneName } from '../../debug';
 import { playSe, stopBgm } from '../../audio/BgmManager';
 import { navigateToTownMap } from '../HomeScene/townMapNavigation';
 
+/* === [ 担当 : 250056 斎藤永聖 / 250116 中村伊安 ] ===
+ * 処理内容 : 受け渡すデータの型と共通設定を定義する
+ * ================================== */
 interface StageResultData {
   stageId: number;
   stageNumber?: string;
@@ -26,13 +27,16 @@ interface StageResultData {
 }
 
 export class StageResultScene extends Phaser.Scene {
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 初期状態と画面キーを設定する
+   * ================================== */
   constructor() { super(SCENE_KEYS.RESULT); }
 
   create(data: StageResultData): void {
-    showDebugSceneName(this);
-    /* === [ 担当 : 250056 斎藤永聖 ] ===
-     * 処理内容 : 結果画面ではBGMを止め、契約画面からの遷移でない場合のみ勝敗に応じた効果音を再生する。
+    /* === [ 担当 : 250056 斎藤永聖 / 250116 中村伊安 ] ===
+     * 処理内容 : 画面のBGM・効果音と音声設定を準備する
      * ================================== */
+    showDebugSceneName(this);
     stopBgm(this);
     if (!data.fromContract) {
       const resultSound = data.victory ? 'stage-clear' : 'game-over';
@@ -40,6 +44,9 @@ export class StageResultScene extends Phaser.Scene {
       this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.sound.stopByKey(resultSound));
     }
     const { width, height } = this.scale;
+    /* === [ 担当 : 250116 中村伊安 ] ===
+     * 処理内容 : 画像・文字・パネルを配置する
+     * ================================== */
     this.add.rectangle(width / 2, height / 2, width, height, 0x0c1722, 1);
     this.add.rectangle(width / 2, height / 2, width - 70, height - 70, 0x172a39, 1)
       .setStrokeStyle(3, data.victory ? 0xeacb7b : 0x8e9cab);
@@ -48,6 +55,9 @@ export class StageResultScene extends Phaser.Scene {
     })).setOrigin(0.5);
     this.add.text(width / 2, 225, `ステージ ${data.stageNumber ?? `1-${data.stageId}`}`, getTextStyle(26, { color: '#ffffff' })).setOrigin(0.5);
 
+    /* === [ 担当 : 250116 中村伊安 ] ===
+     * 処理内容 : 画像・文字・パネルを配置する
+     * ================================== */
     const summary = data.victory
       ? `報酬　${data.reward} コイン\n所持コイン　${data.coins}`
       : '今回の報酬はありません';
@@ -59,6 +69,9 @@ export class StageResultScene extends Phaser.Scene {
         ? data.persisted === 'server' ? '進行状況を保存しました' : 'この端末に進行状況を保存しました'
         : 'ステージ選択画面から再挑戦できます',
       getTextStyle(18, { color: data.victory ? data.persisted === 'server' ? '#a9e6c1' : '#ffd79a' : '#d9e1e8' })).setOrigin(0.5);
+    /* === [ 担当 : 250116 中村伊安 ] ===
+     * 処理内容 : 画像・文字・パネルを配置する
+     * ================================== */
     if (data.saveError && data.persisted === 'device') {
       this.add.text(width / 2, 438, data.saveError, getTextStyle(15, { color: '#f2c6b8', align: 'center' })).setOrigin(0.5);
     }
@@ -69,6 +82,9 @@ export class StageResultScene extends Phaser.Scene {
       })).setOrigin(0.5);
     }
     const buttonY = height - 105;
+    /* === [ 担当 : 250082 武田優人 / 250116 中村伊安 ] ===
+     * 処理内容 : ボタン操作に応じて画面を切り替える
+     * ================================== */
     if (!data.victory) this.createButton(width / 2 - 110, buttonY, 'もう一度', 0x527c63, () => {
       transitionWithLoading(this, SCENE_KEYS.STAGE, { stageId: data.stageId, stageNumber: data.stageNumber });
     });
@@ -80,6 +96,9 @@ export class StageResultScene extends Phaser.Scene {
     });
   }
 
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 結果画面のボタンと選択時の処理を作る
+   * ================================== */
   private createButton(x: number, y: number, label: string, color: number, onClick: () => void): void {
     const button = this.add.container(x, y);
     const bg = this.add.rectangle(0, 0, 190, 58, color, 1).setStrokeStyle(2, 0xf0d891);

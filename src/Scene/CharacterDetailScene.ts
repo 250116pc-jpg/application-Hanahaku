@@ -1,11 +1,9 @@
-import { transitionWithLoading } from '../utils/ui/scene-loading';
 /* ==================================
  * 期末テスト提出プログラム
- * 学籍番号: 250056
- * 氏名: 斎藤永聖
- * 担当範囲: 下記の担当コメントを参照（共同制作）
+ * 学籍番号：250082、250056、250116
+ * 氏名：武田優人、斎藤永聖、中村伊安
  * ================================== */
-// 担当：たまおちゃん｜キャラクター詳細画面
+import { transitionWithLoading } from '../utils/ui/scene-loading';
 import Phaser from 'phaser'
 import { preloadCharacterImages, addCharacterImage } from '../utils/characterImage'
 
@@ -22,6 +20,9 @@ import { navigateToTownMap } from './HomeScene/townMapNavigation'
 //--------------------------------------------------------------
 
 
+/* === [ 担当 : 250082 武田優人 / 250116 中村伊安 ] ===
+ * 処理内容 : 花の基本情報・能力・スキル表示を定義する
+ * ================================== */
 const BORDER_COLOR = 0x536878
 
 type CharacterDetailSceneData = {
@@ -44,6 +45,9 @@ type SkillDefinition = {
 const skillDefinitions = (JSON.parse(rawSkillDefinitions) as { skills: SkillDefinition[] }).skills
 
 // Phaser の日本語自動折り返しに依存せず、表示幅に収まる位置へ改行を入れる。
+/* === [ 担当 : 250116 中村伊安 ] ===
+ * 処理内容 : 日本語の説明文を指定文字数で改行する
+ * ================================== */
 function forceWrapJapaneseText(value: string, maxCharacters = 20): string {
   const lines: string[] = []
   let line = ''
@@ -68,16 +72,25 @@ function forceWrapJapaneseText(value: string, maxCharacters = 20): string {
 }
 
 export class CharacterDetailScene extends Phaser.Scene {
+  /* === [ 担当 : 250082 武田優人 / 250116 中村伊安 ] ===
+   * 処理内容 : 状態・能力値・操作対象を保持する
+   * ================================== */
   private returnData: { resumeFormation?: boolean } = {}
   private ownedCharacter?: CharacterData
   private characterId = 1
   private returnScene: string = SCENE_KEYS.TRAINING
   private returnLabel = '育成画面へ'
 
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 初期状態と画面キーを設定する
+   * ================================== */
   constructor() {
     super(SCENE_KEYS.CHARACTER_DETAIL)
   }
 
+  /* === [ 担当 : 250082 武田優人 / 250116 中村伊安 ] ===
+   * 処理内容 : 呼び出し元と表示対象を受け取る
+   * ================================== */
   init(data: CharacterDetailSceneData): void {
     this.ownedCharacter = data.ownedCharacter
     this.returnData = data.returnData ?? {}
@@ -86,14 +99,17 @@ export class CharacterDetailScene extends Phaser.Scene {
     this.returnLabel = data.returnLabel ?? '育成画面へ'
   }
 
+  /* === [ 担当 : 250056 斎藤永聖 / 250116 中村伊安 ] ===
+   * 処理内容 : 使用する画像・音声を読み込む
+   * ================================== */
   preload(): void {
-    /* === [ 担当 : 250056 斎藤永聖 ] ===
-     * 処理内容 : キャラクター別の画像を共通読込処理で準備する。
-     * ================================== */
     preloadCharacterImages(this)
     this.load.image('detailFlower', flowerImg)
   }
 
+  /* === [ 担当 : 250082 武田優人 / 250116 中村伊安 ] ===
+   * 処理内容 : 花の基本情報・能力値・スキルと戻る操作を表示する
+   * ================================== */
   create(): void {
     showDebugSceneName(this);
     
@@ -111,16 +127,19 @@ export class CharacterDetailScene extends Phaser.Scene {
     this.createHomeButton(width, height)
   }
 
+  /* === [ 担当 : 250056 斎藤永聖 / 250116 中村伊安 ] ===
+   * 処理内容 : 表示に使う画像・アニメーションを用意する
+   * ================================== */
   private createCharacterImage(): void {
     this.add.rectangle(310, 285, 360, 360, 0xffffff)
       .setStrokeStyle(2, BORDER_COLOR)
 
-    /* === [ 担当 : 250056 斎藤永聖 ] ===
-     * 処理内容 : 選択キャラクターの画像を共通描画処理で指定位置・表示範囲に配置する。
-     * ================================== */
     addCharacterImage(this, 310, 285, this.findCharacter().id, 'detailFlower', 0.75, 280)
   }
 
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 花の名前・属性・役割などの基本情報を表示する
+   * ================================== */
   private createBasicInfo(character: CharacterData): void {
     this.add.rectangle(780, 210, 520, 170, 0xffffff)
       .setStrokeStyle(2, BORDER_COLOR)
@@ -137,6 +156,9 @@ export class CharacterDetailScene extends Phaser.Scene {
     })
   }
 
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 花のHP・MP・攻撃力・防御力などを表示する
+   * ================================== */
   private createStatusInfo(character: CharacterData): void {
     this.add.rectangle(310, 560, 360, 160, 0xffffff)
       .setStrokeStyle(2, BORDER_COLOR)
@@ -154,6 +176,9 @@ export class CharacterDetailScene extends Phaser.Scene {
     })
   }
 
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 花が持つスキルの名前と効果を表示する
+   * ================================== */
   private createSkillInfo(character: CharacterData): void {
     this.add.rectangle(780, 505, 520, 310, 0xffffff)
       .setStrokeStyle(2, BORDER_COLOR)
@@ -193,12 +218,18 @@ export class CharacterDetailScene extends Phaser.Scene {
     })
   }
 
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 町マップへ戻るボタンを配置する
+   * ================================== */
   private createHomeButton(width: number, height: number): void {
     createTextButton(this, width - 140, height - 65, '町マップへ', () => {
       navigateToTownMap(this)
     }, { fontSize: 24, padding: { top: 10, bottom: 10, left: 18, right: 18 } })
   }
 
+  /* === [ 担当 : 250082 武田優人 / 250116 中村伊安 ] ===
+   * 処理内容 : 対象の花を取得する
+   * ================================== */
   private findCharacter(): CharacterData {
     if (this.ownedCharacter?.id === this.characterId) return this.ownedCharacter
     return testData.characters.find((character) => character.id === this.characterId)

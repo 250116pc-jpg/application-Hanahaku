@@ -1,11 +1,9 @@
-import { trackSceneLoading } from '../../utils/ui/scene-loading';
 /* ==================================
  * 期末テスト提出プログラム
- * 学籍番号: 250056
- * 氏名: 斎藤永聖
- * 担当範囲: 下記の担当コメントを参照（共同制作）
+ * 学籍番号：250082、250056、250116
+ * 氏名：武田優人、斎藤永聖、中村伊安
  * ================================== */
-// 担当：たまおちゃん｜ショップ機能・shop
+import { trackSceneLoading } from '../../utils/ui/scene-loading';
 import { recordShopVisit } from '../../display/PeopleJournal'
 import { shopCatalog, requestShop } from './ShopApi'
 import { createShopBackground } from './background'
@@ -22,29 +20,38 @@ import { navigateToTownMap } from '../HomeScene/townMapNavigation'
 //--------------------------------------------------------------
 
 export class ShopScene extends Phaser.Scene {
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 初期状態と画面キーを設定する
+   * ================================== */
   constructor() {
     super({ key: SCENE_KEYS.SHOP })
   }
 
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 使用する画像・音声を読み込む
+   * ================================== */
   preload(): void {
     preloadShopAssets(this)
   }
 
   create(): void {
+    /* === [ 担当 : 250056 斎藤永聖 / 250116 中村伊安 ] ===
+     * 処理内容 : 商品一覧と店員・見出しを準備して訪問を記録する
+     * ================================== */
     const shopItems: ShopItem[] = shopCatalog.map(item=>({...item,count:0}))
     const screenWidth = this.scale.width
     const screenHeight = this.scale.height
 
     createShopBackground(this, screenWidth, screenHeight)
     this.createShopkeeper()
-    /* === [ 担当 : 250056 斎藤永聖 ] ===
-     * 処理内容 : ショップ訪問を記録し、人物録で店主を閲覧できるようにする。
-     * ================================== */
     recordShopVisit()
     this.createHeader()
     this.createBackButton()
 
     this.createListPanel()
+    /* === [ 担当 : 250056 斎藤永聖 / 250116 中村伊安 ] ===
+     * 処理内容 : 所持品・購入確認・購入後の表示更新を接続する
+     * ================================== */
     const shopContainer = this.add.container(0, 0)
     const countLabels = new Map<number, Phaser.GameObjects.Text>()
     const status=this.add.text(960,30,'所持品を確認中…',{fontSize:'17px',color:'#ffedc0',wordWrap:{width:280}}).setDepth(100)
@@ -52,8 +59,8 @@ export class ShopScene extends Phaser.Scene {
     let confirmation: PurchaseConfirm | null = null
     let ready=false
     let selected: ShopItem | undefined
-    /* === [ 担当 : 250056 斎藤永聖 ] ===
-     * 処理内容 : 取得した所持金・所持数を商品一覧と選択中の詳細へ反映する。
+    /* === [ 担当 : 250082 武田優人 / 250056 斎藤永聖 ] ===
+     * 処理内容 : 必要なデータを取得して画面へ反映する
      * ================================== */
     const applyState=(state: Awaited<ReturnType<typeof requestShop>>) => {
       coin = state.coin
@@ -61,9 +68,6 @@ export class ShopScene extends Phaser.Scene {
       status.setText(`所持コイン：${state.coin.toLocaleString()} G`)
       if(selected) itemDetail.show(selected)
     }
-    /* === [ 担当 : 250056 斎藤永聖 ] ===
-     * 処理内容 : 読込完了と確認画面の重複を検査し、購入確認から購入APIを実行して所持状態を再表示する。
-     * ================================== */
     const itemDetail = createItemDetail(this, async item => {
       if (!ready) { status.setText('ログイン・所持品の読み込みを確認してください'); return }
       if (confirmation) return
@@ -73,6 +77,9 @@ export class ShopScene extends Phaser.Scene {
       }, () => { confirmation = null })
     })
     trackSceneLoading(this, requestShop().then(state=>{if(this.sys.isActive()){ready=true;applyState(state)}}).catch(error=>{if(this.sys.isActive())status.setText(error instanceof Error?error.message:'読み込みに失敗しました')}))
+    /* === [ 担当 : 250056 斎藤永聖 / 250116 中村伊安 ] ===
+     * 処理内容 : 商品選択と一覧スクロールを接続する
+     * ================================== */
     createShopItemList(
       this,
       shopContainer,
@@ -87,6 +94,9 @@ export class ShopScene extends Phaser.Scene {
     if (firstItem) { selected=firstItem; itemDetail.show(firstItem) }
   }
 
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 店員と会話表示を配置する
+   * ================================== */
   private createShopkeeper(): void {
     const x = 1120
     const y = 393
@@ -132,6 +142,9 @@ export class ShopScene extends Phaser.Scene {
     }).setOrigin(0.5)
   }
 
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 見出しと戻るボタンを配置する
+   * ================================== */
   private createHeader(): void {
     this.add.text(490, 40, '花屋の道具店', {
       fontFamily: '"UD Digi Kyokasho NP-R", "Yu Gothic", "Meiryo", sans-serif',
@@ -148,6 +161,9 @@ export class ShopScene extends Phaser.Scene {
     }).setOrigin(0.5)
   }
 
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 共通の戻るボタンを生成する
+   * ================================== */
   private createBackButton(): void {
     createTextButton(this, BACK_BUTTON_POSITION.x, BACK_BUTTON_POSITION.y, '← 町マップ', () => {
       navigateToTownMap(this)
@@ -160,6 +176,9 @@ export class ShopScene extends Phaser.Scene {
     }).setColor('#ffedc0').setDepth(1000)
   }
 
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 商品一覧の表示枠を配置する
+   * ================================== */
   private createListPanel(): void {
     const { x, width } = SHOP_LIST_BOUNDS
     this.add.text(x + 8, 145, '商品一覧', {
@@ -175,6 +194,9 @@ export class ShopScene extends Phaser.Scene {
     }).setOrigin(1, 0.5)
   }
 
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 商品一覧を指定した表示枠の内側だけに描画する
+   * ================================== */
   private applyItemListMask(shopContainer: Phaser.GameObjects.Container): void {
     const { x, y, width, height } = SHOP_LIST_BOUNDS
     const maskGraphics = this.make.graphics({})
@@ -183,6 +205,9 @@ export class ShopScene extends Phaser.Scene {
   }
 }
 
+/* === [ 担当 : 250116 中村伊安 ] ===
+ * 処理内容 : 店員のセリフを表示枠に合わせて改行する
+ * ================================== */
 function wrapShopkeeperLine(line: string): string {
   return line.replace(/([^\n]{14})(?=[^\n])/gu, '$1\n')
 }

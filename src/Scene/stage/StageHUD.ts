@@ -1,11 +1,9 @@
-import { transitionWithLoading, trackSceneLoading } from '../../utils/ui/scene-loading';
 /* ==================================
  * 期末テスト提出プログラム
- * 学籍番号: 250056
- * 氏名: 斎藤永聖
- * 担当範囲: 下記の担当コメントを参照（共同制作）
+ * 学籍番号：250082、250056、250116
+ * 氏名：武田優人、斎藤永聖、中村伊安
  * ================================== */
-// 担当：たまおちゃん｜戦闘画面UIと操作ボタン
+import { transitionWithLoading, trackSceneLoading } from '../../utils/ui/scene-loading';
 import { isBattlePreview } from '../../debug';
 import { battleNow } from './BattleClock';
 import { playUiSe } from '../../audio/BgmManager';
@@ -26,6 +24,9 @@ import retreatButtonAsset from '../../assets/ui/button/retreat_button.png';
 import rawSkillDefinitions from '../../../php/skill/skills.json?raw';
 import rawStatusDefinitions from '../../../php/skill/statuses.json?raw';
 
+/* === [ 担当 : 250116 中村伊安 ] ===
+ * 処理内容 : 操作UIを定義する
+ * ================================== */
 type StatusDefinition = { id: string; icon: string; tone: string };
 type SkillDefinition = { id: number; statusIds?: string[] };
 const statusDefinitions = new Map<string, StatusDefinition>(
@@ -37,6 +38,9 @@ const skillStatusIds = new Map<number, string[]>(
 
 /** Screen-fixed controls and status display for the side-scrolling stage. */
 export class StageHUD {
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 状態・能力値・操作対象を保持する
+   * ================================== */
   private readonly depth = 2000;
   private readonly scene: Phaser.Scene;
   private readonly player?: Player;
@@ -73,6 +77,9 @@ export class StageHUD {
   private effects?: SkillEffects;
   private skillNameText?: Phaser.GameObjects.Text;
 
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 主人公・敵の参照とスキル演出を接続する
+   * ================================== */
   constructor(scene: Phaser.Scene, player?: Player, enemies: readonly CombatTarget[] = []) {
     this.scene = scene;
     this.player = player;
@@ -84,6 +91,9 @@ export class StageHUD {
     }
   }
 
+  /* === [ 担当 : 250082 武田優人 / 250116 中村伊安 ] ===
+   * 処理内容 : HP・ステージ名・操作ボタン・編成花のHUDを組み立てる
+   * ================================== */
   public create(stageId?: number, stageNumber?: string): void {
     this.createStatusPanel();
     this.createStageLabel(stageId, stageNumber);
@@ -94,6 +104,9 @@ export class StageHUD {
     trackSceneLoading(this.scene, this.initializeFlowerSkills(stageId ?? 2));
   }
 
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 現在HPの割合に合わせてHUDのHPバーを更新する
+   * ================================== */
   public updateHealth(current: number, maximum: number): void {
     if (!this.hpBar) return;
     const width = this.hpBarWidth * Phaser.Math.Clamp(maximum > 0 ? current / maximum : 0, 0, 1);
@@ -102,6 +115,9 @@ export class StageHUD {
   }
 
   private createStatusPanel(): void {
+    /* === [ 担当 : 250116 中村伊安 ] ===
+     * 処理内容 : 先頭の花の名前とレベルをステータス枠へ表示する
+     * ================================== */
     const leader = testData.characters.find(c => c.id === this.formation[0]);
     if (!leader) return;
     const w = this.scene.scale.width;
@@ -112,10 +128,10 @@ export class StageHUD {
     const panelH = compact ? 80 : 96;
     this.panel(x, y, panelW, panelH, 14);
     this.text(x + 16, y + 10, `${leader.name}  Lv.${leader.level}`, compact ? 13 : 17, '#fff', 'bold');
+    /* === [ 担当 : 250056 斎藤永聖 / 250116 中村伊安 ] ===
+     * 処理内容 : 回復・宝石効果のアイコンと使用時の演出を連動させる
+     * ================================== */
     if (this.player) {
-      /* === [ 担当 : 250056 斎藤永聖 ] ===
-       * 処理内容 : 回復中アイコンと宝石の強化アイコンを生成し、効果イベント・更新処理に連動させ、終了時にイベントを解除する（演出の一部は共同編集）。
-       * ================================== */
       const icon = this.scene.add.image(x + panelW - 30, y + 21, 'status-buff_hp_regen')
         .setDisplaySize(22, 22).setScrollFactor(0).setDepth(this.depth + 3).setVisible(false);
       const onRecovery = (active: boolean): void => { icon.setVisible(active); };
@@ -143,6 +159,9 @@ export class StageHUD {
         this.player?.off('potion-recovery', onPotion);
       });
     }
+    /* === [ 担当 : 250116 中村伊安 ] ===
+     * 処理内容 : 主人公の現在HPと最大HPからHPバーを作る
+     * ================================== */
     this.text(x + 16, y + 37, 'HP', 12, '#ff9bad', 'bold');
     this.hpBarX = x + 50;
     this.hpBarY = y + 40;
@@ -161,6 +180,9 @@ export class StageHUD {
     this.bar(x + 50, y + 62, panelW - (compact ? 66 : 88), 9, leader.stats.mp, leader.stats.mp, 0x32bddb);
   }
 
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : ステージ名を画面上部へ表示する
+   * ================================== */
   private createStageLabel(stageId?: number, stageNumber?: string): void {
     const stage = testData.stages.find(item => item.id === stageId);
     const label = stage || stageNumber
@@ -173,6 +195,9 @@ export class StageHUD {
     this.text(x + boxW / 2, 44, label, Math.min(17, boxW / 16), '#fff4e8', 'bold').setOrigin(0.5);
   }
 
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : バッグと撤退の操作ボタンを配置する
+   * ================================== */
   private createUtilityButtons(): void {
     this.imageButton(72, 170, 74, '', 'stage-bag', () => this.openInventory());
     const x = this.scene.scale.width - 68;
@@ -180,6 +205,9 @@ export class StageHUD {
   }
 
   private createRetreatDomButton(x: number, y: number, size: number): void {
+    /* === [ 担当 : 250056 斎藤永聖 / 250116 中村伊安 ] ===
+     * 処理内容 : 撤退ボタンをCanvasの表示位置に合わせて配置する
+     * ================================== */
     const canvas = this.scene.game.canvas;
     if (!canvas.parentElement) return;
 
@@ -197,6 +225,9 @@ export class StageHUD {
       touchAction: 'manipulation'
     });
 
+    /* === [ 担当 : 250116 中村伊安 ] ===
+     * 処理内容 : 画面サイズに合わせて配置の基準を求める
+     * ================================== */
     const placeButton = (): void => {
       const canvasRect = canvas.getBoundingClientRect();
       const scaleX = canvasRect.width / this.scene.scale.width;
@@ -207,6 +238,9 @@ export class StageHUD {
       button.style.height = `${size * scaleY}px`;
     };
 
+    /* === [ 担当 : 250056 斎藤永聖 / 250116 中村伊安 ] ===
+     * 処理内容 : 撤退ボタンをDOMへ追加し、押下と画面サイズ変更を監視する
+     * ================================== */
     document.body.appendChild(button);
     placeButton();
     const resizeObserver = new ResizeObserver(placeButton);
@@ -214,13 +248,13 @@ export class StageHUD {
     window.addEventListener('resize', placeButton);
 
     // DOM controls must follow the same pause state as the canvas bag button.
-    /* === [ 担当 : 250056 斎藤永聖 ] ===
-     * 処理内容 : 停止・スリープ中はDOMの撤退ボタンを無効化し、再開時に表示位置と操作を復旧する。
-     * ================================== */
     const hideButton = (): void => {
       button.disabled = true;
       button.hidden = true;
     };
+    /* === [ 担当 : 250056 斎藤永聖 ] ===
+     * 処理内容 : 戦闘の再開に合わせて撤退ボタンを表示する
+     * ================================== */
     const showButton = (): void => {
       button.disabled = false;
       button.hidden = false;
@@ -229,6 +263,9 @@ export class StageHUD {
     this.scene.events.on(Phaser.Scenes.Events.PAUSE, hideButton);
     this.scene.events.on(Phaser.Scenes.Events.SLEEP, hideButton);
     this.scene.events.on(Phaser.Scenes.Events.RESUME, showButton);
+    /* === [ 担当 : 250056 斎藤永聖 / 250116 中村伊安 ] ===
+     * 処理内容 : 画面の休止・終了時に撤退ボタンとイベントを片付ける
+     * ================================== */
     this.scene.events.on(Phaser.Scenes.Events.WAKE, showButton);
 
     button.addEventListener('click', () => {
@@ -251,6 +288,9 @@ export class StageHUD {
   }
 
   private createRetreatDialog(): HTMLDivElement {
+    /* === [ 担当 : 250116 中村伊安 ] ===
+     * 処理内容 : Canvasを覆う撤退確認用の暗い背景を作る
+     * ================================== */
     const canvasRect = this.scene.game.canvas.getBoundingClientRect();
     const dialog = document.createElement('div');
     dialog.setAttribute('role', 'dialog');
@@ -270,13 +310,13 @@ export class StageHUD {
       fontFamily: 'Yu Mincho, YuMincho, serif'
     });
 
+    /* === [ 担当 : 250056 斎藤永聖 / 250116 中村伊安 ] ===
+     * 処理内容 : 撤退確認パネルの素材・大きさ・配置を設定する
+     * ================================== */
     const panel = document.createElement('div');
     Object.assign(panel.style, {
       boxSizing: 'border-box',
       width: 'min(650px, 90%)',
-      /* === [ 担当 : 250056 斎藤永聖 ] ===
-       * 処理内容 : 撤退確認の紙枠・余白・表示上限を調整し、小さい画面でも内容を閲覧できるようにする。
-       * ================================== */
       minHeight: 'min(280px, 84%)',
       maxHeight: '94%',
       overflowY: 'auto',
@@ -297,6 +337,9 @@ export class StageHUD {
       gap: 'clamp(10px, 3vh, 20px)'
     });
     const title = document.createElement('div');
+    /* === [ 担当 : 250056 斎藤永聖 / 250116 中村伊安 ] ===
+     * 処理内容 : 撤退の確認文・注意書き・選択ボタンの領域を作る
+     * ================================== */
     title.textContent = 'ステージから撤退しますか？';
     Object.assign(title.style, { fontSize: 'clamp(20px, 3vw, 32px)', fontWeight: 'bold' });
     const warning = document.createElement('div');
@@ -304,6 +347,9 @@ export class StageHUD {
     Object.assign(warning.style, { fontSize: 'clamp(16px, 2vw, 24px)', color: '#795331' });
     const actions = document.createElement('div');
     Object.assign(actions.style, { display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', width: '100%', gap: '12px' });
+    /* === [ 担当 : 250056 斎藤永聖 / 250116 中村伊安 ] ===
+     * 処理内容 : クリック・キー操作と終了時の後片付けを設定する
+     * ================================== */
     const makeAction = (label: string, onClick: () => void): HTMLButtonElement => {
       const action = document.createElement('button');
       action.type = 'button';
@@ -329,10 +375,10 @@ export class StageHUD {
       action.addEventListener('pointerleave', () => { action.style.borderImageSource = `url("${retreatButtonNormal}")`; });
       return action;
     };
-    let closing = false;
-    /* === [ 担当 : 250056 斎藤永聖 ] ===
-     * 処理内容 : 撤退確認の多重終了を防ぎ、閉じる演出後にキャンセルなら戦闘再開、撤退ならステージ選択へ移動する。
+    /* === [ 担当 : 250082 武田優人 / 250056 斎藤永聖 / 250116 中村伊安 ] ===
+     * 処理内容 : 撤退確認を閉じ、ステージ選択へ移動または戦闘を再開する
      * ================================== */
+    let closing = false;
     const closeDialog = (retreat: boolean): void => {
       if (closing) return;
       playUiSe(this.scene, 'cancel', 0.5);
@@ -357,6 +403,9 @@ export class StageHUD {
       animation.finished.then(finish, finish);
       window.setTimeout(finish, 250);
     };
+    /* === [ 担当 : 250056 斎藤永聖 / 250116 中村伊安 ] ===
+     * 処理内容 : 画像・文字・パネルを配置する
+     * ================================== */
     actions.append(
       makeAction('キャンセル', () => closeDialog(false)),
       makeAction('撤退する', () => closeDialog(true))
@@ -372,6 +421,9 @@ export class StageHUD {
   }
 
   private createPartyHud(): void {
+    /* === [ 担当 : 250116 中村伊安 ] ===
+     * 処理内容 : 編成中の花の名前・画像・MP・スキル操作を配置する
+     * ================================== */
     const formation = this.formation;
     const width = this.scene.scale.width;
     const height = this.scene.scale.height;
@@ -382,6 +434,9 @@ export class StageHUD {
     const left = Math.max(16, Math.min(220, width - totalW - 16));
     const top = height - cardH - 18;
 
+    /* === [ 担当 : 250116 中村伊安 ] ===
+     * 処理内容 : クリック・キー操作と終了時の後片付けを設定する
+     * ================================== */
     for (let i = 0; i < 4; i++) {
       const x = left + i * (cardW + gap);
       const character = testData.characters.find(c => c.id === formation[i]);
@@ -439,6 +494,9 @@ export class StageHUD {
     }
   }
 
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 選択内容と一覧表示を切り替える
+   * ================================== */
   private selectFlower(index: number, height: number): void {
     this.selectedFlower = index;
     this.partySelectionBorders.forEach((border, i) => {
@@ -453,11 +511,17 @@ export class StageHUD {
     this.updateSkillLabel();
   }
 
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 選択中の花の枠を強調表示する
+   * ================================== */
   private drawPartySelection(graphics: Phaser.GameObjects.Graphics, x: number, y: number, width: number, height: number, selected: boolean): void {
     graphics.clear();
     if (selected) graphics.lineStyle(2, 0xffc968, 0.98).strokeRoundedRect(x, y, width, height, 11);
   }
 
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 花に付いた状態効果と表示終了時刻を登録する
+   * ================================== */
   private setPartyStatuses(index: number, statusIds: string[], durationMs: number): void {
     if (durationMs <= 0) return;
     const untilByStatus = this.partyStatusUntil[index];
@@ -466,6 +530,9 @@ export class StageHUD {
     this.scene.time.delayedCall(durationMs + 30, () => this.renderPartyStatuses(index));
   }
 
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 編成花の状態効果アイコンを表示する
+   * ================================== */
   private renderPartyStatuses(index: number): void {
     const container = this.partyStatusContainers[index];
     const untilByStatus = this.partyStatusUntil[index];
@@ -488,6 +555,9 @@ export class StageHUD {
     });
   }
 
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 強化・弱体などの区分に対応する表示色を返す
+   * ================================== */
   private getStatusTint(tone: string): number {
     switch (tone) {
       case 'buff': return 0xc94f53;
@@ -502,6 +572,9 @@ export class StageHUD {
     }
   }
 
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 移動パッドと方向入力を設定する
+   * ================================== */
   private createMovementPad(): void {
     const x = Math.max(120, this.scene.scale.width * 0.105);
     const y = this.scene.scale.height - Math.min(166, this.scene.scale.height * 0.22);
@@ -514,6 +587,9 @@ export class StageHUD {
     arrows.forEach(([label, ax, ay]) => this.text(ax, ay, label, 17, '#eadbc8', 'bold').setOrigin(0.5));
   }
 
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 攻撃・ジャンプなどの戦闘操作ボタンを配置する
+   * ================================== */
   private createActionButtons(): void {
     const w = this.scene.scale.width;
     const h = this.scene.scale.height;
@@ -529,6 +605,9 @@ export class StageHUD {
     this.imageButton(baseX - 40, h - 64, 130, '', 'stage-jump', () => this.player?.jump());
   }
 
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 押している間の防御と指を離したときの解除を設定する
+   * ================================== */
   private createGuardButton(x: number, y: number): void {
     const key = 'stage-guard';
     if (!this.scene.textures.exists(key)) {
@@ -558,6 +637,9 @@ export class StageHUD {
   }
 
   private imageButton(x: number, y: number, size: number, label: string, texture: string, onClick: () => void, onHoldChange?: (held: boolean) => void): Phaser.GameObjects.Image {
+    /* === [ 担当 : 250056 斎藤永聖 / 250116 中村伊安 ] ===
+     * 処理内容 : クリック・キー操作と終了時の後片付けを設定する
+     * ================================== */
     const image = this.scene.add.image(x, y, texture).setDisplaySize(size, size)
       .setScrollFactor(0).setDepth(this.depth + 3);
     // Use a screen-fixed rectangular target independent of the PNG's transparent pixels.
@@ -569,6 +651,9 @@ export class StageHUD {
     this.text(x, y + size * 0.34, label, Math.max(10, size * 0.15), '#fff4e8', 'bold')
       .setOrigin(0.5).setDepth(this.depth + 4);
     // setDisplaySize changes displayWidth/Height; preserve that base scale for hover feedback.
+    /* === [ 担当 : 250116 中村伊安 ] ===
+     * 処理内容 : クリック・キー操作と終了時の後片付けを設定する
+     * ================================== */
     const baseScale = image.scale;
     hitArea.on('pointerover', () => this.scene.tweens.add({ targets: image, scale: baseScale * 1.04, duration: 90 }));
     hitArea.on('pointerout', () => this.scene.tweens.add({ targets: image, scale: baseScale, duration: 90 }));
@@ -577,6 +662,9 @@ export class StageHUD {
       image.setScale(baseScale);
       onClick();
     });
+    /* === [ 担当 : 250116 中村伊安 ] ===
+     * 処理内容 : 戦闘ボタンの押下状態と、画面外・休止時も含む解除処理を設定する
+     * ================================== */
     hitArea.on('pointerupoutside', () => image.setScale(baseScale));
     if (onHoldChange) {
       let heldPointer: Phaser.Input.Pointer | null = null;
@@ -621,6 +709,9 @@ export class StageHUD {
     return image;
   }
 
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : MPと再使用時間を確認してスキルを発動する
+   * ================================== */
   private useSelectedFlowerSkill(index = this.selectedFlower): void {
     const formationId = this.formation[index];
     const flower = testData.characters.find(character => character.id === formationId);
@@ -672,6 +763,9 @@ export class StageHUD {
     this.updateSkillLabel();
   }
 
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 選択スキルの名前・再使用待ち・エラーを表示する
+   * ================================== */
   private updateSkillLabel(): void {
     if (!this.skillNameText) return;
     const formationId = this.formation[this.selectedFlower];
@@ -689,6 +783,9 @@ export class StageHUD {
     }
   }
 
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 戦闘開始時のスキル状態を取得する
+   * ================================== */
   private async initializeFlowerSkills(stageId: number): Promise<void> {
     if (this.skillNameText) this.skillNameText.setText('スキル読み込み中…');
     try {
@@ -723,6 +820,9 @@ export class StageHUD {
     }
   }
 
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : スキルの再使用待ち時間をアイコン上に表示する
+   * ================================== */
   private updateCooldownOverlays(): void {
     const now = battleNow(this.scene);
     this.flowerCooldownOverlays.forEach((overlay, index) => {
@@ -742,6 +842,9 @@ export class StageHUD {
     });
   }
 
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 花の現在MPとMPゲージを更新する
+   * ================================== */
   private updateFlowerMp(index: number, flower: CharacterData): void {
     const currentMp = this.flowerMp.get(flower.id) ?? 0;
     const maximumMp = this.flowerMaxMp.get(flower.id) ?? flower.stats.mp;
@@ -756,6 +859,9 @@ export class StageHUD {
     }
   }
 
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 角丸の戦闘HUDパネルと枠線を描く
+   * ================================== */
   private panel(x: number, y: number, w: number, h: number, radius: number, alpha = 0.94, highlight = false): void {
     const g = this.scene.add.graphics().setScrollFactor(0).setDepth(this.depth);
     g.fillStyle(0x06121f, 0.36).fillRoundedRect(x, y + 4, w, h, radius);
@@ -764,6 +870,9 @@ export class StageHUD {
       .strokeRoundedRect(x, y, w, h, radius);
   }
 
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 位置・大きさ・色を指定して文字を生成する
+   * ================================== */
   private text(x: number, y: number, value: string, size: number, color: string, fontStyle?: string): Phaser.GameObjects.Text {
     return this.scene.add.text(x, y, value, getTextStyle(size, {
       color, fontStyle,
@@ -772,6 +881,9 @@ export class StageHUD {
     })).setScrollFactor(0).setDepth(this.depth + 1);
   }
 
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 現在値と最大値の比率でゲージを描く
+   * ================================== */
   private bar(x: number, y: number, w: number, h: number, value: number, max: number, color: number): Phaser.GameObjects.Rectangle | undefined {
     this.scene.add.rectangle(x + w / 2, y + h / 2, w, h, 0x091521, 0.95).setScrollFactor(0).setDepth(this.depth + 1);
     const fill = w * Phaser.Math.Clamp(max > 0 ? value / max : 0, 0, 1);
@@ -781,6 +893,9 @@ export class StageHUD {
       .setDepth(this.depth + 2);
   }
 
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 戦闘を一時停止してバッグを開く
+   * ================================== */
   private openInventory(): void {
     if (isBattlePreview) return;
     if (this.scene.scene.isActive(SCENE_KEYS.INVENTORY)) return;

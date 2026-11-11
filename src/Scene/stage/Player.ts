@@ -1,10 +1,8 @@
 /* ==================================
  * 期末テスト提出プログラム
- * 学籍番号: 250056
- * 氏名: 斎藤永聖
- * 担当範囲: 下記の担当コメントを参照（共同制作）
+ * 学籍番号：250056、250116
+ * 氏名：斎藤永聖、中村伊安
  * ================================== */
-// 担当：たまおちゃん｜プレイヤー操作・移動・戦闘
 import { showBattleNumber } from './BattleFeedback';
 import { PLAYER_RUN_STEP_KEYS, playSe } from '../../audio/BgmManager';
 import { SCENE_KEYS } from '../sceneKeys';
@@ -14,6 +12,9 @@ import { changeCharacterAnimation } from '../../animation/animation.ts';
 import type { ServerFlowerSkill } from './SkillApi.ts';
 import { playerStats } from './allyStats.ts';
 
+/* === [ 担当 : 250116 中村伊安 ] ===
+ * 処理内容 : 主人公操作・戦闘を定義する
+ * ================================== */
 const BUFF_EFFECT_COLOR = 0xff5964;
 const SKILL_AREA_CELL_SIZE = 40;
 // Keep the quicker air gravity and soften only the descending part of the jump.
@@ -43,6 +44,9 @@ export type SkillVisualHandler = (
 ) => void;
 
 export class Player extends Phaser.Physics.Arcade.Sprite {
+  /* === [ 担当 : 250056 斎藤永聖 / 250116 中村伊安 ] ===
+   * 処理内容 : 主人公の移動・行動・死亡状態とスキル効果の期限を保持する
+   * ================================== */
   private cursors: Phaser.Types.Input.Keyboard.CursorKeys | undefined;
   private readonly PLAYER_SPEED = playerStats.moveSpeed;
   private readonly JUMP_POWER = playerStats.jumpPower;
@@ -63,22 +67,34 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   private comboUntil = 0;
   private continuousUntil = 0;
   private mapleIsRed = false;
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : モミジの紅葉状態を返す
+   * ================================== */
   public get isMapleRed(): boolean { return this.mapleIsRed; }
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : スキル演出の通知先・最大HPの補正・通常攻撃の待機状態を保持する
+   * ================================== */
   private skillVisualHandler?: SkillVisualHandler;
   private readonly baseMaxHealth = playerStats.hp;
   private maxHealthBonus = 0;
   private maxHealthBonusUntil = 0;
   private nextBasicAttackAt = 0;
   private basicAttackTargets: readonly CombatTarget[] | null = null;
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 基本HPに強化分を加えた最大HPを返す
+   * ================================== */
   public get maxHealth(): number {
     return this.baseMaxHealth + this.maxHealthBonus;
   }
+  /* === [ 担当 : 250056 斎藤永聖 / 250116 中村伊安 ] ===
+   * 処理内容 : 現在HPと攻撃・防御アイテムの効果終了時刻を保持する
+   * ================================== */
   public health = this.maxHealth;
   private itemAttackUntil = 0;
   private itemDefenseUntil = 0;
 
-  /* === [ 担当 : 250056 斎藤永聖 ] ===
-   * 処理内容 : 戦闘不能・対象外・効果継続中を調べ、アイテムを使用できない理由を返す（時間判定は共同編集）。
+  /* === [ 担当 : 250056 斎藤永聖 / 250116 中村伊安 ] ===
+   * 処理内容 : アイテムを使えない理由を確認する
    * ================================== */
   public itemUnavailable(id: number): string | null {
     if (id === 13) return this.recoveryPotionUnavailable;
@@ -88,12 +104,15 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     return null;
   }
 
+  /* === [ 担当 : 250056 斎藤永聖 / 250116 中村伊安 ] ===
+   * 処理内容 : 宝石の効果が継続中か確認する
+   * ================================== */
   public isGemActive(id: number): boolean {
     return this.active && !this.dead && battleNow(this.scene) < (id === 14 ? this.itemAttackUntil : this.itemDefenseUntil);
   }
 
-  /* === [ 担当 : 250056 斎藤永聖 ] ===
-   * 処理内容 : 使用可否を確認して回復薬または宝石効果を開始し、HUDへ使用イベントを送る（宝石の時間管理は共同編集）。
+  /* === [ 担当 : 250056 斎藤永聖 / 250116 中村伊安 ] ===
+   * 処理内容 : 戦闘アイテムの効果を開始する
    * ================================== */
   public startBattleItem(id: number): boolean {
     if (this.itemUnavailable(id)) return false;
@@ -104,11 +123,14 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     return true;
   }
 
+  /* === [ 担当 : 250056 斎藤永聖 ] ===
+   * 処理内容 : 回復薬の使用状態と継続回復タイマーを保持する
+   * ================================== */
   private potionRecovering = false;
   private regenerationTimers: Phaser.Time.TimerEvent[] = [];
 
   /* === [ 担当 : 250056 斎藤永聖 ] ===
-   * 処理内容 : 持続回復タイマーを解除し、回復薬の使用状態と回復中表示を初期化する。
+   * 処理内容 : 継続回復のタイマーを解除する
    * ================================== */
   private clearRegeneration(): void {
     this.regenerationTimers.forEach(timer => timer.remove());
@@ -117,8 +139,8 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.emit('recovery-status', false);
   }
 
-  /* === [ 担当 : 250056 斎藤永聖 ] ===
-   * 処理内容 : 既存の持続回復を解除し、指定間隔で最大HPに対する割合回復を行う。時間制御は共同編集。
+  /* === [ 担当 : 250056 斎藤永聖 / 250116 中村伊安 ] ===
+   * 処理内容 : 花の継続回復を開始する
    * ================================== */
   private startFlowerRegeneration(durationMs: number, intervalMs: number, percent: number, onHeal?: () => void): void {
     if (durationMs <= 0 || intervalMs <= 0) return;
@@ -137,7 +159,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
 
   /* === [ 担当 : 250056 斎藤永聖 ] ===
-   * 処理内容 : 戦闘不能、回復薬の効果中、HP満タンの場合の使用不可理由を返す。
+   * 処理内容 : HPや回復中の状態からアイテムを使えない理由を返す
    * ================================== */
   public get recoveryPotionUnavailable(): string | null {
     if (this.dead || !this.active) return '戦闘不能中は使用できません。';
@@ -147,7 +169,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   }
 
   /* === [ 担当 : 250056 斎藤永聖 ] ===
-   * 処理内容 : 最大HPの15%を10回に分けて回復し、丸め誤差を累積差分で補正する。終了・戦闘不能時はタイマーを解除する。
+   * 処理内容 : 回復アイテムの効果を開始する
    * ================================== */
   public startRecoveryPotion(): boolean {
     if (this.recoveryPotionUnavailable) return false;
@@ -178,6 +200,9 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
 
   constructor(scene: Phaser.Scene, x: number, y: number, cursors?: Phaser.Types.Input.Keyboard.CursorKeys) {
+    /* === [ 担当 : 250056 斎藤永聖 / 250116 中村伊安 ] ===
+     * 処理内容 : クリック・キー操作と終了時の後片付けを設定する
+     * ================================== */
     super(scene, x, y, 'player_idle');
     
     // シーンと物理エンジンに自身を追加
@@ -195,6 +220,9 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       this.basicAttackTargets = null;
       this.landBasicAttack(targets);
     });
+    /* === [ 担当 : 250116 中村伊安 ] ===
+     * 処理内容 : クリック・キー操作と終了時の後片付けを設定する
+     * ================================== */
     this.on(Phaser.Animations.Events.ANIMATION_STOP, (animation: Phaser.Animations.Animation) => {
       if (animation.key === 'player-attack') this.basicAttackTargets = null;
     });
@@ -223,6 +251,9 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   // =========================
   // ヒットボックス設定
   // =========================
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 主人公の当たり判定と足元の位置を設定する
+   * ================================== */
   public setupHitbox(spawnObject?: Phaser.Types.Tilemaps.TiledObject, mapTileWidth: number = 16, mapTileHeight: number = 16): void {
     const body = this.body as Phaser.Physics.Arcade.Body;
 
@@ -246,6 +277,9 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   // =========================
   // 位置の微調整
   // =========================
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : マップの出現位置に主人公を合わせる
+   * ================================== */
   public adjustPosition(spawnObject: Phaser.Types.Tilemaps.TiledObject): void {
     const body = this.body as Phaser.Physics.Arcade.Body;
 
@@ -256,9 +290,15 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   }
 
 
+  /* === [ 担当 : 250056 斎藤永聖 / 250116 中村伊安 ] ===
+   * 処理内容 : 防御ボタンとしゃがみ防御の状態を保持する
+   * ================================== */
   private guardHeld = false;
   private wasCrouchGuarding = false;
 
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 防御ボタンの押下状態を保持する
+   * ================================== */
   public setGuardHeld(held: boolean): void {
     this.guardHeld = held;
     if (this.isGuarding()) {
@@ -267,6 +307,9 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     }
   }
 
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 現在防御中か確認する
+   * ================================== */
   public isGuarding(): boolean {
     const body = this.body as Phaser.Physics.Arcade.Body | null;
     return !this.dead && this.action === null && body?.blocked.down === true &&
@@ -275,6 +318,9 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   }
 
   public update(): void {
+    /* === [ 担当 : 250056 斎藤永聖 / 250116 中村伊安 ] ===
+     * 処理内容 : 操作と現在の状態を表示へ反映する
+     * ================================== */
     const body = this.body as Phaser.Physics.Arcade.Body;
     if (!body || !this.cursors || this.dead) return;
 
@@ -301,10 +347,10 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     if (this.cursors.up?.isDown && body.blocked.down) this.jump();
 
     const isGrounded = body.blocked.down;
-    /* === [ 担当 : 250056 斎藤永聖 ] ===
-     * 処理内容 : 防御姿勢への切替時だけSEを鳴らし、防御被弾音との重複を避ける。
-     * ================================== */
     const crouchGuarding = this.isGuarding();
+    /* === [ 担当 : 250056 斎藤永聖 / 250116 中村伊安 ] ===
+     * 処理内容 : 操作と現在の状態を表示へ反映する
+     * ================================== */
     if (crouchGuarding && !this.wasCrouchGuarding && !this.scene.sound.get('player-guard-hit')?.isPlaying) {
       playSe(this.scene, 'player-crouch', 0.5);
     }
@@ -330,6 +376,9 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.wasGrounded = isGrounded;
   }
 
+  /* === [ 担当 : 250056 斎藤永聖 / 250116 中村伊安 ] ===
+   * 処理内容 : 走行中の足音を再生する
+   * ================================== */
   private playRunStep(): void {
     if (this.scene.scene.key !== SCENE_KEYS.STAGE) return;
     const body = this.body as Phaser.Physics.Arcade.Body | null;
@@ -340,6 +389,9 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.nextRunStep = (this.nextRunStep + 1) % PLAYER_RUN_STEP_KEYS.length;
   }
 
+  /* === [ 担当 : 250056 斎藤永聖 / 250116 中村伊安 ] ===
+   * 処理内容 : ジャンプを開始する
+   * ================================== */
   public jump(): void {
     const body = this.body as Phaser.Physics.Arcade.Body;
     if (!this.dead && this.action === null && battleNow(this.scene) >= Math.max(this.chargeUntil, this.comboUntil) && !this.isGuarding() && body?.blocked.down) {
@@ -349,6 +401,9 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     }
   }
 
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 通常攻撃を行う
+   * ================================== */
   public attack(targets: readonly CombatTarget[] = []): void {
     if (battleNow(this.scene) < Math.max(this.chargeUntil, this.comboUntil) || battleNow(this.scene) < this.continuousUntil ||
         battleNow(this.scene) < this.nextBasicAttackAt) return;
@@ -357,12 +412,12 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.basicAttackTargets = targets;
   }
 
+  /* === [ 担当 : 250056 斎藤永聖 / 250116 中村伊安 ] ===
+   * 処理内容 : 前方の敵1体へ通常攻撃のダメージと命中演出を適用する
+   * ================================== */
   private landBasicAttack(targets: readonly CombatTarget[]): void {
     this.showSlash();
     const hits = this.getTargetsInRange(targets, 125, false);
-    /* === [ 担当 : 250056 斎藤永聖 ] ===
-     * 処理内容 : 攻撃が命中した場合と空振りの場合で効果音を切り替える。
-     * ================================== */
     if (hits.length > 0) playSe(this.scene, 'player-sword-hit', 0.65);
     else playSe(this.scene, 'player-sword-swing');
     hits.slice(0, 1).forEach(target => {
@@ -371,6 +426,9 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     });
   }
 
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 主人公の通常攻撃の斬撃を表示する
+   * ================================== */
   private showSlash(): void {
     const direction = this.flipX ? -1 : 1;
     const x = this.x + direction * 48;
@@ -385,6 +443,9 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.scene.tweens.add({ targets: slash, alpha: 0, duration: 240, onComplete: () => slash.destroy() });
   }
 
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 攻撃が命中した位置にヒット演出を表示する
+   * ================================== */
   private showHit(x: number, y: number): void {
     this.scene.cameras.main.shake(70, 0.0025);
     const burst = this.scene.add.graphics({ x, y }).setDepth(19).setScrollFactor(1);
@@ -396,14 +457,23 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.scene.tweens.add({ targets: burst, alpha: 0, scale: 1.35, duration: 180, onComplete: () => burst.destroy() });
   }
 
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 死亡・防御・行動中などの状態からスキルを使用できるか判定する
+   * ================================== */
   public canUseSkill(): boolean {
     return !this.dead && !this.isGuarding() && this.action === null && battleNow(this.scene) >= Math.max(this.chargeUntil, this.comboUntil);
   }
 
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : スキル演出を呼び出す通知先を登録する
+   * ================================== */
   public setSkillVisualHandler(handler: SkillVisualHandler): void {
     this.skillVisualHandler = handler;
   }
 
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : スキルの段階・対象・範囲を演出処理へ通知する
+   * ================================== */
   private emitSkillVisual(
     skill: ServerFlowerSkill,
     phase: SkillVisualPhase,
@@ -414,6 +484,9 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     else this.showArea(area, phase === 'impact' ? 0xff5f61 : phase === 'charge' ? 0xffc247 : BUFF_EFFECT_COLOR);
   }
 
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : スキルの発動を予約する
+   * ================================== */
   public reserveSkill(): boolean {
     if (!this.canUseSkill()) return false;
     this.action = 'skillPending';
@@ -421,10 +494,16 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     return true;
   }
 
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : スキルの発動予約を取り消す
+   * ================================== */
   public cancelReservedSkill(): void {
     if (this.action === 'skillPending') this.action = null;
   }
 
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 指定した花のスキルを実行する
+   * ================================== */
   public useFlowerSkill(skill: ServerFlowerSkill, targets: readonly CombatTarget[] = []): boolean {
     if (!this.playSkillAnimation(skill.type === 'heal' ? 'player-drink' :
       ['defensiveRecovery', 'fortify'].includes(skill.type) ? 'player-defend' : 'player-skill')) return false;
@@ -438,6 +517,9 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     return true;
   }
 
+  /* === [ 担当 : 250056 斎藤永聖 / 250116 中村伊安 ] ===
+   * 処理内容 : スキルの種類に応じた戦闘効果を処理する
+   * ================================== */
   private executeFlowerSkill(skill: ServerFlowerSkill, targets: readonly CombatTarget[]): void {
     switch (skill.type) {
       case 'multiHit':
@@ -552,6 +634,9 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   }
 
   public receiveDamage(amount: number, damageType: DamageType = 'physical'): void {
+    /* === [ 担当 : 250056 斎藤永聖 / 250116 中村伊安 ] ===
+     * 処理内容 : 被ダメージと無敵・撃破処理を行う
+     * ================================== */
     const now = battleNow(this.scene);
     if (this.dead || now < this.invulnerableUntil || amount <= 0) return;
     if (now < this.evasionUntil && Math.random() * 100 < this.evasionPercent) return;
@@ -562,10 +647,10 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     const statDamageMultiplier = 100 / (100 + defense);
     const buffDamageMultiplier = Math.max(0.1, 1 - activeDefenseBonus / 100);
     const damageMultiplier = statDamageMultiplier * buffDamageMultiplier * (defending ? 0.5 : 1);
-    /* === [ 担当 : 250056 斎藤永聖 ] ===
-     * 処理内容 : 守りの宝石の効果中は物理ダメージを軽減し、防御被弾か通常被弾かに応じてSEを再生する。
-     * ================================== */
     this.health = Math.max(0, this.health - Math.ceil(amount * damageMultiplier * (damageType === 'physical' && now < this.itemDefenseUntil ? 0.8 : 1)));
+    /* === [ 担当 : 250056 斎藤永聖 / 250116 中村伊安 ] ===
+     * 処理内容 : 被ダメージと無敵・撃破処理を行う
+     * ================================== */
     this.scene.sound.stopByKey('player-crouch');
     playSe(this.scene, defending ? 'player-guard-hit' : 'player-damage', 0.65);
     this.invulnerableUntil = now + 700;
@@ -576,6 +661,9 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       return;
     }
 
+    /* === [ 担当 : 250116 中村伊安 ] ===
+     * 処理内容 : 被ダメージと無敵・撃破処理を行う
+     * ================================== */
     this.action = 'hurt';
     this.landingAnimationPlaying = false;
     this.setVelocityX(0);
@@ -584,6 +672,9 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.scene.time.delayedCall(160, () => this.clearTint());
   }
 
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 主人公を死亡状態にし、移動と行動を停止する
+   * ================================== */
   public die(): void {
     if (this.dead || !this.scene.anims.exists('player-death')) return;
     this.dead = true;
@@ -594,6 +685,9 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.play('player-death', true);
   }
 
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 行動可能か確認し、動作アニメーションを開始する
+   * ================================== */
   private playAction(action: string, animationKey: string): boolean {
     if (this.dead || this.isGuarding() || this.action !== null || !this.scene.anims.exists(animationKey)) return false;
     this.action = action;
@@ -603,6 +697,9 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     return true;
   }
 
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : スキルの発動条件を確認してアニメーションを開始する
+   * ================================== */
   private playSkillAnimation(animationKey: string): boolean {
     if (
       !this.scene.anims.exists(animationKey) ||
@@ -619,6 +716,9 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     return true;
   }
 
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 向きと距離に応じて前方または周囲の攻撃対象を選ぶ
+   * ================================== */
   private getTargetsInRange(
     targets: readonly CombatTarget[],
     range: number,
@@ -635,6 +735,9 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     });
   }
 
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : スキル範囲内の対象へ指定した種類のダメージを与える
+   * ================================== */
   private damageTargetsInArea(
     targets: readonly CombatTarget[],
     damage: number,
@@ -646,10 +749,16 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     return hitTargets;
   }
 
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 無属性スキルを物理、それ以外を魔法ダメージとして扱う
+   * ================================== */
   private getSkillDamageType(skill: ServerFlowerSkill): DamageType {
     return skill.element === '無' ? 'physical' : 'magical';
   }
 
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : スキルのマス目と主人公の向きから命中対象を選ぶ
+   * ================================== */
   private getTargetsInArea(
     targets: readonly CombatTarget[],
     area: readonly (readonly number[])[]
@@ -667,20 +776,32 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     });
   }
 
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 攻撃力と威力の割合から基本スキルダメージを計算する
+   * ================================== */
   private skillDamage(percent: number, attackPower: number): number {
     return Math.max(1, Math.round(attackPower * percent / 100));
   }
 
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 効果時間内のスキル・アイテムによる攻撃倍率を適用する
+   * ================================== */
   private applyAttackBonus(damage: number): number {
     const bonus = battleNow(this.scene) < this.attackBonusUntil ? this.attackBonusPercent : 0;
     return Math.max(1, Math.round(damage * (1 + bonus / 100) * (battleNow(this.scene) < this.itemAttackUntil ? 1.2 : 1)));
   }
 
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : クリティカルを抽選してダメージを補正する
+   * ================================== */
   private applyPlayerCritical(damage: number): number {
     if (Math.random() * 100 >= playerStats.criticalRate) return damage;
     return Math.round(damage * (1 + playerStats.criticalDamage / 100));
   }
 
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 攻撃力・防御力の強化量と終了時刻を設定する
+   * ================================== */
   private applyTimedBuff(attackPercent: number, defensePercent: number, durationMs: number): void {
     this.attackBonusPercent = attackPercent;
     this.attackBonusUntil = battleNow(this.scene) + durationMs;
@@ -690,6 +811,9 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     });
   }
 
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 防御力の強化量と終了時刻を設定する
+   * ================================== */
   private applyDefenseBuff(defensePercent: number, durationMs: number): void {
     this.defenseBonusPercent = defensePercent;
     this.defenseUntil = battleNow(this.scene) + durationMs;
@@ -698,6 +822,9 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     });
   }
 
+  /* === [ 担当 : 250056 斎藤永聖 / 250116 中村伊安 ] ===
+   * 処理内容 : 指定時間の間、一定間隔で効果を繰り返す
+   * ================================== */
   private repeatUntil(durationMs: number, intervalMs: number, effect: () => void): void {
     if (intervalMs <= 0) return;
     const endsAt = battleNow(this.scene) + durationMs;
@@ -710,12 +837,18 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.scene.time.delayedCall(intervalMs, repeat);
   }
 
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 指定時間後に効果を実行するタイマーを登録する
+   * ================================== */
   private scheduleAfter(delayMs: number, effect: () => void): void {
     this.scene.time.delayedCall(delayMs, () => {
       if (this.active && !this.dead) effect();
     });
   }
 
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 最大HPを超えない範囲で回復し、回復量とHP変更を通知する
+   * ================================== */
   private restoreHealth(amount: number): void {
     const healed = Math.min(this.maxHealth - this.health, Math.max(0, Math.round(amount)));
     this.health += healed;
@@ -723,6 +856,9 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.emit('health-changed', this.health, this.maxHealth);
   }
 
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : スキルの攻撃範囲をマス目で表示する
+   * ================================== */
   private showArea(area: readonly (readonly number[])[], color: number): void {
     const originRow = area.findIndex(row => row.includes(1));
     if (originRow < 0) return;
@@ -751,6 +887,9 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     });
   }
 
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 必要な場合だけ主人公のアニメーションを切り替える
+   * ================================== */
   private playAnimation(animationKey: string): void {
     if (this.anims.currentAnim?.key !== animationKey) {
       this.play(animationKey, true);

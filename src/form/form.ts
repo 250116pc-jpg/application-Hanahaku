@@ -1,10 +1,8 @@
 /* ==================================
  * 期末テスト提出プログラム
- * 学籍番号: 250056
- * 氏名: 斎藤永聖
- * 担当範囲: 下記の担当コメントを参照（共同制作）
+ * 学籍番号：250082、250056、250116
+ * 氏名：武田優人、斎藤永聖、中村伊安
  * ================================== */
-// 担当：たまおちゃん｜編成機能・form
 import Phaser from 'phaser'
 import { transitionWithLoading, returnWithLoading, trackSceneLoading } from '../utils/ui/scene-loading'
 import testData, { type CharacterData } from '../Scene/test_data'
@@ -24,6 +22,9 @@ import amber from '../assets/ui/training_tab_wood_selected.png'
 import square from '../assets/ui/training_button_wood_square.png'
 import ornament from '../assets/ui/training_title_ornament.png'
 
+/* === [ 担当 : 250082 武田優人 / 250116 中村伊安 ] ===
+ * 処理内容 : 編成画面の表示・操作を定義する
+ * ================================== */
 const textures = import.meta.glob('../assets/images/pixel_flowers/*.png', { eager: true, query: '?url', import: 'default' }) as Record<string, string>
 const FONT = '"Yu Mincho", "Meiryo", serif'
 const INK = '#17243d'
@@ -31,6 +32,9 @@ const ROSTER_TOOLBAR_OFFSET_Y = 8
 const ELEMENT_COLORS: Record<string, number> = { 熱: 0xd9513e, 無: 0x8660bb, 水: 0x368fca, 風: 0x499b62, 光: 0xb38c25, 土: 0x986637 }
 
 export class FormScene extends Phaser.Scene {
+  /* === [ 担当 : 250082 武田優人 / 250056 斎藤永聖 / 250116 中村伊安 ] ===
+   * 処理内容 : 状態・能力値・操作対象を保持する
+   * ================================== */
   private manager = new FormationManager([], [])
   private flowers: OwnedFormationFlower[] = []
   private selectedId: number | null = null
@@ -63,7 +67,13 @@ export class FormScene extends Phaser.Scene {
   private loadError = ''
   private request = 0
 
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 初期状態と画面キーを設定する
+   * ================================== */
   constructor() { super(SCENE_KEYS.FORM) }
+  /* === [ 担当 : 250082 武田優人 / 250116 中村伊安 ] ===
+   * 処理内容 : 使用する画像・音声を読み込む
+   * ================================== */
   preload(): void {
     this.load.image('form-garden', background)
     this.load.image('form-card-artwork', parchment)
@@ -75,8 +85,8 @@ export class FormScene extends Phaser.Scene {
     for (const [p, url] of Object.entries(textures)) this.load.image(`form-${p.split('/').pop()!.replace(/\.png$/i, '')}`, url)
   }
 
-  /* === [ 担当 : 250056 斎藤永聖 ] ===
-   * 入場経路と詳細からの編成復帰を保持し、古い入場データを消す。
+  /* === [ 担当 : 250056 斎藤永聖 / 250116 中村伊安 ] ===
+   * 処理内容 : 呼び出し元と表示対象を受け取る
    * ================================== */
   init(data: { resumeFormation?: boolean; returnToStage?: boolean } = {}): void {
     if (!data.resumeFormation) this.returnToStage = data.returnToStage === true
@@ -84,6 +94,9 @@ export class FormScene extends Phaser.Scene {
     this.sys.settings.data = {}
   }
   create(): void {
+    /* === [ 担当 : 250082 武田優人 / 250116 中村伊安 ] ===
+     * 処理内容 : 編成画面のボタンとパネル画像の切り出しを準備する
+     * ================================== */
     const frames: Array<[string, number, number, number, number]> = [
       ['form-wood', 25, 122, 2122, 459], ['form-amber', 9, 102, 2154, 492],
       ['form-square', 74, 81, 1106, 1098], ['form-ornament', 0, 260, 2172, 200],
@@ -110,6 +123,9 @@ export class FormScene extends Phaser.Scene {
     this.manager = new FormationManager([], [])
     this.loading = true; this.loadError = ''; this.flowers = []; this.status = '契約済みの花を読み込んでいます…'
     this.cameras.main.setScroll(0, 0).setRoundPixels(false)
+    /* === [ 担当 : 250082 武田優人 ] ===
+     * 処理内容 : 画像・文字・パネルを配置する
+     * ================================== */
     const scale = Math.min(this.scale.width / 1280, this.scale.height / 720)
     this.layout = this.add.container((this.scale.width - 1280 * scale) / 2, (this.scale.height - 720 * scale) / 2).setScale(scale)
     this.layout.add(this.add.image(640, 360, 'form-garden').setDisplaySize(1280, 720))
@@ -120,6 +136,9 @@ export class FormScene extends Phaser.Scene {
     const wheel = (pointer: Phaser.Input.Pointer, _objects: Phaser.GameObjects.GameObject[], dx: number, dy: number) => {
       if (!this.dragPreview && !this.dragStart && this.rosterContains(pointer)) this.scrollRoster(this.rosterScroll + (Math.abs(dx) > Math.abs(dy) ? dx : dy) * .5)
     }
+    /* === [ 担当 : 250082 武田優人 ] ===
+     * 処理内容 : ドラッグ操作と編成枠の状態を更新する
+     * ================================== */
     const down = (pointer: Phaser.Input.Pointer, objects: Phaser.GameObjects.GameObject[]) => {
       if (this.dragStart || this.menu || this.confirmation || this.loading || this.loadError) return
       this.dragDistance = 0
@@ -137,6 +156,9 @@ export class FormScene extends Phaser.Scene {
         this.dragPreview?.setPosition(local.x, local.y - 28)
       })
     }
+    /* === [ 担当 : 250082 武田優人 ] ===
+     * 処理内容 : ドラッグ画像と配置先の強調表示を更新し、一覧の横スクロールを処理する
+     * ================================== */
     const move = (pointer: Phaser.Input.Pointer) => {
       const start = this.dragStart
       if (!start || pointer.id !== start.pointerId || !pointer.isDown) return
@@ -153,6 +175,9 @@ export class FormScene extends Phaser.Scene {
         if (start.roster) this.scrollRoster(start.scroll - dx)
       }
     }
+    /* === [ 担当 : 250082 武田優人 ] ===
+     * 処理内容 : ドラッグ操作と編成枠の状態を更新する
+     * ================================== */
     const up = (pointer: Phaser.Input.Pointer) => {
       if (!this.dragStart || pointer.id !== this.dragStart.pointerId) return
       const flowerId = this.dragStart.flowerId, carrying = !!this.dragPreview
@@ -168,6 +193,9 @@ export class FormScene extends Phaser.Scene {
       }
     }
     const cancel = () => { this.dragStart = undefined; this.clearFlowerDrag() }
+    /* === [ 担当 : 250082 武田優人 ] ===
+     * 処理内容 : ドラッグ操作と編成枠の状態を更新する
+     * ================================== */
     this.input.on('wheel', wheel).on('pointerdown', down).on('pointermove', move).on('pointerup', up).on('pointerupoutside', cancel)
     this.game.canvas.addEventListener('touchcancel', cancel)
     this.game.events.on(Phaser.Core.Events.BLUR, cancel)
@@ -181,6 +209,9 @@ export class FormScene extends Phaser.Scene {
     this.refresh(); trackSceneLoading(this, this.loadOwned(draft))
     applySmoothDisplay(this, ['form-garden', 'form-card-artwork', 'form-flower-card-artwork', 'form-wood', 'form-amber', 'form-square', 'form-ornament'])
   }
+  /* === [ 担当 : 250082 武田優人 ] ===
+   * 処理内容 : 所持花と育成値を取得する
+   * ================================== */
   private async loadOwned(draft?: Array<number | null>): Promise<void> {
     const request = ++this.request
     this.loading = true; this.loadError = ''; this.menu = null; this.refresh()
@@ -220,15 +251,24 @@ export class FormScene extends Phaser.Scene {
     }
   }
 
+  /* === [ 担当 : 250082 武田優人 ] ===
+   * 処理内容 : 編成画面の文字を滑らかな表示で生成する
+   * ================================== */
   private label(x: number, y: number, text: string, size = 17, color = INK): Phaser.GameObjects.Text {
     const object = this.add.text(x, y, text, { fontFamily: FONT, fontSize: size, color, resolution: 2, padding: { top: 2, bottom: 2 } })
     smoothText(object)
     this.content.add(object); return object
   }
+  /* === [ 担当 : 250082 武田優人 / 250116 中村伊安 ] ===
+   * 処理内容 : 背景画像を使った表示用パネルを配置する
+   * ================================== */
   private panel(x: number, y: number, w: number, h: number): void {
     const corner = Math.min(12, h / 3)
     this.content.add(this.add.nineslice(x + w / 2, y + h / 2, 'form-settings-panel-ui', undefined, w, h, corner, corner, corner, corner))
   }
+  /* === [ 担当 : 250082 武田優人 ] ===
+   * 処理内容 : 操作可能なボタンとクリック時の処理を作る
+   * ================================== */
   private button(x: number, y: number, w: number, h: number, label: string, action: () => void, selected = false, enabled = true): void {
     const image = this.add.image(x, y, w <= 46 ? 'form-square' : selected ? 'form-amber' : 'form-wood', 'ui').setDisplaySize(w, h)
     this.content.add(image); this.label(x, y, label, w <= 46 ? 22 : 17, enabled ? '#fff5df' : '#66523b').setOrigin(.5)
@@ -236,15 +276,24 @@ export class FormScene extends Phaser.Scene {
     const hit = this.add.zone(x, y, w, h).setInteractive({ useHandCursor: true }); this.content.add(hit)
     hit.on('pointerover', () => image.setAlpha(.82)).on('pointerout', () => image.setAlpha(1)).on('pointerup', () => { if (this.dragDistance <= 6) action() })
   }
+  /* === [ 担当 : 250082 武田優人 ] ===
+   * 処理内容 : 花の画像を縦横比を保って指定サイズに配置する
+   * ================================== */
   private picture(flower: CharacterData, x: number, y: number, size: number): Phaser.GameObjects.Image | undefined {
     const key = `form-${flower.code}`
     if (!this.textures.exists(key)) { this.label(x, y, '画像準備中', 13).setOrigin(.5); return }
     const image = this.add.image(x, y, key); image.setScale(size / Math.max(image.width, image.height)); this.content.add(image); return image
   }
+  /* === [ 担当 : 250082 武田優人 ] ===
+   * 処理内容 : 花の属性を色付きの印で表示する
+   * ================================== */
   private element(flower: CharacterData, x: number, y: number): void {
     this.content.add(this.add.circle(x, y, 13, ELEMENT_COLORS[flower.element] ?? 0x79694f).setStrokeStyle(1, 0xfff4df))
     this.label(x, y, flower.element, 14, '#ffffff').setOrigin(.5)
   }
+  /* === [ 担当 : 250082 武田優人 ] ===
+   * 処理内容 : 所持花・編成枠のカードと選択操作を作る
+   * ================================== */
   private card(flower: OwnedFormationFlower | undefined, x: number, y: number, w: number, h: number, selected: boolean, action: () => void, inParty = false): void {
     const frame = this.add.nineslice(x + w / 2, y + h / 2, 'form-flower-card-ui', undefined, w, h, 12, 12, 12, 12)
     if (selected) frame.setTint(0xffefce)
@@ -265,7 +314,13 @@ export class FormScene extends Phaser.Scene {
     if (large) this.label(x + w / 2, y + 128, `Lv.${flower.level}`, 11, '#79694f').setOrigin(.5)
     else this.label(x + w - 8, y + 6, `Lv.${flower.level}`, 10, '#79694f').setOrigin(1, 0)
   }
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 未保存の変更があるか確認する
+   * ================================== */
   private dirty(): boolean { return JSON.stringify(this.saved) !== JSON.stringify(this.manager.getFormation()) }
+  /* === [ 担当 : 250082 武田優人 / 250116 中村伊安 ] ===
+   * 処理内容 : 最新のデータで一覧と表示を更新する
+   * ================================== */
   private refresh(): void {
     this.portraitIdle?.remove(); this.portraitIdle = undefined
     this.dragStart = undefined; this.clearFlowerDrag()
@@ -285,6 +340,9 @@ export class FormScene extends Phaser.Scene {
     if (this.menu) this.drawMenu()
     if (this.confirmation) this.drawConfirmation()
   }
+  /* === [ 担当 : 250082 武田優人 / 250116 中村伊安 ] ===
+   * 処理内容 : 選択した花の詳細と操作を表示する
+   * ================================== */
   private selectedPanel(): void {
     this.label(48, 117, '選択中の花', 20)
     const selected = this.flowers.find(f => f.id === this.selectedId)
@@ -303,6 +361,9 @@ export class FormScene extends Phaser.Scene {
       transitionWithLoading(this, SCENE_KEYS.CHARACTER_DETAIL, { characterId: selected.id, ownedCharacter: selected, returnScene: SCENE_KEYS.FORM, returnLabel: '編成画面へ', returnData: { resumeFormation: true } })
     })
   }
+  /* === [ 担当 : 250082 武田優人 / 250116 中村伊安 ] ===
+   * 処理内容 : 編成中の花と解除操作を表示する
+   * ================================== */
   private partyPanel(): void {
     const formation = this.manager.getFormation()
     this.label(345, 114, '出撃メンバー', 23)
@@ -316,6 +377,9 @@ export class FormScene extends Phaser.Scene {
     })
   }
   private roster(): void {
+    /* === [ 担当 : 250082 武田優人 / 250116 中村伊安 ] ===
+     * 処理内容 : 所持花一覧と並べ替え・絞り込みを表示する
+     * ================================== */
     const formation = this.manager.getFormation()
     this.button(415, 360 + ROSTER_TOOLBAR_OFFSET_Y, 146, 35, '絞り込み  ▾', () => { this.menu = this.menu === 'filter' ? null : 'filter'; this.refresh() }, this.menu === 'filter', !this.loading && !this.loadError)
     const filterLabel = `${this.filter}${this.partyOnly ? ' / 編成中' : ''}`
@@ -328,6 +392,9 @@ export class FormScene extends Phaser.Scene {
     this.maxRosterScroll = Math.max(0, columns * 178 - 14 - 895)
     this.rosterScroll = Phaser.Math.Clamp(this.rosterScroll, 0, this.maxRosterScroll)
     const content = this.content
+    /* === [ 担当 : 250082 武田優人 ] ===
+     * 処理内容 : ドラッグ操作と編成枠の状態を更新する
+     * ================================== */
     const body = this.add.container(-this.rosterScroll, 397); content.add(body); this.rosterBody = body
     this.content = body
     visible.forEach((flower, index) => this.card(flower, 345 + (index % 5 + Math.floor(index / 10) * 5) * 178, (Math.floor(index / 5) % 2) * 106, 164, 99, flower.id === this.selectedId, () => {
@@ -335,6 +402,9 @@ export class FormScene extends Phaser.Scene {
       if (this.dragDistance > 6 || !this.rosterContains(this.input.activePointer)) return
       this.selectedId = flower.id; this.refresh()
     }, formation.includes(flower.id)))
+    /* === [ 担当 : 250082 武田優人 ] ===
+     * 処理内容 : 所持花一覧と並べ替え・絞り込みを表示する
+     * ================================== */
     this.content = content
     // Phaserの描画マスクは入力判定を切らないため、一覧の外側ではヒットさせない。
     body.list.forEach(object => {
@@ -344,6 +414,9 @@ export class FormScene extends Phaser.Scene {
     const topLeft = this.layout.getWorldTransformMatrix().transformPoint(341, 397)
     this.rosterClip = this.add.graphics().setVisible(false).fillStyle(0xffffff).fillRect(topLeft.x, topLeft.y, 895 * this.layout.scaleX, viewportHeight * this.layout.scaleY)
     this.rosterMask = this.rosterClip.createGeometryMask(); body.setMask(this.rosterMask)
+    /* === [ 担当 : 250082 武田優人 ] ===
+     * 処理内容 : 画像・文字・パネルを配置する
+     * ================================== */
     if (this.maxRosterScroll > 0) {
       this.content.add(this.add.rectangle(650, 613, 586, 4, 0xd7c6a1).setOrigin(0, .5))
       const width = Math.max(32, 586 * 895 / (895 + this.maxRosterScroll))
@@ -357,11 +430,17 @@ export class FormScene extends Phaser.Scene {
     }
     this.label(352, 605, `所持 ${this.flowers.length}体 / 表示 ${visible.length}体`, 12, '#79694f')
   }
+  /* === [ 担当 : 250082 武田優人 ] ===
+   * 処理内容 : ドロップ位置にある編成枠を調べる
+   * ================================== */
   private dropSlot(x: number, y: number): number {
     if (this.menu || this.confirmation || this.loading || this.loadError || y < 165 || y > 308) return -1
     const slot = Math.floor((x - 346) / 224)
     return slot >= 0 && slot < 4 && x <= 346 + slot * 224 + 208 ? slot : -1
   }
+  /* === [ 担当 : 250082 武田優人 ] ===
+   * 処理内容 : 花のドラッグ操作を開始する
+   * ================================== */
   private beginFlowerDrag(id: number): void {
     const flower = this.manager.findCharacter(id)
     if (!flower) return
@@ -372,27 +451,42 @@ export class FormScene extends Phaser.Scene {
     this.picture(flower, 0, -8, 64); this.label(0, 32, flower.name, 16).setOrigin(.5)
     this.content = content
   }
+  /* === [ 担当 : 250082 武田優人 ] ===
+   * 処理内容 : ドラッグ中の画像・強調枠・待機タイマーを解除する
+   * ================================== */
   private clearFlowerDrag(): void {
     this.holdTimer?.remove(); this.holdTimer = undefined
     this.dragPreview?.destroy(); this.dropHighlight?.destroy()
     this.dragPreview = undefined; this.dropHighlight = undefined
   }
+  /* === [ 担当 : 250082 武田優人 ] ===
+   * 処理内容 : 操作位置が所持花一覧の領域内か判定する
+   * ================================== */
   private rosterContains(pointer: Phaser.Input.Pointer): boolean {
     if (this.menu || this.confirmation || this.loading || this.loadError) return false
     const local = this.layout.getWorldTransformMatrix().applyInverse(pointer.x, pointer.y)
     return local.x >= 341 && local.x <= 1236 && local.y >= 397 && local.y <= 602
   }
+  /* === [ 担当 : 250082 武田優人 ] ===
+   * 処理内容 : 所持花一覧を上限内で横スクロールする
+   * ================================== */
   private scrollRoster(value: number): void {
     this.rosterScroll = Phaser.Math.Clamp(value, 0, this.maxRosterScroll)
     this.rosterBody?.setX(-this.rosterScroll)
     if (this.scrollThumb) this.scrollThumb.x = 650 + (586 - this.scrollThumb.width) * this.rosterScroll / this.maxRosterScroll
   }
+  /* === [ 担当 : 250082 武田優人 ] ===
+   * 処理内容 : メニューや確認用の重ね表示と外側クリックを作る
+   * ================================== */
   private beginOverlay(): Phaser.GameObjects.Container {
     const overlay = this.add.container(0, 0); this.layout.add(overlay); this.overlay = overlay
     const blocker = this.add.zone(640, 360, 1280, 720).setInteractive(); overlay.add(blocker)
     blocker.on('pointerup', () => { this.menu = null; if (!this.confirmation) this.refresh() })
     return overlay
   }
+  /* === [ 担当 : 250082 武田優人 ] ===
+   * 処理内容 : 絞り込み・並べ替えの選択肢を表示する
+   * ================================== */
   private drawMenu(): void {
     const content = this.content; this.content = this.beginOverlay()
     if (this.menu === 'filter') {
@@ -408,6 +502,9 @@ export class FormScene extends Phaser.Scene {
     }
     this.content = content
   }
+  /* === [ 担当 : 250082 武田優人 / 250116 中村伊安 ] ===
+   * 処理内容 : 編成を保存する
+   * ================================== */
   private save(): void {
     if (this.loading || this.loadError) return
     const formation = this.manager.getFormation()
@@ -415,10 +512,10 @@ export class FormScene extends Phaser.Scene {
     if (!saveFormation(formation)) { this.status = '保存できませんでした。ブラウザーの保存設定を確認してください'; this.refresh(); return }
     this.saved = [...formation]; this.status = '編成を保存しました。このメンバーで冒険に出発できます'; this.refresh()
   }
+  /* === [ 担当 : 250082 武田優人 / 250056 斎藤永聖 / 250116 中村伊安 ] ===
+   * 処理内容 : 変更確認後に元の画面へ戻る
+   * ================================== */
   private leave(): void {
-    /* === [ 担当 : 250056 斎藤永聖 ] ===
-     * ステージ選択から来た場合は停止中の選択画面を再開し、それ以外はホームへ戻る。
-     * ================================== */
     const exit = () => {
       this.preserveDraft = false
       if (this.returnToStage && this.scene.isSleeping(SCENE_KEYS.SELECT_STAGE)) returnWithLoading(this, SCENE_KEYS.SELECT_STAGE, 'wake')
@@ -427,7 +524,13 @@ export class FormScene extends Phaser.Scene {
     if (this.dirty() && !this.loading && !this.loadError) this.confirm('未保存の変更を破棄して戻りますか？', exit)
     else exit()
   }
+  /* === [ 担当 : 250082 武田優人 ] ===
+   * 処理内容 : 確認メッセージと実行時の処理を設定する
+   * ================================== */
   private confirm(message: string, action: () => void): void { this.menu = null; this.confirmation = { message, action }; this.refresh() }
+  /* === [ 担当 : 250082 武田優人 ] ===
+   * 処理内容 : 変更確認のダイアログを表示する
+   * ================================== */
   private drawConfirmation(): void {
     const content = this.content; this.content = this.beginOverlay()
     this.content.add(this.add.rectangle(640, 360, 1280, 720, 0x24160c, .65))

@@ -1,13 +1,14 @@
 /* ==================================
  * 期末テスト提出プログラム
- * 学籍番号: 250056
- * 氏名: 斎藤永聖
- * 担当範囲: 下記の担当コメントを参照（共同制作）
+ * 学籍番号：250056
+ * 氏名：斎藤永聖
  * ================================== */
-// 担当：たまおちゃん｜音声再生・設定・SettingsVoice
 import Phaser from 'phaser'
 import { loadAudioSettings, resumeAudioFromGesture, setVoiceDucking } from './BgmManager'
 
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 案内音声の再生を定義する
+ * ================================== */
 const lines: Record<string, string> = {
   '音量を変更できるよ': 'welcome',
   'BGMを大きくしたよ': 'bgm-up',
@@ -23,7 +24,7 @@ const files = import.meta.glob('../assets/audio/zundamon/*.wav', {
 }) as Record<string, string>
 
 /* === [ 担当 : 250056 斎藤永聖 ] ===
- * 処理内容 : 設定操作に対応する案内音声を読み込む。
+ * 処理内容 : 音声の再生状態と音量を管理する
  * ================================== */
 export function preloadSettingsVoice(scene: Phaser.Scene): void {
   for (const id of Object.values(lines)) {
@@ -35,17 +36,23 @@ export function preloadSettingsVoice(scene: Phaser.Scene): void {
 }
 
 export class SettingsVoice {
+  /* === [ 担当 : 250056 斎藤永聖 ] ===
+   * 処理内容 : 状態・能力値・操作対象を保持する
+   * ================================== */
   private sound: Phaser.Sound.BaseSound | null = null
   private pendingUnlock: (() => void) | null = null
   private scene: Phaser.Scene
 
+  /* === [ 担当 : 250056 斎藤永聖 ] ===
+   * 処理内容 : 案内音声の再生画面と終了時の停止処理を設定する
+   * ================================== */
   constructor(scene: Phaser.Scene) {
     this.scene = scene
     scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.stop())
   }
 
   /* === [ 担当 : 250056 斎藤永聖 ] ===
-   * 処理内容 : 再生中の案内音声を停止し、BGMの音量抑制を解除する。
+   * 処理内容 : 案内音声と再生待ちを解除してBGM音量を戻す
    * ================================== */
   stop(): void {
     if (this.pendingUnlock) this.scene.sound.off('unlocked', this.pendingUnlock)
@@ -56,7 +63,7 @@ export class SettingsVoice {
   }
 
   /* === [ 担当 : 250056 斎藤永聖 ] ===
-   * 処理内容 : 案内文に対応する音声を選んで再生し、音声中のBGM抑制と終了時の復元を管理する。
+   * 処理内容 : 案内文と音声を再生する
    * ================================== */
   speak(message: string): void {
     this.stop()

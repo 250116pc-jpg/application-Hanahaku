@@ -1,11 +1,9 @@
-import { transitionWithLoading } from '../../utils/ui/scene-loading';
 /* ==================================
  * 期末テスト提出プログラム
- * 学籍番号: 250056
- * 氏名: 斎藤永聖
- * 担当範囲: 下記の担当コメントを参照（共同制作）
+ * 学籍番号：250082、250056、250116
+ * 氏名：武田優人、斎藤永聖、中村伊安
  * ================================== */
-// 担当：たまおちゃん｜ステージ戦闘の進行
+import { transitionWithLoading } from '../../utils/ui/scene-loading';
 import { battleNow } from './BattleClock';
 import { isBattlePreview } from '../../debug';
 import formationData from '../../../php/flower/formation.json';
@@ -52,8 +50,8 @@ import { SCENE_KEYS } from '../sceneKeys';
 import { completeStage } from './StageProgress';
 import testData from '../test_data';
 
-/* === [ 担当 : 250056 斎藤永聖 ] ===
- * 処理内容 : 編成用JSONから花IDと画像コードの対応表を作成する。
+/* === [ 担当 : 250056 斎藤永聖 / 250116 中村伊安 ] ===
+ * 処理内容 : 戦闘本体を定義する
  * ================================== */
 const flowerCodes: Record<number, string> = Object.fromEntries(formationData.characters.map(flower => [flower.id, flower.code]));
 const pixelFlowerUrls = import.meta.glob('../../assets/images/pixel_flowers/*.png', {
@@ -67,11 +65,17 @@ const statusIconUrls = import.meta.glob('../../assets/images/status/*.png', {
 }) as Record<string, string>;
 
 export class StageScene extends Phaser.Scene {
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 状態・能力値・操作対象を保持する
+   * ================================== */
   private player!: Player;
   /* === [ 担当 : 250056 斎藤永聖 ] ===
-   * 処理内容 : 所持品画面から使用可否の確認と回復・強化を行うため、現在のプレイヤーを取得できるようにする。
+   * 処理内容 : 回復アイテムの適用先となる主人公を返す
    * ================================== */
   public getRecoveryPlayer(): Player { return this.player; }
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 状態・能力値・操作対象を保持する
+   * ================================== */
   private hud!: StageHUD;
   private enemies: Enemy[] = [];
   private stageId = 2;
@@ -84,23 +88,29 @@ export class StageScene extends Phaser.Scene {
   private rescuePrompt?: Phaser.GameObjects.Text;
   private rescued = false;
 
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 初期状態と画面キーを設定する
+   * ================================== */
   constructor() {
     super({ key: SCENE_KEYS.STAGE });
   }
 
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 呼び出し元と表示対象を受け取る
+   * ================================== */
   init(data: { stageId?: number; stageNumber?: string } = {}): void {
     this.stageId = data.stageId ?? 2;
     this.stageNumber = data.stageNumber ?? testData.stages.find(stage => stage.id === this.stageId)?.name;
   }
 
+  /* === [ 担当 : 250056 斎藤永聖 / 250116 中村伊安 ] ===
+   * 処理内容 : 使用する画像・音声を読み込む
+   * ================================== */
   preload(): void {
     this.captive = drawContractFlower(this.stageNumber);
     if (this.captive && !this.textures.exists(this.captive.key)) {
       this.load.image(this.captive.key, this.captive.url);
     }
-    /* === [ 担当 : 250056 斎藤永聖 ] ===
-     * 処理内容 : 開発端末・スマートフォンの接続先に対応したPHP APIの基準URLを取得する。
-     * ================================== */
     const phpBaseUrl = getPhpBaseUrl();
     this.load.image('stage-terrain', terrainImg);
     this.load.image('stage-props', propsImg);
@@ -154,6 +164,9 @@ export class StageScene extends Phaser.Scene {
     loadCharacterAnimation(this, 'player_drink', playerData.drink);
   }
 
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : マップ・主人公・敵・戦闘HUDと衝突判定を組み立てる
+   * ================================== */
   create(data: { stageId?: number; stageNumber?: string } = {}): void {
     battleNow(this);
     this.isEnding = false;
@@ -201,6 +214,9 @@ export class StageScene extends Phaser.Scene {
       this.captive && !isBattlePreview ? { x: this.rescueX, y: 420 } : undefined);
   }
 
+  /* === [ 担当 : 250056 斎藤永聖 / 250116 中村伊安 ] ===
+   * 処理内容 : 花の救出地点と表示を作る
+   * ================================== */
   private createRescuePoint(x: number): void {
     const flower = this.captive!;
     this.rescueX = x;
@@ -221,10 +237,16 @@ export class StageScene extends Phaser.Scene {
     });
   }
 
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 主人公が救出地点の近くにいるか判定する
+   * ================================== */
   private canReachRescuePoint(): boolean {
     return Math.abs(this.player.x - this.rescueX) <= 105 && Math.abs(this.player.y - 480) <= 105;
   }
 
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 救出可能な状態と案内を更新する
+   * ================================== */
   private updateRescuePoint(): void {
     if (!this.rescued) {
       this.rescued = true;
@@ -243,6 +265,9 @@ export class StageScene extends Phaser.Scene {
     }
   }
 
+  /* === [ 担当 : 250082 武田優人 / 250116 中村伊安 ] ===
+   * 処理内容 : 救出した花との契約画面へ進む
+   * ================================== */
   private contractRescuedFlower(): void {
     const flower = this.captive;
     if (!flower || !this.rescued || this.isEnding || !this.canReachRescuePoint()) return;
@@ -250,6 +275,9 @@ export class StageScene extends Phaser.Scene {
     transitionWithLoading(this, SCENE_KEYS.CONTRACT, { flower, stageId: this.stageId, stageNumber: this.stageNumber });
   }
 
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : スキルの演出アニメーションを登録する
+   * ================================== */
   private createSkillEffectAnimations(): void {
     Object.keys(skillEffectUrls).forEach(path => {
       const sheet = path.split('/').pop()?.replace(/\.png$/i, '');
@@ -269,6 +297,9 @@ export class StageScene extends Phaser.Scene {
   // =========================
   // マップ作成
   // =========================
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : タイルマップと地形を生成する
+   * ================================== */
   private createMap(): Phaser.Tilemaps.Tilemap | null {
     const map = this.make.tilemap({ key: 'map' });
     const tileset = map.addTilesetImage('Cainos Ground', 'stage-terrain');
@@ -282,6 +313,9 @@ export class StageScene extends Phaser.Scene {
     return map;
   }
 
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : ステージの装飾を配置する
+   * ================================== */
   private createMapDecorations(map: Phaser.Tilemaps.Tilemap): void {
     const propsTexture = this.textures.get('stage-props');
     const propFrames = ['tree-01', 'tree-02', 'bush-02', 'bush-03', 'brick-wall'];
@@ -323,6 +357,9 @@ export class StageScene extends Phaser.Scene {
   // =========================
   // プレイヤーアニメーション
   // =========================
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 主人公のアニメーションを登録する
+   * ================================== */
   private createPlayerAnimations(): void {
     const playerData = characterAnimations.player;
 
@@ -358,6 +395,9 @@ export class StageScene extends Phaser.Scene {
     createCharacterAnimation(this, 'player-hurt', 'player_hurt', 5, 12, 0);
   }
 
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 敵のアニメーションを登録する
+   * ================================== */
   private createEnemyAnimation(): void {
     createGardenEnemyAnimations(this);
     createCharacterAnimation(this, 'enemy-idle', 'stage-enemy-idle', 24, 8);
@@ -367,6 +407,9 @@ export class StageScene extends Phaser.Scene {
     createCharacterAnimation(this, 'enemy-death', 'stage-enemy-death', 20, 10, 0);
   }
 
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : ステージ定義から敵を生成する
+   * ================================== */
   private createEnemies(stageId: number): Enemy[] {
     const stageData: unknown = this.cache.json.get(`stage-data-${stageId}`);
     if (
@@ -412,6 +455,9 @@ export class StageScene extends Phaser.Scene {
   // =========================
   // プレイヤー出現位置
   // =========================
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : マップのオブジェクト層から主人公の出現地点を探す
+   * ================================== */
   private findPlayerSpawn(map: Phaser.Tilemaps.Tilemap): Phaser.Types.Tilemaps.TiledObject | undefined {
     const objectLayerNames = ['Objects', 'Object Layer 1', 'Object Layer', 'objects', 'Spawn'];
 
@@ -432,6 +478,9 @@ export class StageScene extends Phaser.Scene {
     return undefined;
   }
 
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 出現オブジェクトから座標を求め、なければ既定位置を返す
+   * ================================== */
   private getSpawnPosition(spawnObject?: Phaser.Types.Tilemaps.TiledObject): { x: number; y: number } {
     return {
       x: spawnObject?.x ?? 400,
@@ -442,6 +491,9 @@ export class StageScene extends Phaser.Scene {
   // =========================
   // ワールド設定
   // =========================
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 衝突判定とカメラ範囲を設定する
+   * ================================== */
   private setupWorld(map: Phaser.Tilemaps.Tilemap): void {
     this.physics.world.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
     this.cameras.main.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
@@ -463,6 +515,9 @@ export class StageScene extends Phaser.Scene {
   // =========================
   // 更新処理
   // =========================
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 操作と現在の状態を表示へ反映する
+   * ================================== */
   update(): void {
     if (!this.player || this.isEnding) return;
     this.player.update();
@@ -478,6 +533,9 @@ export class StageScene extends Phaser.Scene {
     }
   }
 
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 戦闘を停止し、二重終了を防いで結果画面への移動を予約する
+   * ================================== */
   private finishStage(victory: boolean): void {
     if (this.isEnding) return;
     this.isEnding = true;
@@ -487,6 +545,9 @@ export class StageScene extends Phaser.Scene {
     });
   }
 
+  /* === [ 担当 : 250082 武田優人 / 250116 中村伊安 ] ===
+   * 処理内容 : 勝敗と報酬を結果画面へ渡す
+   * ================================== */
   private async openResult(victory: boolean): Promise<void> {
     if (victory) {
       const completion = await completeStage(this.stageId);
