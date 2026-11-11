@@ -57,7 +57,7 @@ export interface FlowerSkillState {
 
 
 async function postSkillRequest(
-  endpoint: 'state' | 'begin' | 'use',
+  endpoint: 'begin',
   body: Record<string, unknown> = {}
 ): Promise<unknown> {
   const response = await fetch(`${getPhpBaseUrl()}/skill/${endpoint}.php`, {
