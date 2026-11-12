@@ -1,6 +1,16 @@
-// 担当：たまおちゃん｜ダメージ・回復表示
+/* ==================================
+ * 期末テスト提出プログラム
+ * 学籍番号：250116
+ * 氏名：中村伊安
+ * ================================== */
 import Phaser from 'phaser';
+/* === [ 担当 : 250116 中村伊安 ] ===
+ * 処理内容 : 戦闘表示を定義する
+ * ================================== */
 const activeNumbers = new WeakMap<Phaser.Scene, Set<Phaser.GameObjects.Text>>();
+/* === [ 担当 : 250116 中村伊安 ] ===
+ * 処理内容 : ダメージ・回復量を表示して浮かび上がる演出を付ける
+ * ================================== */
 export function showBattleNumber(scene: Phaser.Scene, x: number, y: number, amount: number, kind: 'physical' | 'magical' | 'heal'): void {
   if (amount <= 0) return;
   let numbers = activeNumbers.get(scene);

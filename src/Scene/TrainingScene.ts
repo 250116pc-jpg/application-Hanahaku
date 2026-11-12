@@ -1,5 +1,10 @@
-// 担当：たまおちゃん｜育成画面
+/* ==================================
+ * 期末テスト提出プログラム
+ * 学籍番号：250082、250116
+ * 氏名：武田優人、中村伊安
+ * ================================== */
 import Phaser from 'phaser';
+import { transitionWithLoading, trackSceneLoading } from '../utils/ui/scene-loading';
 import testData, { getFlowerSkill } from './test_data';
 import type { CharacterData } from './test_data';
 import { SCENE_KEYS } from './sceneKeys';
@@ -17,6 +22,9 @@ import { getShopItemImageUrl } from './shop/assets';
 import { getPhpBaseUrl } from '../auth/PhpBaseUrl';
 import { MAX_FLOWER_LEVEL, experienceThresholds, flowerStats, levelPreview, skillPreview, skillThresholds } from './training/trainingRules';
 
+/* === [ 担当 : 250082 武田優人 ] ===
+ * 処理内容 : 花の表示・レベル強化・スキル強化を定義する
+ * ================================== */
 const flowerImages = import.meta.glob('../assets/images/pixel_flowers/*.png', { eager: true, query: '?url', import: 'default' }) as Record<string, string>;
 const skillImages = import.meta.glob('../assets/system/skill/icons/*.png', { eager: true, query: '?url', import: 'default' }) as Record<string, string>;
 type Tab = 'status' | 'level' | 'skill';
@@ -29,6 +37,9 @@ const seeds = shopCatalog.filter(item => item.id >= 6 && item.id <= 10);
 const nutrients = shopCatalog.filter(item => item.category === 'material' && item.name.startsWith('栄養剤'));
 
 export class TrainingScene extends Phaser.Scene {
+  /* === [ 担当 : 250082 武田優人 ] ===
+   * 処理内容 : 状態・能力値・操作対象を保持する
+   * ================================== */
   private selectedId = testData.characters.find(flower => flower.code === 'sunflower')?.id ?? testData.characters[0].id;
   private tab: Tab = 'status';
   private page = 0;
@@ -58,12 +69,21 @@ export class TrainingScene extends Phaser.Scene {
   private expFill?: Phaser.GameObjects.Rectangle;
   private finishEffect?: () => void;
 
+  /* === [ 担当 : 250082 武田優人 ] ===
+   * 処理内容 : 初期状態と画面キーを設定する
+   * ================================== */
   constructor() { super(SCENE_KEYS.TRAINING); }
+  /* === [ 担当 : 250082 武田優人 ] ===
+   * 処理内容 : 呼び出し元と表示対象を受け取る
+   * ================================== */
   init(data: { characterId?: number } = {}): void {
     if (testData.characters.some(flower => flower.id === data.characterId)) this.selectedId = data.characterId!;
     this.page = Math.floor(testData.characters.findIndex(flower => flower.id === this.selectedId) / 6);
     this.quantity = 1;
   }
+  /* === [ 担当 : 250082 武田優人 / 250116 中村伊安 ] ===
+   * 処理内容 : 使用する画像・音声を読み込む
+   * ================================== */
   preload(): void {
     this.load.image('training-garden', background);
     this.load.image('training-parchment', parchment);
@@ -83,6 +103,9 @@ export class TrainingScene extends Phaser.Scene {
     });
   }
   create(): void {
+    /* === [ 担当 : 250082 武田優人 / 250116 中村伊安 ] ===
+     * 処理内容 : タブ・パネル用の画像と描画素材を準備する
+     * ================================== */
     this.lifecycle++;
     this.upgrading = false;
     this.upgradeMessage = '';
@@ -96,6 +119,9 @@ export class TrainingScene extends Phaser.Scene {
       const texture = this.textures.get(key);
       if (!texture.has('rect')) texture.add('rect', 0, x, y, width, height);
     });
+    /* === [ 担当 : 250082 武田優人 ] ===
+     * 処理内容 : タブ・パネル用の画像と描画素材を準備する
+     * ================================== */
     this.input.enabled = true;
     this.cameras.main.setScroll(0, 0).setRoundPixels(false);
     // 高解像度の装飾を小さなUI部品用に描画し直し、金縁の太さを画面内で統一する。
@@ -110,6 +136,9 @@ export class TrainingScene extends Phaser.Scene {
     // Use a texture frame to omit the transparent padding around the generated divider.
     const ornament = this.textures.get('training-title-ornament');
     if (!ornament.has('divider')) ornament.add('divider', 0, 0, 260, 2172, 200);
+    /* === [ 担当 : 250082 武田優人 ] ===
+     * 処理内容 : 画像・文字・パネルを配置する
+     * ================================== */
     const scale = Math.min(this.scale.width / 1280, this.scale.height / 720);
     this.layout = this.add.container((this.scale.width - 1280 * scale) / 2, (this.scale.height - 720 * scale) / 2).setScale(scale);
     this.layout.add(this.add.image(640, 360, 'training-garden').setDisplaySize(1280, 720));
@@ -117,6 +146,9 @@ export class TrainingScene extends Phaser.Scene {
     this.portraitId = -1;
     this.portrait = this.add.container(0, CONTENT_OFFSET_Y); this.layout.add(this.portrait);
     this.content = this.add.container(0, CONTENT_OFFSET_Y); this.layout.add(this.content);
+    /* === [ 担当 : 250082 武田優人 ] ===
+     * 処理内容 : 演出レイヤーと見出しを配置し、読込状態を初期化する
+     * ================================== */
     this.effects = this.add.container(0, CONTENT_OFFSET_Y); this.layout.add(this.effects);
     this.createHeader();
     this.inventory = {};
@@ -124,9 +156,12 @@ export class TrainingScene extends Phaser.Scene {
     this.ownedFlowers = [];
     this.flowersStatus = 'loading';
     this.render();
-    void this.loadInventory();
-    void this.loadOwnedFlowers();
+    trackSceneLoading(this, this.loadInventory());
+    trackSceneLoading(this, this.loadOwnedFlowers());
     applySmoothDisplay(this, ['training-garden', 'training-parchment', 'training-button', 'training-tab', 'training-compact-button', 'training-title-ornament']);
+    /* === [ 担当 : 250082 武田優人 ] ===
+     * 処理内容 : 表示状態と操作フラグを初期化する
+     * ================================== */
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       this.inventoryRequest++; // 終了後や再入場前の通信結果を描画しない。
       this.flowersRequest++;
@@ -137,19 +172,31 @@ export class TrainingScene extends Phaser.Scene {
   }
 
   // 描画部品。配置は1280×720で統一し、見た目の変更はこのファイルで完結する。
+  /* === [ 担当 : 250082 武田優人 ] ===
+   * 処理内容 : 位置・大きさ・色を指定して文字を生成する
+   * ================================== */
   private text(x: number, y: number, value: string, size = 20, color = C.ink): Phaser.GameObjects.Text {
     const text = this.add.text(x, y, value, { fontFamily: '"Yu Gothic", "Meiryo", sans-serif', fontSize: size, color, fontStyle: 'bold', resolution: 2 });
     this.content.add(text); return text;
   }
+  /* === [ 担当 : 250082 武田優人 ] ===
+   * 処理内容 : 指定した大きさと色で枠付きの背景を描く
+   * ================================== */
   private box(x: number, y: number, w: number, h: number, color = C.cream, radius = 16, border = C.line): Phaser.GameObjects.Graphics {
     const g = this.add.graphics().fillStyle(color).fillRoundedRect(x, y, w, h, radius).lineStyle(1, border).strokeRoundedRect(x, y, w, h, radius);
     this.content.add(g); return g;
   }
   // 花飾りの四隅を保ち、中央だけ伸ばせる共通パネル。
+  /* === [ 担当 : 250082 武田優人 ] ===
+   * 処理内容 : 背景画像を使った表示用パネルを配置する
+   * ================================== */
   private panel(x: number, y: number, w: number, h: number): void {
     const corner = Math.min(68, h / 3);
     this.content.add(this.add.nineslice(x + w / 2, y + h / 2, 'training-panel-ui', undefined, w, h, corner, corner, corner, corner));
   }
+  /* === [ 担当 : 250082 武田優人 ] ===
+   * 処理内容 : 操作可能なボタンとクリック時の処理を作る
+   * ================================== */
   private button(x: number, y: number, w: number, h: number, label: string, action: () => void, selected = false, enabled = true): Phaser.GameObjects.Text {
     const isTab = h === 58;
     const isCompact = w <= 54;
@@ -166,17 +213,26 @@ export class TrainingScene extends Phaser.Scene {
     hit.on('pointerup', action);
     return caption;
   }
+  /* === [ 担当 : 250082 武田優人 ] ===
+   * 処理内容 : 表示に使う画像・アニメーションを用意する
+   * ================================== */
   private flowerImage(flower: CharacterData, x: number, y: number, size: number): Phaser.GameObjects.Image | undefined {
     const key = `training-flower-${flower.id}`;
     if (!this.textures.exists(key)) return undefined;
     const image = this.add.image(x, y, key).setScale(size / Math.max(this.textures.get(key).getSourceImage().width, this.textures.get(key).getSourceImage().height));
     this.content.add(image); return image;
   }
+  /* === [ 担当 : 250082 武田優人 ] ===
+   * 処理内容 : 長い説明文を表示幅に合わせて改行する
+   * ================================== */
   private wrapped(value: string, columns = 28): string {
     return value.split('\n').map(line => Array.from(line).reduce((result, char, index) => result + (index && index % columns === 0 ? '\n' : '') + char, '')).join('\n');
   }
 
   // タイトルと戻るボタンは固定し、本文・花・強化演出だけを同じ量だけ下げる。
+  /* === [ 担当 : 250082 武田優人 / 250116 中村伊安 ] ===
+   * 処理内容 : 見出しと戻るボタンを配置する
+   * ================================== */
   private createHeader(): void {
     const content = this.content;
     this.content = this.add.container(0, 0);
@@ -189,6 +245,9 @@ export class TrainingScene extends Phaser.Scene {
     this.content = content;
   }
 
+  /* === [ 担当 : 250082 武田優人 ] ===
+   * 処理内容 : 選択内容に合わせて表示を更新する
+   * ================================== */
   private render(): void {
     this.content.removeAll(true);
     this.upgradeButtonLabel = undefined;
@@ -228,6 +287,9 @@ export class TrainingScene extends Phaser.Scene {
     this.renderRoster();
 
   }
+  /* === [ 担当 : 250082 武田優人 ] ===
+   * 処理内容 : 選択した花の画像と基本情報を表示する
+   * ================================== */
   private renderPortrait(flower: CharacterData): void {
     this.panel(36, 88, 400, 410);
     this.text(236, 177, '★'.repeat(flower.rarity), 16, '#b78028').setOrigin(.5, 0);
@@ -243,9 +305,12 @@ export class TrainingScene extends Phaser.Scene {
     this.portraitLevel = this.text(62, 459, `Lv.${flower.level}`, 24);
     this.text(129, 466, `/ ${flower.maxLevel}`, 16, C.muted);
     this.button(276, 449, 133, 35, '花の詳細  ›', () => {
-      this.scene.start(SCENE_KEYS.CHARACTER_DETAIL, { characterId: flower.id, returnScene: SCENE_KEYS.TRAINING, returnLabel: '育成へ' });
+      transitionWithLoading(this, SCENE_KEYS.CHARACTER_DETAIL, { characterId: flower.id, returnScene: SCENE_KEYS.TRAINING, returnLabel: '育成へ' });
     });
   }
+  /* === [ 担当 : 250082 武田優人 ] ===
+   * 処理内容 : 花の能力値とスキルを表示する
+   * ================================== */
   private renderStatus(flower: TrainingFlower): void {
     this.text(488, 184, 'ステータス', 23);
     const rows = [['HP', 'hp', 0x72a478], ['MP', 'mp', 0x689fb0], ['ATK', 'atk', 0xc18b6c], ['DEF', 'def', 0xb4a36c]] as const;
@@ -265,6 +330,9 @@ export class TrainingScene extends Phaser.Scene {
     this.text(488, 448, this.wrapped(skill?.name ?? 'スキル未設定', 35), 18);
   }
   private renderLevel(flower: TrainingFlower): void {
+    /* === [ 担当 : 250082 武田優人 ] ===
+     * 処理内容 : レベル・スキル強化の素材と操作を表示する
+     * ================================== */
     const isSkill = this.tab === 'skill';
     const materials = isSkill ? seeds : nutrients;
     if (!materials.some(item => item.id === this.material && (this.inventory[String(item.id)] ?? 0) > 0)) this.material = materials.find(item => (this.inventory[String(item.id)] ?? 0) > 0)?.id ?? null;
@@ -281,6 +349,9 @@ export class TrainingScene extends Phaser.Scene {
     this.text(488, 226, preview.used ? `Lv.${currentLevel}  →  Lv.${preview.afterLevel}` : `Lv.${currentLevel} / ${maxLevel}`, 29, C.green);
     if (preview.used && !isSkill) this.text(851, 225, `HP  ${flower.stats.hp} → ${preview.stats?.hp ?? flower.stats.hp}\nATK  ${flower.stats.atk} → ${preview.stats?.atk ?? flower.stats.atk}`, 16, C.green).setLineSpacing(5);
     this.expText = this.text(488, 275, `累計EXP  ${BigInt(currentExp).toLocaleString('ja-JP')}${preview.used ? `  →  ${preview.afterExp.toLocaleString('ja-JP')}` : ''}`, 16, C.muted);
+    /* === [ 担当 : 250082 武田優人 ] ===
+     * 処理内容 : 必要なデータを取得して画面へ反映する
+     * ================================== */
     this.content.add(this.add.rectangle(488, 297, 728, 3, 0xd8ceb4).setOrigin(0, .5));
     this.expFill = this.add.rectangle(488, 297, 0, 3, 0xa99150).setOrigin(0, .5);
     this.content.add(this.expFill);
@@ -323,6 +394,9 @@ export class TrainingScene extends Phaser.Scene {
     // TODO: プレイヤーレベルが実装されたら、育成上限をmin(50, プレイヤーレベル)にする。
     // 回復力の基本値・成長反映は別途決定する。
   }
+  /* === [ 担当 : 250082 武田優人 ] ===
+   * 処理内容 : 所持アイテムを取得する
+   * ================================== */
   private async loadInventory(silent = false): Promise<void> {
     const request = ++this.inventoryRequest;
     this.inventoryStatus = 'loading';
@@ -347,6 +421,9 @@ export class TrainingScene extends Phaser.Scene {
     }
     if (!silent && this.tab !== 'status') this.render();
   }
+  /* === [ 担当 : 250082 武田優人 ] ===
+   * 処理内容 : 所持花と育成値を取得する
+   * ================================== */
   private async loadOwnedFlowers(silent = false): Promise<void> {
     const request = ++this.flowersRequest;
     this.flowersStatus = 'loading';
@@ -401,6 +478,9 @@ export class TrainingScene extends Phaser.Scene {
     if (!silent && request === this.flowersRequest && this.sys.isActive()) this.render();
   }
   private async upgradeLevel(flower: TrainingFlower): Promise<void> {
+    /* === [ 担当 : 250082 武田優人 ] ===
+     * 処理内容 : レベル・スキル強化を送信して結果を反映する
+     * ================================== */
     if (this.upgrading || this.inventoryStatus !== 'ready' || this.flowersStatus !== 'ready') return;
     const isSkill = this.tab === 'skill';
     const preview = (isSkill ? skillPreview : levelPreview)(flower.id, isSkill ? flower.skillLevel : flower.level, isSkill ? flower.skillExp : flower.exp, this.material, this.inventory[String(this.material)] ?? 0, this.quantity);
@@ -412,6 +492,9 @@ export class TrainingScene extends Phaser.Scene {
     this.input.enabled = false;
     // 保存中はラベルだけ変更し、画面を消したり読み込み表示へ戻したりしない。
     this.upgradeButtonLabel?.setText('保存中…');
+    /* === [ 担当 : 250082 武田優人 ] ===
+     * 処理内容 : 強化結果を保存して応答の形式と値を検証する
+     * ================================== */
     this.upgradeStatusText?.setText('強化しています…');
     const controller = new AbortController();
     const timer = window.setTimeout(() => controller.abort(), 10000);
@@ -432,6 +515,9 @@ export class TrainingScene extends Phaser.Scene {
         throw new Error('強化結果を確認できませんでした。最新の状態を取得します。');
       }
       // サーバーが保存に成功した結果を受け取ってから、成功演出を開始する。
+      /* === [ 担当 : 250082 武田優人 ] ===
+       * 処理内容 : 保存後の育成値と素材所持数を更新する
+       * ================================== */
       await this.playUpgradeEffect(flower, isSkill ? result.skillLevel : result.level, Number(isSkill ? result.skillExp : result.exp));
       if (lifecycle !== this.lifecycle || !this.sys.isActive()) return;
       const stats = flowerStats(flower.id, result.level);
@@ -442,6 +528,9 @@ export class TrainingScene extends Phaser.Scene {
       this.inventory = { ...result.items };
       const owned = nutrients.filter(item => (this.inventory[String(item.id)] ?? 0) > 0);
       if (!owned.some(item => item.id === this.material)) this.material = owned[0]?.id ?? null;
+      /* === [ 担当 : 250082 武田優人 ] ===
+       * 処理内容 : 送信中の状態を解除して入力操作を復元する
+       * ================================== */
       this.upgradeMessage = '強化しました。';
     } catch (error) {
       if (lifecycle !== this.lifecycle || !this.sys.isActive()) return;
@@ -458,6 +547,9 @@ export class TrainingScene extends Phaser.Scene {
       }
     }
   }
+  /* === [ 担当 : 250082 武田優人 ] ===
+   * 処理内容 : 累計経験値からレベルとゲージの長さを更新する
+   * ================================== */
   private updateExperienceGauge(exp: number): number {
     const thresholds = this.tab === 'skill' ? skillThresholds : experienceThresholds;
     const maximum = thresholds.length;
@@ -469,6 +561,9 @@ export class TrainingScene extends Phaser.Scene {
     this.expFill?.setSize(728 * ratio, 3);
     return level;
   }
+  /* === [ 担当 : 250082 武田優人 ] ===
+   * 処理内容 : 強化成功の演出を表示する
+   * ================================== */
   private playUpgradeEffect(before: TrainingFlower, afterLevel: number, afterExp: number): Promise<void> {
     const isSkill = this.tab === 'skill';
     const beforeLevel = isSkill ? before.skillLevel : before.level;
@@ -513,10 +608,16 @@ export class TrainingScene extends Phaser.Scene {
       });
     });
   }
+  /* === [ 担当 : 250082 武田優人 ] ===
+   * 処理内容 : スキル強化の表示を作る
+   * ================================== */
   private renderSkill(flower: TrainingFlower): void {
     this.renderLevel(flower);
     // TODO: 戦闘側で成長後の攻撃力とDBのskill_levelを参照する処理は別途連携する。
   }
+  /* === [ 担当 : 250082 武田優人 ] ===
+   * 処理内容 : 所持花一覧とページ操作を表示する
+   * ================================== */
   private renderRoster(): void {
     this.panel(36, 514, 1208, 144);
     const centerY = 514 + 144 / 2;

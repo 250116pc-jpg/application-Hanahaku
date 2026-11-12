@@ -1,10 +1,21 @@
 <?php
+/* ==================================
+ * 期末テスト提出プログラム
+ * 学籍番号：250082
+ * 氏名：武田優人
+ * ================================== */
 declare(strict_types=1);
 
+/* === [ 担当 : 250082 武田優人 ] ===
+ * 処理内容 : 育成ルールを読み込む
+ * ================================== */
 function flowerTrainingRules(): array {
     static $rules;
     return $rules ??= json_decode(file_get_contents(__DIR__ . '/training.json'), true, 512, JSON_THROW_ON_ERROR);
 }
+/* === [ 担当 : 250082 武田優人 ] ===
+ * 処理内容 : レベルごとの必要累計経験値を計算する
+ * ================================== */
 function flowerExperienceThresholds(): array {
     $rules = flowerTrainingRules(); $thresholds = [0];
     for ($level = 1; $level < $rules['maxLevel']; $level++) {
@@ -12,6 +23,9 @@ function flowerExperienceThresholds(): array {
     }
     return $thresholds;
 }
+/* === [ 担当 : 250082 武田優人 ] ===
+ * 処理内容 : 花の成長後の能力値を計算する
+ * ================================== */
 function flowerTrainingStats(int $id, int $level): array {
     if (!in_array($id, flowerTrainingRules()['enabledFlowerIds'], true)) throw new RuntimeException('この花はまだ育成できません。', 422);
     $path = __DIR__ . '/' . str_pad((string)$id, 3, '0', STR_PAD_LEFT) . '.json';
@@ -26,6 +40,9 @@ function flowerTrainingStats(int $id, int $level): array {
     }
     return $stats;
 }
+/* === [ 担当 : 250082 武田優人 ] ===
+ * 処理内容 : 素材と育成状態を検証して同時に保存する
+ * ================================== */
 function upgradeFlowerLevel(PDO $pdo, int $userId, array $body, bool $skill = false): array {
     foreach (['flowerId','itemId','quantity','expectedLevel'] as $key) {
         if (!isset($body[$key]) || !is_int($body[$key]) || $body[$key] < 1) throw new RuntimeException('強化内容を確認してください。', 422);

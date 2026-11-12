@@ -1,9 +1,16 @@
-// 担当：たまおちゃん｜共通UI・scene-frame
+/* ==================================
+ * 期末テスト提出プログラム
+ * 学籍番号：250116
+ * 氏名：中村伊安
+ * ================================== */
 import Phaser from 'phaser';
 import { createTextButton } from './buttons';
 import { getTextStyle } from './styles';
 import { BACK_BUTTON_POSITION } from './back-button';
 
+/* === [ 担当 : 250116 中村伊安 ] ===
+ * 処理内容 : 共通の枠を定義する
+ * ================================== */
 const BACKGROUND_COLOR = '#cfe3f5';
 const FRAME_COLOR = 0xcfe3f5;
 const FRAME_BORDER_COLOR = 0x536878;

@@ -1,8 +1,16 @@
-// 担当：たまおちゃん｜開発用スキルプレビュー
+/* ==================================
+ * 期末テスト提出プログラム
+ * 学籍番号：250082、250116
+ * 氏名：武田優人、中村伊安
+ * ================================== */
+import { transitionWithLoading } from '../../utils/ui/scene-loading';
 import definitions from '../../../php/skill/skills.json';
 import type { FlowerSkillState, ServerFlowerSkill, StageFlowerStats } from './SkillApi';
 
 /** Only used by the explicit development preview, never by an authenticated battle. */
+/* === [ 担当 : 250116 中村伊安 ] ===
+ * 処理内容 : 開発確認用のスキル状態を作る
+ * ================================== */
 export function buildPreviewSkillStates(flowers: readonly StageFlowerStats[]): FlowerSkillState[] {
   const resolve = (value: unknown, level: number): unknown => {
     if (Array.isArray(value)) return value.map(item => resolve(item, level));
@@ -34,6 +42,9 @@ export function attachPreviewControls(
   skills: ReadonlyMap<number, ServerFlowerSkill>,
   targets: readonly import('./Player').CombatTarget[]
 ): void {
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 開発用のスキル試用操作を追加する
+   * ================================== */
   const labels = ['炎', '守護', '光線', '追尾', '水', '紅葉', '強化', '弱化', '回復', '回避'];
   const cast = (id: number): void => {
     const skill = skills.get(id);
@@ -44,13 +55,16 @@ export function attachPreviewControls(
       fontSize: '13px', color: '#ffebbb', backgroundColor: '#152333', padding: { x: 6, y: 8 },
     }).setScrollFactor(0).setDepth(2010).setInteractive({ useHandCursor: true }).on('pointerdown', () => cast(index + 1));
   });
+  /* === [ 担当 : 250082 武田優人 / 250116 中村伊安 ] ===
+   * 処理内容 : 数字キーでのスキル試用とRキーでのリセットを設定する
+   * ================================== */
   scene.add.text(360, 207, '数字キー / クリックで試す · Rでリセット（上の試用ボタンはMP消費なし）', {
     fontSize: '12px', color: '#dfd3b8', backgroundColor: '#152333', padding: { x: 6, y: 5 },
   }).setScrollFactor(0).setDepth(2010);
   const onKey = (event: KeyboardEvent): void => {
     if (event.repeat) return;
     if (/^[0-9]$/.test(event.key)) cast(event.key === '0' ? 10 : Number(event.key));
-    if (event.key.toLowerCase() === 'r') scene.scene.restart();
+    if (event.key.toLowerCase() === 'r') transitionWithLoading(scene, scene.scene.key);
   };
   scene.input.keyboard?.on('keydown', onKey);
   scene.events.once('shutdown', () => scene.input.keyboard?.off('keydown', onKey));

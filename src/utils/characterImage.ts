@@ -1,16 +1,14 @@
 /* ==================================
  * 期末テスト提出プログラム
- * 学籍番号: 250056
- * 氏名: 斎藤永聖
- * 担当範囲: 下記の担当コメントを参照（共同制作）
+ * 学籍番号：250056
+ * 氏名：斎藤永聖
  * ================================== */
-// 担当：たまおちゃん｜共通ユーティリティ・characterImage
 import Phaser from 'phaser'
 import sunflower from '../assets/images/pixel_flowers/sunflower.png'
 
 // Prototype character 1 uses the new sunflower art. Other flowers keep their placeholder.
 /* === [ 担当 : 250056 斎藤永聖 ] ===
- * 処理内容 : キャラクターIDに対応した画像を読み込む。
+ * 処理内容 : 表示に使う画像・アニメーションを用意する
  * ================================== */
 export function preloadCharacterImages(scene: Phaser.Scene): void {
   if (!scene.textures.exists('character-sunflower')) {
@@ -19,7 +17,7 @@ export function preloadCharacterImages(scene: Phaser.Scene): void {
 }
 
 /* === [ 担当 : 250056 斎藤永聖 ] ===
- * 処理内容 : キャラクター画像を縦横比を保って指定範囲に収めて配置する。
+ * 処理内容 : 表示に使う画像・アニメーションを用意する
  * ================================== */
 export function addCharacterImage(
   scene: Phaser.Scene, x: number, y: number, characterId: number,

@@ -1,6 +1,13 @@
-// 担当：たまおちゃん｜アニメーション・animation
+/* ==================================
+ * 期末テスト提出プログラム
+ * 学籍番号：250116
+ * 氏名：中村伊安
+ * ================================== */
 import Phaser from 'phaser';
 
+/* === [ 担当 : 250116 中村伊安 ] ===
+ * 処理内容 : 受け渡すデータの型と共通設定を定義する
+ * ================================== */
 type AnimationData = {
   image: string;
   frameWidth: number;
@@ -11,6 +18,9 @@ type AnimationData = {
 
 
 // 画像読み込み
+/* === [ 担当 : 250116 中村伊安 ] ===
+ * 処理内容 : 表示に使う画像・アニメーションを用意する
+ * ================================== */
 export function loadCharacterAnimation(
   scene: Phaser.Scene,
   key: string,
@@ -29,6 +39,9 @@ export function loadCharacterAnimation(
 
 
 // アニメーション作成
+/* === [ 担当 : 250116 中村伊安 ] ===
+ * 処理内容 : 表示に使う画像・アニメーションを用意する
+ * ================================== */
 export function createCharacterAnimation(
   scene: Phaser.Scene,
   animationKey: string,
@@ -62,6 +75,9 @@ export function createCharacterAnimation(
 
 
 // キャラクター作成
+/* === [ 担当 : 250116 中村伊安 ] ===
+ * 処理内容 : 指定した位置・画像・アニメーションでキャラクターを作る
+ * ================================== */
 export function createCharacterSprite(
   scene: Phaser.Scene,
   x: number,
@@ -83,6 +99,9 @@ export function createCharacterSprite(
 
 
 // アニメーション変更
+/* === [ 担当 : 250116 中村伊安 ] ===
+ * 処理内容 : 表示に使う画像・アニメーションを用意する
+ * ================================== */
 export function changeCharacterAnimation(
   player: Phaser.GameObjects.Sprite,
   action: 'run' | 'idle' | 'jump' | 'fall' | 'land'

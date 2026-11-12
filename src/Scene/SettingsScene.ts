@@ -1,10 +1,9 @@
 /* ==================================
  * 期末テスト提出プログラム
- * 学籍番号: 250056
- * 氏名: 斎藤永聖
- * 担当範囲: 下記の担当コメントを参照（共同制作）
+ * 学籍番号：250082、250056、250116
+ * 氏名：武田優人、斎藤永聖、中村伊安
  * ================================== */
-// 担当：たまおちゃん｜設定画面
+import { transitionWithLoading, returnWithLoading } from '../utils/ui/scene-loading';
 import Phaser from 'phaser';
 import { DEFAULT_AUDIO_SETTINGS } from '../audio/AudioDefaults';
 import { applyAudioSettings, loadAudioSettings, saveAudioSettings, resumeAudioFromGesture, type AudioSettings } from '../audio/BgmManager';
@@ -17,6 +16,9 @@ import panel from '../assets/ui/settings_panel.png';
 import button from '../assets/ui/button1.png';
 import tabButton from '../assets/ui/training_tab_selected.png';
 
+/* === [ 担当 : 250082 武田優人 / 250056 斎藤永聖 ] ===
+ * 処理内容 : 設定タブ・音量・画質・アカウント操作を定義する
+ * ================================== */
 const reactionImages = import.meta.glob('../assets/setting/*.png', { eager: true, query: '?url', import: 'default' }) as Record<string, string>;
 const reactionFiles = {
   bgmUp: 'BGM音量上げずんだ.png', bgmDown: 'BGM下げずんだ.png',
@@ -33,6 +35,9 @@ const INK = '#17243d';
 const SETTINGS_CONTENT_OFFSET_Y = 30;
 
 export class SettingsScene extends Phaser.Scene {
+  /* === [ 担当 : 250056 斎藤永聖 ] ===
+   * 処理内容 : 状態・能力値・操作対象を保持する
+   * ================================== */
   private returnScene = 'HomeScene';
   private resumeOnClose = false;
   private original!: AudioSettings;
@@ -49,13 +54,19 @@ export class SettingsScene extends Phaser.Scene {
   private active = false;
   private drag?: { move: (pointer: Phaser.Input.Pointer) => void; end: () => void };
 
+  /* === [ 担当 : 250056 斎藤永聖 ] ===
+   * 処理内容 : 初期状態と画面キーを設定する
+   * ================================== */
   constructor() { super('SettingsScene'); }
+  /* === [ 担当 : 250056 斎藤永聖 ] ===
+   * 処理内容 : 呼び出し元と表示対象を受け取る
+   * ================================== */
   init(data: { returnScene?: string; resumeOnClose?: boolean } = {}): void {
     this.returnScene = data.returnScene ?? 'HomeScene';
     this.resumeOnClose = data.resumeOnClose ?? false;
   }
-  /* === [ 担当 : 250056 斎藤永聖 ] ===
-   * 処理内容 : 設定画面の背景・パネル・タブ・リアクション画像と案内音声を読み込む。
+  /* === [ 担当 : 250082 武田優人 / 250056 斎藤永聖 ] ===
+   * 処理内容 : 使用する画像・音声を読み込む
    * ================================== */
   preload(): void {
     preloadSettingsVoice(this);
@@ -69,10 +80,10 @@ export class SettingsScene extends Phaser.Scene {
     }
   }
 
-  /* === [ 担当 : 250056 斎藤永聖 ] ===
-   * 処理内容 : 設定値を読み込み、1280×720を基準に縦横比を保って配置し、タブ・ドラッグイベント・終了時の取消処理を初期化する（共同編集）。
-   * ================================== */
   create(): void {
+    /* === [ 担当 : 250082 武田優人 / 250056 斎藤永聖 ] ===
+     * 処理内容 : タブ・パネル用の画像と描画素材を準備する
+     * ================================== */
     const tabTexture = this.textures.get('settings-tab');
     if (!tabTexture.has('rect')) tabTexture.add('rect', 0, 8, 160, 1936, 460);
     // 育成画面と同じクリーム色・金縁の未選択タブ。単色の部品なので画像は増やさない。
@@ -85,6 +96,9 @@ export class SettingsScene extends Phaser.Scene {
         texture.refresh(); texture.setFilter(Phaser.Textures.FilterMode.LINEAR);
       }
     }
+    /* === [ 担当 : 250056 斎藤永聖 ] ===
+     * 処理内容 : 設定画面の操作フラグと選択タブを初期化する
+     * ================================== */
     this.active = true;
     this.leaving = false;
     this.tabs = [];
@@ -92,6 +106,9 @@ export class SettingsScene extends Phaser.Scene {
     this.displayChanged = false;
     this.input.enabled = true;
     this.cameras.main.setScroll(0, 0).setRoundPixels(false);
+    /* === [ 担当 : 250056 斎藤永聖 ] ===
+     * 処理内容 : 音声と画質の保存設定を読み込む
+     * ================================== */
     this.voice = new SettingsVoice(this);
     this.original = loadAudioSettings(this);
     this.audio = { ...this.original };
@@ -100,6 +117,9 @@ export class SettingsScene extends Phaser.Scene {
     const scale = Math.min(this.scale.width / 1280, this.scale.height / 720);
     this.layout = this.add.container((this.scale.width - 1280 * scale) / 2, (this.scale.height - 720 * scale) / 2).setScale(scale);
     this.layout.add(this.add.image(640, 360, 'settings-background').setDisplaySize(1280, 720));
+    /* === [ 担当 : 250082 武田優人 / 250056 斎藤永聖 ] ===
+     * 処理内容 : 背景・見出し・戻るボタンを配置する
+     * ================================== */
     this.layout.add(this.add.rectangle(640, 360, 1280, 720, 0x071932, .25));
     // 共通の戻るボタンは固定し、設定カード全体に上の余白を設ける。
     const content = this.add.container(0, SETTINGS_CONTENT_OFFSET_Y);
@@ -109,6 +129,9 @@ export class SettingsScene extends Phaser.Scene {
     this.text(content, 153, 88, '✿', 32, '#b8883e');
     this.text(content, 201, 85, '設定', 34).setFontFamily('"Yu Mincho", "MS PMincho", serif');
     const lines = this.add.graphics().lineStyle(1, 0xb1803e);
+    /* === [ 担当 : 250082 武田優人 / 250056 斎藤永聖 / 250116 中村伊安 ] ===
+     * 処理内容 : 設定タブと本文を区切る線・表示領域を用意する
+     * ================================== */
     lines.lineBetween(152, 140, 1126, 140).lineBetween(380, 170, 380, 570);
     content.add(lines);
     TABS.forEach(([tab, label, icon], index) => {
@@ -120,6 +143,9 @@ export class SettingsScene extends Phaser.Scene {
     this.message = this.text(content, 1030, 260, '', 16, '#536044')
       .setWordWrapWidth(190).setAlign('center').setOrigin(.5, 1).setLineSpacing(4);
     this.artButton(this.layout, BACK_BUTTON_POSITION.x, BACK_BUTTON_POSITION.y, 180, 48, '‹  もどる', () => this.closeSettings(false));
+    /* === [ 担当 : 250082 武田優人 / 250056 斎藤永聖 ] ===
+     * 処理内容 : 表示状態と操作フラグを初期化する
+     * ================================== */
     const move = (pointer: Phaser.Input.Pointer): void => { if (pointer.isDown) this.drag?.move(pointer); };
     const release = (): void => { const drag = this.drag; this.drag = undefined; drag?.end(); };
     this.input.on('pointermove', move);
@@ -140,13 +166,16 @@ export class SettingsScene extends Phaser.Scene {
   }
 
   /* === [ 担当 : 250056 斎藤永聖 ] ===
-   * 処理内容 : 設定画面内の文字を共通の書体・解像度で生成し、指定コンテナへ追加する。
+   * 処理内容 : 位置・大きさ・色を指定して文字を生成する
    * ================================== */
   private text(parent: Phaser.GameObjects.Container, x: number, y: number, label: string, size = 22, color = INK): Phaser.GameObjects.Text {
     const text = this.add.text(x, y, label, { fontFamily: '"Yu Gothic", "Meiryo", sans-serif', fontSize: size, fontStyle: 'bold', color, resolution: 2 });
     parent.add(text);
     return text;
   }
+  /* === [ 担当 : 250082 武田優人 / 250056 斎藤永聖 ] ===
+   * 処理内容 : 画像ボタンと押下時の反応を作る
+   * ================================== */
   private artButton(parent: Phaser.GameObjects.Container, x: number, y: number, width: number, height: number, label: string, onClick: () => void, texture = 'settings-button'): Phaser.GameObjects.Image {
     const image = this.add.image(x, y, texture, texture === 'settings-tab' ? 'rect' : undefined).setDisplaySize(width, height).setInteractive({ useHandCursor: true });
     parent.add(image);
@@ -156,10 +185,10 @@ export class SettingsScene extends Phaser.Scene {
     image.on('pointerup', () => { if (!this.leaving) { resumeAudioFromGesture(this); onClick(); } });
     return image;
   }
-  /* === [ 担当 : 250056 斎藤永聖 ] ===
-   * 処理内容 : 選択タブの見た目と内容を更新し、音量・画面設定のタブに保存操作を配置する。
-   * ================================== */
   private renderTab(tab: Tab): void {
+    /* === [ 担当 : 250082 武田優人 / 250056 斎藤永聖 ] ===
+     * 処理内容 : 選択した設定タブを表示する
+     * ================================== */
     if (this.leaving) return;
     this.drag = undefined;
     this.character = undefined;
@@ -186,7 +215,7 @@ export class SettingsScene extends Phaser.Scene {
   }
 
   /* === [ 担当 : 250056 斎藤永聖 ] ===
-   * 処理内容 : 音量スライダー、ミュート、初期値復帰とキャラクターのリアクションを表示する。
+   * 処理内容 : 音量とミュート設定を表示する
    * ================================== */
   private renderSound(): void {
     this.slider('bgmVolume', 'BGM音量', 270, 'bgmUp', 'bgmDown');
@@ -221,7 +250,7 @@ export class SettingsScene extends Phaser.Scene {
     });
   }
   /* === [ 担当 : 250056 斎藤永聖 ] ===
-   * 処理内容 : 指・マウス位置をレイアウト内座標へ変換して音量を0～100%に制限し、試聴反映・数値表示・案内音声を更新する。
+   * 処理内容 : 音量スライダーと操作反応を設定する
    * ================================== */
   private slider(key: 'bgmVolume' | 'seVolume' | 'voiceVolume', name: string, y: number, up: keyof typeof reactionFiles, down: keyof typeof reactionFiles): void {
     const start = 550, width = 285;
@@ -260,7 +289,7 @@ export class SettingsScene extends Phaser.Scene {
   }
 
   /* === [ 担当 : 250056 斎藤永聖 ] ===
-   * 処理内容 : 最大FPSと描画品質を選択し、保存後の再読み込みで反映する設定値を編集する。
+   * 処理内容 : 画質とFPS設定を表示する
    * ================================== */
   private renderDisplay(): void {
     this.text(this.body, 410, 253, '最大FPS', 23);
@@ -281,7 +310,7 @@ export class SettingsScene extends Phaser.Scene {
     // TODO: 表示方法などの追加設定は、この画面設定タブに実装する。
   }
   /* === [ 担当 : 250056 斎藤永聖 ] ===
-   * 処理内容 : 設定タブ、音量調整、保存と取消の操作方法を表示する。
+   * 処理内容 : 操作ガイドを表示する
    * ================================== */
   private renderGuide(): void {
     this.text(this.body, 410, 247, '設定画面の使い方', 23);
@@ -289,8 +318,8 @@ export class SettingsScene extends Phaser.Scene {
       '① 左のタブから設定項目を選びます。\n② 音量はスライダーを左右に動かして調整します。\n③「保存して戻る」で変更を保存します。\n\n「もどる」は、音量の変更を取り消して戻ります。\n音声：VOICEVOX:ずんだもん', 18).setLineSpacing(13);
     // TODO: キー割り当て・タッチ操作などゲーム全体のガイドをここに追加する。
   }
-  /* === [ 担当 : 250056 斎藤永聖 ] ===
-   * 処理内容 : チーム、音声、BGM、効果音、画像素材、制作支援とゲームエンジンのクレジットを表示する。
+  /* === [ 担当 : 250056 斎藤永聖 / 250116 中村伊安 ] ===
+   * 処理内容 : 素材・音声などのクレジットを表示する
    * ================================== */
   private renderCredits(): void {
     this.text(this.body, 410, 245, 'フラワーリンク  − Flower link −', 23);
@@ -311,7 +340,7 @@ export class SettingsScene extends Phaser.Scene {
     ].join('\n'), 16).setLineSpacing(5);
   }
   /* === [ 担当 : 250056 斎藤永聖 ] ===
-   * 処理内容 : 保存済みの利用者名・メールアドレスを表示し、ログアウト操作を配置する。
+   * 処理内容 : アカウント情報とログアウト操作を表示する
    * ================================== */
   private renderAccount(): void {
     let user: { name?: unknown; email?: unknown } | null = null;
@@ -323,7 +352,7 @@ export class SettingsScene extends Phaser.Scene {
     this.artButton(this.body, 996, 492, 240, 58, 'ログアウト', () => { void this.logoutUser(); });
   }
   /* === [ 担当 : 250056 斎藤永聖 ] ===
-   * 処理内容 : 操作に対応するリアクション画像へ切り替え、表示領域に収まる倍率に調整する。
+   * 処理内容 : 操作に応じた案内画像へ切り替える
    * ================================== */
   private react(reaction: keyof typeof reactionFiles): void {
     if (!this.character || !this.textures.exists(`settings-${reaction}`)) return;
@@ -331,11 +360,11 @@ export class SettingsScene extends Phaser.Scene {
     this.character.setScale(Math.min(180 / this.character.width, 270 / this.character.height));
   }
   /* === [ 担当 : 250056 斎藤永聖 ] ===
-   * 処理内容 : 案内メッセージを更新し、対応する音声を再生する。
+   * 処理内容 : 案内文と音声を再生する
    * ================================== */
   private speak(message: string): void { this.message.setText(message); this.voice.speak(message); }
-  /* === [ 担当 : 250056 斎藤永聖 ] ===
-   * 処理内容 : 保存時は設定を書き込み、取消時は元の音量へ戻した後、呼び出し元シーンへ復帰する。
+  /* === [ 担当 : 250082 武田優人 / 250056 斎藤永聖 ] ===
+   * 処理内容 : 設定を反映して元の画面へ戻る
    * ================================== */
   private closeSettings(save: boolean): void {
     if (this.leaving) return;
@@ -346,11 +375,11 @@ export class SettingsScene extends Phaser.Scene {
     this.voice.stop();
     if (save) saveAudioSettings(this, this.audio);
     else applyAudioSettings(this, this.original);
-    if (this.resumeOnClose) { this.scene.resume(this.returnScene); this.scene.stop(); }
-    else this.scene.start(this.returnScene);
+    if (this.resumeOnClose) returnWithLoading(this, this.returnScene);
+    else transitionWithLoading(this, this.returnScene);
   }
-  /* === [ 担当 : 250056 斎藤永聖 ] ===
-   * 処理内容 : 操作を一時停止してログアウトAPIを呼び、成功時はログイン画面へ移動し、失敗時は操作を復旧する。
+  /* === [ 担当 : 250082 武田優人 / 250056 斎藤永聖 ] ===
+   * 処理内容 : ログアウトして認証状態を解除する
    * ================================== */
   private async logoutUser(): Promise<void> {
     if (this.leaving) return;
@@ -363,7 +392,7 @@ export class SettingsScene extends Phaser.Scene {
       this.voice.stop();
       applyAudioSettings(this, this.original);
       for (const scene of this.scene.manager.getScenes(false)) if (scene !== this) this.scene.stop(scene.scene.key);
-      this.scene.start('LoginScene');
+      transitionWithLoading(this, 'LoginScene');
     } catch {
       if (!this.active) return;
       this.leaving = false;

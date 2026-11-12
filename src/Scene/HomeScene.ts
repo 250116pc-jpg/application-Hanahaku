@@ -1,10 +1,8 @@
 /* ==================================
  * 期末テスト提出プログラム
- * 学籍番号: 250056
- * 氏名: 斎藤永聖
- * 担当範囲: 下記の担当コメントを参照（共同制作）
+ * 学籍番号：250082、250056、250116
+ * 氏名：武田優人、斎藤永聖、中村伊安
  * ================================== */
-// 担当：たまおちゃん｜ホーム画面
 import { createSceneFade } from '../utils/ui/scene-fade'
 import Phaser from 'phaser'
 
@@ -30,13 +28,22 @@ import { showDebugSceneName } from '../debug';
 
 
 export class HomeScene extends Phaser.Scene {
+  /* === [ 担当 : 250082 武田優人 ] ===
+   * 処理内容 : 状態・能力値・操作対象を保持する
+   * ================================== */
   private navigate!: (destination: string) => void
   private readonly backgroundKeys = ['bg1', 'bg2', 'bg3', 'bg4']
 
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 初期状態と画面キーを設定する
+   * ================================== */
   constructor() {
     super('HomeScene')
   }
 
+  /* === [ 担当 : 250082 武田優人 / 250116 中村伊安 ] ===
+   * 処理内容 : 使用する画像・音声を読み込む
+   * ================================== */
   preload(): void {
     preloadTitlePetals(this)
     preloadTownMap(this)
@@ -57,6 +64,9 @@ export class HomeScene extends Phaser.Scene {
   }
 
   create(): void {
+    /* === [ 担当 : 250082 武田優人 / 250116 中村伊安 ] ===
+     * 処理内容 : 入力を有効にし、町の現在エリアと位置の保存先を取得する
+     * ================================== */
     this.input.enabled = true
     this.navigate = createSceneFade(this)
     showDebugSceneName(this);
@@ -65,6 +75,9 @@ export class HomeScene extends Phaser.Scene {
     this.registry.set('home-town-area', area.id)
     const positionKey = 'home-town-x-' + area.id
     let mapOpen = false
+    /* === [ 担当 : 250082 武田優人 / 250056 斎藤永聖 / 250116 中村伊安 ] ===
+     * 処理内容 : 画面サイズから配置の拡大率を計算する
+     * ================================== */
     const width = this.scale.width
     const height = this.scale.height
     const scaleX = width / 1280
@@ -76,6 +89,9 @@ export class HomeScene extends Phaser.Scene {
     
     // 背景画像を追加して画面サイズに合わせる
     const bg = this.add.image(width / 2, height / 2, bgKey)
+    /* === [ 担当 : 250082 武田優人 / 250116 中村伊安 ] ===
+     * 処理内容 : 背景を画面に合わせ、次回の背景切り替えを記録する
+     * ================================== */
     bg.setDisplaySize(width, height).setScrollFactor(0)
 
     // タイトルと同じ花びらを、背景の上・主人公とボタンの後ろに表示する。
@@ -92,6 +108,9 @@ export class HomeScene extends Phaser.Scene {
     const ui = this.add.container(0, 0).setScrollFactor(0).setDepth(40)
 
     // 2. 左側の主人公。速度と繰り返し回数はhomeAnimationData.tsで設定する。
+    /* === [ 担当 : 250082 武田優人 ] ===
+     * 処理内容 : ホーム専用の主人公アニメーションを登録する
+     * ================================== */
     homeAnimationNames.forEach(action => {
       const key = 'home-player-' + action
       const data = homeAnimationData[action]
@@ -107,6 +126,9 @@ export class HomeScene extends Phaser.Scene {
         })
       }
     })
+    /* === [ 担当 : 250082 武田優人 / 250116 中村伊安 ] ===
+     * 処理内容 : 保存位置に主人公を配置し、タッチ範囲と待機動作を設定する
+     * ================================== */
     const savedX = Phaser.Math.Clamp(this.registry.get(positionKey) ?? area.spawn, 32, area.width - 32)
     const player = createCharacterSprite(this, savedX * scaleX, 568 * scaleY, 'home-player-idle', 'home-player-idle')
     player.setOrigin(.5, 1).setScale(1.6 * scaleX, 1.6 * scaleY).setDepth(10)
@@ -126,6 +148,9 @@ export class HomeScene extends Phaser.Scene {
       nextPeaceAt = this.time.now + Phaser.Math.Between(8000, 15000)
     }
     resetIdleTime()
+    /* === [ 担当 : 250082 武田優人 / 250116 中村伊安 ] ===
+     * 処理内容 : 無操作時のピース動作と入力による待機時間リセットを設定する
+     * ================================== */
     this.input.on('pointerdown', resetIdleTime)
     const peaceTimer = this.time.addEvent({
       delay: 1000,
@@ -145,6 +170,9 @@ export class HomeScene extends Phaser.Scene {
       }
     })
     // ホームを離れたらタイマーと入力監視を解除する。
+    /* === [ 担当 : 250082 武田優人 / 250116 中村伊安 ] ===
+     * 処理内容 : 主人公タッチ時の移動・ジャンプ・攻撃演出と後片付けを設定する
+     * ================================== */
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       peaceTimer.remove(false)
       this.input.off('pointerdown', resetIdleTime)
@@ -203,6 +231,9 @@ export class HomeScene extends Phaser.Scene {
     })
 
     // 自由移動と建物への移動を同じ更新処理で扱う。キー操作で目的地を変更できる。
+    /* === [ 担当 : 250116 中村伊安 ] ===
+     * 処理内容 : 移動先と到着先の施設を保持し、目的地の表示を解除できるようにする
+     * ================================== */
     const help = '道をタッチ / ← →・A Dで移動 · 出入口をタッチ · Mで街マップ'
     let targetX: number | null = null
     let destination: VillageStop | null = null
@@ -215,6 +246,9 @@ export class HomeScene extends Phaser.Scene {
       marker?.destroy()
       marker = undefined
     }
+    /* === [ 担当 : 250116 中村伊安 ] ===
+     * 処理内容 : 移動先を設定して施設への移動開始と案内を更新する
+     * ================================== */
     const moveTo = (x: number, stop: VillageStop | null = null): void => {
       if (mapOpen || entering || isActing) return
       clearTarget()
@@ -243,6 +277,9 @@ export class HomeScene extends Phaser.Scene {
         this.navigate(stop.scene)
       }
     })
+    /* === [ 担当 : 250116 中村伊安 ] ===
+     * 処理内容 : 方向キー・地面タッチによる自由移動を受け付ける
+     * ================================== */
     status.setText(help).setFontSize(15)
     const keys = this.input.keyboard?.addKeys({
       left: Phaser.Input.Keyboard.KeyCodes.LEFT, right: Phaser.Input.Keyboard.KeyCodes.RIGHT,
@@ -252,6 +289,9 @@ export class HomeScene extends Phaser.Scene {
       if (mapOpen || objects.length || pointer.getDistance() >= 10 || pointer.y < 558 * scaleY || pointer.y > 640 * scaleY) return
       moveTo(this.cameras.main.getWorldPoint(pointer.x, pointer.y).x)
     }
+    /* === [ 担当 : 250116 中村伊安 ] ===
+     * 処理内容 : 主人公を目的地へ移動し、到着・向き・歩行表示と位置保存を更新する
+     * ================================== */
     const movePlayer = (_time: number, delta: number): void => {
       if (mapOpen || entering || isActing || !this.input.enabled || document.hidden) return
       const direction = Number(!!(keys?.right.isDown || keys?.d.isDown)) - Number(!!(keys?.left.isDown || keys?.a.isDown))
@@ -287,6 +327,9 @@ export class HomeScene extends Phaser.Scene {
       }
       if (!travelling || entering) player.play('home-player-idle', true)
     }
+    /* === [ 担当 : 250116 中村伊安 ] ===
+     * 処理内容 : 画面外へフォーカスが移ったときに移動を中断する
+     * ================================== */
     const blur = (): void => {
       if (entering || isActing) return
       clearTarget()
@@ -295,6 +338,9 @@ export class HomeScene extends Phaser.Scene {
       player.play('home-player-idle', true)
     }
     this.input.on('pointerup', groundTap)
+    /* === [ 担当 : 250116 中村伊安 ] ===
+     * 処理内容 : 移動更新と入力監視を登録し、終了時に解除する
+     * ================================== */
     this.events.on(Phaser.Scenes.Events.UPDATE, movePlayer)
     this.game.events.on(Phaser.Core.Events.BLUR, blur)
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
@@ -303,6 +349,9 @@ export class HomeScene extends Phaser.Scene {
       this.game.events.off(Phaser.Core.Events.BLUR, blur)
       Object.values(keys ?? {}).forEach(key => this.input.keyboard?.removeKey(key, true))
     })
+    /* === [ 担当 : 250116 中村伊安 ] ===
+     * 処理内容 : 移動先エリアと出現位置を保存し、主人公を配置・画面を切り替える
+     * ================================== */
     const visitArea = (id: TownAreaId, fromArea?: TownAreaId, position?: number): void => {
       const spawnX = position ?? (fromArea
         ? townAreas[id].stops.find(stop => stop.area === fromArea)?.door
@@ -320,6 +369,9 @@ export class HomeScene extends Phaser.Scene {
       }
       this.navigate('HomeScene')
     }
+    /* === [ 担当 : 250116 中村伊安 ] ===
+     * 処理内容 : 町マップで選んだエリア・施設へ移動する
+     * ================================== */
     const visitMapDestination = (id: TownAreaId, destination: TownMapDestination): void => {
       if (destination.area) visitArea(destination.area, id, destination.x)
       else if (destination.scene) {
@@ -331,6 +383,9 @@ export class HomeScene extends Phaser.Scene {
       }
     }
     let closeMap: (() => void) | undefined
+    /* === [ 担当 : 250082 武田優人 / 250116 中村伊安 ] ===
+     * 処理内容 : 主人公の動作を中断して町マップを開閉する
+     * ================================== */
     const toggleMap = (): void => {
       if (mapOpen) { closeMap?.(); return }
       if (entering || !this.input.enabled) return
@@ -354,6 +409,9 @@ export class HomeScene extends Phaser.Scene {
         status.setText(help)
       })
     }
+    /* === [ 担当 : 250082 武田優人 / 250116 中村伊安 ] ===
+     * 処理内容 : M・Escキーと町マップボタンを接続する
+     * ================================== */
     const escapeMap = (): void => { if (mapOpen) closeMap?.() }
     const mapKey = (event: KeyboardEvent): void => { if (!event.repeat) toggleMap() }
     this.input.keyboard?.on('keydown-M', mapKey)
@@ -363,6 +421,9 @@ export class HomeScene extends Phaser.Scene {
       this.input.keyboard?.off('keydown-ESC', escapeMap)
     })
     setupVillageScroll(this, player, () => travelling, area.width, () => mapOpen || entering)
+    /* === [ 担当 : 250116 中村伊安 ] ===
+     * 処理内容 : 街マップ・設定のボタンを配置し、指定時に街マップを開く
+     * ================================== */
     ui.add(createButton(this, 990 * scaleX, 65 * scaleY, 175, '街マップ', toggleMap,
       { key: 'button1', width: 175, height: 64 }))
     ui.add(createButton(this, 1180 * scaleX, 65 * scaleY, 140, '設定', () => {
@@ -376,6 +437,9 @@ export class HomeScene extends Phaser.Scene {
   }
 
   // 単発・コンボ共通。回転攻撃だけ上昇→落下→着地を追加する。
+  /* === [ 担当 : 250082 武田優人 ] ===
+   * 処理内容 : ホーム専用の攻撃アニメーションを再生する
+   * ================================== */
   private playHomeAttack(
     player: Phaser.GameObjects.Sprite,
     attack: HomeAttackName,

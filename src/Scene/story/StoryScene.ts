@@ -1,4 +1,9 @@
-// 担当：たまおちゃん｜ストーリー画面と会話進行
+/* ==================================
+ * 期末テスト提出プログラム
+ * 学籍番号：250082、250116
+ * 氏名：武田優人、中村伊安
+ * ================================== */
+import { transitionWithLoading } from '../../utils/ui/scene-loading';
 import Phaser from 'phaser';
 
 import backImg from '../../assets/images/background/story/1.jpg';
@@ -12,6 +17,9 @@ import { SCENE_KEYS } from '../sceneKeys';
 //--------------------------------------------------------------
 
 // 1つのセリフの型
+/* === [ 担当 : 250116 中村伊安 ] ===
+ * 処理内容 : 受け渡すデータの型と共通設定を定義する
+ * ================================== */
 interface Dialogue {
   name: string;
   text: string;
@@ -40,6 +48,9 @@ interface StorySceneData {
 
 export class StoryScene extends Phaser.Scene {
   // 現在のセリフ番号
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 状態・能力値・操作対象を保持する
+   * ================================== */
   private currentIndex: number = 0;
   // AUTO再生中か
   private isAuto: boolean = false;
@@ -58,15 +69,24 @@ export class StoryScene extends Phaser.Scene {
   private scenario: Dialogue[] = [];
   private currentChapter = 1;
 
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 初期状態と画面キーを設定する
+   * ================================== */
   constructor() {
     super(SCENE_KEYS.STORY);
   }
 
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 使用する画像・音声を読み込む
+   * ================================== */
   preload(): void {
     this.load.image('Background', backImg);
   }
 
   create(data: StorySceneData = { chapter: 1, stage: 1 }): void {
+    /* === [ 担当 : 250116 中村伊安 ] ===
+     * 処理内容 : 指定章の会話・ログ・自動送り状態を初期化する
+     * ================================== */
     showDebugSceneName(this);
     this.currentChapter = data.chapter;
     this.currentIndex = 0;
@@ -77,9 +97,12 @@ export class StoryScene extends Phaser.Scene {
     const chapterData = this.storyData.find((chapter) => chapter.chapter === data.chapter);
     const stageData = chapterData?.stages.find((stage) => stage.stage === data.stage);
 
+    /* === [ 担当 : 250082 武田優人 / 250116 中村伊安 ] ===
+     * 処理内容 : ボタン操作に応じて画面を切り替える
+     * ================================== */
     if (!stageData) {
       console.error(`シナリオが見つかりません: chapter=${data.chapter}, stage=${data.stage}`);
-      this.scene.start(SCENE_KEYS.SELECT_STAGE, { areaId: data.chapter });
+      transitionWithLoading(this, SCENE_KEYS.SELECT_STAGE, { areaId: data.chapter });
       return;
     }
 
@@ -89,6 +112,9 @@ export class StoryScene extends Phaser.Scene {
     const height = this.scale.height;
 
     // 背景とカメラ設定
+    /* === [ 担当 : 250116 中村伊安 ] ===
+     * 処理内容 : 会話の背景・話者名・セリフ枠を配置する
+     * ================================== */
     createBackground(this, 'Background');
     this.cameras.main.setBackgroundColor('#cfe3f5');
 
@@ -104,6 +130,9 @@ export class StoryScene extends Phaser.Scene {
       .setStrokeStyle(2, 0xffffff, 0.8);
 
     // キャラクター名の背景
+    /* === [ 担当 : 250116 中村伊安 ] ===
+     * 処理内容 : 画像・文字・パネルを配置する
+     * ================================== */
     this.add.rectangle(120, height - 225, 180, 45, 0x536878, 0.95);
 
     // キャラクター名テキスト
@@ -123,6 +152,9 @@ export class StoryScene extends Phaser.Scene {
     // =========================
     // 右上メニュー
     // =========================
+    /* === [ 担当 : 250116 中村伊安 ] ===
+     * 処理内容 : スキップ・自動送り・終了のメニューボタンを配置する
+     * ================================== */
     const skipButton = this.createMenuButton(width - 300, 45, 'SKIP');
     const logButton = this.createMenuButton(width - 210, 45, 'LOG');
     const autoButton = this.createMenuButton(width - 120, 45, 'AUTO');
@@ -132,6 +164,9 @@ export class StoryScene extends Phaser.Scene {
     skipButton.on('pointerdown', () => this.openSkipPopup());
     logButton.on('pointerdown', () => this.openLogPopup());
     autoButton.on('pointerdown', () => this.toggleAuto());
+    /* === [ 担当 : 250116 中村伊安 ] ===
+     * 処理内容 : 会話送り・ログ表示・終了操作のイベントを接続する
+     * ================================== */
     exitButton.on('pointerdown', () => this.openExitPopup());
 
     // =========================
@@ -152,6 +187,9 @@ export class StoryScene extends Phaser.Scene {
   // ==================================================
   // メニューボタン作成
   // ==================================================
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 会話画面のメニューボタンを作る
+   * ================================== */
   private createMenuButton(x: number, y: number, text: string): Phaser.GameObjects.Text {
     return this.add.text(x, y, text, getTextStyle(18, {
       color: '#ffffff',
@@ -168,6 +206,9 @@ export class StoryScene extends Phaser.Scene {
   // ==================================================
   // シナリオ表示
   // ==================================================
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 現在の話者とセリフを表示し、会話ログへ追加する
+   * ================================== */
   private showScenario(): void {
     const data = this.scenario[this.currentIndex];
 
@@ -186,6 +227,9 @@ export class StoryScene extends Phaser.Scene {
   // ==================================================
   // 次のセリフ
   // ==================================================
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 次のセリフへ進み、終端なら次の画面へ移る
+   * ================================== */
   private nextScenario(): void {
     if (this.currentIndex >= this.scenario.length - 1) {
       this.finishScenario();
@@ -199,6 +243,9 @@ export class StoryScene extends Phaser.Scene {
   // ==================================================
   // AUTO
   // ==================================================
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 会話の自動送りを切り替える
+   * ================================== */
   private toggleAuto(): void {
     this.isAuto = !this.isAuto;
 
@@ -219,6 +266,9 @@ export class StoryScene extends Phaser.Scene {
   // ==================================================
   // シナリオ終了
   // ==================================================
+  /* === [ 担当 : 250082 武田優人 / 250116 中村伊安 ] ===
+   * 処理内容 : 会話を終了して次の画面へ進む
+   * ================================== */
   private finishScenario(): void {
     this.isAuto = false;
 
@@ -228,27 +278,36 @@ export class StoryScene extends Phaser.Scene {
     }
 
     // 次の画面へ
-    this.scene.start(SCENE_KEYS.SELECT_STAGE, { areaId: this.currentChapter });
+    transitionWithLoading(this, SCENE_KEYS.SELECT_STAGE, { areaId: this.currentChapter });
   }
 
   // ==================================================
   // SKIP / EXIT 確認
   // ==================================================
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : ストーリーをスキップするか確認する
+   * ================================== */
   private openSkipPopup(): void {
     this.openConfirmPopup('シナリオをスキップしますか？', () => {
       this.finishScenario();
     });
   }
 
+  /* === [ 担当 : 250082 武田優人 / 250116 中村伊安 ] ===
+   * 処理内容 : ストーリー終了の確認を表示する
+   * ================================== */
   private openExitPopup(): void {
     this.openConfirmPopup('シナリオを終了しますか？', () => {
-      this.scene.start(SCENE_KEYS.HOME);
+      transitionWithLoading(this, SCENE_KEYS.HOME);
     });
   }
 
   // ==================================================
   // 確認ポップアップ（汎用）
   // ==================================================
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 確認ダイアログを表示する
+   * ================================== */
   private openConfirmPopup(message: string, onYes: () => void): void {
     const width = this.scale.width;
     const height = this.scale.height;
@@ -302,6 +361,9 @@ export class StoryScene extends Phaser.Scene {
   // ==================================================
   // LOG ポップアップ
   // ==================================================
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 会話ログを表示する
+   * ================================== */
   private openLogPopup(): void {
     const width = this.scale.width;
     const height = this.scale.height;

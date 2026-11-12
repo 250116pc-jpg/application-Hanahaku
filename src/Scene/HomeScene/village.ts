@@ -1,3 +1,8 @@
+/* ==================================
+ * 期末テスト提出プログラム
+ * 学籍番号：250116
+ * 氏名：中村伊安
+ * ================================== */
 import Phaser from 'phaser'
 import house1 from '../../assets/stage/MedievalHousesFree/MedievalHousesFree/House_1.png'
 import house2 from '../../assets/stage/MedievalHousesFree/MedievalHousesFree/House_2.png'
@@ -6,6 +11,9 @@ import props from '../../assets/stage/Cainos/Pixel Art Platformer - Village Prop
 import type { TownArea, VillageStop } from './townAreas'
 import { prepareTownProps, drawTownGround, drawTownFeature, drawInteractiveProp } from './townScenery'
 
+/* === [ 担当 : 250116 中村伊安 ] ===
+ * 処理内容 : 村の表示部品を定義する
+ * ================================== */
 export const villageAssets = { 'home-house1': house1, 'home-house2': house2, 'home-tavern': tavern, 'home-props': props }
 
 // 素材の透明な余白を除いたフレーム。元の画像ファイルは変更しない。
@@ -29,6 +37,9 @@ export function trimFrame(scene: Phaser.Scene, key: string, frame = 'building', 
   texture.setFilter(Phaser.Textures.FilterMode.NEAREST)
 }
 
+/* === [ 担当 : 250116 中村伊安 ] ===
+ * 処理内容 : 村の画像と施設を配置する
+ * ================================== */
 export function createVillage(scene: Phaser.Scene, area: TownArea, select: (stop: VillageStop) => void): Phaser.GameObjects.Text {
   const sx = scene.scale.width / 1280, sy = scene.scale.height / 720
   const world = scene.add.container(0, 0).setScale(sx, sy)
@@ -81,6 +92,9 @@ export function createVillage(scene: Phaser.Scene, area: TownArea, select: (stop
 }
 
 // スワイプとホイールで見渡し、移動中だけ主人公を追う。
+/* === [ 担当 : 250116 中村伊安 ] ===
+ * 処理内容 : 村の表示範囲とスクロール操作を設定する
+ * ================================== */
 export function setupVillageScroll(scene: Phaser.Scene, player: Phaser.GameObjects.Sprite, travelling: () => boolean, worldWidth: number, blocked: () => boolean): void {
   const camera = scene.cameras.main
   const sx = scene.scale.width / 1280

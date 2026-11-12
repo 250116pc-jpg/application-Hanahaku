@@ -1,4 +1,8 @@
-// 担当：たまおちゃん｜アニメーション・homeAnimationData
+/* ==================================
+ * 期末テスト提出プログラム
+ * 学籍番号：250082
+ * 氏名：武田優人
+ * ================================== */
 import win from '../assets/characters/player/Red Cape Knight Character Asset/Player_Red sheets/Red_win.png';
 import run from '../assets/characters/player/Red Cape Knight Character Asset/Player_Red sheets/Red_Running.png';
 import jump from '../assets/characters/player/Red Cape Knight Character Asset/Player_Red sheets/Red_jumping.png';
@@ -14,6 +18,9 @@ import spinAttack from '../assets/characters/player/Red Cape Knight Character As
 
 // ホーム専用。attackが付く画像を個別に読み込み、戦闘用の定義とは分離する。
 // 1コマ192×128。frameRateで速度、repeatで繰り返し回数を調整する。
+/* === [ 担当 : 250082 武田優人 ] ===
+ * 処理内容 : ホーム専用アニメーション定義を定義する
+ * ================================== */
 export const homeAnimationData = {
   // 待機中だけのピース動作。クリック時の抽選候補には含めない。
   win: { image: win, frameWidth: 192, frameHeight: 128, frameCount: 5, frameRate: 8, repeat: 0, yoyo: true },

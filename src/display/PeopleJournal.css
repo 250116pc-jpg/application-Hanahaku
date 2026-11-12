@@ -1,28 +1,39 @@
 /* ==================================
  * 期末テスト提出プログラム
- * 学籍番号: 250056
- * 氏名: 斎藤永聖
- * 担当範囲: 下記の担当コメントを参照（共同制作）
+ * 学籍番号：250056
+ * 氏名：斎藤永聖
  * ================================== */
 /* === [ 担当 : 250056 斎藤永聖 ] ===
- * 処理内容 : 人物録の古い紙、一覧・詳細、暗幕と縦開閉時の紙裏・文字の切り抜きを定義する。
+ * 処理内容 : 画面・パネルの背景と共通レイアウトを整える
  * ================================== */
 .people-journal { width:min(82vw,760px); max-height:85dvh; box-sizing:border-box; padding:clamp(12px,3vh,32px); border:3px double #866943; color:#442e20; background:linear-gradient(90deg,#f5e7c9 48%,#d7bf96 50%,#f5e7c9 52%); }
 .people-journal[open] { display:grid; grid-template-columns:1fr 1fr; gap:0 8%; }
 .people-journal::backdrop { background:rgb(9 13 16 / 67%); }
 .people-journal nav { display:grid; gap:4px; }
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 操作ボタンの外観と反応を整える
+ * ================================== */
 .people-journal button,.people-journal-link { font:inherit; color:#583d29; background:transparent; border:0; cursor:pointer; }
 .people-journal nav button { text-align:left; border-bottom:1px solid #bca481; min-height:32px; }
 .people-journal button[aria-pressed=true],.people-journal-link { text-decoration:underline; text-underline-offset:3px; }
 .people-journal button:disabled { font:italic 1em 'UD Digi Kyokasho NP-R','Klee',cursive; color:#806b50; cursor:default; }
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 画面・パネルの背景と共通レイアウトを整える
+ * ================================== */
 .people-journal h2,.people-journal h3 { margin:.3em 0; }
 .people-journal img { max-height:26dvh; max-width:100%; object-fit:contain; }
 .people-journal footer { grid-column:1/-1; text-align:right; padding-inline-end:8px; transform:translateY(-4px); }
 .people-journal-link { margin-inline-start:.6em; font-size:.7em; }
 
 .people-journal-link { position:relative; isolation:isolate; display:inline-flex; align-items:center; vertical-align:middle; min-height:32px; padding:.2em .8em; font-family:'UD Digi Kyokasho NP-R',serif; font-size:clamp(12px,1.2vw,18px); text-decoration:none; }
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 本とページの見た目・重なりを整える
+ * ================================== */
 .people-note-paper { position:absolute; inset:0; z-index:-1; display:grid; grid-template:repeat(3,1fr) / 1fr 2fr 1fr; pointer-events:none; transform:rotate(-3deg); filter:drop-shadow(1px 1px 1px #50381b66); }
 .people-note-paper img { width:100%;height:100%;min-height:0;min-width:0;image-rendering:pixelated; }
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 画面・パネルの背景と共通レイアウトを整える
+ * ================================== */
 .people-journal-link.with-portrait { gap:.3em; padding-inline:.2em; }
 .people-journal-link.with-portrait::before { content:''; width:30px;height:32px; background:url('../assets/characters/1003/1003_3.png') center 8% / 115% auto no-repeat,url('../assets/people-journal/portrait.png') center / 100% 100%; border:2px solid #8d713e; image-rendering:pixelated; }
 

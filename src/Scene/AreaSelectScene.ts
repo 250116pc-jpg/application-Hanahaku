@@ -1,4 +1,9 @@
-﻿// 担当：たまおちゃん｜エリア選択画面
+/* ==================================
+ * 期末テスト提出プログラム
+ * 学籍番号：250082、250116
+ * 氏名：武田優人、中村伊安
+ * ================================== */
+import { transitionWithLoading } from '../utils/ui/scene-loading';
 import Phaser from 'phaser';
 import backgroundImage from '../assets/ui/eria_back.png';
 import buttonImage from '../assets/ui/eria_btn.png';
@@ -6,6 +11,9 @@ import { preloadBackButton, createBackButton, applySmoothDisplay, smoothText, ge
 import { SCENE_KEYS } from './sceneKeys';
 import { navigateToTownMap } from './HomeScene/townMapNavigation'
 
+/* === [ 担当 : 250082 武田優人 ] ===
+ * 処理内容 : エリア選択・仮解放を定義する
+ * ================================== */
 type AreaInfo = { id: number; name: string; description: string; x: number; y: number; unlocked: boolean; difficulty: string };
 
 // 【素材の切り出し】配列は元画像上の [左端X, 上端Y, 幅, 高さ]。
@@ -22,6 +30,9 @@ const FRAMES: Record<string, [number, number, number, number]> = {
 
 export class AreaSelectScene extends Phaser.Scene {
   // 【エリア情報】配置座標は背景の1672×941基準。解放状態は再読み込みでリセット。
+  /* === [ 担当 : 250082 武田優人 / 250116 中村伊安 ] ===
+   * 処理内容 : 状態・能力値・操作対象を保持する
+   * ================================== */
   private readonly areas: AreaInfo[] = [
     { id: 1, name: 'Village 1', description: '開けた花畑の入り口。', x: 303, y: 333, unlocked: false, difficulty: 'Easy' },
     { id: 2, name: 'Village 2', description: '小さな広場と整備された道。', x: 575, y: 330, unlocked: false, difficulty: 'Easy' },
@@ -41,9 +52,15 @@ export class AreaSelectScene extends Phaser.Scene {
   private markers: Phaser.GameObjects.Image[] = [];
   private confirmButton!: Phaser.GameObjects.Image;
 
+  /* === [ 担当 : 250082 武田優人 ] ===
+   * 処理内容 : 初期状態と画面キーを設定する
+   * ================================== */
   constructor() { super(SCENE_KEYS.AREA_SELECT); }
 
   // 【画像の読み込み】元の画像を加工せずフレームとして切り出して使う。
+  /* === [ 担当 : 250082 武田優人 / 250116 中村伊安 ] ===
+   * 処理内容 : 使用する画像・音声を読み込む
+   * ================================== */
   preload(): void {
     this.load.image('area-background', backgroundImage);
     this.load.image('area-buttons', buttonImage);
@@ -51,6 +68,9 @@ export class AreaSelectScene extends Phaser.Scene {
   }
 
   create(): void {
+    /* === [ 担当 : 250082 武田優人 / 250116 中村伊安 ] ===
+     * 処理内容 : クリック・キー操作と終了時の後片付けを設定する
+     * ================================== */
     this.prepareTextures();
     // 【画面全体の配置】背景とUIの縦横比を保ち、ゲーム画面に収める。
     const scale = Math.min(this.scale.width / 1672, this.scale.height / 941);
@@ -70,6 +90,9 @@ export class AreaSelectScene extends Phaser.Scene {
 
     // 【右側の詳細】引数は中心X・中心Y・文字・文字サイズ・色・折り返し幅。
     this.areaNameText = this.addLabel(1355, 330, '', 58);
+    /* === [ 担当 : 250082 武田優人 ] ===
+     * 処理内容 : 選択エリアの詳細と現在地確認・ステージ移動の操作を配置する
+     * ================================== */
     this.statusBackground = this.add.rectangle(1355, 392, 184, 40, 0x555555).setStrokeStyle(3, 0xc7a25b);
     this.layout.add(this.statusBackground);
     this.statusText = this.addLabel(1355, 392, '', 27, '#fff8df');
@@ -79,18 +102,24 @@ export class AreaSelectScene extends Phaser.Scene {
 
     this.addImageButton('location', 1340, 105, 380, 97, () => this.checkCurrentLocation());
     // 共通の高さを使い、背景に描かれた見出しの右に置く。
+    /* === [ 担当 : 250082 武田優人 / 250116 中村伊安 ] ===
+     * 処理内容 : ボタン操作に応じて画面を切り替える
+     * ================================== */
     createBackButton(this,
       { width: 180, height: 55, fontSize: 23 },
       () => navigateToTownMap(this)
     ).setX(560);
     this.confirmButton = this.addImageButton('confirm', 1355, 714, 455, 96, () => {
       const area = this.areas.find(item => item.id === this.selectedAreaId);
-      if (area?.unlocked) this.scene.start(SCENE_KEYS.SELECT_STAGE, { areaId: area.id, areaName: area.name });
+      if (area?.unlocked) transitionWithLoading(this, SCENE_KEYS.SELECT_STAGE, { areaId: area.id, areaName: area.name });
     });
     this.selectArea(this.selectedAreaId);
   }
 
   // 【画像と画質】各部品の切り出し範囲を登録。Canvasは退出時に元の設定へ戻す。
+  /* === [ 担当 : 250082 武田優人 ] ===
+   * 処理内容 : 表示に使う画像・アニメーションを用意する
+   * ================================== */
   private prepareTextures(): void {
     const texture = this.textures.get('area-buttons');
     Object.entries(FRAMES).forEach(([name, [x, y, width, height]]) => {
@@ -100,6 +129,9 @@ export class AreaSelectScene extends Phaser.Scene {
   }
  
   // 【文字の配置】書体・色の基本設定はutils/ui/styles.tsを使用する。
+  /* === [ 担当 : 250082 武田優人 ] ===
+   * 処理内容 : エリア名や説明を指定した位置と書式で表示する
+   * ================================== */
   private addLabel(x: number, y: number, text: string, size: number, color = '#171710', wrapWidth?: number): Phaser.GameObjects.Text {
     const label = smoothText(this.add.text(x, y, text, getHeadingTextStyle(size, {
       color, wordWrap: wrapWidth ? { width: wrapWidth } : undefined
@@ -108,6 +140,9 @@ export class AreaSelectScene extends Phaser.Scene {
     return label;
   }
 
+  /* === [ 担当 : 250082 武田優人 / 250116 中村伊安 ] ===
+   * 処理内容 : 表示に使う画像・アニメーションを用意する
+   * ================================== */
   private addImageButton(frame: string, x: number, y: number, width: number, height: number, onClick: () => void): Phaser.GameObjects.Image {
     const button = this.add.image(x, y, 'area-buttons', frame).setDisplaySize(width, height).setInteractive({ useHandCursor: true });
     button.on('pointerover', () => button.setTint(0xffe6ba));
@@ -118,6 +153,9 @@ export class AreaSelectScene extends Phaser.Scene {
   }
 
   // 【現在地確認】位置情報判定を追加する入口。
+  /* === [ 担当 : 250082 武田優人 / 250116 中村伊安 ] ===
+   * 処理内容 : エリアの解放操作を処理する
+   * ================================== */
   private checkCurrentLocation(): void {
     const area = this.areas.find(item => item.id === this.selectedAreaId);
     if (!area) return;
@@ -128,6 +166,9 @@ export class AreaSelectScene extends Phaser.Scene {
   }
 
   // 【選択表示の更新】詳細・解放状態・遷移可否・番号画像をまとめて更新。
+  /* === [ 担当 : 250082 武田優人 ] ===
+   * 処理内容 : エリアを選択して詳細を更新する
+   * ================================== */
   private selectArea(id: number): void {
     const area = this.areas.find(item => item.id === id);
     if (!area) return;

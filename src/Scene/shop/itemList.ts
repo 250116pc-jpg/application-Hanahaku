@@ -1,7 +1,14 @@
-// 担当：たまおちゃん｜ショップ機能・itemList
+/* ==================================
+ * 期末テスト提出プログラム
+ * 学籍番号：250116
+ * 氏名：中村伊安
+ * ================================== */
 import type { ShopItem } from './types'
 import { getShopItemImageKey } from './assets'
 
+/* === [ 担当 : 250116 中村伊安 ] ===
+ * 処理内容 : 商品一覧生成を定義する
+ * ================================== */
 export const SHOP_LIST_BOUNDS = { x: 52, y: 194, width: 528, height: 454 } as const
 const CARD_WIDTH = 160
 const CARD_HEIGHT = 168
@@ -11,6 +18,9 @@ const ITEMS_PER_ROW = 3
 const START_X = 138
 const START_Y = 280
 
+/* === [ 担当 : 250116 中村伊安 ] ===
+ * 処理内容 : 商品一覧を作る
+ * ================================== */
 export function createShopItemList(
   scene: Phaser.Scene,
   shopContainer: Phaser.GameObjects.Container,
@@ -95,6 +105,9 @@ export function createShopItemList(
 
 }
 
+/* === [ 担当 : 250116 中村伊安 ] ===
+ * 処理内容 : 商品数から一覧のスクロール上限を計算する
+ * ================================== */
 export function getMaxShopScroll(itemCount: number) {
   const rowCount = Math.ceil(itemCount / ITEMS_PER_ROW)
   const contentBottom = START_Y + CARD_HEIGHT / 2 + Math.max(0, rowCount - 1) * (CARD_HEIGHT + CARD_GAP_Y)

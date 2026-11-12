@@ -6,7 +6,7 @@
 - `buttons.ts`：従来の文字・矩形・画像付きボタン。
 - `dialogs.ts`：撤退確認。
 - `scene-frame.ts`：育成・キャラ詳細で使う従来の画面枠。
-- `area-select.ts`：旧エリア選択用の円形ボタン・詳細パネル。現在の画像版では未使用。
+- 旧 `area-select.ts` は削除済み。エリア選択UIは `src/Scene/AreaSelectScene.ts` を使用する。
 - `index.ts`：上記の公開窓口。Sceneからは `../utils/ui` で読み込める。
 
 画面固有の座標・サイズ・素材の切り出し範囲・遷移先はScene側に置く。

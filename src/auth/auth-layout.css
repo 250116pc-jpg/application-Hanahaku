@@ -1,11 +1,10 @@
 /* ==================================
  * 期末テスト提出プログラム
- * 学籍番号: 250056
- * 氏名: 斎藤永聖
- * 担当範囲: 下記の担当コメントを参照（共同制作）
+ * 学籍番号：250056
+ * 氏名：斎藤永聖
  * ================================== */
 /* === [ 担当 : 250056 斎藤永聖 ] ===
- * 処理内容 : ログイン・登録画面の共通背景、フォーム、入力欄、エラー表示とレスポンシブ配置を定義する。
+ * 処理内容 : 画面・パネルの背景と共通レイアウトを整える
  * ================================== */
 .flower-auth-screen {
   position: fixed; inset: 0; z-index: 20; overflow-y: auto; box-sizing: border-box;
@@ -21,10 +20,25 @@
 }
 .flower-auth-panel h1 { margin: 0; text-align: center; font: bold 29px "Yu Mincho", "Meiryo", serif; }
 .auth-flourish { text-align: center; color: #9d7639; margin: 5px auto 16px; border-bottom: 1px solid #bda16e; padding-bottom: 6px; width: 65%; }
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 説明文と見出しの表示を整える
+ * ================================== */
 .flower-auth-form label { display: block; font-weight: bold; font-size: 14px; margin: 12px 0 5px; }
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 入力欄とフォームの配置を整える
+ * ================================== */
 .flower-auth-form input { display: block; box-sizing: border-box; width: 100%; height: 40px; margin-top: 5px; border: 2px solid #71684f; border-radius: 5px; padding: 7px 12px; color: #203347; background: #fff9edb3; font: 16px "Meiryo", sans-serif; }
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 画面・パネルの背景と共通レイアウトを整える
+ * ================================== */
 .auth-password-field { position: relative; }
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 入力欄とフォームの配置を整える
+ * ================================== */
 .auth-password-field input { padding-right: 58px; }
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 操作ボタンの外観と反応を整える
+ * ================================== */
 .flower-auth-screen button { font-family: inherit; cursor: pointer; }
 .flower-auth-form button[type="submit"], .auth-back {
   display: block; border: 0; background: var(--auth-button) center / contain no-repeat;
@@ -33,25 +47,55 @@
 .flower-auth-form button[type="submit"] { box-sizing: border-box; width: min(240px, 100%); height: auto; aspect-ratio: 798 / 226; padding: 0; margin: 8px auto; font-size: 22px; }
 .flower-auth-screen button:disabled { opacity: .55; cursor: wait; }
 .flower-auth-screen button:hover:not(:disabled) { filter: brightness(1.12); }
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 画面・パネルの背景と共通レイアウトを整える
+ * ================================== */
 .auth-back { position: fixed; bottom: 12px; left: 18px; width: 150px; height: 50px; font-size: 17px; }
 .auth-password-toggle { position: absolute; right: 3px; top: 2px; height: 36px; width: 50px; padding: 0; border: 0; background: transparent; color: #33465a; font-size: 13px; }
 .auth-route-link { display: block; margin: 12px auto 0; padding: 8px; border: 0; background: transparent; color: #253449; text-decoration: underline; text-underline-offset: 5px; font-size: 15px; font-weight: bold; }
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 説明文と見出しの表示を整える
+ * ================================== */
 .flower-auth-form .register-message { margin: 10px 0 0; min-height: 0; font-size: 13px; line-height: 1.5; }
 .flower-auth-form .register-message:empty { display: none; }
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 画面・パネルの背景と共通レイアウトを整える
+ * ================================== */
 .auth-google-option { text-align: center; margin: 10px 0 0; font-size: 13px; }
 .auth-google-option summary { cursor: pointer; padding: 7px 0; }
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 操作ボタンの外観と反応を整える
+ * ================================== */
 .flower-auth-form .google-signin-button.is-unavailable { width: 100%; }
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 入力欄とフォームの配置を整える
+ * ================================== */
 .flower-auth-form .google-auth-area { margin-top: 10px; overflow-x: clip; }
 .flower-auth-form .google-auth-hint { font-size: 12px; overflow-wrap: anywhere; }
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 操作ボタンの外観と反応を整える
+ * ================================== */
 .flower-auth-form .google-signin-button { width: 100%; min-width: 0; }
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 画面・パネルの背景と共通レイアウトを整える
+ * ================================== */
 .flower-auth-screen :focus-visible { outline: 3px solid #376a94; outline-offset: 3px; }
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 画面サイズなどの条件に合わせて表示を調整する
+ * ================================== */
 @media (max-width: 480px) {
   .flower-auth-screen { padding: 18px 12px 72px; }
   .flower-auth-panel { padding: 22px 18px 16px; }
 }
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 画面サイズなどの条件に合わせて表示を調整する
+ * ================================== */
 @media (max-height: 600px) { .flower-auth-screen { padding-top: 16px; } .flower-auth-panel { margin: 0; } }
 
 /* Compact forms retain full-sized inputs and scroll above the mobile keyboard. */
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 画面サイズなどの条件に合わせて表示を調整する
+ * ================================== */
 @media (max-width: 600px) {
   .flower-auth-screen { padding: 10px 10px 12px; }
   .flower-auth-panel { padding: 14px 18px 12px; flex-shrink: 0; }
@@ -66,6 +110,9 @@
   .auth-route-link { margin-top: 4px; min-height: 44px; }
   .auth-back { position: static; flex-shrink: 0; margin: 10px auto 0; }
 }
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 画面サイズなどの条件に合わせて表示を調整する
+ * ================================== */
 @media (orientation: landscape) and (max-height: 600px) {
   .flower-auth-screen { padding: 8px 12px; }
   .flower-auth-panel { width: min(760px, 100%); padding: 10px 22px; }
@@ -81,4 +128,7 @@
   .auth-back { position: static; flex-shrink: 0; margin: 8px auto 0; }
 }
 
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 操作ボタンの外観と反応を整える
+ * ================================== */
 .flower-auth-form .google-signin-button.is-unavailable + .google-auth-hint { display: none; }

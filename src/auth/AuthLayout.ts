@@ -1,23 +1,22 @@
-﻿/* ==================================
+/* ==================================
  * 期末テスト提出プログラム
- * 学籍番号: 250056
- * 氏名: 斎藤永聖
- * 担当範囲: 下記の担当コメントを参照（共同制作）
+ * 学籍番号：250082、250056
+ * 氏名：武田優人、斎藤永聖
  * ================================== */
-// 担当：たまおちゃん｜認証機能・AuthLayout
+import { transitionWithLoading } from '../utils/ui/scene-loading';
 import Phaser from 'phaser';
 import buttonImage from '../assets/ui/button1.png';
 import backgroundImage from '../assets/images/background/auth-meadow.png';
 import './auth-layout.css';
 
 // Native inputs remain usable with touch keyboards and browser password managers.
-/* === [ 担当 : 250056 斎藤永聖 ] ===
- * 処理内容 : 認証画面共通のDOMレイアウトを生成し、パスワード表示切替や戻る操作と破棄処理を提供する。
- * ================================== */
 export function mountAuthLayout(
   scene: Phaser.Scene, form: HTMLFormElement, title: string, link: string, target: string,
   onNavigate?: (destination: string) => void
 ): { destroy: () => void } {
+  /* === [ 担当 : 250082 武田優人 / 250056 斎藤永聖 ] ===
+   * 処理内容 : 画像・文字・パネルを配置する
+   * ================================== */
   const root = document.createElement('section');
   root.className = 'flower-auth-screen';
   root.setAttribute('aria-label', title);
@@ -26,6 +25,9 @@ export function mountAuthLayout(
   const panel = document.createElement('div');
   panel.className = 'flower-auth-panel';
   const heading = document.createElement('h1');
+  /* === [ 担当 : 250056 斎藤永聖 ] ===
+   * 処理内容 : 認証フォームの見出しと装飾を配置する
+   * ================================== */
   heading.textContent = title;
   panel.append(heading);
   const flourish = document.createElement('div');
@@ -36,6 +38,9 @@ export function mountAuthLayout(
   const google = form.querySelector('.google-auth-area');
   const separator = form.querySelector('.auth-separator');
   separator?.remove();
+  /* === [ 担当 : 250056 斎藤永聖 ] ===
+   * 処理内容 : 画像・文字・パネルを配置する
+   * ================================== */
   if (google) {
     const googleSection = document.createElement('details');
     googleSection.className = 'auth-google-option';
@@ -45,6 +50,9 @@ export function mountAuthLayout(
     googleSection.append(summary, google);
     form.append(googleSection);
   }
+  /* === [ 担当 : 250056 斎藤永聖 ] ===
+   * 処理内容 : クリック・キー操作と終了時の後片付けを設定する
+   * ================================== */
   form.querySelectorAll<HTMLInputElement>('input[type="password"]').forEach((input, index) => {
     input.id = `${scene.scene.key}-password-${index}`;
     const label = input.closest('label');
@@ -70,16 +78,25 @@ export function mountAuthLayout(
     });
     field.append(toggle);
   });
-  const navigate = onNavigate ?? ((destination: string): void => { scene.scene.start(destination); });
+  /* === [ 担当 : 250082 武田優人 / 250056 斎藤永聖 ] ===
+   * 処理内容 : 登録・ログイン画面を切り替える操作を接続する
+   * ================================== */
+  const navigate = onNavigate ?? ((destination: string): void => { transitionWithLoading(scene, destination); });
   const next = document.createElement('button');
   next.type = 'button'; next.className = 'auth-route-link'; next.textContent = `${link} ›`;
   next.addEventListener('click', () => navigate(target));
   panel.append(form, next);
+  /* === [ 担当 : 250056 斎藤永聖 ] ===
+   * 処理内容 : 画像・文字・パネルを配置する
+   * ================================== */
   const back = document.createElement('button');
   back.type = 'button'; back.className = 'auth-back'; back.textContent = '‹ もどる';
   back.addEventListener('click', () => navigate('TitleScene'));
   root.append(panel, back);
   document.body.append(root);
+  /* === [ 担当 : 250056 斎藤永聖 ] ===
+   * 処理内容 : 画面終了時にフォームと入力イベントを取り除く
+   * ================================== */
   const destroy = (): void => {
     root.remove();
     scene.events.off(Phaser.Scenes.Events.SHUTDOWN, destroy);

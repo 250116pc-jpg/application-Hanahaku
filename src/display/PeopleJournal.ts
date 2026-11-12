@@ -1,15 +1,13 @@
 /* ==================================
  * 期末テスト提出プログラム
- * 学籍番号: 250056
- * 氏名: 斎藤永聖
- * 担当範囲: 下記の担当コメントを参照（共同制作）
+ * 学籍番号：250056
+ * 氏名：斎藤永聖
  * ================================== */
-// 担当：たまおちゃん｜画面表示・設定・PeopleJournal
 import shopkeeper from '../assets/characters/1003/1003_3.png'
 import './PeopleJournal.css'
 
 /* === [ 担当 : 250056 斎藤永聖 ] ===
- * 処理内容 : ユーザーIDまたはメールアドレスから、利用者ごとのショップ訪問記録キーを生成する。
+ * 処理内容 : ユーザーごとのショップ訪問記録の保存キーを作る
  * ================================== */
 function visitKey(): string {
   const user = JSON.parse(localStorage.getItem('hanahakuCurrentUser') ?? 'null')
@@ -17,16 +15,16 @@ function visitKey(): string {
 }
 
 /* === [ 担当 : 250056 斎藤永聖 ] ===
- * 処理内容 : ショップを訪問したことを保存し、人物録の店主解放に利用する。
+ * 処理内容 : ショップの訪問記録を保存する
  * ================================== */
 export function recordShopVisit(): void {
   try { localStorage.setItem(visitKey(), '1') } catch { /* Storage can be unavailable. */ }
 }
 
-/* === [ 担当 : 250056 斎藤永聖 ] ===
- * 処理内容 : 人物一覧・詳細・未記録表示を生成し、訪問済みの店主のみ表示可能にして人物録を開く。
- * ================================== */
 export function openPeopleJournal(parent: HTMLElement): void {
+  /* === [ 担当 : 250056 斎藤永聖 ] ===
+   * 処理内容 : 人物手帳を表示する
+   * ================================== */
   let metShopkeeper = false
   try { metShopkeeper = localStorage.getItem(visitKey()) === '1' } catch { /* Guest preview. */ }
   const dialog = document.createElement('dialog')
@@ -44,6 +42,9 @@ export function openPeopleJournal(parent: HTMLElement): void {
     { name: 'リューン', role: '花屋の店主', note: 'ショップで旅に使う道具を扱っている。', known: metShopkeeper },
     { known: false }, { known: false }
   ]
+  /* === [ 担当 : 250056 斎藤永聖 ] ===
+   * 処理内容 : クリック・キー操作と終了時の後片付けを設定する
+   * ================================== */
   for (const person of people) {
     const entry = document.createElement('button')
     entry.type = 'button'
@@ -68,13 +69,13 @@ export function openPeopleJournal(parent: HTMLElement): void {
     }
   }
   // Sample the same hinge positions in reverse when the journal closes.
+  /* === [ 担当 : 250056 斎藤永聖 ] ===
+   * 処理内容 : 本の開閉を角度ごとの描画でアニメーション表示する
+   * ================================== */
   const angles = [0, 24, 47, 69, 88, 110, 134, 158, 180]
   let timer: ReturnType<typeof setTimeout> | undefined
   let frame = 0
   let closing = false
-  /* === [ 担当 : 250056 斎藤永聖 ] ===
-   * 処理内容 : 9段階の角度から紙の投影と切り抜き範囲を算出し、文字のはみ出しを防ぎながら縦方向の開閉を再生する。
-   * ================================== */
   function fold(direction: 1 | -1): void {
     clearTimeout(timer)
     if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
@@ -105,14 +106,14 @@ export function openPeopleJournal(parent: HTMLElement): void {
       fold(direction)
     }, 43)
   }
-  /* === [ 担当 : 250056 斎藤永聖 ] ===
-   * 処理内容 : 閉じる操作の重複を防ぎ、紙のコマを逆順に再生して人物録を閉じる。
-   * ================================== */
   function closeJournal(): void {
     if (closing) return
     closing = true
     fold(-1)
   }
+  /* === [ 担当 : 250056 斎藤永聖 ] ===
+   * 処理内容 : クリック・キー操作と終了時の後片付けを設定する
+   * ================================== */
   dialog.querySelector('footer button')!.addEventListener('click', closeJournal)
   dialog.addEventListener('cancel', event => { event.preventDefault(); closeJournal() })
   dialog.addEventListener('keydown', event => event.stopPropagation())

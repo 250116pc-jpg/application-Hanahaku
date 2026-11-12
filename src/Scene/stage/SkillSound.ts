@@ -1,12 +1,22 @@
-// 担当：たまおちゃん｜スキル効果音
+/* ==================================
+ * 期末テスト提出プログラム
+ * 学籍番号：250116
+ * 氏名：中村伊安
+ * ================================== */
 import Phaser from 'phaser';
 import { loadAudioSettings } from '../../audio/BgmManager';
 import type { SkillVisualPhase } from './Player';
 
 /** Short original synthesized accents, using the game's existing SE volume and mute. */
 export class SkillSound {
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 状態・能力値・操作対象を保持する
+   * ================================== */
   private readonly scene: Phaser.Scene;
   private readonly sources = new Set<AudioScheduledSourceNode>();
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 再生元を保持し、画面終了時に効果音を停止する
+   * ================================== */
   constructor(scene: Phaser.Scene) {
     this.scene = scene;
     scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
@@ -14,6 +24,9 @@ export class SkillSound {
       this.sources.clear();
     });
   }
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 音声の再生状態と音量を管理する
+   * ================================== */
   play(phase: SkillVisualPhase, heavy: boolean): void {
     const manager = this.scene.sound;
     if (!(manager instanceof Phaser.Sound.WebAudioSoundManager)) return;

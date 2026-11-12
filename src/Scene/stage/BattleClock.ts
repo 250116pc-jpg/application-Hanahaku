@@ -1,8 +1,18 @@
-// 担当：たまおちゃん｜戦闘時間の管理
+/* ==================================
+ * 期末テスト提出プログラム
+ * 学籍番号：250116
+ * 氏名：中村伊安
+ * ================================== */
 import Phaser from 'phaser';
 
+/* === [ 担当 : 250116 中村伊安 ] ===
+ * 処理内容 : 戦闘時間を定義する
+ * ================================== */
 const clocks = new WeakMap<Phaser.Scene, { elapsed: number }>();
 /** Elapsed battle time; unlike Clock.now this excludes time spent in paused scenes. */
+/* === [ 担当 : 250116 中村伊安 ] ===
+ * 処理内容 : 戦闘中の演出・再使用時間に使う現在時刻を返す
+ * ================================== */
 export function battleNow(scene: Phaser.Scene): number {
   let state = clocks.get(scene);
   if (!state) {

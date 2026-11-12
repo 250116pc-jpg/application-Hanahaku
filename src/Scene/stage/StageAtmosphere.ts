@@ -1,9 +1,16 @@
-// 担当：たまおちゃん｜戦闘背景の演出
+/* ==================================
+ * 期末テスト提出プログラム
+ * 学籍番号：250116
+ * 氏名：中村伊安
+ * ================================== */
 import Phaser from 'phaser';
 import type { Player } from './Player';
 import type { Enemy } from './Enemy';
 
 /** Small shared, renderer-independent light textures; generated once per game. */
+/* === [ 担当 : 250116 中村伊安 ] ===
+ * 処理内容 : 表示に使う画像・アニメーションを用意する
+ * ================================== */
 export function ensureBattleTextures(scene: Phaser.Scene): void {
   if (!scene.textures.exists('battle-glow')) {
     const texture = scene.textures.createCanvas('battle-glow', 128, 128)!;
@@ -38,6 +45,9 @@ export function ensureBattleTextures(scene: Phaser.Scene): void {
 
 /** Warm pools of light against cool ruins, with depth below the unfiltered UI. */
 export function createStageAtmosphere(scene: Phaser.Scene, map: Phaser.Tilemaps.Tilemap, player: Player, enemies: Enemy[]): void {
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 戦闘用テクスチャと地形の色・背景の光を準備する
+   * ================================== */
   ensureBattleTextures(scene);
   const width = map.widthInPixels;
   const height = Math.max(scene.scale.height, map.heightInPixels);
@@ -51,6 +61,9 @@ export function createStageAtmosphere(scene: Phaser.Scene, map: Phaser.Tilemaps.
     shafts.fillStyle(0xffedc2, .025);
     shafts.fillPoints([{ x: x - 12, y: 0 }, { x: x + 60, y: 0 }, { x: x - 100, y: 540 }, { x: x - 300, y: 540 }], true);
   }
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 背景の光・灯籠・霧・粒子に揺らぎを付ける
+   * ================================== */
   scene.tweens.add({ targets: shafts, alpha: .45, x: 25, duration: 7800, yoyo: true, repeat: -1, ease: 'Sine.InOut' });
 
   // Place lanterns on actual solid surfaces, not a hard-coded horizon.
@@ -83,6 +96,9 @@ export function createStageAtmosphere(scene: Phaser.Scene, map: Phaser.Tilemaps.
       .setDisplaySize(i % 4 ? 7 : 12, i % 4 ? 7 : 12).setAlpha(.45).setDepth(16).setScrollFactor(.9, 1).setBlendMode(Phaser.BlendModes.ADD);
     scene.tweens.add({ targets: mote, y: y - 45, x: x + 18, alpha: .08, duration: 2400 + i * 110, delay: i * 70, yoyo: true, repeat: -1, ease: 'Sine.InOut' });
   }
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 主人公・敵の足元に影を追従させ、画面の縁を暗くする
+   * ================================== */
   const actors = [player, ...enemies];
   const shadows = actors.map(actor => scene.add.ellipse(actor.x, actor.y - 2, actor === player ? 45 : 55, 10, 0x030710, .4).setDepth(3));
   const update = (): void => {

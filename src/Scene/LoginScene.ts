@@ -1,10 +1,8 @@
 ﻿/* ==================================
  * 期末テスト提出プログラム
- * 学籍番号: 250056
- * 氏名: 斎藤永聖
- * 担当範囲: 下記の担当コメントを参照（共同制作）
+ * 学籍番号：250082、250056
+ * 氏名：武田優人、斎藤永聖
  * ================================== */
-// 担当：たまおちゃん｜ログイン画面
 import { createSceneFade } from '../utils/ui/scene-fade';
 import { getPhpBaseUrl } from '../auth/PhpBaseUrl';
 import Phaser from 'phaser';
@@ -15,6 +13,9 @@ import {
   type AuthenticatedUser,
 } from '../auth/GoogleSignIn';
 
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 受け渡すデータの型と共通設定を定義する
+ * ================================== */
 interface LoginResponse {
   ok: boolean;
   error?: string;
@@ -22,14 +23,17 @@ interface LoginResponse {
 }
 
 export class LoginScene extends Phaser.Scene {
+  /* === [ 担当 : 250056 斎藤永聖 ] ===
+   * 処理内容 : 初期状態と画面キーを設定する
+   * ================================== */
   constructor() {
     super('LoginScene');
   }
 
-  /* === [ 担当 : 250056 斎藤永聖 ] ===
-   * 処理内容 : ログイン用フォームを生成し、入力検証・認証API呼び出し・利用者情報保存・画面遷移とエラー表示を行う。
-   * ================================== */
   create(): void {
+    /* === [ 担当 : 250082 武田優人 / 250056 斎藤永聖 ] ===
+     * 処理内容 : メールアドレスとパスワードのログインフォームを作る
+     * ================================== */
     this.input.enabled = true;
     const navigate = createSceneFade(this);
     const formElement = document.createElement('form');
@@ -84,6 +88,9 @@ export class LoginScene extends Phaser.Scene {
       : () => undefined;
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, disposeGoogleButton);
 
+    /* === [ 担当 : 250056 斎藤永聖 ] ===
+     * 処理内容 : 必要なデータを取得して画面へ反映する
+     * ================================== */
     formElement.addEventListener('submit', async (event) => {
       event.preventDefault();
       if (!message || !submitButton) return;
@@ -121,6 +128,9 @@ export class LoginScene extends Phaser.Scene {
 
   }
 
+  /* === [ 担当 : 250056 斎藤永聖 ] ===
+   * 処理内容 : 認証の結果やエラーを文字色・表示状態へ反映する
+   * ================================== */
   private setMessage(
     element: HTMLParagraphElement,
     text: string,

@@ -1,14 +1,13 @@
 <?php
 /* ==================================
  * 期末テスト提出プログラム
- * 学籍番号: 250056
- * 氏名: 斎藤永聖
- * 担当範囲: 下記の担当コメントを参照（共同制作）
+ * 学籍番号：250056、250116
+ * 氏名：斎藤永聖、中村伊安
  * ================================== */
 declare(strict_types=1);
 
 /* === [ 担当 : 250056 斎藤永聖 ] ===
- * 処理内容 : JWTのBase64URL形式を復号し、不正なエンコードを拒否する。
+ * 処理内容 : Googleトークン等のBase64URL文字列を復号する
  * ================================== */
 function googleBase64UrlDecode(string $value): string
 {
@@ -24,7 +23,7 @@ function googleBase64UrlDecode(string $value): string
 }
 
 /* === [ 担当 : 250056 斎藤永聖 ] ===
- * 処理内容 : 公開鍵のDER形式に必要なASN.1の長さ情報を符号化する。
+ * 処理内容 : 公開鍵のASN.1データ長を符号化する
  * ================================== */
 function googleAsn1Length(int $length): string
 {
@@ -40,7 +39,7 @@ function googleAsn1Length(int $length): string
 }
 
 /* === [ 担当 : 250056 斎藤永聖 ] ===
- * 処理内容 : RSA公開鍵の整数をASN.1 INTEGER形式へ変換する。
+ * 処理内容 : 公開鍵の整数をASN.1形式に変換する
  * ================================== */
 function googleAsn1Integer(string $bytes): string
 {
@@ -52,7 +51,7 @@ function googleAsn1Integer(string $bytes): string
 }
 
 /* === [ 担当 : 250056 斎藤永聖 ] ===
- * 処理内容 : DERデータをASN.1 SEQUENCEで包む。
+ * 処理内容 : 公開鍵データをASN.1のシーケンスで包む
  * ================================== */
 function googleAsn1Sequence(string $bytes): string
 {
@@ -60,7 +59,7 @@ function googleAsn1Sequence(string $bytes): string
 }
 
 /* === [ 担当 : 250056 斎藤永聖 ] ===
- * 処理内容 : GoogleのRSA公開鍵をJWKからOpenSSLで検証できるPEM形式へ変換する。
+ * 処理内容 : Google公開鍵をJWKからPEM形式へ変換する
  * ================================== */
 function googleJwkToPem(array $jwk): string
 {
@@ -84,8 +83,8 @@ function googleJwkToPem(array $jwk): string
         "-----END PUBLIC KEY-----\n";
 }
 
-/* === [ 担当 : 250056 斎藤永聖 ] ===
- * 処理内容 : Googleの公開鍵一覧をHTTPSで取得してキャッシュし、必要時に再取得する。
+/* === [ 担当 : 250056 斎藤永聖 / 250116 中村伊安 ] ===
+ * 処理内容 : Google公開鍵をキャッシュまたは配布先から取得する
  * ================================== */
 function googleFetchJwks(bool $forceRefresh = false): array
 {
@@ -142,7 +141,7 @@ function googleFetchJwks(bool $forceRefresh = false): array
 }
 
 /* === [ 担当 : 250056 斎藤永聖 ] ===
- * 処理内容 : JWTの鍵IDに対応する公開鍵を検索し、未発見時は鍵一覧を更新して再検索する。
+ * 処理内容 : 署名の鍵IDに一致するGoogle公開鍵を探す
  * ================================== */
 function googleFindJwk(string $keyId): array
 {
@@ -158,7 +157,7 @@ function googleFindJwk(string $keyId): array
 }
 
 /* === [ 担当 : 250056 斎藤永聖 ] ===
- * 処理内容 : IDトークンの署名、発行元、対象クライアント、有効期間、確認済みメールを検証する（共同編集）。
+ * 処理内容 : Googleトークンの署名・有効期限・発行先などを検証する
  * ================================== */
 function verifyGoogleIdToken(string $token, string $clientId): array
 {

@@ -1,4 +1,8 @@
-// 担当：たまおちゃん｜ステージ内ミニマップ
+/* ==================================
+ * 期末テスト提出プログラム
+ * 学籍番号：250116
+ * 氏名：中村伊安
+ * ================================== */
 import Phaser from 'phaser';
 import type { Player } from './Player';
 import type { Enemy } from './Enemy';
@@ -11,6 +15,9 @@ export function createStageMinimap(
   enemies: readonly Enemy[],
   rescuePoint?: { x: number; y: number }
 ): void {
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : マップを縮小する倍率と座標変換を計算する
+   * ================================== */
   const width = 300;
   const height = 156;
   const inset = 14;
@@ -24,6 +31,9 @@ export function createStageMinimap(
   const top = mapTop + (mapHeight - drawnHeight) / 2;
   const pointX = (x: number): number => left + Phaser.Math.Clamp(x, 0, map.widthInPixels) * scale;
   const pointY = (y: number): number => top + Phaser.Math.Clamp(y, 0, map.heightInPixels) * scale;
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : ミニマップの背景と衝突する地形を描く
+   * ================================== */
   const root = scene.add.container(scene.scale.width - width - 22, 82)
     .setName('stage-minimap').setScrollFactor(0).setDepth(2001);
   const terrain = scene.add.graphics();
@@ -35,6 +45,9 @@ export function createStageMinimap(
     if (tile.index < 0 || !tile.collides) return;
     terrain.fillRect(pointX(tile.pixelX), pointY(tile.pixelY), tile.width * scale, tile.height * scale);
   }));
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 凡例・救出地点・カメラ範囲の表示を用意する
+   * ================================== */
   root.add(terrain);
   const text = (x: number, y: number, value: string, color: string): Phaser.GameObjects.Text => {
     const label = scene.add.text(x, y, value, { fontFamily: '"Yu Gothic", "Meiryo", sans-serif', fontSize: '12px', color });
@@ -51,6 +64,9 @@ export function createStageMinimap(
   }
   const viewport = scene.add.graphics().setName('minimap-viewport');
   root.add(viewport);
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 主人公・敵・カメラ範囲のマーカーを毎フレーム更新する
+   * ================================== */
   const enemyMarkers = enemies.map(enemy => {
     const marker = scene.add.rectangle(0, 0, 5, 5, 0xff9387).setAngle(45);
     root.add(marker);

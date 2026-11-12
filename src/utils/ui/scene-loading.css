@@ -1,0 +1,36 @@
+/* ==================================
+ * 期末テスト提出プログラム
+ * 学籍番号：250082
+ * 氏名：武田優人
+ * ================================== */
+/* === [ 担当 : 250082 武田優人 ] ===
+ * 処理内容 : 画面・パネルの背景と共通レイアウトを整える
+ * ================================== */
+.scene-loading{position:fixed;z-index:20000;display:grid;place-items:center;box-sizing:border-box;overflow:hidden;opacity:0;transition:opacity 180ms ease;background:#0f1824;color:#f2e4cb;font-family:"Yu Gothic",Meiryo,sans-serif;pointer-events:auto;touch-action:none}
+.scene-loading.is-visible{opacity:1}.scene-loading-content{opacity:0;visibility:hidden;transition:opacity 120ms ease;text-align:center;display:grid;justify-items:center;gap:22px}.scene-loading-flower{position:relative;width:58px;height:58px;animation:loading-float 2.4s ease-in-out infinite}.scene-loading-petal{position:absolute;left:21px;top:1px;width:16px;height:28px;border-radius:60% 60% 45% 45%;background:linear-gradient(#e9bd9e,#c89582);transform-origin:8px 28px;transform:rotate(calc(var(--petal)*60deg));animation:loading-petal 1.5s ease-in-out infinite;animation-delay:calc(var(--petal)*120ms)}.scene-loading-flower:after{content:"";position:absolute;left:22px;top:23px;width:14px;height:14px;border-radius:50%;background:#c19a54;box-shadow:0 0 12px #f1db9e}
+/* === [ 担当 : 250082 武田優人 ] ===
+ * 処理内容 : 説明文と見出しの表示を整える
+ * ================================== */
+.scene-loading-label{margin:0;font-size:clamp(13px,1.4vw,18px);letter-spacing:.13em;line-height:1.8}
+/* === [ 担当 : 250082 武田優人 ] ===
+ * 処理内容 : 画面・パネルの背景と共通レイアウトを整える
+ * ================================== */
+.scene-loading-back{border:1px solid #b39666;background:#233347;color:#fff0d5;padding:10px 24px;font:inherit;cursor:pointer}.scene-loading-back[hidden]{display:none}
+/* === [ 担当 : 250082 武田優人 ] ===
+ * 処理内容 : 共通の表示設定とアニメーションを定義する
+ * ================================== */
+@keyframes loading-float{50%{translate:0 -4px}}
+/* === [ 担当 : 250082 武田優人 ] ===
+ * 処理内容 : 共通の表示設定とアニメーションを定義する
+ * ================================== */
+@keyframes loading-petal{0%,100%{opacity:.4}50%{opacity:1}}
+/* === [ 担当 : 250082 武田優人 ] ===
+ * 処理内容 : 画面サイズなどの条件に合わせて表示を調整する
+ * ================================== */
+@media(prefers-reduced-motion:reduce){.scene-loading,.scene-loading *{animation:none!important;transition:none!important}}
+
+/* 短い遷移では黒フェードだけ。準備が長引いた場合のみインジケーターを表示する。 */
+/* === [ 担当 : 250082 武田優人 ] ===
+ * 処理内容 : 画面・パネルの背景と共通レイアウトを整える
+ * ================================== */
+.scene-loading.show-loading .scene-loading-content{opacity:1;visibility:visible}

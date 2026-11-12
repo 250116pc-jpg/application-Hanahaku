@@ -1,14 +1,24 @@
-﻿// 担当：たまおちゃん｜タイトル演出・TitlePetals
+﻿/* ==================================
+ * 期末テスト提出プログラム
+ * 学籍番号：250082
+ * 氏名：武田優人
+ * ================================== */
 import Phaser from 'phaser';
 import petal1 from '../../assets/ui/title_f1.png';
 import petal2 from '../../assets/ui/title_f2.png';
 import petal3 from '../../assets/ui/title_f3.png';
 import petal4 from '../../assets/ui/title_f4.png';
 
+/* === [ 担当 : 250082 武田優人 ] ===
+ * 処理内容 : 舞い散る花びら演出を定義する
+ * ================================== */
 const PETAL_IMAGES = [petal1, petal2, petal3, petal4];
 // 花びらの枚数。大きさや落下速度はreset内で調整する。
 const PETAL_COUNT = 32;
 
+/* === [ 担当 : 250082 武田優人 ] ===
+ * 処理内容 : タイトルなどで使う花びら画像を読み込む
+ * ================================== */
 export function preloadTitlePetals(scene: Phaser.Scene): void {
   PETAL_IMAGES.forEach((url, index) => {
     const key = `title-petal-${index}`;
@@ -16,6 +26,9 @@ export function preloadTitlePetals(scene: Phaser.Scene): void {
   });
 }
 
+/* === [ 担当 : 250082 武田優人 ] ===
+ * 処理内容 : 花びらの落下・揺れ・回転の演出を作る
+ * ================================== */
 export function createTitlePetals(scene: Phaser.Scene, options: { night?: boolean } = {}): void {
   // 花びらの低速移動を整数座標に丸めず、小数単位で描画する。
   scene.cameras.main.roundPixels = false;

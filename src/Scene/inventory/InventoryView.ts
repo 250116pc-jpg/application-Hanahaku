@@ -1,10 +1,8 @@
 /* ==================================
  * 期末テスト提出プログラム
- * 学籍番号: 250056
- * 氏名: 斎藤永聖
- * 担当範囲: 下記の担当コメントを参照（共同制作）
+ * 学籍番号：250056、250116
+ * 氏名：斎藤永聖、中村伊安
  * ================================== */
-// 担当：たまおちゃん｜所持品機能・InventoryView
 import './InventoryFantasy.css'
 import Phaser from 'phaser'
 import inventorySlot from '../../assets/images/inventory/slot.png'
@@ -13,6 +11,9 @@ import { getShopItemImageUrl } from '../shop/assets'
 import { getCategoryName } from './InventoryData'
 import type { InventoryFilter, InventoryItem } from './InventoryData'
 
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 受け渡すデータの型と共通設定を定義する
+ * ================================== */
 interface InventoryCallbacks {
   onBack: () => void
   onUse?: () => void
@@ -20,10 +21,10 @@ interface InventoryCallbacks {
   onItem: (item: InventoryItem) => void
 }
 
-/* === [ 担当 : 250056 斎藤永聖 ] ===
- * 処理内容 : 所持品の固定スロット・鍵表示・カテゴリ・詳細欄を生成し、選択、使用表示、開閉演出を管理する。
- * ================================== */
 export class InventoryView {
+  /* === [ 担当 : 250056 斎藤永聖 ] ===
+   * 処理内容 : 状態・能力値・操作対象を保持する
+   * ================================== */
   private root!: HTMLDivElement
   private grid!: HTMLDivElement
   private pager!: HTMLElement
@@ -36,12 +37,18 @@ export class InventoryView {
   private scene: Phaser.Scene
   private callbacks: InventoryCallbacks
 
+  /* === [ 担当 : 250056 斎藤永聖 ] ===
+   * 処理内容 : 表示先の画面とバッグ操作の通知先を保持する
+   * ================================== */
   constructor(scene: Phaser.Scene, callbacks: InventoryCallbacks) {
     this.scene = scene
     this.callbacks = callbacks
   }
 
   create(): void {
+    /* === [ 担当 : 250056 斎藤永聖 ] ===
+     * 処理内容 : バッグのHTMLルートと共通表示スタイルを用意する
+     * ================================== */
     this.root = document.createElement('div')
     this.root.className = 'hanahaku-inventory'
     if (new URLSearchParams(window.location.search).get('inventory-style') !== 'classic') this.root.classList.add('inventory-fantasy-preview')
@@ -127,6 +134,9 @@ export class InventoryView {
       .hanahaku-inventory .inventory-message { color:#ffc5bd; }
     `
     const panel = document.createElement('section')
+    /* === [ 担当 : 250056 斎藤永聖 ] ===
+     * 処理内容 : バッグの見出し・分類切り替えと戻る操作を配置する
+     * ================================== */
     panel.className = 'inventory-panel'
     panel.setAttribute('role', 'dialog')
     panel.setAttribute('aria-modal', 'true')
@@ -134,6 +144,9 @@ export class InventoryView {
     const previousFocus = document.activeElement
     const header = document.createElement('header')
     const back = this.button('← 戻る', this.callbacks.onBack)
+    /* === [ 担当 : 250056 斎藤永聖 ] ===
+     * 処理内容 : 画像・文字・パネルを配置する
+     * ================================== */
     const title = document.createElement('h1')
     title.textContent = 'インベントリ'
     header.append(back, title)
@@ -141,6 +154,9 @@ export class InventoryView {
     note.className = 'inventory-note'
     note.textContent = '所持品と個数を確認できます。アイテムを選ぶと用途を表示します。'
 const categories = document.createElement('nav')
+    /* === [ 担当 : 250056 斎藤永聖 ] ===
+     * 処理内容 : 画像・文字・パネルを配置する
+     * ================================== */
     categories.setAttribute('aria-label', 'アイテムの分類')
     const filters: Array<[InventoryFilter, string]> = [['all', 'すべて'], ['heal', '回復'], ['material', '強化素材'], ['important', '重要']]
     filters.forEach(([key, label]) => {
@@ -152,6 +168,9 @@ const categories = document.createElement('nav')
       this.categoryButtons.set(key, button)
       categories.append(button)
     })
+    /* === [ 担当 : 250056 斎藤永聖 ] ===
+     * 処理内容 : アイテム一覧・ページ操作・詳細表示の領域を作る
+     * ================================== */
     this.grid = document.createElement('div')
     this.grid.className = 'inventory-grid'
     this.pager = document.createElement('div')
@@ -159,6 +178,9 @@ const categories = document.createElement('nav')
     this.pager.setAttribute('aria-label', '所持品のページ送り')
     this.detail = document.createElement('section')
     this.detail.className = 'inventory-detail'
+    /* === [ 担当 : 250056 斎藤永聖 ] ===
+     * 処理内容 : 詳細表示と操作結果の通知を組み立てる
+     * ================================== */
     this.detail.setAttribute('aria-live', 'polite')
     this.message = document.createElement('p')
     this.message.className = 'inventory-message'
@@ -166,6 +188,9 @@ const categories = document.createElement('nav')
     const list = document.createElement('div')
     list.className = 'inventory-list'
     list.append(this.grid, this.pager)
+    /* === [ 担当 : 250056 斎藤永聖 ] ===
+     * 処理内容 : 画像・文字・パネルを配置する
+     * ================================== */
     const content = document.createElement('div')
     content.className = 'inventory-content'
     content.append(list, this.detail)
@@ -177,6 +202,9 @@ const categories = document.createElement('nav')
       panel.animate([{ transform: 'translateY(-28px)' }, { transform: 'translateY(0)' }], { duration: 150, easing: 'ease-out' })
     }
     // Keep keyboard focus inside the overlay while the underlying game is paused.
+    /* === [ 担当 : 250056 斎藤永聖 / 250116 中村伊安 ] ===
+     * 処理内容 : クリック・キー操作と終了時の後片付けを設定する
+     * ================================== */
     this.root.addEventListener('keydown', event => {
       if (event.key === 'Escape') { event.preventDefault(); this.callbacks.onBack(); return }
       if (event.key !== 'Tab') return
@@ -194,7 +222,7 @@ const categories = document.createElement('nav')
   }
 
   /* === [ 担当 : 250056 斎藤永聖 ] ===
-   * 処理内容 : 閉じる演出後に画面を破棄し、終了コールバックを実行する。
+   * 処理内容 : 画面終了時に表示とイベントを解除する
    * ================================== */
   close(onClosed: () => void): void {
     if (this.closing) return
@@ -216,7 +244,7 @@ const categories = document.createElement('nav')
     window.setTimeout(finish, 250)
   }
   /* === [ 担当 : 250056 斎藤永聖 ] ===
-   * 処理内容 : カテゴリで絞られた所持品をスロットに描画し、未所持の鍵と選択状態を反映する。
+   * 処理内容 : 所持アイテム一覧と選択・ページ状態を表示する
    * ================================== */
   renderItems(items: InventoryItem[], selectedItemId: number | null): void {
     this.grid.replaceChildren()
@@ -262,7 +290,7 @@ const categories = document.createElement('nav')
   }
 
   /* === [ 担当 : 250056 斎藤永聖 ] ===
-   * 処理内容 : 選択アイテムの名称・所持数・効果説明を詳細欄へ表示する。
+   * 処理内容 : 選択アイテムの画像・説明・所持数を表示する
    * ================================== */
   renderDetail(item: InventoryItem | null): void {
     this.detail.replaceChildren()
@@ -285,7 +313,7 @@ const categories = document.createElement('nav')
   }
 
   /* === [ 担当 : 250056 斎藤永聖 ] ===
-   * 処理内容 : 使用ボタンを表示し、使用不可や通信中の場合は無効にする。
+   * 処理内容 : 選択アイテムの使用ボタンを表示し、使用可否を反映する
    * ================================== */
   showRecoveryUse(disabled: boolean): void {
     const use = this.button('使用する', () => this.callbacks.onUse?.())
@@ -294,13 +322,16 @@ const categories = document.createElement('nav')
   }
 
   /* === [ 担当 : 250056 斎藤永聖 ] ===
-   * 処理内容 : 所持品画面内に使用結果やエラーメッセージを表示する。
+   * 処理内容 : バッグの案内や使用結果を表示する
    * ================================== */
   showMessage(message: string): void {
     this.message.textContent = message
     // Keep load failures visible until the inventory is closed.
   }
 
+  /* === [ 担当 : 250056 斎藤永聖 ] ===
+   * 処理内容 : 操作可能なボタンとクリック時の処理を作る
+   * ================================== */
   private button(label: string, onClick: () => void): HTMLButtonElement {
     const button = document.createElement('button')
     button.type = 'button'

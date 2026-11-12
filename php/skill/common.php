@@ -1,8 +1,19 @@
 <?php
+/* ==================================
+ * 期末テスト提出プログラム
+ * 学籍番号：250116
+ * 氏名：中村伊安
+ * ================================== */
 declare(strict_types=1);
 
+/* === [ 担当 : 250116 中村伊安 ] ===
+ * 処理内容 : 認証・DBなどの共通処理を読み込む
+ * ================================== */
 require_once __DIR__ . '/../auth.php';
 
+/* === [ 担当 : 250116 中村伊安 ] ===
+ * 処理内容 : 認証CookieとDBセッションからスキル使用者のIDを確定する
+ * ================================== */
 function requireSkillUserId(PDO $pdo): int
 {
     $hash = authHash();
@@ -27,6 +38,9 @@ function requireSkillUserId(PDO $pdo): int
     return (int)$userId;
 }
 
+/* === [ 担当 : 250116 中村伊安 ] ===
+ * 処理内容 : 戦闘の状態効果定義をJSONから読み込む
+ * ================================== */
 function battleStatusDefinitions(): array
 {
     static $definitions = null;
@@ -51,6 +65,9 @@ function battleStatusDefinitions(): array
     return $definitions;
 }
 
+/* === [ 担当 : 250116 中村伊安 ] ===
+ * 処理内容 : JSONからスキル定義を読み込み、IDと状態効果の参照を検証する
+ * ================================== */
 function flowerSkillTemplates(): array
 {
     static $templates = null;
@@ -81,6 +98,9 @@ function flowerSkillTemplates(): array
     return $templates;
 }
 
+/* === [ 担当 : 250116 中村伊安 ] ===
+ * 処理内容 : スキル定義にレベル1・攻撃力1の計算結果を付けて返す
+ * ================================== */
 function flowerSkillDefinitions(): array
 {
     $skills = flowerSkillTemplates();
@@ -92,6 +112,9 @@ function flowerSkillDefinitions(): array
     return $skills;
 }
 
+/* === [ 担当 : 250116 中村伊安 ] ===
+ * 処理内容 : レベルと攻撃力からスキル効果を計算する
+ * ================================== */
 function buildFlowerSkill(int $flowerId, int $level, int $attackPower): array
 {
     $templates = flowerSkillTemplates();
@@ -131,6 +154,9 @@ function buildFlowerSkill(int $flowerId, int $level, int $attackPower): array
     return $skill;
 }
 
+/* === [ 担当 : 250116 中村伊安 ] ===
+ * 処理内容 : スキルのレベル係数を具体的な値へ変換する
+ * ================================== */
 function resolveSkillLevelValues(array $values, int $level): array
 {
     $resolved = [];
@@ -146,6 +172,9 @@ function resolveSkillLevelValues(array $values, int $level): array
     return $resolved;
 }
 
+/* === [ 担当 : 250116 中村伊安 ] ===
+ * 処理内容 : ログインユーザーの所持花IDを取得する
+ * ================================== */
 function contractedFlowerIds(PDO $pdo, int $userId): array
 {
     $query = $pdo->prepare('SELECT flower_id FROM player_flowers WHERE user_id = ?');
@@ -153,6 +182,9 @@ function contractedFlowerIds(PDO $pdo, int $userId): array
     return array_map('intval', $query->fetchAll(PDO::FETCH_COLUMN));
 }
 
+/* === [ 担当 : 250116 中村伊安 ] ===
+ * 処理内容 : 花ごとのMPと再使用時間を初期化する
+ * ================================== */
 function initializeSkillStates(PDO $pdo, int $userId): void
 {
     $insert = $pdo->prepare(

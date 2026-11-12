@@ -1,3 +1,8 @@
+/* ==================================
+ * 期末テスト提出プログラム
+ * 学籍番号：250116
+ * 氏名：中村伊安
+ * ================================== */
 import Phaser from 'phaser'
 import { townAreas, type TownAreaId, type TownMapDestination } from './townAreas'
 

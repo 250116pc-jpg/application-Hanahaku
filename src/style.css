@@ -1,13 +1,12 @@
 /* ==================================
  * 期末テスト提出プログラム
- * 学籍番号: 250056
- * 氏名: 斎藤永聖
- * 担当範囲: 下記の担当コメントを参照（共同制作）
+ * 学籍番号：250056
+ * 氏名：斎藤永聖
  * ================================== */
 
 
 /* === [ 担当 : 250056 斎藤永聖 ] ===
- * 処理内容 : アプリ全体の余白、ゲーム表示領域、画面サイズへの追従と共通UIの表示スタイルを定義する。
+ * 処理内容 : 画面・パネルの背景と共通レイアウトを整える
  * ================================== */
 html,
 body {
@@ -31,6 +30,9 @@ canvas {
   display: block;
 }
 
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 入力欄とフォームの配置を整える
+ * ================================== */
 .register-form {
   box-sizing: border-box;
   width: 520px;
@@ -49,6 +51,9 @@ canvas {
   padding-bottom: 34px;
 }
 
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 説明文と見出しの表示を整える
+ * ================================== */
 .register-form label {
   display: block;
   margin-bottom: 12px;
@@ -56,6 +61,9 @@ canvas {
   font-weight: 700;
 }
 
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 入力欄とフォームの配置を整える
+ * ================================== */
 .register-form input {
   box-sizing: border-box;
   display: block;
@@ -75,6 +83,9 @@ canvas {
   outline: 3px solid rgba(53, 108, 191, 0.2);
 }
 
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 操作ボタンの外観と反応を整える
+ * ================================== */
 .register-form button {
   display: block;
   min-width: 210px;
@@ -95,6 +106,9 @@ canvas {
   opacity: 0.65;
 }
 
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 説明文と見出しの表示を整える
+ * ================================== */
 .register-message {
   min-height: 24px;
   margin: 2px 0 8px;
@@ -112,11 +126,17 @@ canvas {
   font-weight: 700;
 }
 
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 画面・パネルの背景と共通レイアウトを整える
+ * ================================== */
 .google-auth-area {
   margin-bottom: 8px;
   text-align: center;
 }
 
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 操作ボタンの外観と反応を整える
+ * ================================== */
 .google-signin-button {
   display: flex;
   min-height: 44px;
@@ -135,6 +155,9 @@ canvas {
   font-size: 14px;
 }
 
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 画面・パネルの背景と共通レイアウトを整える
+ * ================================== */
 .google-auth-hint {
   margin: 4px 0 0;
   color: #536878;
@@ -170,11 +193,29 @@ canvas {
 }
 .display-settings-dialog::backdrop { background: rgba(0, 0, 0, .6); }
 .display-settings-dialog h2 { margin-top: 0; font-size: 24px; }
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 説明文と見出しの表示を整える
+ * ================================== */
 .display-settings-dialog label { display: block; font-weight: bold; margin: 16px 0 8px; }
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 入力欄とフォームの配置を整える
+ * ================================== */
 .display-settings-dialog select { width: 100%; padding: 10px; font: inherit; color: #203343; background: white; }
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 画面・パネルの背景と共通レイアウトを整える
+ * ================================== */
 .display-settings-dialog p { font-size: 15px; line-height: 1.7; }
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 操作ボタンの外観と反応を整える
+ * ================================== */
 .display-settings-dialog button { min-height: 44px; padding: 10px 16px; font: inherit; cursor: pointer; border: 1px solid #536878; border-radius: 6px; background: white; color: #203343; }
 .display-settings-actions { display: flex; flex-wrap: wrap; gap: 12px; }
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 説明文と見出しの表示を整える
+ * ================================== */
 .display-settings-dialog details { border-top: 1px solid #aab9c5; padding: 16px 0; }
+/* === [ 担当 : 250056 斎藤永聖 ] ===
+ * 処理内容 : 画面・パネルの背景と共通レイアウトを整える
+ * ================================== */
 .display-settings-dialog summary { cursor: pointer; font-weight: bold; padding: 8px 0; }
 .display-settings-dialog :focus-visible { outline: 3px solid #356cbf; outline-offset: 3px; }

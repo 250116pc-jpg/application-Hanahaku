@@ -1,9 +1,19 @@
-// 担当：たまおちゃん｜ステージ敵データ
+/* ==================================
+ * 期末テスト提出プログラム
+ * 学籍番号：250116
+ * 氏名：中村伊安
+ * ================================== */
 import type Phaser from 'phaser';
 
+/* === [ 担当 : 250116 中村伊安 ] ===
+ * 処理内容 : 敵アニメーションを定義する
+ * ================================== */
 const actions = ['idle', 'run', 'attack', 'hurt', 'death'] as const;
 
 // Draw original enemy frames on the same 30 px anchor as the existing collision sprite.
+/* === [ 担当 : 250116 中村伊安 ] ===
+ * 処理内容 : 表示に使う画像・アニメーションを用意する
+ * ================================== */
 export function createGardenEnemyAnimations(scene: Phaser.Scene): void {
   for (const id of [2, 3]) {
     for (const action of actions) {

@@ -1,9 +1,20 @@
-﻿import type { CharacterData } from '../Scene/test_data'
+﻿/* ==================================
+ * 期末テスト提出プログラム
+ * 学籍番号：250082
+ * 氏名：武田優人
+ * ================================== */
+import type { CharacterData } from '../Scene/test_data'
 
+/* === [ 担当 : 250082 武田優人 ] ===
+ * 処理内容 : 受け渡すデータの型と共通設定を定義する
+ * ================================== */
 export type OwnedFormationFlower = CharacterData & { acquiredAt: string; skillLevel: number }
 export type FormationSort = '戦力' | '入手' | 'レベル'
 export type OwnedProgress = { flowerId: number; level: number; acquiredAt: string; skillLevel: number }
 
+/* === [ 担当 : 250082 武田優人 ] ===
+ * 処理内容 : 所持花のレベルと入手日時を検証する
+ * ================================== */
 export function parseOwnedProgress(value: unknown): OwnedProgress[] {
   if (!Array.isArray(value)) throw new Error('所持花のデータが正しくありません。')
   const used = new Set<number>()
@@ -18,6 +29,9 @@ export function parseOwnedProgress(value: unknown): OwnedProgress[] {
   })
 }
 
+/* === [ 担当 : 250082 武田優人 ] ===
+ * 処理内容 : 所持花を絞り込み・並べ替える
+ * ================================== */
 export function visibleFormationFlowers(
   flowers: readonly OwnedFormationFlower[], formation: readonly (number | null)[],
   element: string, partyOnly: boolean, sort: FormationSort, descending: boolean,

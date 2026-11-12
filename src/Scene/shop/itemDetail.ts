@@ -1,13 +1,14 @@
 /* ==================================
  * 期末テスト提出プログラム
- * 学籍番号: 250056
- * 氏名: 斎藤永聖
- * 担当範囲: 下記の担当コメントを参照（共同制作）
+ * 学籍番号：250056、250116
+ * 氏名：斎藤永聖、中村伊安
  * ================================== */
-// 担当：たまおちゃん｜ショップ機能・itemDetail
 import type { ItemDetailView, ShopItem } from './types'
 import { getShopItemImageKey } from './assets'
 
+/* === [ 担当 : 250116 中村伊安 ] ===
+ * 処理内容 : 商品詳細・説明ページ表示を定義する
+ * ================================== */
 const PANEL_X = 781
 const PANEL_WIDTH = 300
 
@@ -15,6 +16,9 @@ export function createItemDetail(
   scene: Phaser.Scene,
   onPurchase: (item: ShopItem) => Promise<void>
 ): ItemDetailView {
+  /* === [ 担当 : 250056 斎藤永聖 / 250116 中村伊安 ] ===
+   * 処理内容 : 画像・文字・パネルを配置する
+   * ================================== */
   let currentItem: ShopItem | null = null
 
   // A separate product card beside the display shelves.
@@ -24,6 +28,9 @@ export function createItemDetail(
     color: '#7b694a',
     fontStyle: 'bold',
   }).setOrigin(0.5)
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 画像・文字・パネルを配置する
+   * ================================== */
   scene.add.image(PANEL_X, 274, 'shop-frame').setDisplaySize(158, 158)
   const itemImage = scene.add.image(PANEL_X, 274, 'shop-flower').setDisplaySize(96, 96)
   const nameText = scene.add.text(PANEL_X, 375, '商品を選択してください', {
@@ -43,6 +50,9 @@ export function createItemDetail(
     lineSpacing: 7,
   })
   // 説明が長い場合は、区切ったページをボタンで最後まで読めるようにする。
+  /* === [ 担当 : 250056 斎藤永聖 / 250116 中村伊安 ] ===
+   * 処理内容 : 商品説明を表示幅とページに分け、説明ページを切り替える
+   * ================================== */
   let descriptionPages: string[] = []
   let descriptionPage = 0
   const pageButton = scene.add.text(PANEL_X, 510, '', {
@@ -53,16 +63,10 @@ export function createItemDetail(
     descriptionPage = (descriptionPage + 1) % descriptionPages.length
     showDescriptionPage()
   })
-  /* === [ 担当 : 250056 斎藤永聖 ] ===
-   * 処理内容 : 現在の説明ページとページ番号を表示する。
-   * ================================== */
   function showDescriptionPage(): void {
     descriptionText.setText(descriptionPages[descriptionPage] ?? '')
     pageButton.setText(descriptionPages.length > 1 ? `説明 ${descriptionPage + 1}/${descriptionPages.length}　次へ ›` : '')
   }
-  /* === [ 担当 : 250056 斎藤永聖 ] ===
-   * 処理内容 : 文字の描画幅を測って説明を折り返し、2行ずつのページに分ける。
-   * ================================== */
   function setDescription(value: string): void {
     // Phaserの実際の折り返し行を使うため、幅や日本語の文字数が変わっても対応できる。
     const lines: string[] = []
@@ -81,6 +85,9 @@ export function createItemDetail(
     descriptionPage = 0
     showDescriptionPage()
   }
+  /* === [ 担当 : 250116 中村伊安 ] ===
+   * 処理内容 : 画像・文字・パネルを配置する
+   * ================================== */
   const priceText = scene.add.text(PANEL_X - PANEL_WIDTH / 2 + 28, 526, '', {
     fontFamily: '"UD Digi Kyokasho NP-R", "Yu Gothic", "Meiryo", sans-serif',
     fontSize: '20px',
@@ -92,6 +99,9 @@ export function createItemDetail(
     fontSize: '17px',
     color: '#52685a',
   })
+  /* === [ 担当 : 250056 斎藤永聖 / 250116 中村伊安 ] ===
+   * 処理内容 : クリック・キー操作と終了時の後片付けを設定する
+   * ================================== */
   const buyButton = createTextButton(scene, PANEL_X, 630, '購入する')
 
   let buying=false
@@ -108,6 +118,9 @@ export function createItemDetail(
     }
   })
 
+  /* === [ 担当 : 250056 斎藤永聖 / 250116 中村伊安 ] ===
+   * 処理内容 : 選択商品の画像・名前・説明・価格・所持数を更新する
+   * ================================== */
   return {
     show(item: ShopItem) {
       currentItem = item
@@ -122,6 +135,9 @@ export function createItemDetail(
   }
 }
 
+/* === [ 担当 : 250116 中村伊安 ] ===
+ * 処理内容 : 商品詳細の文字ボタンと押下処理を作る
+ * ================================== */
 function createTextButton(
   scene: Phaser.Scene,
   x: number,
@@ -149,6 +165,9 @@ function createTextButton(
   return text
 }
 
+/* === [ 担当 : 250116 中村伊安 ] ===
+ * 処理内容 : 商品の所持数を表示用の文字列に整える
+ * ================================== */
 function formatCount(item: ShopItem) {
   return `所持数: ${item.count ?? 0}`
 }
