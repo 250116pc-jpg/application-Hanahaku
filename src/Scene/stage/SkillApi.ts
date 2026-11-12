@@ -179,19 +179,57 @@ export interface StageFlowerStats {
   attackPower: number;
 }
 
-/* === [ 担当 : 250116 中村伊安 ] ===
+/* === [ 担当 : 250082 武田優人 ] ===
+ * 処理内容 : DBから取得した花のレベル・能力値と所有確認済みの編成を定義する
+ * ================================== */
+export interface BattleFlower {
+  flowerId: number;
+  level: number;
+  skillLevel: number;
+  stats: { hp: number; mp: number; atk: number; def: number; cd: number };
+}
+export interface StageBattleState {
+  skills: FlowerSkillState[];
+  flowers: BattleFlower[];
+  formation: Array<number | null>;
+}
+
+/* === [ 担当 : 250082 武田優人 / 250116 中村伊安 ] ===
  * 処理内容 : 戦闘開始時のスキル情報を取得する
  * ================================== */
 export async function beginStageSkillStates(
   stageId: number,
-  flowers: readonly StageFlowerStats[]
-): Promise<FlowerSkillState[]> {
-  if (import.meta.env.DEV && isBattlePreview) return (await import('./SkillPreview')).buildPreviewSkillStates(flowers);
-  const result = await postSkillRequest('begin', { stageId, flowers });
+  flowers: readonly StageFlowerStats[],
+  formation: readonly (number | null)[]
+): Promise<StageBattleState> {
+  if (import.meta.env.DEV && isBattlePreview) {
+    return { skills: (await import('./SkillPreview')).buildPreviewSkillStates(flowers), flowers: [], formation: [...formation] };
+  }
+  const result = await postSkillRequest('begin', { stageId, formation });
   if (typeof result !== 'object' || result === null || !('flowers' in result) || !Array.isArray(result.flowers)) {
     throw new Error('サーバーから不正なスキル状態が返されました。');
   }
-  return result.flowers.map(value => {
+  if (!('ownedFlowers' in result) || !Array.isArray(result.ownedFlowers) || !('formation' in result) ||
+      !Array.isArray(result.formation) || result.formation.length > 4) throw new Error('戦闘用の育成データを読み込めません。');
+  const owned: BattleFlower[] = result.ownedFlowers.map((value: unknown) => {
+    const flower = value as BattleFlower | null;
+    if (!flower || !Number.isSafeInteger(flower.flowerId) || flower.flowerId < 1 ||
+        !Number.isSafeInteger(flower.level) || flower.level < 1 || flower.level > 50 ||
+        !Number.isSafeInteger(flower.skillLevel) || flower.skillLevel < 1 || flower.skillLevel > 5 ||
+        !flower.stats || !['hp','mp','atk','def','cd'].every(key => {
+          const stat = flower.stats[key as keyof BattleFlower['stats']];
+          return typeof stat === 'number' && Number.isFinite(stat) && stat >= 0;
+        })) throw new Error('花の戦闘用能力値が正しくありません。');
+    return flower;
+  });
+  const ownedIds = new Set(owned.map(flower => flower.flowerId));
+  const seen = new Set<number>();
+  const verifiedFormation = result.formation.map((id: unknown) => {
+    if (id === null) return null;
+    if (typeof id !== 'number' || !ownedIds.has(id) || seen.has(id)) throw new Error('戦闘用の編成が正しくありません。');
+    seen.add(id); return id;
+  });
+  const skills = result.flowers.map(value => {
     if (
       typeof value !== 'object' ||
       value === null ||
@@ -215,4 +253,5 @@ export async function beginStageSkillStates(
       skill: parseSkill(value.skill)
     };
   });
+  return { skills, flowers: owned, formation: verifiedFormation };
 }

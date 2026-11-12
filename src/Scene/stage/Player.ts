@@ -1,7 +1,7 @@
 /* ==================================
  * 期末テスト提出プログラム
- * 学籍番号：250056、250116
- * 氏名：斎藤永聖、中村伊安
+ * 学籍番号：250082、250056、250116
+ * 氏名：武田優人、斎藤永聖、中村伊安
  * ================================== */
 import { showBattleNumber } from './BattleFeedback';
 import { PLAYER_RUN_STEP_KEYS, playSe } from '../../audio/BgmManager';
@@ -47,10 +47,11 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   /* === [ 担当 : 250056 斎藤永聖 / 250116 中村伊安 ] ===
    * 処理内容 : 主人公の移動・行動・死亡状態とスキル効果の期限を保持する
    * ================================== */
+  private stats = { ...playerStats };
   private cursors: Phaser.Types.Input.Keyboard.CursorKeys | undefined;
-  private readonly PLAYER_SPEED = playerStats.moveSpeed;
-  private readonly JUMP_POWER = playerStats.jumpPower;
-  private readonly FALL_GRAVITY_BONUS = playerStats.fallGravityBonus;
+  private readonly PLAYER_SPEED = this.stats.moveSpeed;
+  private readonly JUMP_POWER = this.stats.jumpPower;
+  private readonly FALL_GRAVITY_BONUS = this.stats.fallGravityBonus;
   private wasGrounded = true;
   private nextRunStep = 0;
   private landingAnimationPlaying = false;
@@ -75,7 +76,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
    * 処理内容 : スキル演出の通知先・最大HPの補正・通常攻撃の待機状態を保持する
    * ================================== */
   private skillVisualHandler?: SkillVisualHandler;
-  private readonly baseMaxHealth = playerStats.hp;
+  private baseMaxHealth = this.stats.hp;
   private maxHealthBonus = 0;
   private maxHealthBonusUntil = 0;
   private nextBasicAttackAt = 0;
@@ -92,6 +93,27 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   public health = this.maxHealth;
   private itemAttackUntil = 0;
   private itemDefenseUntil = 0;
+
+  /* === [ 担当 : 250082 武田優人 ] ===
+   * 処理内容 : 主人公の基本定義の最大MPをHUDへ渡す（花のMPは加算しない）
+   * ================================== */
+  public get maxMp(): number { return this.stats.mp; }
+
+  /* === [ 担当 : 250082 武田優人 ] ===
+   * 処理内容 : 戦闘開始時に花のMP以外の能力値を各25%加算し、主人公を最大HPで初期化する
+   * ================================== */
+  public applyFlowerStats(flowers: readonly { hp: number; mp: number; atk: number; def: number; cd: number }[]): void {
+    this.stats = { ...playerStats };
+    const bonusRate = 0.25; // 編成人数にかかわらず1体につき25%。
+    for (const flower of flowers) {
+      this.stats.hp += flower.hp * bonusRate;
+      this.stats.physicalAttack += flower.atk * bonusRate;
+      this.stats.physicalDefense += flower.def * bonusRate;
+      this.stats.criticalDamage += flower.cd * bonusRate;
+    }
+    this.baseMaxHealth = this.stats.hp;
+    this.health = this.maxHealth;
+  }
 
   /* === [ 担当 : 250056 斎藤永聖 / 250116 中村伊安 ] ===
    * 処理内容 : アイテムを使えない理由を確認する
@@ -335,10 +357,10 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     if (this.action !== null || this.isGuarding() || battleNow(this.scene) < Math.max(this.chargeUntil, this.comboUntil)) {
       this.setVelocityX(0);
     } else if (this.cursors.left?.isDown) {
-      this.setVelocityX(-this.PLAYER_SPEED * playerStats.agility / 100);
+      this.setVelocityX(-this.PLAYER_SPEED * this.stats.agility / 100);
       this.setFlipX(true);
     } else if (this.cursors.right?.isDown) {
-      this.setVelocityX(this.PLAYER_SPEED * playerStats.agility / 100);
+      this.setVelocityX(this.PLAYER_SPEED * this.stats.agility / 100);
       this.setFlipX(false);
     } else {
       this.setVelocityX(0);
@@ -408,7 +430,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     if (battleNow(this.scene) < Math.max(this.chargeUntil, this.comboUntil) || battleNow(this.scene) < this.continuousUntil ||
         battleNow(this.scene) < this.nextBasicAttackAt) return;
     if (!this.playAction('attack', 'player-attack')) return;
-    this.nextBasicAttackAt = battleNow(this.scene) + playerStats.attackIntervalMs;
+    this.nextBasicAttackAt = battleNow(this.scene) + this.stats.attackIntervalMs;
     this.basicAttackTargets = targets;
   }
 
@@ -421,7 +443,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     if (hits.length > 0) playSe(this.scene, 'player-sword-hit', 0.65);
     else playSe(this.scene, 'player-sword-swing');
     hits.slice(0, 1).forEach(target => {
-      target.receiveDamage(this.applyPlayerCritical(this.applyAttackBonus(playerStats.physicalAttack)));
+      target.receiveDamage(this.applyPlayerCritical(this.applyAttackBonus(this.stats.physicalAttack)));
       this.showHit(target.x, target.y - 44);
     });
   }
@@ -643,7 +665,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
     const defending = this.isGuarding();
     const activeDefenseBonus = now < this.defenseUntil ? this.defenseBonusPercent : 0;
-    const defense = Math.max(0, damageType === 'magical' ? playerStats.magicDefense : playerStats.physicalDefense);
+    const defense = Math.max(0, damageType === 'magical' ? this.stats.magicDefense : this.stats.physicalDefense);
     const statDamageMultiplier = 100 / (100 + defense);
     const buffDamageMultiplier = Math.max(0.1, 1 - activeDefenseBonus / 100);
     const damageMultiplier = statDamageMultiplier * buffDamageMultiplier * (defending ? 0.5 : 1);
@@ -795,8 +817,8 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
    * 処理内容 : クリティカルを抽選してダメージを補正する
    * ================================== */
   private applyPlayerCritical(damage: number): number {
-    if (Math.random() * 100 >= playerStats.criticalRate) return damage;
-    return Math.round(damage * (1 + playerStats.criticalDamage / 100));
+    if (Math.random() * 100 >= this.stats.criticalRate) return damage;
+    return Math.round(damage * (1 + this.stats.criticalDamage / 100));
   }
 
   /* === [ 担当 : 250116 中村伊安 ] ===

@@ -613,7 +613,7 @@ export class TrainingScene extends Phaser.Scene {
    * ================================== */
   private renderSkill(flower: TrainingFlower): void {
     this.renderLevel(flower);
-    // TODO: 戦闘側で成長後の攻撃力とDBのskill_levelを参照する処理は別途連携する。
+    // 戦闘開始時にPHPがDBの花レベルから攻撃力を計算し、skill_levelをスキルの倍率・効果へ適用する。
   }
   /* === [ 担当 : 250082 武田優人 ] ===
    * 処理内容 : 所持花一覧とページ操作を表示する

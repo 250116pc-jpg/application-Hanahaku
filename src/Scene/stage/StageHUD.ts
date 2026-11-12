@@ -45,7 +45,9 @@ export class StageHUD {
   private readonly scene: Phaser.Scene;
   private readonly player?: Player;
   private readonly enemies: readonly CombatTarget[];
-  private readonly formation = loadFormation();
+  private formation = loadFormation();
+  private flowers: CharacterData[] = [];
+  public isReady = false;
   private selectedFlower = 0;
   private readonly partySelectionBorders: Phaser.GameObjects.Graphics[] = [];
   private readonly partyStatusContainers: Array<Phaser.GameObjects.Container | undefined> = [];
@@ -95,12 +97,8 @@ export class StageHUD {
    * 処理内容 : HP・ステージ名・操作ボタン・編成花のHUDを組み立てる
    * ================================== */
   public create(stageId?: number, stageNumber?: string): void {
-    this.createStatusPanel();
     this.createStageLabel(stageId, stageNumber);
     this.createUtilityButtons();
-    this.createPartyHud();
-    this.createMovementPad();
-    this.createActionButtons();
     trackSceneLoading(this.scene, this.initializeFlowerSkills(stageId ?? 2));
   }
 
@@ -118,8 +116,7 @@ export class StageHUD {
     /* === [ 担当 : 250116 中村伊安 ] ===
      * 処理内容 : 先頭の花の名前とレベルをステータス枠へ表示する
      * ================================== */
-    const leader = testData.characters.find(c => c.id === this.formation[0]);
-    if (!leader) return;
+    const leader = this.flowers.find(c => c.id === this.formation[0]);
     const w = this.scene.scale.width;
     const compact = w < 760;
     const x = compact ? 12 : 24;
@@ -127,7 +124,7 @@ export class StageHUD {
     const panelW = compact ? 214 : 330;
     const panelH = compact ? 80 : 96;
     this.panel(x, y, panelW, panelH, 14);
-    this.text(x + 16, y + 10, `${leader.name}  Lv.${leader.level}`, compact ? 13 : 17, '#fff', 'bold');
+    this.text(x + 16, y + 10, leader ? `${leader.name}  Lv.${leader.level}` : '主人公', compact ? 13 : 17, '#fff', 'bold');
     /* === [ 担当 : 250056 斎藤永聖 / 250116 中村伊安 ] ===
      * 処理内容 : 回復・宝石効果のアイコンと使用時の演出を連動させる
      * ================================== */
@@ -177,7 +174,10 @@ export class StageHUD {
       0xf05b86
     );
     this.text(x + 16, y + 59, 'MP', 12, '#7ee6fa', 'bold');
-    this.bar(x + 50, y + 62, panelW - (compact ? 66 : 88), 9, leader.stats.mp, leader.stats.mp, 0x32bddb);
+    /* === [ 担当 : 250082 武田優人 ] ===
+     * 処理内容 : 主人公のMPバーを表示専用で満タンにする（花のMPやスキル消費には影響しない）
+     * ================================== */
+    this.bar(x + 50, y + 62, panelW - (compact ? 66 : 88), 9, 1, 1, 0x32bddb);
   }
 
   /* === [ 担当 : 250116 中村伊安 ] ===
@@ -439,7 +439,7 @@ export class StageHUD {
      * ================================== */
     for (let i = 0; i < 4; i++) {
       const x = left + i * (cardW + gap);
-      const character = testData.characters.find(c => c.id === formation[i]);
+      const character = this.flowers.find(c => c.id === formation[i]);
       const border = this.scene.add.graphics().setScrollFactor(0).setDepth(this.depth + 2);
       this.partySelectionBorders.push(border);
       this.drawPartySelection(border, x, top, cardW, cardH, i === this.selectedFlower);
@@ -476,8 +476,10 @@ export class StageHUD {
       const skillY = top + cardH - 38;
       this.scene.add.rectangle(skillX, skillY, 72, 72, 0x101923, 0.96)
         .setStrokeStyle(2, 0xe0c184, 1).setScrollFactor(0).setDepth(this.depth + 3);
-      this.scene.add.image(skillX, skillY, `flower-skill-${character.id}`)
-        .setDisplaySize(64, 64).setScrollFactor(0).setDepth(this.depth + 4);
+      if (this.scene.textures.exists(`flower-skill-${character.id}`)) {
+        this.scene.add.image(skillX, skillY, `flower-skill-${character.id}`)
+          .setDisplaySize(64, 64).setScrollFactor(0).setDepth(this.depth + 4);
+      } else this.text(skillX, skillY, '準備中', 12, '#d4dce5').setOrigin(0.5);
       const cooldownOverlay = this.scene.add.graphics().setScrollFactor(0).setDepth(this.depth + 5);
       this.flowerCooldownOverlays.push(cooldownOverlay);
       this.flowerSkillIconCenters.push({ x: skillX, y: skillY });
@@ -714,7 +716,7 @@ export class StageHUD {
    * ================================== */
   private useSelectedFlowerSkill(index = this.selectedFlower): void {
     const formationId = this.formation[index];
-    const flower = testData.characters.find(character => character.id === formationId);
+    const flower = this.flowers.find(character => character.id === formationId);
     if (!flower || !this.player) return;
     const cooldownUntil = this.flowerCooldownUntil.get(flower.id) ?? 0;
     if (cooldownUntil > battleNow(this.scene)) {
@@ -722,7 +724,7 @@ export class StageHUD {
       return;
     }
     if (!this.flowerSkills.has(flower.id)) {
-      this.skillNameText?.setText('スキルを読み込み中');
+      this.skillNameText?.setText(this.isReady ? 'この花のスキルは未実装です。' : 'スキルを読み込み中');
       return;
     }
     const skill = this.flowerSkills.get(flower.id);
@@ -769,7 +771,7 @@ export class StageHUD {
   private updateSkillLabel(): void {
     if (!this.skillNameText) return;
     const formationId = this.formation[this.selectedFlower];
-    const flower = testData.characters.find(character => character.id === formationId);
+    const flower = this.flowers.find(character => character.id === formationId);
     const skill = flower
       ? this.flowerSkills.get(flower.id) ?? getFlowerSkill(flower.id)
       : undefined;
@@ -783,8 +785,8 @@ export class StageHUD {
     }
   }
 
-  /* === [ 担当 : 250116 中村伊安 ] ===
-   * 処理内容 : 戦闘開始時のスキル状態を取得する
+  /* === [ 担当 : 250082 武田優人 / 250116 中村伊安 ] ===
+   * 処理内容 : DBの育成値で編成・主人公・花スキルを初期化し、取得成功後に操作UIを有効にする
    * ================================== */
   private async initializeFlowerSkills(stageId: number): Promise<void> {
     if (this.skillNameText) this.skillNameText.setText('スキル読み込み中…');
@@ -794,18 +796,30 @@ export class StageHUD {
         level: flower.level,
         attackPower: flower.stats.atk
       }));
-      const states = await beginStageSkillStates(stageId, flowers);
+      const battle = await beginStageSkillStates(stageId, flowers, this.formation);
       if (this.disposed) return;
-      states.forEach(state => {
+      this.formation = battle.formation;
+      this.flowers = import.meta.env.DEV && isBattlePreview ? testData.characters : battle.flowers.flatMap(saved => {
+        const definition = testData.characters.find(flower => flower.id === saved.flowerId);
+        return definition ? [{ ...definition, level: saved.level, stats: { ...definition.stats, ...saved.stats } }] : [];
+      });
+      const selected = new Set(this.formation.filter(id => id !== null));
+      this.player?.applyFlowerStats(battle.flowers.filter(flower => selected.has(flower.flowerId)).map(flower => flower.stats));
+      battle.skills.forEach(state => {
         this.flowerMp.set(state.flowerId, state.mp);
         this.flowerMaxMp.set(state.flowerId, state.maxMp);
         this.flowerCooldownUntil.set(state.flowerId, battleNow(this.scene) + Math.max(0, state.cooldownUntil - Date.now()));
         this.flowerSkills.set(state.flowerId, state.skill);
         this.flowerCooldownDuration.set(state.flowerId, state.skill.cooldownSeconds * 1000);
         const formationIndex = this.formation.indexOf(state.flowerId);
-        const flower = testData.characters.find(character => character.id === state.flowerId);
+        const flower = this.flowers.find(character => character.id === state.flowerId);
         if (formationIndex >= 0 && flower) this.updateFlowerMp(formationIndex, flower);
       });
+      this.createStatusPanel();
+      this.createPartyHud();
+      this.createMovementPad();
+      this.createActionButtons();
+      this.isReady = true;
       this.updateSkillLabel();
       if (import.meta.env.DEV && isBattlePreview && this.player) {
         const { attachPreviewControls } = await import('./SkillPreview');
@@ -815,7 +829,11 @@ export class StageHUD {
       if (this.disposed) return;
       const message = error instanceof Error ? error.message : 'スキルデータを読み込めませんでした。';
       this.skillLoadError = message;
-      this.skillNameText?.setText(message);
+      const errorLabel = this.text(24, 145, `育成データを読み込めません。${message}\nここを押して再試行できます。`, 16, '#ffb4a2');
+      errorLabel.setWordWrapWidth(650).setInteractive({ useHandCursor: true }).once('pointerdown', () => {
+        errorLabel.destroy(); this.skillLoadError = '';
+        trackSceneLoading(this.scene, this.initializeFlowerSkills(stageId));
+      });
       console.error('Flower skill state loading failed:', error);
     }
   }
