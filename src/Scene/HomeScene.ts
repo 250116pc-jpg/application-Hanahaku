@@ -20,7 +20,7 @@ import { homeAnimationData, homeAttackCombos, homeAnimationNames, homeClickActio
 import { createButton } from './HomeScene/buttons'
 import { villageAssets, createVillage, setupVillageScroll } from './HomeScene/village'
 import { getTownArea, townAreas, type TownAreaId, type TownMapDestination, type VillageStop } from './HomeScene/townAreas'
-import { createTownMap } from './HomeScene/townMap'
+import { createTownMap, preloadTownMap } from './HomeScene/townMap'
 import { preloadTitlePetals, createTitlePetals } from './title/TitlePetals'
 //debug機能
 import { showDebugSceneName } from '../debug';
@@ -39,6 +39,7 @@ export class HomeScene extends Phaser.Scene {
 
   preload(): void {
     preloadTitlePetals(this)
+    preloadTownMap(this)
     Object.entries(villageAssets).forEach(([key, url]) => this.load.image(key, url))
     // 背景画像（表示順に4種類）
     this.load.image('bg1', bg1Img)

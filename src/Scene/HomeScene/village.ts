@@ -9,9 +9,9 @@ import { prepareTownProps, drawTownGround, drawTownFeature, drawInteractiveProp 
 export const villageAssets = { 'home-house1': house1, 'home-house2': house2, 'home-tavern': tavern, 'home-props': props }
 
 // 素材の透明な余白を除いたフレーム。元の画像ファイルは変更しない。
-function trimFrame(scene: Phaser.Scene, key: string): void {
+export function trimFrame(scene: Phaser.Scene, key: string, frame = 'building', alphaThreshold = 0): void {
   const texture = scene.textures.get(key)
-  if (texture.has('building')) return
+  if (texture.has(frame)) return
   const source = texture.getSourceImage() as HTMLImageElement
   const canvas = document.createElement('canvas')
   canvas.width = source.width
@@ -21,11 +21,11 @@ function trimFrame(scene: Phaser.Scene, key: string): void {
   const pixels = context.getImageData(0, 0, canvas.width, canvas.height).data
   let left = canvas.width, top = canvas.height, right = 0, bottom = 0
   for (let y = 0; y < canvas.height; y++) for (let x = 0; x < canvas.width; x++) {
-    if (pixels[(y * canvas.width + x) * 4 + 3] === 0) continue
+    if (pixels[(y * canvas.width + x) * 4 + 3] <= alphaThreshold) continue
     left = Math.min(left, x); right = Math.max(right, x)
     top = Math.min(top, y); bottom = Math.max(bottom, y)
   }
-  texture.add('building', 0, left, top, right - left + 1, bottom - top + 1)
+  texture.add(frame, 0, left, top, right - left + 1, bottom - top + 1)
   texture.setFilter(Phaser.Textures.FilterMode.NEAREST)
 }
 
