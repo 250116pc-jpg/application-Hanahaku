@@ -9,16 +9,25 @@ import { getContractPool } from './stage/flowerContracts';
 import Phaser from 'phaser';
 
 import testData from './test_data';
+import { loadFormation } from '../form/formationStorage';
 import { AREA_STAGE_LAYOUTS, type StagePosition } from './stageSelectData';
 /* === [ 担当 : 250082 武田優人 / 250116 中村伊安 ] ===
  * 処理内容 : ステージ選択・詳細・移動を定義する
  * ================================== */
 const battleData = import.meta.glob('../../php/stage/stage*.json', { eager: true, import: 'default' }) as Record<string, { enemies: { id: number; level: number }[] }>;
+const formationPortraits = import.meta.glob('../assets/images/pixel_flowers/*.png', {
+  eager: true, query: '?url', import: 'default',
+}) as Record<string, string>;
+const formationPortraitKey = (id: number): string => 'stage-select-flower-' + id;
 type StageData = typeof testData.stages[number];
 import { specialText } from '../functions';
 import { createBackground } from '../background';
 import backgroundImg from '../assets/ui/stageslect_back.png';
 import stageIcons from '../assets/ui/stageslect_icon.png';
+import confirmPanel from '../assets/ui/training_panel.png';
+import confirmButton from '../assets/ui/training_button_wood.png';
+import confirmCard from '../assets/ui/formation_flower_card.png';
+import confirmOrnament from '../assets/ui/training_title_ornament.png';
 
 import {
   loadCharacterAnimation,
@@ -78,6 +87,15 @@ export class SelectStageScene extends Phaser.Scene {
     for (const { flower } of getContractPool('1-1')) {
       if (!this.textures.exists(flower.key)) this.load.image(flower.key, flower.url);
     }
+    for (const flower of testData.characters) {
+      const url = formationPortraits['../assets/images/pixel_flowers/' + flower.code + '.png'];
+      const key = formationPortraitKey(flower.id);
+      if (url && !this.textures.exists(key)) this.load.image(key, url);
+    }
+    this.load.image('stage-confirm-panel', confirmPanel);
+    this.load.image('stage-confirm-button', confirmButton);
+    this.load.image('stage-confirm-card', confirmCard);
+    this.load.image('stage-confirm-ornament', confirmOrnament);
     // 背景
     this.load.image('background', backgroundImg);
     // アイコン
@@ -271,6 +289,45 @@ export class SelectStageScene extends Phaser.Scene {
   // ========================================
   // ステージ情報 (文字＆ポップアップ拡大版)
   // ========================================
+  private createFormationPreview(scene: Phaser.Scene, x: number, y: number, width: number): Phaser.GameObjects.Container {
+    const preview = scene.add.container(x, y).setName('stage-formation-preview');
+    const slots = loadFormation();
+    preview.add(scene.add.rectangle(0, 0, width, 108, 0x72512d, .08)
+      .setOrigin(0).setStrokeStyle(1, 0xb59a63, .5));
+    preview.add(scene.add.text(12, 9, '出撃編成', getTextStyle(17, {
+      color: '#51391f', fontStyle: 'bold', padding: {},
+    })));
+
+    const gap = 8;
+    const slotWidth = (width - 24 - gap * (slots.length - 1)) / slots.length;
+    slots.forEach((id, index) => {
+      const left = 12 + index * (slotWidth + gap);
+      const flower = testData.characters.find(character => character.id === id);
+      preview.add(scene.add.image(left, 34, 'stage-confirm-card')
+        .setOrigin(0).setDisplaySize(slotWidth, 62).setAlpha(flower ? 1 : .6));
+      preview.add(scene.add.text(left + 6, 39, String(index + 1), getTextStyle(12, {
+        color: '#7b674b', padding: {},
+      })));
+
+      const key = id === null ? null : formationPortraitKey(id);
+      const hasPortrait = key !== null && scene.textures.exists(key);
+      if (hasPortrait) {
+        const portrait = scene.add.image(left + 36, 65, key);
+        portrait.texture.setFilter(Phaser.Textures.FilterMode.NEAREST);
+        portrait.setScale(38 / Math.max(portrait.width, portrait.height));
+        preview.add(portrait);
+      }
+
+      const name = scene.add.text(left + (hasPortrait ? 61 : 25), 65, flower?.name ?? '空き', getTextStyle(16, {
+        color: flower ? '#493620' : '#89765a', padding: {},
+      })).setOrigin(0, .5);
+      const availableWidth = slotWidth - (hasPortrait ? 68 : 32);
+      if (name.width > availableWidth) name.setScale(availableWidth / name.width);
+      preview.add(name);
+    });
+    return preview;
+  }
+
   private openStageInfo(
     scene: Phaser.Scene,
     stageLabel: string | StageData
@@ -322,7 +379,7 @@ export class SelectStageScene extends Phaser.Scene {
       : [];
     const hasContracts = pool.length > 0;
     const popupW = Math.min(width * 0.9, hasContracts ? 880 : 640);
-    const popupH = Math.min(height * 0.88, hasContracts ? 560 : 500);
+    const popupH = Math.min(height * 0.9, isBattleStage ? (hasContracts ? 600 : 520) : 210);
 
     // Absorb clicks inside the panel before they reach the backdrop.
     /* === [ 担当 : 250082 武田優人 / 250116 中村伊安 ] ===
@@ -331,25 +388,16 @@ export class SelectStageScene extends Phaser.Scene {
     const dialogHitArea = scene.add.zone(0, 0, popupW, popupH).setInteractive();
     const dialogGfx = scene.add.graphics();
     
-    dialogGfx.fillStyle(0x000000, 0.25);
-    dialogGfx.fillRoundedRect(-popupW / 2 + 4, -popupH / 2 + 6, popupW, popupH, 16);
-    
-    dialogGfx.fillStyle(0xffffff, 1);
-    dialogGfx.fillRoundedRect(-popupW / 2, -popupH / 2, popupW, popupH, 16);
-    dialogGfx.lineStyle(3, 0x536878, 1);
-    /* === [ 担当 : 250082 武田優人 / 250116 中村伊安 ] ===
-     * 処理内容 : 詳細枠の縁取りとステージ名の見出しを描く
-     * ================================== */
-    dialogGfx.strokeRoundedRect(-popupW / 2, -popupH / 2, popupW, popupH, 16);
+    const left = -popupW / 2;
+    const top = -popupH / 2;
+    dialogGfx.fillStyle(0x20170e, .4);
+    dialogGfx.fillRect(left + 5, top + 7, popupW, popupH);
+    const paper = scene.add.image(0, 0, 'stage-confirm-panel').setDisplaySize(popupW, popupH);
+    const ornament = scene.add.image(0, top + 58, 'stage-confirm-ornament').setDisplaySize(320, 62);
 
-    // ヘッダー帯も少し太く (54 → 60)
-    dialogGfx.fillStyle(0x536878, 1);
-    dialogGfx.fillRoundedRect(-popupW / 2, -popupH / 2, popupW, 60, { tl: 16, tr: 16, bl: 0, br: 0 });
-
-    // タイトル文字大きく (24 → 28)
-    const titleText = scene.add.text(0, -popupH / 2 + 30, isBattleStage ? stage.name : story?.title ?? 'ストーリー', {
+    const titleText = scene.add.text(0, -popupH / 2 + 38, isBattleStage ? '出撃準備  ―  ' + stage.name : story?.title ?? 'ストーリー', {
       ...getTextStyle(28),
-      color: '#ffffff',
+      color: '#51391f',
       fontStyle: 'bold',
       padding: { top: 0, bottom: 0, left: 0, right: 0 }
     }).setOrigin(0.5);
@@ -358,15 +406,16 @@ export class SelectStageScene extends Phaser.Scene {
     /* === [ 担当 : 250082 武田優人 / 250116 中村伊安 ] ===
      * 処理内容 : 詳細画面を閉じるボタンとマウス反応を作る
      * ================================== */
-    const closeButton = scene.add.text(popupW / 2 - 30, -popupH / 2 + 30, '✕', {
+    const closePlate = scene.add.circle(popupW / 2 - 32, -popupH / 2 + 32, 17, 0x4b321d).setStrokeStyle(2, 0xc6a35d);
+    const closeButton = scene.add.text(popupW / 2 - 32, -popupH / 2 + 32, '✕', {
       ...getTextStyle(26),
-      color: '#ffffff',
+      color: '#fff1cd',
       fontStyle: 'bold',
       padding: { top: 0, bottom: 0, left: 0, right: 0 }
     }).setOrigin(0.5).setInteractive({ useHandCursor: true });
 
-    closeButton.on('pointerover', () => closeButton.setColor('#ffaaaa'));
-    closeButton.on('pointerout', () => closeButton.setColor('#ffffff'));
+    closeButton.on('pointerover', () => closeButton.setColor('#ffd27b'));
+    closeButton.on('pointerout', () => closeButton.setColor('#fff1cd'));
 
     // カードの高さ拡大 (160 → 210)
     /* === [ 担当 : 250082 武田優人 / 250116 中村伊安 ] ===
@@ -376,12 +425,12 @@ export class SelectStageScene extends Phaser.Scene {
     const cardW = hasContracts ? 264 : popupW - 60;
     const cardX = -popupW / 2 + 30;
     const cardH = hasContracts ? 285 : 210;
-    const cardY = hasContracts ? -52 : -10;
+    const cardY = top + 73 + cardH / 2;
 
-    enemyCardGfx.fillStyle(0xf4f7f9, 1);
-    enemyCardGfx.fillRoundedRect(cardX, cardY - cardH / 2, cardW, cardH, 10);
-    enemyCardGfx.lineStyle(1, 0xd0d7de, 1);
-    enemyCardGfx.strokeRoundedRect(cardX, cardY - cardH / 2, cardW, cardH, 10);
+    enemyCardGfx.fillStyle(0x72512d, .07);
+    enemyCardGfx.fillRect(cardX, cardY - cardH / 2, cardW, cardH);
+    enemyCardGfx.lineStyle(1, 0xb59a63, .5);
+    enemyCardGfx.strokeRect(cardX, cardY - cardH / 2, cardW, cardH);
 
     const enemyLines = stage.enemies.map(e => `・ 敵ID: ${e.id} 数量: ${e.num}体 Lv.${e.level}`).join('\n');
     const bossLine = `・ [BOSS] 敵ID: ${stage.boss.id} 数量: ${stage.boss.num}体 Lv.${stage.boss.level}`;
@@ -394,9 +443,9 @@ export class SelectStageScene extends Phaser.Scene {
     /* === [ 担当 : 250082 武田優人 / 250116 中村伊安 ] ===
      * 処理内容 : 敵情報と契約候補の画像・名前・出現率を表示する
      * ================================== */
-    const enemyTitle = scene.add.text(cardX + 20, cardY - cardH / 2 + 20, '⚔️ エリアの敵情報', {
+    const enemyTitle = scene.add.text(cardX + 20, cardY - cardH / 2 + 20, '出現する敵', {
       ...getTextStyle(22),
-      color: '#333333',
+      color: '#51391f',
       fontStyle: 'bold',
       padding: { top: 0, bottom: 0, left: 0, right: 0 }
     });
@@ -406,35 +455,35 @@ export class SelectStageScene extends Phaser.Scene {
     if (hasContracts) {
       const panelW = popupW - cardW - 76;
       const tileW = (panelW - 36) / 2;
-      contractList.add(scene.add.rectangle(0, 0, panelW, cardH, 0xf2f6ee)
-        .setOrigin(0).setStrokeStyle(1, 0xc9d6bf));
+      contractList.add(scene.add.rectangle(0, 0, panelW, cardH, 0x72512d, .07)
+        .setOrigin(0).setStrokeStyle(1, 0xb59a63, .5));
       contractList.add(scene.add.text(12, 10, '契約可能な花', getTextStyle(20, {
-        color: '#345747', fontStyle: 'bold',
+        color: '#674725', fontStyle: 'bold',
       })));
       contractList.add(scene.add.text(panelW - 12, 16, '1体抽選・出現率順', getTextStyle(13, {
-        color: '#526454',
+        color: '#7b674b',
       })).setOrigin(1, 0));
       pool.forEach(({ flower, chance }, index) => {
         const column = index % 2;
         const row = Math.floor(index / 2);
         const x = 12 + column * (tileW + 12);
         const y = 45 + row * 45;
-        contractList.add(scene.add.rectangle(x, y, tileW, 40, 0xffffff)
-          .setOrigin(0).setStrokeStyle(1, 0xd9e3d2));
+        contractList.add(scene.add.rectangle(x, y, tileW, 40, 0xfff6dc, .65)
+          .setOrigin(0).setStrokeStyle(1, 0xb59a63, .4));
         const icon = scene.add.image(x + 22, y + 20, flower.key);
         icon.setScale(32 / Math.max(icon.width, icon.height));
         contractList.add(icon);
         contractList.add(scene.add.text(x + 43, y + 20, flower.name, getTextStyle(14, {
-          color: '#263b32',
+          color: '#493620',
         })).setOrigin(0, 0.5));
         contractList.add(scene.add.text(x + tileW - 9, y + 20, chance.toFixed(1) + '%', getTextStyle(14, {
-          color: '#345747', fontStyle: 'bold',
+          color: '#674725', fontStyle: 'bold',
         })).setOrigin(1, 0.5));
       });
     }
     const enemyDetails = scene.add.text(cardX + 20, cardY - cardH / 2 + 60, enemySummary, {
       ...getTextStyle(pool.length ? 14 : 20),
-      color: '#444444',
+      color: '#655039',
       padding: { top: 0, bottom: 0, left: 0, right: 0 }
     });
     /* === [ 担当 : 250082 武田優人 / 250116 中村伊安 ] ===
@@ -442,14 +491,14 @@ export class SelectStageScene extends Phaser.Scene {
      * ================================== */
     enemyDetails.setLineSpacing(12);
 
-    // 注意書き大きく (15 → 18)
-    const warningText = scene.add.text(0, popupH / 2 - 120, '※ 編成を変更してから出撃できます。', {
-      ...getTextStyle(18),
-      color: '#777777',
-      padding: { top: 0, bottom: 0, left: 0, right: 0 }
-    }).setOrigin(0.5);
+    const formationPreview = isBattleStage
+      ? this.createFormationPreview(scene, cardX, cardY + cardH / 2 + 12, popupW - 60)
+      : null;
 
+    let closing = false;
     const closePopup = (onComplete?: () => void) => {
+      if (closing) return;
+      closing = true;
       scene.tweens.add({
         targets: darkBackground,
         alpha: 0,
@@ -478,15 +527,10 @@ export class SelectStageScene extends Phaser.Scene {
       bgColor: number, hoverColor: number, onClick: () => void
     ) => {
       const btnContainer = scene.add.container(x, y);
-      const bg = scene.add.graphics();
-
-      const drawBtn = (c: number) => {
-        bg.clear();
-        bg.fillStyle(0x000000, 0.15);
-        bg.fillRoundedRect(-btnW / 2, -btnH / 2 + 3, btnW, btnH, 10);
-        bg.fillStyle(c, 1);
-        bg.fillRoundedRect(-btnW / 2, -btnH / 2, btnW, btnH, 10);
-      };
+      // Account for transparent padding in the existing wooden button artwork.
+      const bg = scene.add.image(0, 0, 'stage-confirm-button')
+        .setDisplaySize(btnW + 8, btnH * 1.6);
+      const drawBtn = (c: number) => bg.setTint(c);
       drawBtn(bgColor);
 
       // ボタンの文字も大きく (20 → 22)
@@ -523,7 +567,7 @@ export class SelectStageScene extends Phaser.Scene {
      * ================================== */
     const inventoryBtn = isBattleStage ? createDialogButton(
       cardX + cardW / 2, cardY + cardH / 2 - 34,
-      Math.min(220, cardW - 40), 44, '所持品を見る', 0x536878, 0x6d8396, () => {
+      Math.min(220, cardW - 40), 44, '所持品を見る', 0xe2d4b8, 0xffffff, () => {
         if (scene.scene.isActive(SCENE_KEYS.INVENTORY)) return;
         openSceneWithLoading(scene, SCENE_KEYS.INVENTORY, { returnScene: scene.scene.key });
       }
@@ -532,13 +576,13 @@ export class SelectStageScene extends Phaser.Scene {
     if (isBattleStage) enemyDetails.setCrop(0, 0, cardW - 40, Math.max(0, cardH - 134));
 
     // ボタンのサイズも少し大きく (150x48 → 160x56)
-    const formationBtn = createDialogButton(-120, popupH / 2 - 55, 160, 56, '編成', 0x536878, 0x6d8396, () => {
+    const formationBtn = createDialogButton(-120, popupH / 2 - 55, 160, 56, '編成を変更', 0xe2d4b8, 0xffffff, () => {
       closePopup(() => {
         openSceneWithLoading(scene, SCENE_KEYS.FORM, { returnToStage: true }, 'sleep');
       });
     });
 
-    const startBtn = createDialogButton(120, popupH / 2 - 55, 160, 56, story ? '読む' : '出撃', 0x4c8c5a, 0x60ab72, () => {
+    const startBtn = createDialogButton(120, popupH / 2 - 55, 160, 56, isBattleStage ? '出撃' : '読む', 0xffffff, 0xffe4a8, () => {
       closePopup(() => {
         console.log(`ステージID: ${stage.id} で StageScene に遷移`);
         const stageIndex = this.stages.findIndex(item => item.id === stage.id);
@@ -561,18 +605,19 @@ export class SelectStageScene extends Phaser.Scene {
     darkBackground.on('pointerdown', () => closePopup());
 
     container.add([
-      dialogHitArea, dialogGfx, titleText, closeButton, enemyCardGfx, enemyTitle,
-      enemyDetails, warningText, formationBtn, startBtn
+      dialogHitArea, dialogGfx, paper, ornament, titleText, closePlate, closeButton, enemyCardGfx, enemyTitle,
+      enemyDetails, formationBtn, startBtn
     ]);
 
-    if (story) {
-      for (const element of [enemyCardGfx, enemyTitle, enemyDetails, warningText, formationBtn]) element.setVisible(false);
+    if (!isBattleStage) {
+      for (const element of [enemyCardGfx, enemyTitle, enemyDetails, formationBtn]) element.setVisible(false);
       startBtn.setX(0);
     }
     /* === [ 担当 : 250082 武田優人 / 250056 斎藤永聖 / 250116 中村伊安 ] ===
      * 処理内容 : 詳細画面を拡大しながら表示する
      * ================================== */
     if (inventoryBtn) container.add(inventoryBtn);
+    if (formationPreview) container.add(formationPreview);
     container.add(contractList);
     container.setScale(0.85);
     container.setAlpha(0);
