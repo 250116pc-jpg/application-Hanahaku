@@ -51,7 +51,7 @@ import { completeStage } from './StageProgress';
 import testData from '../test_data';
 
 /* === [ 担当 : 250056 斎藤永聖 / 250116 中村伊安 ] ===
- * 処理内容 : 戦闘本体を定義する
+ * 処理内容 : 花IDと画像コードの対応、および花・スキル演出・状態アイコンの画像一覧を用意する
  * ================================== */
 const flowerCodes: Record<number, string> = Object.fromEntries(formationData.characters.map(flower => [flower.id, flower.code]));
 const pixelFlowerUrls = import.meta.glob('../../assets/images/pixel_flowers/*.png', {

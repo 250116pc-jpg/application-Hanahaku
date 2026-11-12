@@ -24,5 +24,6 @@ export const SCENE_KEYS = {
   ENCYCLOPEDIA: 'EncyclopediaScene',
   FORM: 'FormScene',
   SHOP: 'ShopScene',
+  // 旧テスト画面用の未使用キー。TestScene本体は削除済みで、現在は起動・遷移に使用しない。
   TEST: 'TestScene',
 } as const;

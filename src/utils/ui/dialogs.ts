@@ -6,9 +6,9 @@
 import Phaser from 'phaser';
 import { getTextStyle } from './styles';
 
-// 撤退確認ポップアップ共通化 (TestScene と StageScene で共通)
+
 /* === [ 担当 : 250116 中村伊安 ] ===
- * 処理内容 : 確認UIを定義する
+ * 処理内容 : 暗い背景と撤退確認を表示し、キャンセル時は閉じ、撤退時は指定された処理を呼び出す
  * ================================== */
 export const showRetreatDialog = (
   scene: Phaser.Scene,

@@ -69,7 +69,7 @@ export class RegisterScene extends Phaser.Scene {
     const googleButton = formElement.querySelector<HTMLDivElement>('.google-signin-button');
 
     /* === [ 担当 : 250082 武田優人 / 250056 斎藤永聖 ] ===
-     * 処理内容 : ボタン操作に応じて画面を切り替える
+     * 処理内容 : Google認証後のユーザー情報を保持し、登録完了を表示してホームへ移動する
      * ================================== */
     const finishGoogleRegistration = (user: AuthenticatedUser): void => {
       if (!message || !submitButton) return;
@@ -102,7 +102,7 @@ export class RegisterScene extends Phaser.Scene {
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, disposeGoogleButton);
 
     /* === [ 担当 : 250082 武田優人 / 250056 斎藤永聖 ] ===
-     * 処理内容 : ボタン操作に応じて画面を切り替える
+     * 処理内容 : 登録入力を検証して登録APIへ送信し、成功時はログインへ移動、失敗時はエラーを表示する
      * ================================== */
     formElement.addEventListener('submit', async (event) => {
       event.preventDefault();
