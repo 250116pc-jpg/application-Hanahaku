@@ -216,7 +216,7 @@ export function initializeAudio(scene: Phaser.Scene): void {
         const webAudio = target.sound as Phaser.Sound.WebAudioSoundManager
         const wasSuspended = !!webAudio.context && webAudio.context.state !== 'running'
         resumeAudioFromGesture(target)
-        if (object.name === 'stage-attack' || object.name === 'stage-jump' || object.name === 'stage-guard') return
+        if (object.name === 'stage-attack' || object.name === 'stage-jump' || object.name === 'stage-guard' || object.name === 'stage-skill') return
         if (target.sound.locked || wasSuspended) {
           state.pendingClick = true
           waitForUnlock(target, state)

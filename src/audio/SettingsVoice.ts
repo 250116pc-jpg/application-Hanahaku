@@ -18,6 +18,7 @@ const lines: Record<string, string> = {
   '音を消したよ': 'muted',
   '音を戻したよ': 'unmuted',
   '最初の設定に戻したよ': 'reset',
+  '変更を取り消したよ': 'undo',
 }
 const files = import.meta.glob('../assets/audio/zundamon/*.wav', {
   eager: true, query: '?url', import: 'default',

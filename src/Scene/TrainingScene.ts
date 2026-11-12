@@ -20,6 +20,9 @@ import skillDefinitions from '../../php/skill/skills.json';
 import { requestShop, shopCatalog } from './shop/ShopApi';
 import { getShopItemImageUrl } from './shop/assets';
 import { getPhpBaseUrl } from '../auth/PhpBaseUrl';
+import { playSe } from '../audio/BgmManager';
+import trainingScrollPreview from '../assets/audio/training-scroll-preview.mp3';
+import trainingLevelPreview from '../assets/audio/training-level-preview.mp3';
 import { MAX_FLOWER_LEVEL, experienceThresholds, flowerStats, levelPreview, skillPreview, skillThresholds } from './training/trainingRules';
 
 /* === [ 担当 : 250082 武田優人 ] ===
@@ -85,6 +88,8 @@ export class TrainingScene extends Phaser.Scene {
    * 処理内容 : 使用する画像・音声を読み込む
    * ================================== */
   preload(): void {
+    this.load.audio('training-scroll-preview', trainingScrollPreview);
+    this.load.audio('training-level-preview', trainingLevelPreview);
     this.load.image('training-garden', background);
     this.load.image('training-parchment', parchment);
     this.load.image('training-button', buttonArtwork);
@@ -163,6 +168,8 @@ export class TrainingScene extends Phaser.Scene {
      * 処理内容 : 表示状態と操作フラグを初期化する
      * ================================== */
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      this.sound.stopByKey('training-scroll-preview');
+      this.sound.stopByKey('training-level-preview');
       this.inventoryRequest++; // 終了後や再入場前の通信結果を描画しない。
       this.flowersRequest++;
       this.lifecycle++;
@@ -591,6 +598,8 @@ export class TrainingScene extends Phaser.Scene {
     this.effects.add(title);
     this.tweens.add({ targets: title, alpha: 1, y: 221, duration: duration * .25, yoyo: true, hold: duration * .35 });
     const counter = { exp: Number(isSkill ? before.skillExp : before.exp) };
+    let levelSoundPlayed = false;
+    if (afterExp > counter.exp) playSe(this, 'training-scroll-preview', 0.25);
     return new Promise(resolve => {
       this.finishEffect = resolve;
       this.tweens.add({ targets: counter, exp: afterExp, duration, ease: 'Sine.easeInOut',
@@ -598,9 +607,15 @@ export class TrainingScene extends Phaser.Scene {
           const exp = Math.floor(counter.exp);
           const level = this.updateExperienceGauge(exp);
           this.expText?.setText(`累計EXP  ${exp.toLocaleString('ja-JP')}`);
+          if (!levelSoundPlayed && level > beforeLevel && afterLevel > beforeLevel) {
+            levelSoundPlayed = true;
+            this.sound.stopByKey('training-scroll-preview');
+            playSe(this, 'training-level-preview', 0.4);
+          }
           if (!isSkill) this.portraitLevel?.setText(`Lv.${Math.max(before.level, level)}`);
         },
         onComplete: () => {
+          this.sound.stopByKey('training-scroll-preview');
           this.effects.removeAll(true);
           this.finishEffect = undefined;
           resolve();

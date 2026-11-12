@@ -6,7 +6,7 @@
 import { transitionWithLoading, returnWithLoading } from '../utils/ui/scene-loading';
 import Phaser from 'phaser';
 import { DEFAULT_AUDIO_SETTINGS } from '../audio/AudioDefaults';
-import { applyAudioSettings, loadAudioSettings, saveAudioSettings, resumeAudioFromGesture, type AudioSettings } from '../audio/BgmManager';
+import { loadAudioSettings, saveAudioSettings, resumeAudioFromGesture, type AudioSettings } from '../audio/BgmManager';
 import { preloadSettingsVoice, SettingsVoice } from '../audio/SettingsVoice';
 import { loadDisplaySettings, saveDisplaySettings, type DisplaySettings } from '../display/DisplaySettings';
 import { logout } from '../auth/Session';
@@ -24,7 +24,7 @@ const reactionFiles = {
   bgmUp: 'BGM音量上げずんだ.png', bgmDown: 'BGM下げずんだ.png',
   seUp: 'SE上げずんだ.png', seDown: 'SE下げずんだ.png',
   voiceUp: '音声音量上げずんだ.png', voiceDown: '音声音量下げずんだ.png',
-  reset: '初期値ずんだ.png', mute: 'ミュートずんだ.png', unmute: 'ミュート解除ずんだ.png',
+  undo: '取り消しずんだ.png', reset: '初期値ずんだ.png', mute: 'ミュートずんだ.png', unmute: 'ミュート解除ずんだ.png',
 } as const;
 type Tab = 'sound' | 'display' | 'guide' | 'credits' | 'account';
 const TABS: Array<[Tab, string, string]> = [
@@ -40,10 +40,9 @@ export class SettingsScene extends Phaser.Scene {
    * ================================== */
   private returnScene = 'HomeScene';
   private resumeOnClose = false;
-  private original!: AudioSettings;
   private audio!: AudioSettings;
+  private audioOnOpen!: AudioSettings;
   private display!: DisplaySettings;
-  private displayChanged = false;
   private voice!: SettingsVoice;
   private layout!: Phaser.GameObjects.Container;
   private body!: Phaser.GameObjects.Container;
@@ -103,15 +102,14 @@ export class SettingsScene extends Phaser.Scene {
     this.leaving = false;
     this.tabs = [];
     this.drag = undefined;
-    this.displayChanged = false;
     this.input.enabled = true;
     this.cameras.main.setScroll(0, 0).setRoundPixels(false);
     /* === [ 担当 : 250056 斎藤永聖 ] ===
      * 処理内容 : 音声と画質の保存設定を読み込む
      * ================================== */
     this.voice = new SettingsVoice(this);
-    this.original = loadAudioSettings(this);
-    this.audio = { ...this.original };
+    this.audioOnOpen = loadAudioSettings(this);
+    this.audio = { ...this.audioOnOpen };
     this.display = loadDisplaySettings();
     // 他の画面と同じ1280×720の座標で組み、縦横比を保って画面に収める。
     const scale = Math.min(this.scale.width / 1280, this.scale.height / 720);
@@ -142,7 +140,7 @@ export class SettingsScene extends Phaser.Scene {
     // リアクションのメッセージは、ずんだもんの頭上に中央揃えで表示する。
     this.message = this.text(content, 1030, 260, '', 16, '#536044')
       .setWordWrapWidth(190).setAlign('center').setOrigin(.5, 1).setLineSpacing(4);
-    this.artButton(this.layout, BACK_BUTTON_POSITION.x, BACK_BUTTON_POSITION.y, 180, 48, '‹  もどる', () => this.closeSettings(false));
+    this.artButton(this.layout, BACK_BUTTON_POSITION.x, BACK_BUTTON_POSITION.y, 180, 48, '‹  もどる', () => this.closeSettings());
     /* === [ 担当 : 250082 武田優人 / 250056 斎藤永聖 ] ===
      * 処理内容 : 表示状態と操作フラグを初期化する
      * ================================== */
@@ -159,7 +157,6 @@ export class SettingsScene extends Phaser.Scene {
       this.input.off('pointerup', release);
       this.input.off('gameout', release);
       this.voice.stop();
-      if (!this.leaving) applyAudioSettings(this, this.original);
     });
     this.renderTab('sound');
     applySmoothDisplay(this, ['settings-background', 'settings-panel', 'settings-button', 'settings-tab', ...Object.keys(reactionFiles).map(key => `settings-${key}`).filter(key => this.textures.exists(key))]);
@@ -208,10 +205,7 @@ export class SettingsScene extends Phaser.Scene {
     else if (tab === 'guide') this.renderGuide();
     else if (tab === 'credits') this.renderCredits();
     else this.renderAccount();
-    // 保存は値を変更する2タブだけ。切り替えても編集途中の値は保持する。
-    if (tab === 'sound' || tab === 'display') {
-      this.artButton(this.body, 1000, 531, 240, 58, '保存して戻る', () => this.closeSettings(true));
-    }
+
   }
 
   /* === [ 担当 : 250056 斎藤永聖 ] ===
@@ -235,7 +229,7 @@ export class SettingsScene extends Phaser.Scene {
     this.body.add(hit);
     hit.on('pointerdown', () => {
       this.audio.isMuted = !this.audio.isMuted;
-      applyAudioSettings(this, this.audio);
+      saveAudioSettings(this, this.audio);
       draw(); label.setText(this.audio.isMuted ? 'ON' : 'OFF');
       this.react(this.audio.isMuted ? 'mute' : 'unmute');
       this.speak(this.audio.isMuted ? '音を消したよ' : '音を戻したよ');
@@ -245,8 +239,16 @@ export class SettingsScene extends Phaser.Scene {
     this.react(this.audio.isMuted ? 'mute' : 'unmute');
     this.artButton(this.body, 752, 531, 230, 58, '初期値に戻す', () => {
       this.audio = { ...DEFAULT_AUDIO_SETTINGS };
-      applyAudioSettings(this, this.audio);
+      saveAudioSettings(this, this.audio);
       this.renderTab('sound'); this.react('reset'); this.speak('最初の設定に戻したよ');
+    });
+    this.artButton(this.body, 1000, 531, 240, 58, '変更を取り消す', () => {
+      this.voice.stop();
+      this.audio = { ...this.audioOnOpen };
+      saveAudioSettings(this, this.audio);
+      this.renderTab('sound');
+      this.react('undo');
+      this.speak('変更を取り消したよ');
     });
   }
   /* === [ 担当 : 250056 斎藤永聖 ] ===
@@ -275,9 +277,10 @@ export class SettingsScene extends Phaser.Scene {
       const move = (p: Phaser.Input.Pointer): void => {
         const local = this.layout.getWorldTransformMatrix().applyInverse(p.worldX, p.worldY);
         const next = Math.round(Phaser.Math.Clamp((local.x - start) / width, 0, 1) * 100) / 100;
-        if (next !== this.audio[key]) this.react(next > this.audio[key] ? up : down);
+        if (next === this.audio[key]) return;
+        this.react(next > this.audio[key] ? up : down);
         this.audio[key] = next;
-        applyAudioSettings(this, this.audio); draw();
+        saveAudioSettings(this, this.audio); draw();
       };
       this.drag = { move, end: () => {
         const lower = this.audio[key] < initial;
@@ -295,18 +298,18 @@ export class SettingsScene extends Phaser.Scene {
     this.text(this.body, 410, 253, '最大FPS', 23);
     ([30, 60, 120] as const).forEach((fps, index) => {
       const image = this.artButton(this.body, 700 + index * 155, 274, 145, 53, `${fps} FPS`, () => {
-        this.display.maxFps = fps; this.displayChanged = true; this.renderTab('display');
+        this.updateDisplay({ ...this.display, maxFps: fps });
       });
       if (this.display.maxFps === fps) image.setTint(0xa7eff2);
     });
     this.text(this.body, 410, 331, '画質', 23);
     (['crisp', 'smooth'] as const).forEach((quality, index) => {
       const image = this.artButton(this.body, 743 + index * 230, 351, 218, 53, quality === 'crisp' ? 'くっきり' : 'なめらか', () => {
-        this.display.quality = quality; this.displayChanged = true; this.renderTab('display');
+        this.updateDisplay({ ...this.display, quality });
       });
       if (this.display.quality === quality) image.setTint(0xa7eff2);
     });
-    this.text(this.body, 410, 407, '画面設定は、保存後の再読み込みで反映されます。\n実際のFPSは端末やディスプレイによって異なります。', 17, '#786449').setLineSpacing(10);
+    this.text(this.body, 410, 407, '画面設定は自動で保存され、再読み込み後に反映されます。\n実際のFPSは端末やディスプレイによって異なります。', 17, '#786449').setLineSpacing(10);
     // TODO: 表示方法などの追加設定は、この画面設定タブに実装する。
   }
   /* === [ 担当 : 250056 斎藤永聖 ] ===
@@ -315,7 +318,7 @@ export class SettingsScene extends Phaser.Scene {
   private renderGuide(): void {
     this.text(this.body, 410, 247, '設定画面の使い方', 23);
     this.text(this.body, 410, 293,
-      '① 左のタブから設定項目を選びます。\n② 音量はスライダーを左右に動かして調整します。\n③「保存して戻る」で変更を保存します。\n\n「もどる」は、音量の変更を取り消して戻ります。\n音声：VOICEVOX:ずんだもん', 18).setLineSpacing(13);
+      '① 左のタブから設定項目を選びます。\n② 音量はスライダーを左右に動かして調整します。\n③ 設定は変更すると自動で保存されます。\n「変更を取り消す」で開いたときの音量とミュートに戻せます。\n\n画質と最大FPSは再読み込み後に反映されます。\n音声：VOICEVOX:ずんだもん', 18).setLineSpacing(13);
     // TODO: キー割り当て・タッチ操作などゲーム全体のガイドをここに追加する。
   }
   /* === [ 担当 : 250056 斎藤永聖 / 250116 中村伊安 ] ===
@@ -366,15 +369,18 @@ export class SettingsScene extends Phaser.Scene {
   /* === [ 担当 : 250082 武田優人 / 250056 斎藤永聖 ] ===
    * 処理内容 : 設定を反映して元の画面へ戻る
    * ================================== */
-  private closeSettings(save: boolean): void {
-    if (this.leaving) return;
-    if (save && this.displayChanged && !saveDisplaySettings(this.display)) {
+  private updateDisplay(next: DisplaySettings): void {
+    if (!saveDisplaySettings(next)) {
       this.message.setText('画面設定を保存できません。ブラウザの保存設定を確認してください。'); return;
     }
+    this.display = next;
+    this.renderTab('display');
+  }
+
+  private closeSettings(): void {
+    if (this.leaving) return;
     this.leaving = true;
     this.voice.stop();
-    if (save) saveAudioSettings(this, this.audio);
-    else applyAudioSettings(this, this.original);
     if (this.resumeOnClose) returnWithLoading(this, this.returnScene);
     else transitionWithLoading(this, this.returnScene);
   }
@@ -390,7 +396,6 @@ export class SettingsScene extends Phaser.Scene {
       await logout();
       if (!this.active) return;
       this.voice.stop();
-      applyAudioSettings(this, this.original);
       for (const scene of this.scene.manager.getScenes(false)) if (scene !== this) this.scene.stop(scene.scene.key);
       transitionWithLoading(this, 'LoginScene');
     } catch {

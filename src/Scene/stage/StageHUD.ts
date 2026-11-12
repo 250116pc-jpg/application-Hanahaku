@@ -6,7 +6,7 @@
 import { transitionWithLoading, trackSceneLoading } from '../../utils/ui/scene-loading';
 import { isBattlePreview } from '../../debug';
 import { battleNow } from './BattleClock';
-import { playUiSe } from '../../audio/BgmManager';
+import { playSe, playUiSe } from '../../audio/BgmManager';
 import retreatPanel from '../../assets/inventory-fantasy/panel-frame.png';
 import retreatButtonNormal from '../../assets/inventory-fantasy/button-normal.png';
 import retreatButtonHover from '../../assets/inventory-fantasy/button-hover.png';
@@ -483,7 +483,7 @@ export class StageHUD {
       const cooldownOverlay = this.scene.add.graphics().setScrollFactor(0).setDepth(this.depth + 5);
       this.flowerCooldownOverlays.push(cooldownOverlay);
       this.flowerSkillIconCenters.push({ x: skillX, y: skillY });
-      this.scene.add.zone(skillX, skillY, 72, 72)
+      this.scene.add.zone(skillX, skillY, 72, 72).setName('stage-skill')
         .setScrollFactor(0).setDepth(this.depth + 10).setInteractive({ useHandCursor: true })
         .on('pointerdown', () => {
           this.selectFlower(i, cardH);
@@ -720,6 +720,9 @@ export class StageHUD {
     if (!flower || !this.player) return;
     const cooldownUntil = this.flowerCooldownUntil.get(flower.id) ?? 0;
     if (cooldownUntil > battleNow(this.scene)) {
+      if (!this.scene.sound.getAllPlaying().some(sound => sound.key === 'skill-cooldown')) {
+        playSe(this.scene, 'skill-cooldown', 0.35);
+      }
       this.skillNameText?.setText(`再使用まで${Math.ceil((cooldownUntil - battleNow(this.scene)) / 1000)}秒`);
       return;
     }
