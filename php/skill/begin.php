@@ -1,8 +1,8 @@
 <?php
 /* ==================================
  * 期末テスト提出プログラム
- * 学籍番号：250116
- * 氏名：中村伊安
+ * 学籍番号：250082、250116
+ * 氏名：武田優人、中村伊安
  * ================================== */
 declare(strict_types=1);
 
@@ -10,6 +10,7 @@ declare(strict_types=1);
  * 処理内容 : 共通処理を読み込み、要求と認証状態を確認する
  * ================================== */
 require_once __DIR__ . '/common.php';
+require_once __DIR__ . '/../flower/battle.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     respond(['ok' => false, 'error' => 'POSTで送信してください。'], 405);
@@ -21,78 +22,53 @@ $stageId = filter_var($body['stageId'] ?? null, FILTER_VALIDATE_INT);
 if (!in_array($stageId, [2, 4, 6, 8, 10], true)) {
     respond(['ok' => false, 'error' => 'このステージのスキル状態を初期化できません。'], 422);
 }
-$flowerStats = [];
-if (isset($body['flowers'])) {
-    if (!is_array($body['flowers']) || count($body['flowers']) > 16) {
-        respond(['ok' => false, 'error' => '花の戦闘データが正しくありません。'], 422);
-    }
-    foreach ($body['flowers'] as $flower) {
-        if (
-            !is_array($flower) ||
-            !isset($flower['flowerId'], $flower['level'], $flower['attackPower']) ||
-            !is_int($flower['flowerId']) ||
-            !is_int($flower['level']) ||
-            !is_int($flower['attackPower']) ||
-            $flower['level'] < 1 || $flower['level'] > 100 ||
-            $flower['attackPower'] < 1 || $flower['attackPower'] > 100000
-        ) {
-            respond(['ok' => false, 'error' => '花の戦闘データが正しくありません。'], 422);
-        }
-        $flowerStats[$flower['flowerId']] = [
-            'level' => $flower['level'],
-            'attackPower' => $flower['attackPower'],
-        ];
+$formation = $body['formation'] ?? [];
+if (!is_array($formation) || !array_is_list($formation) || count($formation) > 4) {
+    respond(['ok' => false, 'error' => '編成データが正しくありません。'], 422);
+}
+foreach ($formation as $id) {
+    if ($id !== null && (!is_int($id) || $id < 1)) {
+        respond(['ok' => false, 'error' => '編成データが正しくありません。'], 422);
     }
 }
 
-/* === [ 担当 : 250116 中村伊安 ] ===
- * 処理内容 : 戦闘開始時のMP・再使用時間とスキル情報を返す
+/* === [ 担当 : 250082 武田優人 / 250116 中村伊安 ] ===
+ * 処理内容 : 編成中の所持花だけをDBから取得・検証し、重複を除いて戦闘開始時の状態を返す
  * ================================== */
 try {
     $pdo->beginTransaction();
-    initializeSkillStates($pdo, $userId);
-
-    $update = $pdo->prepare(
-        'UPDATE player_skill_states SET mp = ?, cooldown_until = 0 WHERE user_id = ? AND flower_id = ?'
-    );
-    $contractedIds = contractedFlowerIds($pdo, $userId);
-    foreach (flowerSkillDefinitions() as $flowerId => $definition) {
-        if (!in_array($flowerId, $contractedIds, true)) {
-            continue;
-        }
-        $update->execute([$definition['maxMp'], $userId, $flowerId]);
+    $requestedIds = array_values(array_unique(array_filter($formation, static fn($id) => $id !== null)));
+    $rows = [];
+    if ($requestedIds !== []) {
+        $placeholders = implode(',', array_fill(0, count($requestedIds), '?'));
+        $query = $pdo->prepare('SELECT flower_id, level, skill_level FROM player_flowers WHERE user_id = ? AND flower_id IN (' . $placeholders . ') FOR UPDATE');
+        $query->execute([$userId, ...$requestedIds]);
+        $rows = $query->fetchAll(PDO::FETCH_ASSOC);
     }
-
-    $query = $pdo->prepare('SELECT flower_id, mp, cooldown_until FROM player_skill_states WHERE user_id = ?');
-    $query->execute([$userId]);
-    $storedStates = [];
-    foreach ($query->fetchAll() as $row) {
-        $storedStates[(int)$row['flower_id']] = [
-            'mp' => (int)$row['mp'],
-            'cooldownUntil' => (int)$row['cooldown_until'] * 1000,
-        ];
+    $battleFlowers = buildBattleFlowers($rows);
+    $ownedIds = array_column($battleFlowers, 'flowerId');
+    $formation = array_map(static fn($id) => in_array($id, $ownedIds, true) ? $id : null, $formation);
+    $seen = [];
+    foreach ($formation as &$id) {
+        if ($id !== null && in_array($id, $seen, true)) $id = null;
+        if ($id !== null) $seen[] = $id;
+    }
+    unset($id);
+    $templates = flowerSkillTemplates();
+    $save = $pdo->prepare('INSERT INTO player_skill_states (user_id, flower_id, mp, cooldown_until) VALUES (?, ?, ?, 0) ON DUPLICATE KEY UPDATE mp = VALUES(mp), cooldown_until = 0');
+    $states = [];
+    foreach ($battleFlowers as $flower) {
+        $skillId = $flower['skillId'];
+        if ($skillId === null || !isset($templates[$skillId])) continue;
+        // 初期最大MPは既存スキル定義を維持し、花レベルによるMP増加分を100%足す。
+        $maximumMp = (int)round($templates[$skillId]['maxMp'] + $flower['mpGrowth']);
+        $save->execute([$userId, $flower['flowerId'], $maximumMp]);
+        $states[] = ['flowerId' => $flower['flowerId'], 'mp' => $maximumMp, 'maxMp' => $maximumMp,
+            'cooldownUntil' => 0, 'skill' => buildFlowerSkill($skillId, $flower['skillLevel'], (int)round($flower['stats']['atk']))];
     }
     $pdo->commit();
 
-    $states = [];
-    foreach (flowerSkillDefinitions() as $flowerId => $definition) {
-        if (!in_array($flowerId, $contractedIds, true)) {
-            continue;
-        }
-        $states[] = [
-            'flowerId' => $flowerId,
-            'mp' => $storedStates[$flowerId]['mp'] ?? $definition['maxMp'],
-            'cooldownUntil' => $storedStates[$flowerId]['cooldownUntil'] ?? 0,
-            'maxMp' => $definition['maxMp'],
-            'skill' => buildFlowerSkill(
-                $flowerId,
-                $flowerStats[$flowerId]['level'] ?? 1,
-                $flowerStats[$flowerId]['attackPower'] ?? 1
-            ),
-        ];
-    }
-
-    respond(['ok' => true, 'flowers' => $states]);
+    respond(['ok' => true, 'flowers' => $states, 'ownedFlowers' => $battleFlowers, 'formation' => $formation]);
 } catch (Throwable $error) {
     if ($pdo->inTransaction()) {
         $pdo->rollBack();

@@ -16,7 +16,7 @@
     "healingPower": 0,
     "attackIntervalMs": 450,
     "agility": 100,
-    "criticalRate": 0,
+    "criticalRate": 5,
     "criticalDamage": 30,
     "contractFlowerId": 0,
     "moveSpeed": 180,

@@ -515,11 +515,11 @@ export class StageScene extends Phaser.Scene {
   // =========================
   // 更新処理
   // =========================
-  /* === [ 担当 : 250116 中村伊安 ] ===
-   * 処理内容 : 操作と現在の状態を表示へ反映する
+  /* === [ 担当 : 250082 武田優人 / 250116 中村伊安 ] ===
+   * 処理内容 : 育成データの取得完了後に操作・敵・勝敗を更新し、現在のHPを表示する
    * ================================== */
   update(): void {
-    if (!this.player || this.isEnding) return;
+    if (!this.player || this.isEnding || !this.hud?.isReady) return;
     this.player.update();
     this.enemies.forEach(enemy => enemy.update(battleNow(this)));
     this.hud?.updateHealth(this.player.health, this.player.maxHealth);
