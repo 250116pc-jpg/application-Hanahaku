@@ -103,6 +103,7 @@ const flowerRows = requiredElement<HTMLTableSectionElement>('#flower-rows');
 const emptyFlowers = requiredElement<HTMLParagraphElement>('#empty-flowers');
 const stageRows = requiredElement<HTMLTableSectionElement>('#stage-rows');
 const saveButton = requiredElement<HTMLButtonElement>('#save-changes');
+const flowerSaveButton = requiredElement<HTMLButtonElement>('#save-flower-changes');
 const historyStatus = requiredElement<HTMLParagraphElement>('#history-status');
 const historyRows = requiredElement<HTMLTableSectionElement>('#history-rows');
 
@@ -187,7 +188,9 @@ function hasPendingChanges(): boolean {
 }
 
 function updateSaveButton(): void {
-  saveButton.disabled = busy || !selectedState || !hasPendingChanges();
+  const disabled = busy || !selectedState || !hasPendingChanges();
+  saveButton.disabled = disabled;
+  flowerSaveButton.disabled = disabled;
 }
 
 function createStepper(
@@ -642,6 +645,7 @@ requiredElement<HTMLButtonElement>('#refresh-users').addEventListener('click', (
 });
 requiredElement<HTMLButtonElement>('#refresh-history').addEventListener('click', () => { void loadHistory(); });
 saveButton.addEventListener('click', () => { void saveChanges(); });
+flowerSaveButton.addEventListener('click', () => { void saveChanges(); });
 dashboard.addEventListener('input', event => {
   if ((event.target as HTMLElement).matches('input[data-change-key]')) updateSaveButton();
 });
