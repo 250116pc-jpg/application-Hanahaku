@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex,nofollow" />
+    <title>花博 管理者ツール</title>
+  </head>
+  <body>
+    <main class="admin-page">
+      <header class="admin-header">
+        <div>
+          <p class="admin-eyebrow">HANAHaku / ADMIN TOOLS</p>
+          <h1>管理者デバッグ画面</h1>
+          <p class="admin-description">ユーザーを選び、所持データや花の育成状況をテスト用に調整します。</p>
+        </div>
+      </header>
+
+      <section id="access-blocked" class="panel access-panel" hidden>
+        <h2>ローカル専用の管理画面です</h2>
+        <p id="access-status" class="status" aria-live="polite"></p>
+      </section>
+
+      <div id="admin-content" hidden>
+      <section class="panel user-panel">
+        <div class="user-select-row">
+          <label class="field">
+            ユーザー検索（名前・メール・ID）
+            <input id="user-search" type="search" autocomplete="off" placeholder="例：花子 / example@mail.com / 12" />
+          </label>
+          <label class="field">
+            検索結果から選択
+            <select id="target-user" disabled>
+              <option value="">読み込み中...</option>
+            </select>
+          </label>
+          <button id="refresh-users" class="button button-secondary" type="button">ユーザー一覧を更新</button>
+        </div>
+        <p id="status" class="status" aria-live="polite"></p>
+      </section>
+
+      <section id="account-dashboard" class="dashboard" hidden>
+        <div class="dashboard-heading">
+          <div>
+            <p class="admin-eyebrow">SELECTED ACCOUNT</p>
+            <h2 id="user-title">アカウント</h2>
+            <p id="user-meta" class="user-meta"></p>
+          </div>
+          <div id="account-metrics" class="account-metrics"></div>
+        </div>
+
+        <div class="dashboard-grid">
+          <div class="dashboard-main">
+            <section class="panel data-panel">
+              <div class="section-heading">
+                <div>
+                  <h2>コイン・アイテム</h2>
+                  <p class="hint">±ボタンまたは数値入力で調整し、最後にまとめて保存します。</p>
+                </div>
+                <button id="save-changes" class="button" type="button" disabled>変更を保存</button>
+              </div>
+              <div class="table-wrap">
+                <table class="data-table">
+                  <thead>
+                    <tr><th>データ</th><th>現在の所持数</th><th>変更後</th></tr>
+                  </thead>
+                  <tbody id="inventory-rows"></tbody>
+                </table>
+              </div>
+            </section>
+
+            <section class="panel data-panel">
+              <div class="section-heading">
+                <div>
+                  <h2>所持花・育成状況</h2>
+                  <p class="hint">花レベルとスキルレベルの変更は、対応するEXPにも反映されます。</p>
+                </div>
+              </div>
+              <div class="table-wrap">
+                <table class="data-table flower-table">
+                  <thead>
+                    <tr><th>花</th><th>花レベル</th><th>スキルレベル</th></tr>
+                  </thead>
+                  <tbody id="flower-rows"></tbody>
+                </table>
+              </div>
+              <p id="empty-flowers" class="empty-note" hidden>所持している花はありません。</p>
+            </section>
+          </div>
+
+          <aside class="dashboard-side">
+            <section class="panel side-panel">
+              <h2>データを追加</h2>
+              <form data-action="addItem">
+                <label class="field">
+                  アイテム
+                  <select name="itemId" required></select>
+                </label>
+                <label class="field">
+                  追加する数
+                  <input name="quantity" type="number" min="1" max="1000000" step="1" value="1" required />
+                </label>
+                <button class="button button-block" type="submit">アイテムを追加</button>
+              </form>
+              <hr />
+              <form data-action="addFlower">
+                <label class="field">
+                  花
+                  <select name="flowerId" required></select>
+                </label>
+                <button class="button button-block" type="submit">所持花に追加</button>
+              </form>
+            </section>
+
+            <section class="panel side-panel">
+              <h2>ステージ進行状況</h2>
+              <div class="table-wrap">
+                <table class="stage-table">
+                  <thead>
+                    <tr><th>ステージ</th><th>状態</th><th></th></tr>
+                  </thead>
+                  <tbody id="stage-rows"></tbody>
+                </table>
+              </div>
+              <p class="hint">リセット後に再クリアすると、通常報酬を再度獲得できます。</p>
+            </section>
+          </aside>
+        </div>
+      </section>
+
+      <section class="panel history-panel">
+        <div class="history-header">
+          <div>
+            <h2>操作履歴</h2>
+            <p class="hint">直近100件の管理者によるDB変更を表示します。</p>
+          </div>
+          <button id="refresh-history" class="button button-secondary" type="button">履歴を更新</button>
+        </div>
+        <p id="history-status" class="history-status" aria-live="polite"></p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>日時</th><th>管理者</th><th>対象ユーザー</th><th>操作</th><th>変更内容</th></tr>
+            </thead>
+            <tbody id="history-rows">
+              <tr><td colspan="5">読み込み中...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <p class="security-note">この管理者ページと更新APIは同じPCのlocalhost接続に限定されています。</p>
+      </div>
+    </main>
+    <script type="module" src="/admin/main.ts"></script>
+  </body>
+</html>
