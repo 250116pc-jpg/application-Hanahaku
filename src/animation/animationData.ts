@@ -1,19 +1,19 @@
+import playerDrink from '../assets/characters/1001/sprites/drink-v5.png'
+import playerDeath from '../assets/characters/1001/sprites/death-v5.png'
+import playerDefend from '../assets/characters/1001/sprites/defend-v5.png'
+import playerSkill from '../assets/characters/1001/sprites/skill-v5.png'
 /* ==================================
  * 期末テスト提出プログラム
  * 学籍番号：250116
  * 氏名：中村伊安
  * ================================== */
 
-import playerIdle from '../assets/characters/player/Red Cape Knight Character Asset/Player_Red sheets/Red_idle.png'
-import playerRun from '../assets/characters/player/Red Cape Knight Character Asset/Player_Red sheets/Red_Running.png'
-import playerJump from '../assets/characters/player/Red Cape Knight Character Asset/Player_Red sheets/Red_jumping.png'
-import playerFall from '../assets/characters/player/Red Cape Knight Character Asset/Player_Red sheets/Red_falling.png'
-import playerLand from '../assets/characters/player/Red Cape Knight Character Asset/Player_Red sheets/Red_landing.png'
-import playerAttack from '../assets/characters/player/Red Cape Knight Character Asset/Player_Red sheets/Red_attack_1.png'
-import playerSkill from '../assets/characters/player/Red Cape Knight Character Asset/Player_Red sheets/Red_spin_attack.png'
-import playerDefend from '../assets/characters/player/Red Cape Knight Character Asset/Player_Red sheets/Red_ducking.png'
-import playerDeath from '../assets/characters/player/Red Cape Knight Character Asset/Player_Red sheets/Red_Death.png'
-import playerDrink from '../assets/characters/player/Red Cape Knight Character Asset/Player_Red sheets/Red_drinking.png'
+import playerIdle from '../assets/characters/1001/sprites/idle-v6.png'
+import playerRun from '../assets/characters/1001/sprites/run-v7.png'
+import playerJump from '../assets/characters/1001/sprites/jump-v6.png'
+import playerFall from '../assets/characters/1001/sprites/fall-v6.png'
+import playerLand from '../assets/characters/1001/sprites/land-v6.png'
+import playerAttack from '../assets/characters/1001/sprites/attack-v7.png'
 
 
 /* === [ 担当 : 250116 中村伊安 ] ===
@@ -25,15 +25,15 @@ export const characterAnimations = {
       image: playerRun,
       frameWidth: 192,
       frameHeight: 128,
-      frameCount: 9,
-      frameRate: 9
+      frameCount: 8,
+      frameRate: 12
     },
 
     idle: {
       image: playerIdle,
       frameWidth: 192,
       frameHeight: 128,
-      frameCount: 8,
+      frameCount: 6,
       frameRate: 8
     },
 
@@ -49,7 +49,7 @@ export const characterAnimations = {
       image: playerFall,
       frameWidth: 192,
       frameHeight: 128,
-      frameCount: 4,
+      frameCount: 2,
       frameRate: 8
     },
 
@@ -64,21 +64,21 @@ export const characterAnimations = {
       image: playerAttack,
       frameWidth: 192,
       frameHeight: 128,
-      frameCount: 6,
+      frameCount: 8,
       frameRate: 15
     },
     skill: {
       image: playerSkill,
       frameWidth: 192,
       frameHeight: 128,
-      frameCount: 9,
+      frameCount: 6,
       frameRate: 12
     },
     defend: {
       image: playerDefend,
       frameWidth: 192,
       frameHeight: 128,
-      frameCount: 4,
+      frameCount: 6,
       frameRate: 8
     },
     death: {
@@ -92,7 +92,7 @@ export const characterAnimations = {
       image: playerDrink,
       frameWidth: 192,
       frameHeight: 128,
-      frameCount: 5,
+      frameCount: 6,
       frameRate: 10
     }
   }

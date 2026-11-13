@@ -1,3 +1,4 @@
+import playerHurt from '../../assets/characters/1001/sprites/hurt-v5.png';
 /* ==================================
  * 期末テスト提出プログラム
  * 学籍番号：250082、250056、250116
@@ -36,7 +37,6 @@ import enemyRun from '../../assets/characters/enemy/Seeker_Lite/Spritesheets/See
 import enemyAttack from '../../assets/characters/enemy/Seeker_Lite/Spritesheets/Seeker_Void_Attack1_90x50_8f.png';
 import enemyHurt from '../../assets/characters/enemy/Seeker_Lite/Spritesheets/Seeker_Void_Hurt_55x80_9f.png';
 import enemyDeath from '../../assets/characters/enemy/Seeker_Lite/Spritesheets/Seeker_Void_Death_40x50_20f.png';
-import playerHurt from '../../assets/characters/player/Red Cape Knight Character Asset/Player_Red sheets/Red_hurt.png';
 import { loadCharacterAnimation, createCharacterAnimation } from '../../animation/animation.ts';
 import { characterAnimations } from '../../animation/animationData.ts';
 
@@ -392,7 +392,7 @@ export class StageScene extends Phaser.Scene {
           action === 'defend' || action === 'death' || action === 'drink' ? 0 : -1
       );
     }
-    createCharacterAnimation(this, 'player-hurt', 'player_hurt', 5, 12, 0);
+    createCharacterAnimation(this, 'player-hurt', 'player_hurt', 6, 12, 0);
   }
 
   /* === [ 担当 : 250116 中村伊安 ] ===

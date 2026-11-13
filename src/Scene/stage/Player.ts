@@ -23,7 +23,7 @@ const AIR_GRAVITY_SCALE = 4;
 const FALL_GRAVITY_REDUCTION = 0.9;
 const JUMP_POWER_SCALE = 1.4;
 // Phaserのフレーム番号は1始まり。剣が伸びる2フレーム目で攻撃を命中させる。
-const BASIC_ATTACK_IMPACT_FRAME = 2;
+const BASIC_ATTACK_IMPACT_FRAME = 5;
 export type DamageType = 'physical' | 'magical';
 
 export interface CombatTarget {
@@ -277,7 +277,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       }
     });
 
-    this.setScale(1)
+    this.setScale(1.3)
         .setCollideWorldBounds(true)
         .setOrigin(0.5, 1);
 
@@ -304,11 +304,11 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       Math.max(12, Math.round(this.displayHeight * 0.8))
     );
 
-    body.setSize(hitboxWidth, hitboxHeight);
+    body.setSize(hitboxWidth / this.scaleX, hitboxHeight / this.scaleY);
     body.setOffset(
       // 描画サイズではなく元フレーム基準で中央寄せし、足元がスプライト下端に揃うよう配置する。
-      Math.round((this.frame.width - hitboxWidth) / 2),
-      this.frame.height - hitboxHeight
+      Math.round((this.frame.width - hitboxWidth / this.scaleX) / 2),
+      this.frame.height - hitboxHeight / this.scaleY
     );
   }
 
