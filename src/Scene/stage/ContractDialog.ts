@@ -50,7 +50,6 @@ export class ContractScene extends Phaser.Scene {
     const { flower, stageId, stageNumber } = data;
     const owned = Boolean(readFlowerContracts()[flower.id]);
     let count: number | undefined;
-    let pendingContract: ReturnType<typeof prepareFlowerContract> | undefined;
     let contractMessage: string | undefined;
     /* === [ 担当 : 250116 中村伊安 ] ===
      * 処理内容 : 契約画面を覆う背景と表示部品の生成処理を作る
@@ -161,29 +160,30 @@ export class ContractScene extends Phaser.Scene {
      * 処理内容 : 必要なデータを取得して画面へ反映する
      * ================================== */
     const yes = button(491, 'はい ・ 治療薬 ×1', true, async () => {
-      if (busy || (contractMessage === undefined && !pendingContract && (count ?? 0) < 1)) return;
+      if (busy || (contractMessage === undefined && (count ?? 0) < 1)) return;
       busy = true;
+      playSe(scene, 'flower-contract-confirm', 0.4);
       message.setText('契約を確認中…').setColor('#fff1d7');
       try {
         if (!contractMessage) {
-          if (!pendingContract) {
-            const save = prepareFlowerContract(flower.id);
-            const state = await requestShop('consume', potionId);
-            pendingContract = save;
-            count = state.items[String(potionId)] ?? 0;
-            updateCount();
+          const state = await requestShop('contract', potionId, 1, flower.id);
+          count = state.items[String(potionId)] ?? 0;
+          let localOutcome: 'new' | 'duplicate' = 'new';
+          try {
+            localOutcome = prepareFlowerContract(flower.id)();
+          } catch (error) {
+            console.warn('Could not update local flower collection', error);
           }
-          const outcome = pendingContract();
-          pendingContract = undefined;
+          const outcome = state.contractOutcome ?? localOutcome;
           contractMessage = outcome === 'new'
             ? `${flower.name}と契約しました`
             : `${flower.name}の花片 ×1 を獲得しました`;
+          updateCount();
         }
         await finish(true);
       } catch (error) {
         busy = false;
-        message.setText(pendingContract ? '治療薬は使用済みです。「はい」で保存を再試行できます。'
-          : error instanceof Error ? error.message : '契約できませんでした。').setColor('#ffbeae');
+        message.setText(error instanceof Error ? error.message : '契約できませんでした。').setColor('#ffbeae');
       }
     });
     /* === [ 担当 : 250116 中村伊安 ] ===
@@ -194,9 +194,9 @@ export class ContractScene extends Phaser.Scene {
     dialog.add(icon);
     const countLabel = text(1023.5, 533, '所持数を確認中…', 15).setOrigin(0.5);
     const updateCount = () => {
-      const canConfirm = (count ?? 0) > 0 || Boolean(pendingContract || contractMessage);
+      const canConfirm = (count ?? 0) > 0 || Boolean(contractMessage);
       countLabel.setText(count === undefined ? '所持数を取得できません'
-        : pendingContract || contractMessage ? `使用後の所持数　${count}`
+        : contractMessage ? `使用後の所持数　${count}`
         : `所持数　${count} → ${Math.max(0, count - 1)}${count === 0 ? '（不足）' : ''}`);
       yes.caption.setAlpha(canConfirm ? 1 : 0.5);
       if (canConfirm) yes.hit.setInteractive({ useHandCursor: true });
@@ -205,6 +205,7 @@ export class ContractScene extends Phaser.Scene {
     /* === [ 担当 : 250082 武田優人 / 250116 中村伊安 ] ===
      * 処理内容 : 送信中の操作を無効にし、結果画面への移動を処理する
      * ================================== */
+    yes.hit.setName('flower-contract-confirm');
     yes.hit.disableInteractive();
     yes.caption.setAlpha(0.5);
     trackSceneLoading(this, requestShop().then(state => {
@@ -213,9 +214,10 @@ export class ContractScene extends Phaser.Scene {
       updateCount();
     }).catch(() => { if (this.sys.isActive()) updateCount(); }));
 
-    button(572, 'いいえ ・ 報酬だけ受け取る', false, async () => {
-      if (busy || pendingContract || contractMessage) return;
+    const no = button(572, 'いいえ ・ 報酬だけ受け取る', false, async () => {
+      if (busy || contractMessage) return;
       busy = true;
+      playSe(scene, 'flower-contract-decline', 0.4);
       try {
         await finish(false);
       } catch {
@@ -223,5 +225,6 @@ export class ContractScene extends Phaser.Scene {
         message.setText('クリア結果を保存できませんでした。もう一度お試しください。').setColor('#ffbeae');
       }
     });
+    no.hit.setName('flower-contract-decline');
   }
 }

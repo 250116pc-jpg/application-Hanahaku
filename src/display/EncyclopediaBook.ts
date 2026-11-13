@@ -4,9 +4,8 @@
  * 氏名：武田優人、斎藤永聖、中村伊安
  * ================================== */
 import { openPeopleJournal } from './PeopleJournal'
-import { readFlowerContracts } from '../Scene/stage/flowerContracts'
 import type { Season } from '../Scene/test_data'
-import { prototypeFlowers, contractPreview, type PrototypeFlower } from '../Scene/encyclopedia/contractPreview'
+import { prototypeFlowers, type PrototypeFlower } from '../Scene/encyclopedia/contractPreview'
 import './EncyclopediaBook.css'
 import bookmarkImage from '../assets/ui/encyclopedia_bookmark.png'
 /* === [ 担当 : 250056 斎藤永聖 ] ===
@@ -15,7 +14,7 @@ import bookmarkImage from '../assets/ui/encyclopedia_bookmark.png'
 const images = import.meta.glob('../assets/settings-book/*.png', { eager: true, query: '?url', import: 'default' }) as Record<string,string>
 const asset = (name: string): string => images['../assets/settings-book/'+name]!
 export function mountEncyclopediaBook(options: {
- season: Season; page: number; animate: boolean; turn?: number;
+ season: Season; page: number; animate: boolean; turn?: number; owned: ReadonlySet<number>; testMode: boolean;
  unknown: Record<Season,{url:string}>;
  onTurn: () => void; onSeason: (season: Season, page?: number) => void; onPage: (page:number) => void;
  onReady?: () => void; beforeOpen?: () => Promise<void>;
@@ -177,7 +176,7 @@ export function mountEncyclopediaBook(options: {
  /* === [ 担当 : 250056 斎藤永聖 ] ===
   * 処理内容 : 花契済みの件数と花一覧の領域を表示する
   * ================================== */
- const progress=document.createElement('p');progress.className='encyclopedia-book-progress';progress.textContent=`花契済み ${new Set([...contractPreview.owned, ...Object.keys(readFlowerContracts()).map(Number)]).size} / ${prototypeFlowers.length}`;ui.append(progress)
+ const progress=document.createElement('p');progress.className='encyclopedia-book-progress';progress.textContent=`花契済み ${options.owned.size} / ${prototypeFlowers.length}`;ui.append(progress)
  const grid=document.createElement('div');grid.className='encyclopedia-book-grid';ui.append(grid)
  /* === [ 担当 : 250056 斎藤永聖 ] ===
   * 処理内容 : 季節とページで花を抽出し、契約状況に応じたカードを表示する
@@ -187,7 +186,7 @@ export function mountEncyclopediaBook(options: {
  function drawCards(parent:HTMLElement,season:Season,targetPage:number):void {
   const entries=prototypeFlowers.filter(f=>f.season===season)
   entries.slice(targetPage*8,targetPage*8+8).forEach(f=>{
-  const owned=contractPreview.owned.has(f.id) || !!readFlowerContracts()[f.id],card=button(parent,'',()=>options.onSelect(f));card.className='encyclopedia-book-card'
+  const owned=options.owned.has(f.id),card=button(parent,'',()=>options.onSelect(f));card.className='encyclopedia-book-card'
   const image=document.createElement('img');image.src=owned?f.url:options.unknown[f.season].url;image.alt=owned?f.name:'未契約の花'
   const label=document.createElement('span');label.textContent=owned?f.name:'？？？';const picture=document.createElement('span');picture.className='encyclopedia-book-picture';picture.append(image);card.append(picture,label)
  })
@@ -211,7 +210,7 @@ export function mountEncyclopediaBook(options: {
   * 処理内容 : ページ番号・テスト初期化・次のページへの操作を作る
   * ================================== */
  const count=document.createElement('span');count.textContent=`${page+1} / ${pages}`;leftFooter.append(count)
- button(rightFooter,'テストを初期化',options.onReset)
+ if (options.testMode) button(rightFooter,'テストを初期化',options.onReset)
  const next=button(rightFooter,'›',()=>page<pages-1?turn(1,options.season,page+1,()=>options.onPage(page+1)):turn(1,nextSeason,0,()=>options.onSeason(nextSeason,0)));next.className='encyclopedia-page-next';next.setAttribute('aria-label','次のページ');
  /* === [ 担当 : 250082 武田優人 / 250056 斎藤永聖 ] ===
   * 処理内容 : 季節しおり・キー操作・素材の先読みと初期表示を設定する

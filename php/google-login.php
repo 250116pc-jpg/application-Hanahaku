@@ -5,6 +5,7 @@
  * 氏名：斎藤永聖
  * ================================== */
 declare(strict_types=1);
+require_once __DIR__ . '/starter-inventory.php';
 
 /* === [ 担当 : 250056 斎藤永聖 ] ===
  * 処理内容 : 共通処理を読み込み、要求と認証状態を確認する
@@ -77,9 +78,9 @@ try {
             $passwordColumn = passwordColumn($pdo);
             $randomPasswordHash = password_hash(bin2hex(random_bytes(32)), PASSWORD_DEFAULT);
             $insert = $pdo->prepare(
-                "INSERT INTO users (name, email, google_sub, `{$passwordColumn}`, last_login) VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)"
+                "INSERT INTO users (name, email, google_sub, `{$passwordColumn}`, last_login, coin, items) VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP, ?, ?)"
             );
-            $insert->execute([$name, $email, $googleSub, $randomPasswordHash]);
+            $insert->execute([$name, $email, $googleSub, $randomPasswordHash, STARTER_COINS, STARTER_ITEMS]);
             $user = [
                 'id' => (int)$pdo->lastInsertId(),
                 'name' => $name,

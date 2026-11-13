@@ -19,6 +19,8 @@ import enemyVanishSe from '../assets/audio/enemy-vanish-energy.mp3'
 import playerDamage from '../assets/audio/player-damage.wav'
 import gameOverSe from '../assets/audio/game-over.wav'
 // CC0: Fupi (Win Jingle, winfretless.ogg).
+import flowerContractDeclineSe from '../assets/audio/flower-contract-decline.mp3'
+import flowerContractConfirmSe from '../assets/audio/flower-contract-confirm.mp3'
 import stageClearSe from '../assets/audio/stage-clear.ogg'
 // CC0: artisticdude (RPG Sound Pack, lighter cloth).
 import playerJumpSe from '../assets/audio/player-jump.wav'
@@ -161,6 +163,8 @@ export function preloadAudio(scene: Phaser.Scene): void {
   scene.load.audio('player-damage', playerDamage)
   scene.load.audio('game-over', gameOverSe)
   scene.load.audio('stage-clear', stageClearSe)
+  scene.load.audio('flower-contract-confirm', flowerContractConfirmSe)
+  scene.load.audio('flower-contract-decline', flowerContractDeclineSe)
   scene.load.audio('player-jump', playerJumpSe)
   playerRunSteps.forEach((url, index) => scene.load.audio(PLAYER_RUN_STEP_KEYS[index], url))
   scene.load.audio('player-crouch', playerJumpSe)
@@ -216,7 +220,7 @@ export function initializeAudio(scene: Phaser.Scene): void {
         const webAudio = target.sound as Phaser.Sound.WebAudioSoundManager
         const wasSuspended = !!webAudio.context && webAudio.context.state !== 'running'
         resumeAudioFromGesture(target)
-        if (object.name === 'stage-attack' || object.name === 'stage-jump' || object.name === 'stage-guard' || object.name === 'stage-skill') return
+        if (object.name === 'stage-attack' || object.name === 'stage-jump' || object.name === 'stage-guard' || object.name === 'stage-skill' || object.name === 'flower-contract-confirm' || object.name === 'flower-contract-decline') return
         if (target.sound.locked || wasSuspended) {
           state.pendingClick = true
           waitForUnlock(target, state)

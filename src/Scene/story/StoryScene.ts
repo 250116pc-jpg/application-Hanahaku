@@ -6,7 +6,8 @@
 import { transitionWithLoading } from '../../utils/ui/scene-loading';
 import Phaser from 'phaser';
 
-import backImg from '../../assets/images/background/story/1.jpg';
+import backImg from '../../assets/images/background/story/1.jpg?inline';
+import { getPhpBaseUrl } from '../../auth/PhpBaseUrl';
 import story_data from "../../scenario_data/story_data.json"
 import { createBackground } from '../../background';
 import { getTextStyle } from '../../utils/ui';
@@ -68,6 +69,8 @@ export class StoryScene extends Phaser.Scene {
   private storyData: StoryChapter[] = story_data as StoryChapter[];
   private scenario: Dialogue[] = [];
   private currentChapter = 1;
+  private currentStage = 1;
+  private savingStarter = false;
 
   /* === [ 担当 : 250116 中村伊安 ] ===
    * 処理内容 : 初期状態と画面キーを設定する
@@ -80,7 +83,9 @@ export class StoryScene extends Phaser.Scene {
    * 処理内容 : 使用する画像・音声を読み込む
    * ================================== */
   preload(): void {
-    this.load.image('Background', backImg);
+    if (!this.textures.exists('story-background')) {
+      this.load.image('story-background', backImg);
+    }
   }
 
   create(data: StorySceneData = { chapter: 1, stage: 1 }): void {
@@ -89,6 +94,8 @@ export class StoryScene extends Phaser.Scene {
      * ================================== */
     showDebugSceneName(this);
     this.currentChapter = data.chapter;
+    this.currentStage = data.stage;
+    this.savingStarter = false;
     this.currentIndex = 0;
     this.isAuto = false;
     this.autoTimer = undefined;
@@ -115,7 +122,7 @@ export class StoryScene extends Phaser.Scene {
     /* === [ 担当 : 250116 中村伊安 ] ===
      * 処理内容 : 会話の背景・話者名・セリフ枠を配置する
      * ================================== */
-    createBackground(this, 'Background');
+    createBackground(this, 'story-background');
     this.cameras.main.setBackgroundColor('#cfe3f5');
 
     // UI固定用コンテナ
@@ -269,7 +276,8 @@ export class StoryScene extends Phaser.Scene {
   /* === [ 担当 : 250082 武田優人 / 250116 中村伊安 ] ===
    * 処理内容 : 会話を終了して次の画面へ進む
    * ================================== */
-  private finishScenario(): void {
+  private async finishScenario(readToEnd = true): Promise<void> {
+    if (this.savingStarter) return;
     this.isAuto = false;
 
     if (this.autoTimer) {
@@ -277,7 +285,38 @@ export class StoryScene extends Phaser.Scene {
       this.autoTimer = undefined;
     }
 
-    // 次の画面へ
+    if (readToEnd && this.currentChapter === 1 && this.currentStage === 1) {
+      this.savingStarter = true;
+      const request = new AbortController();
+      const shutdown = () => request.abort();
+      this.events.once(Phaser.Scenes.Events.SHUTDOWN, shutdown);
+      const timeout = window.setTimeout(shutdown, 8000);
+      this.scenarioText.setText('ジニアとの花契を保存中…');
+      try {
+        const response = await fetch(`${getPhpBaseUrl()}/flower/story-starter.php`, {
+          method: 'POST',
+          credentials: 'include',
+          signal: request.signal,
+          headers: { 'Content-Type': 'application/json' },
+          body: '{}',
+        });
+        const result = await response.json();
+        if (!response.ok || result.ok !== true) {
+          throw new Error(result.error ?? '花契を保存できませんでした。');
+        }
+      } catch {
+        if (this.sys.isActive() && this.events.listeners(Phaser.Scenes.Events.SHUTDOWN).includes(shutdown)) {
+          this.scenarioText.setText('花契を保存できませんでした。ログイン・通信状態を確認して、画面を押すと再試行します。');
+        }
+        return;
+      } finally {
+        window.clearTimeout(timeout);
+        this.events.off(Phaser.Scenes.Events.SHUTDOWN, shutdown);
+        if (!request.signal.aborted || this.sys.isActive()) this.savingStarter = false;
+      }
+      if (request.signal.aborted || !this.sys.isActive()) return;
+    }
+
     transitionWithLoading(this, SCENE_KEYS.SELECT_STAGE, { areaId: this.currentChapter });
   }
 
@@ -289,7 +328,7 @@ export class StoryScene extends Phaser.Scene {
    * ================================== */
   private openSkipPopup(): void {
     this.openConfirmPopup('シナリオをスキップしますか？', () => {
-      this.finishScenario();
+      void this.finishScenario(false);
     });
   }
 

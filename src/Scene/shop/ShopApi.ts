@@ -11,8 +11,8 @@ import type { ItemCategory } from '../inventory/InventoryData'
  * 処理内容 : 所持品通信を定義する
  * ================================== */
 export const shopCatalog = JSON.parse(rawCatalog) as Array<ShopItem & { category: ItemCategory }>
-export type ShopState = { coin: number; items: Record<string, number> }
-export async function requestShop(action: 'state' | 'buy' | 'consume' = 'state', itemId?: number, quantity = 1): Promise<ShopState> {
+export type ShopState = { coin: number; items: Record<string, number>; contractOutcome?: 'new' | 'duplicate' }
+export async function requestShop(action: 'state' | 'buy' | 'consume' | 'contract' = 'state', itemId?: number, quantity = 1, flowerId?: number): Promise<ShopState> {
  /* === [ 担当 : 250056 斎藤永聖 / 250116 中村伊安 ] ===
   * 処理内容 : 画像・文字・パネルを配置する
   * ================================== */
@@ -37,7 +37,7 @@ export async function requestShop(action: 'state' | 'buy' | 'consume' = 'state',
    if(count>2147483647-quantity) throw new Error('所持数の上限です。')
    state={coin:state.coin-total,items:{...state.items,[String(itemId)]:count+quantity}}
   }
-  if(action==='consume') {
+  if(action==='consume' || action==='contract') {
    if(![12,13,14,15].includes(itemId ?? 0) || quantity!==1) throw new Error('使用できないアイテムです。')
    const count=state.items[String(itemId)] ?? 0
    if(count<1) throw new Error(itemId===12 ? '治療薬が足りません。' : 'アイテムを所持していません。')
@@ -50,7 +50,7 @@ export async function requestShop(action: 'state' | 'buy' | 'consume' = 'state',
   * 処理内容 : 所持品取得・購入・消費のAPIを呼ぶ
   * ================================== */
  const base=getPhpBaseUrl()
- const response=await fetch(`${base}/shop/state.php`,{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify({action,itemId,quantity})})
+ const response=await fetch(`${base}/shop/state.php`,{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify({action,itemId,quantity,flowerId})})
  const result=await response.json()
  if(!response.ok || !result.ok) throw new Error(result.error ?? '所持品を読み込めませんでした。')
  return result as ShopState

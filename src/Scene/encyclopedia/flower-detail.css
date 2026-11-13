@@ -219,3 +219,21 @@
   flex-shrink: 0;
   font-size: 14px;
 }
+
+/* Keep the navigation visible and allow long descriptions to scroll. */
+@media (min-height: 481px) {
+  .flower-book { min-height: 0; overflow: hidden; }
+  .book-header { justify-content: flex-start; }
+  .book-header .book-brand { margin-left: clamp(12px, 3vw, 48px); }
+  .book-header .book-tabs { margin-left: auto; }
+  .book-spread {
+    min-height: 0;
+    flex: 1 1 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    touch-action: pan-y;
+    scrollbar-width: thin;
+    scrollbar-color: #a77d3e #eddbbb;
+  }
+  .book-page { align-self: start; padding-bottom: 32px; }
+}

@@ -10,6 +10,7 @@ import Phaser from 'phaser';
 
 import testData from './test_data';
 import { loadFormation } from '../form/formationStorage';
+import { getPhpBaseUrl } from '../auth/PhpBaseUrl';
 import { AREA_STAGE_LAYOUTS, type StagePosition } from './stageSelectData';
 /* === [ 担当 : 250082 武田優人 / 250116 中村伊安 ] ===
  * 処理内容 : ステージ選択・詳細・移動を定義する
@@ -291,40 +292,72 @@ export class SelectStageScene extends Phaser.Scene {
   // ========================================
   private createFormationPreview(scene: Phaser.Scene, x: number, y: number, width: number): Phaser.GameObjects.Container {
     const preview = scene.add.container(x, y).setName('stage-formation-preview');
-    const slots = loadFormation();
     preview.add(scene.add.rectangle(0, 0, width, 108, 0x72512d, .08)
       .setOrigin(0).setStrokeStyle(1, 0xb59a63, .5));
     preview.add(scene.add.text(12, 9, '出撃編成', getTextStyle(17, {
       color: '#51391f', fontStyle: 'bold', padding: {},
     })));
 
-    const gap = 8;
-    const slotWidth = (width - 24 - gap * (slots.length - 1)) / slots.length;
-    slots.forEach((id, index) => {
-      const left = 12 + index * (slotWidth + gap);
-      const flower = testData.characters.find(character => character.id === id);
-      preview.add(scene.add.image(left, 34, 'stage-confirm-card')
-        .setOrigin(0).setDisplaySize(slotWidth, 62).setAlpha(flower ? 1 : .6));
-      preview.add(scene.add.text(left + 6, 39, String(index + 1), getTextStyle(12, {
-        color: '#7b674b', padding: {},
-      })));
+    const status = scene.add.text(12, 48, '所持花を確認中…', getTextStyle(16, {
+      color: '#51391f', padding: {},
+    }));
+    preview.add(status);
 
-      const key = id === null ? null : formationPortraitKey(id);
-      const hasPortrait = key !== null && scene.textures.exists(key);
-      if (hasPortrait) {
-        const portrait = scene.add.image(left + 36, 65, key);
-        portrait.texture.setFilter(Phaser.Textures.FilterMode.NEAREST);
-        portrait.setScale(38 / Math.max(portrait.width, portrait.height));
-        preview.add(portrait);
+    const renderSlots = (owned: ReadonlySet<number>): void => {
+      const slots = loadFormation().map(id => id !== null && owned.has(id) ? id : null);
+      const gap = 8;
+      const slotWidth = (width - 24 - gap * (slots.length - 1)) / slots.length;
+      slots.forEach((id, index) => {
+        const left = 12 + index * (slotWidth + gap);
+        const flower = testData.characters.find(character => character.id === id);
+        preview.add(scene.add.image(left, 34, 'stage-confirm-card')
+          .setOrigin(0).setDisplaySize(slotWidth, 62).setAlpha(flower ? 1 : .6));
+        preview.add(scene.add.text(left + 6, 39, String(index + 1), getTextStyle(12, {
+          color: '#7b674b', padding: {},
+        })));
+
+        const key = id === null ? null : formationPortraitKey(id);
+        const hasPortrait = key !== null && scene.textures.exists(key);
+        if (hasPortrait) {
+          const portrait = scene.add.image(left + 36, 65, key);
+          portrait.texture.setFilter(Phaser.Textures.FilterMode.NEAREST);
+          portrait.setScale(38 / Math.max(portrait.width, portrait.height));
+          preview.add(portrait);
+        }
+
+        const name = scene.add.text(left + (hasPortrait ? 61 : 25), 65, flower?.name ?? '空き', getTextStyle(16, {
+          color: flower ? '#493620' : '#89765a', padding: {},
+        })).setOrigin(0, .5);
+        const availableWidth = slotWidth - (hasPortrait ? 68 : 32);
+        if (name.width > availableWidth) name.setScale(availableWidth / name.width);
+        preview.add(name);
+      });
+    };
+
+    const request = new AbortController();
+    const abort = () => request.abort();
+    const timeout = window.setTimeout(abort, 8000);
+    preview.once(Phaser.GameObjects.Events.DESTROY, abort);
+    void (async () => {
+      try {
+        const response = await fetch(`${getPhpBaseUrl()}/flower/owned.php`, {
+          method: 'POST', credentials: 'include', cache: 'no-store',
+          headers: { 'Content-Type': 'application/json' }, body: '{}', signal: request.signal,
+        });
+        const result = await response.json();
+        if (!response.ok || result?.ok !== true || !Array.isArray(result.flowerIds)) {
+          throw new Error('Could not load owned flowers');
+        }
+        if (!preview.scene) return;
+        status.destroy();
+        renderSlots(new Set<number>(result.flowerIds));
+      } catch {
+        if (status.scene) status.setText('所持花を確認できませんでした。開き直してください。');
+      } finally {
+        window.clearTimeout(timeout);
+        preview.off(Phaser.GameObjects.Events.DESTROY, abort);
       }
-
-      const name = scene.add.text(left + (hasPortrait ? 61 : 25), 65, flower?.name ?? '空き', getTextStyle(16, {
-        color: flower ? '#493620' : '#89765a', padding: {},
-      })).setOrigin(0, .5);
-      const availableWidth = slotWidth - (hasPortrait ? 68 : 32);
-      if (name.width > availableWidth) name.setScale(availableWidth / name.width);
-      preview.add(name);
-    });
+    })();
     return preview;
   }
 

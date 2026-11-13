@@ -10,6 +10,7 @@ declare(strict_types=1);
  * 処理内容 : 共通処理を読み込み、要求と認証状態を確認する
  * ================================== */
 require __DIR__ . '/db.php';
+require_once __DIR__ . '/starter-inventory.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     respond(['ok' => false, 'error' => 'POSTで送信してください。'], 405);
@@ -33,12 +34,14 @@ if (strlen($plainPassword) < 6 || strlen($plainPassword) > 72) {
 try {
     $passwordColumn = passwordColumn($pdo);
     $statement = $pdo->prepare(
-        "INSERT INTO users (name, email, `{$passwordColumn}`) VALUES (?, ?, ?)"
+        "INSERT INTO users (name, email, `{$passwordColumn}`, coin, items) VALUES (?, ?, ?, ?, ?)"
     );
     $statement->execute([
         $name,
         $email,
         password_hash($plainPassword, PASSWORD_DEFAULT),
+        STARTER_COINS,
+        STARTER_ITEMS,
     ]);
 } catch (PDOException $error) {
     if ((string)$error->getCode() === '23000') {

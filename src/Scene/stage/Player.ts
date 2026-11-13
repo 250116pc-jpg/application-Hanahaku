@@ -390,6 +390,9 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     if (this.cursors.up?.isDown && body.blocked.down) this.jump();
 
     const isGrounded = body.blocked.down;
+    if (isGrounded && !this.wasGrounded && this.scene.scene.key === SCENE_KEYS.STAGE) {
+      playSe(this.scene, PLAYER_RUN_STEP_KEYS[0], 0.3);
+    }
     const crouchGuarding = this.isGuarding();
     /* === [ 担当 : 250056 斎藤永聖 / 250116 中村伊安 ] ===
      * 処理内容 : 操作と現在の状態を表示へ反映する

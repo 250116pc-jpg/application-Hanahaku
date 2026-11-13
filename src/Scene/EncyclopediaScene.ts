@@ -7,7 +7,7 @@ import { deferSceneLoading, waitForSceneReveal } from '../utils/ui/scene-loading
 import trainingButton from '../assets/ui/training_button_wood.png'
 import pageTurnSound from '../assets/audio/encyclopedia/page-turn-firefly.wav'
 import { playSe } from '../audio/BgmManager'
-import { readFlowerContracts } from './stage/flowerContracts'
+import { getPhpBaseUrl } from '../auth/PhpBaseUrl'
 import { mountEncyclopediaBook } from '../display/EncyclopediaBook'
 import questionSpring from '../assets/images/encyclopedia/unknown-spring.png'
 import questionSummer from '../assets/images/encyclopedia/unknown-summer.png'
@@ -42,6 +42,9 @@ export class EncyclopediaScene extends Phaser.Scene {
  private season: Season = '春'
  private page = 0
  private detailCleanup: (() => void) | null = null
+ private owned = new Set<number>()
+ private loadToken = 0
+ private readonly testMode = import.meta.env.DEV && new URLSearchParams(location.search).get('flower-test') === '1'
  /* === [ 担当 : 250056 斎藤永聖 ] ===
   * 処理内容 : 初期状態と画面キーを設定する
   * ================================== */
@@ -62,8 +65,8 @@ export class EncyclopediaScene extends Phaser.Scene {
   this.bookOpened = false
   this.season = '春'
   this.page = 0
-  this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => { this.closeDetail(); this.closeBook() })
-  this.list()
+  this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => { this.loadToken++; this.closeDetail(); this.closeBook() })
+  void this.loadOwned()
  }
  /* === [ 担当 : 250056 斎藤永聖 ] ===
   * 処理内容 : 位置と文字サイズを指定し、折り返し付きの文字を生成する
@@ -101,6 +104,31 @@ export class EncyclopediaScene extends Phaser.Scene {
  /* === [ 担当 : 250082 武田優人 / 250056 斎藤永聖 / 250116 中村伊安 ] ===
   * 処理内容 : 選択内容と一覧表示を切り替える
   * ================================== */
+ private async loadOwned(): Promise<void> {
+  const token = ++this.loadToken
+  this.owned.clear()
+  if (this.testMode) { this.list(); return }
+  this.frame('花契情報を読み込み中…')
+  try {
+   const response = await fetch(`${getPhpBaseUrl()}/flower/owned.php`, {
+    method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: '{}',
+   })
+   const result = await response.json()
+   if (!response.ok || !result.ok || !Array.isArray(result.flowerIds) ||
+       !result.flowerIds.every((id: unknown) => Number.isInteger(id) && Number(id) > 0)) throw new Error()
+   if (token !== this.loadToken || !this.sys.isActive()) return
+   this.owned = new Set<number>(result.flowerIds)
+   this.list()
+  } catch {
+   if (token !== this.loadToken || !this.sys.isActive()) return
+   this.frame('花契情報を読み込めませんでした')
+   this.text(300, 260, 'ログイン・通信状態を確認して、もう一度お試しください。', 22)
+   this.button(650, 400, '再読み込み', () => { void this.loadOwned() })
+  }
+ }
+ private get visibleOwned(): Set<number> {
+  return this.testMode ? new Set([...this.owned, ...contractPreview.owned]) : this.owned
+ }
  private list(): void {
   this.closeBook()
   this.children.removeAll(true)
@@ -108,7 +136,7 @@ export class EncyclopediaScene extends Phaser.Scene {
   this.bookCleanup=mountEncyclopediaBook({
    onReady:loaded,
    beforeOpen:()=>waitForSceneReveal(this),
-   season:this.season,page:this.page,animate:!this.bookOpened,turn:this.bookTurn,unknown:unknownFlowers,
+   season:this.season,page:this.page,animate:!this.bookOpened,turn:this.bookTurn,unknown:unknownFlowers, owned:this.visibleOwned, testMode:this.testMode,
    onTurn:()=>playSe(this,'encyclopedia-page-turn'),
    onSeason:(season,page=0)=>{this.bookTurn=(['春','夏','秋','冬'].indexOf(season)-['春','夏','秋','冬'].indexOf(this.season));this.season=season;this.page=page;this.list()},
    onPage:page=>{this.bookTurn=page-this.page;this.page=page;this.list()},
@@ -134,7 +162,7 @@ export class EncyclopediaScene extends Phaser.Scene {
   this.closeDetail()
   this.input.enabled = false
   this.detailCleanup = mountFlowerDetail(flower, {
-   owned: contractPreview.owned.has(flower.id) || !!readFlowerContracts()[flower.id],
+   owned: this.visibleOwned.has(flower.id), testMode:this.testMode,
    unknownUrl: unknownFlowers[flower.season].url,
    onClose: () => { this.closeDetail(); this.list() },
    onHome: () => { this.closeDetail(); navigateToTownMap(this) },

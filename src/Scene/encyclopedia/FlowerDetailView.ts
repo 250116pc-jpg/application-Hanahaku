@@ -24,7 +24,7 @@ function node<K extends keyof HTMLElementTagNameMap>(tag: K, className = '', tex
 
 /** Read-only catalog pages. Contract testing never changes the real party or battle data. */
 export function mountFlowerDetail(flower: PrototypeFlower, options: {
-  owned: boolean; unknownUrl: string; onClose: () => void; onHome: () => void; onContract: () => void
+  owned: boolean; testMode: boolean; unknownUrl: string; onClose: () => void; onHome: () => void; onContract: () => void
 }): () => void {
   /* === [ 担当 : 250056 斎藤永聖 ] ===
    * 処理内容 : 花の詳細をHTMLで表示する
@@ -88,8 +88,10 @@ export function mountFlowerDetail(flower: PrototypeFlower, options: {
     if (!owned) {
       section(left, '契約状態', '未契約')
       section(right, 'まだ閉じられたページ', '花契すると、この花の能力・スキル・花言葉を読めるようになります。')
-      right.append(button('花契する（テスト）', () => { options.onContract(); owned = true; render() }))
-      right.append(node('p', 'book-note', 'テストの契約状態は再読み込みでリセットされます。'))
+      if (options.testMode) {
+        right.append(button('花契する（テスト）', () => { options.onContract(); owned = true; render() }))
+        right.append(node('p', 'book-note', 'テストの契約状態は再読み込みでリセットされます。'))
+      }
     } else if (page === 'ability') {
       const stats = node('section', 'book-section'); stats.append(node('h3', 'book-ribbon', '主人公への初期補正'))
       const dl = node('dl', 'book-stats')
