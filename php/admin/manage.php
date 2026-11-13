@@ -27,6 +27,7 @@ function requireLocalAdmin(): void
 requireLocalAdmin();
 require_once __DIR__ . '/../db.php';
 require_once __DIR__ . '/../flower/training.php';
+require_once __DIR__ . '/player-character-config.php';
 
 function adminUserState(PDO $pdo, int $userId): array
 {
@@ -94,6 +95,27 @@ $body = requestBody();
 $action = $body['action'] ?? null;
 $adminId = 0;
 if ($action === 'adminStatus') respond(['ok' => true]);
+if ($action === 'playerCharacter') {
+    try {
+        respond(['ok' => true, 'character' => readGlobalPlayerCharacter()]);
+    } catch (Throwable $error) {
+        error_log('Could not read global player character: ' . $error->getMessage());
+        respond(['ok' => false, 'error' => '主人公の設定を読み込めませんでした。'], 500);
+    }
+}
+if ($action === 'setPlayerCharacter') {
+    $character = $body['character'] ?? null;
+    if (!is_string($character) || !in_array($character, ['male', 'female'], true)) {
+        respond(['ok' => false, 'error' => '主人公を選択してください。'], 422);
+    }
+    try {
+        writeGlobalPlayerCharacter($character);
+        respond(['ok' => true, 'character' => $character]);
+    } catch (Throwable $error) {
+        error_log('Could not save global player character: ' . $error->getMessage());
+        respond(['ok' => false, 'error' => '主人公の設定を保存できませんでした。'], 500);
+    }
+}
 
 if ($action === 'users') {
     try {

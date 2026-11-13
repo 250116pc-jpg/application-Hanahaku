@@ -1,40 +1,40 @@
-import win from '../assets/characters/1001/sprites/win-v5.png';
-import skill from '../assets/characters/1001/sprites/skill-v5.png';
-import duckingAttack from '../assets/characters/1001/sprites/duckingAttack-v5.png';
-import downwardAttack from '../assets/characters/1001/sprites/downwardAttack-v5.png';
-import dashAttack from '../assets/characters/1001/sprites/dashAttack-v5.png';
-import attack2 from '../assets/characters/1001/sprites/attack2-v5.png';
 /* ==================================
  * 期末テスト提出プログラム
  * 学籍番号：250082
  * 氏名：武田優人
  * ================================== */
-import run from '../assets/characters/1001/sprites/run-v7.png';
-import jump from '../assets/characters/1001/sprites/jump-v6.png';
-import fall from '../assets/characters/1001/sprites/fall-v6.png';
-import land from '../assets/characters/1001/sprites/land-v6.png';
-import idle from '../assets/characters/1001/sprites/idle-v6.png';
-import attack from '../assets/characters/1001/sprites/attack-v7.png';
+import { getPlayerAnimation } from './playerCharacter';
+import type { PlayerAnimationName } from './playerCharacter';
 
 // 各攻撃の専用スプライト。
 // 1コマ192×128。frameRateで速度、repeatで繰り返し回数を調整する。
 /* === [ 担当 : 250082 武田優人 ] ===
  * 処理内容 : ホーム専用アニメーション定義を定義する
  * ================================== */
+const playerAnimation = (name: PlayerAnimationName, repeat: number, yoyo = false) => ({
+  get image(): string { return getPlayerAnimation(name).image; },
+  get frameWidth(): number { return getPlayerAnimation(name).frameWidth; },
+  get frameHeight(): number { return getPlayerAnimation(name).frameHeight; },
+  get frameCount(): number { return getPlayerAnimation(name).frameCount; },
+  get frameRate(): number { return getPlayerAnimation(name).frameRate; },
+  repeat,
+  ...(yoyo ? { yoyo: true } : {}),
+});
+
 export const homeAnimationData = {
   // 待機中の演出。クリック時の抽選候補には含めない。
-  win: { image: win, frameWidth: 192, frameHeight: 128, frameCount: 6, frameRate: 8, repeat: 0, yoyo: true },
-  run: { image: run, frameWidth: 192, frameHeight: 128, frameCount: 8, frameRate: 12, repeat: -1 },
-  jump: { image: jump, frameWidth: 192, frameHeight: 128, frameCount: 4, frameRate: 10, repeat: 0 },
-  fall: { image: fall, frameWidth: 192, frameHeight: 128, frameCount: 2, frameRate: 8, repeat: 0 },
-  land: { image: land, frameWidth: 192, frameHeight: 128, frameCount: 4, frameRate: 12, repeat: 0 },
-  idle: { image: idle, frameWidth: 192, frameHeight: 128, frameCount: 6, frameRate: 8, repeat: -1 },
-  attack1: { image: attack, frameWidth: 192, frameHeight: 128, frameCount: 8, frameRate: 12, repeat: 0 },
-  attack2: { image: attack2, frameWidth: 192, frameHeight: 128, frameCount: 6, frameRate: 12, repeat: 0 },
-  dashAttack: { image: dashAttack, frameWidth: 192, frameHeight: 128, frameCount: 6, frameRate: 12, repeat: 0 },
-  downwardAttack: { image: downwardAttack, frameWidth: 192, frameHeight: 128, frameCount: 6, frameRate: 12, repeat: 0 },
-  duckingAttack: { image: duckingAttack, frameWidth: 192, frameHeight: 128, frameCount: 6, frameRate: 12, repeat: 0 },
-  spinAttack: { image: skill, frameWidth: 192, frameHeight: 128, frameCount: 6, frameRate: 12, repeat: 0 },
+  win: playerAnimation('win', 0, true),
+  run: playerAnimation('run', -1),
+  jump: playerAnimation('jump', 0),
+  fall: playerAnimation('fall', 0),
+  land: playerAnimation('land', 0),
+  idle: playerAnimation('idle', -1),
+  attack1: playerAnimation('attack', 0),
+  attack2: playerAnimation('attack2', 0),
+  dashAttack: playerAnimation('dashAttack', 0),
+  downwardAttack: playerAnimation('downwardAttack', 0),
+  duckingAttack: playerAnimation('duckingAttack', 0),
+  spinAttack: playerAnimation('skill', 0),
 };
 
 export type HomeAnimationName = keyof typeof homeAnimationData;

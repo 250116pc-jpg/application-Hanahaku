@@ -1,4 +1,3 @@
-import playerHurt from '../../assets/characters/1001/sprites/hurt-v5.png';
 /* ==================================
  * 期末テスト提出プログラム
  * 学籍番号：250082、250056、250116
@@ -154,13 +153,7 @@ export class StageScene extends Phaser.Scene {
     loadCharacterAnimation(this, 'player_skill', playerData.skill);
     loadCharacterAnimation(this, 'player_defend', playerData.defend);
     loadCharacterAnimation(this, 'player_death', playerData.death);
-    loadCharacterAnimation(this, 'player_hurt', {
-      image: playerHurt,
-      frameWidth: 192,
-      frameHeight: 128,
-      frameCount: 5,
-      frameRate: 12
-    });
+    loadCharacterAnimation(this, 'player_hurt', playerData.hurt);
     loadCharacterAnimation(this, 'player_drink', playerData.drink);
   }
 
@@ -392,7 +385,14 @@ export class StageScene extends Phaser.Scene {
           action === 'defend' || action === 'death' || action === 'drink' ? 0 : -1
       );
     }
-    createCharacterAnimation(this, 'player-hurt', 'player_hurt', 6, 12, 0);
+    createCharacterAnimation(
+      this,
+      'player-hurt',
+      'player_hurt',
+      playerData.hurt.frameCount,
+      playerData.hurt.frameRate,
+      0
+    );
   }
 
   /* === [ 担当 : 250116 中村伊安 ] ===

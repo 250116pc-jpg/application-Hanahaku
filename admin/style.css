@@ -142,6 +142,21 @@ h2 {
   background: #465567;
 }
 
+.player-character-panel {
+  margin-bottom: 18px;
+}
+
+.player-character-switch {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.player-character-switch .button[aria-pressed="true"] {
+  outline: 3px solid #315b5740;
+  background: #53766e;
+}
+
 .button-danger {
   background: #9a4034;
 }
@@ -518,6 +533,8 @@ tbody tr:last-child td {
     align-items: stretch;
     flex-direction: column;
   }
+
+
 
   .section-heading .button {
     width: 100%;

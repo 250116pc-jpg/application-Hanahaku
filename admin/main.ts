@@ -40,6 +40,7 @@ interface AdminHistory {
 interface AdminResponse {
   ok: boolean;
   error?: string;
+  character?: 'male' | 'female';
   users?: AdminUser[];
   state?: AdminState;
   added?: boolean;
@@ -105,10 +106,15 @@ const stageRows = requiredElement<HTMLTableSectionElement>('#stage-rows');
 const saveButton = requiredElement<HTMLButtonElement>('#save-changes');
 const historyStatus = requiredElement<HTMLParagraphElement>('#history-status');
 const historyRows = requiredElement<HTMLTableSectionElement>('#history-rows');
+const maleCharacterButton = requiredElement<HTMLButtonElement>('#select-male-character');
+const femaleCharacterButton = requiredElement<HTMLButtonElement>('#select-female-character');
+const playerCharacterStatus = requiredElement<HTMLParagraphElement>('#player-character-status');
 
 let selectedState: AdminState | undefined;
 let busy = false;
 let allUsers: AdminUser[] = [];
+let selectedPlayerCharacter: 'male' | 'female' = 'male';
+let playerCharacterBusy = false;
 
 function populateSelect<T extends { id: number; name: string }>(
   select: HTMLSelectElement,
@@ -157,11 +163,57 @@ function setAccessStatus(message: string, isError = false): void {
   accessStatus.classList.toggle('is-error', isError);
 }
 
+function setPlayerCharacterStatus(message: string, isError = false): void {
+  playerCharacterStatus.textContent = message;
+  playerCharacterStatus.classList.toggle('is-error', isError);
+}
+
+function renderPlayerCharacter(): void {
+  maleCharacterButton.setAttribute('aria-pressed', String(selectedPlayerCharacter === 'male'));
+  femaleCharacterButton.setAttribute('aria-pressed', String(selectedPlayerCharacter === 'female'));
+  maleCharacterButton.disabled = busy || playerCharacterBusy;
+  femaleCharacterButton.disabled = busy || playerCharacterBusy;
+}
+
+async function loadPlayerCharacter(): Promise<void> {
+  setPlayerCharacterStatus('主人公の設定を読み込んでいます…');
+  try {
+    const result = await request({ action: 'playerCharacter' });
+    if (result.character !== 'male' && result.character !== 'female') {
+      throw new Error('主人公の設定形式が正しくありません。');
+    }
+    selectedPlayerCharacter = result.character;
+    renderPlayerCharacter();
+    setPlayerCharacterStatus(`${selectedPlayerCharacter === 'male' ? '男' : '女'}主人公を使用中です。`);
+  } catch (error) {
+    setPlayerCharacterStatus(error instanceof Error ? error.message : '主人公の設定を読み込めませんでした。', true);
+  }
+}
+
+async function selectPlayerCharacter(character: 'male' | 'female'): Promise<void> {
+  if (busy || playerCharacterBusy || selectedPlayerCharacter === character) return;
+  playerCharacterBusy = true;
+  renderPlayerCharacter();
+  setPlayerCharacterStatus('主人公の設定を保存しています…');
+  try {
+    const result = await request({ action: 'setPlayerCharacter', character });
+    if (result.character !== character) throw new Error('主人公の設定を確認できませんでした。');
+    selectedPlayerCharacter = character;
+    setPlayerCharacterStatus(`${character === 'male' ? '男' : '女'}主人公に切り替えました。ゲームを再読み込みしてください。`);
+  } catch (error) {
+    setPlayerCharacterStatus(error instanceof Error ? error.message : '主人公を切り替えられませんでした。', true);
+  } finally {
+    playerCharacterBusy = false;
+    renderPlayerCharacter();
+  }
+}
+
 function showAdminView(): void {
   accessPanel.hidden = true;
   adminContent.hidden = false;
   void loadUsers();
   void loadHistory();
+  void loadPlayerCharacter();
 }
 
 function formatNumber(value: number): string {
@@ -563,6 +615,7 @@ function setBusy(next: boolean): void {
   document.querySelectorAll<HTMLInputElement>('input').forEach(input => { input.disabled = next; });
   userSelect.disabled = next || allUsers.length === 0;
   renderStagesIfAvailable();
+  renderPlayerCharacter();
   updateSaveButton();
 }
 
@@ -642,6 +695,8 @@ requiredElement<HTMLButtonElement>('#refresh-users').addEventListener('click', (
 });
 requiredElement<HTMLButtonElement>('#refresh-history').addEventListener('click', () => { void loadHistory(); });
 saveButton.addEventListener('click', () => { void saveChanges(); });
+maleCharacterButton.addEventListener('click', () => { void selectPlayerCharacter('male'); });
+femaleCharacterButton.addEventListener('click', () => { void selectPlayerCharacter('female'); });
 dashboard.addEventListener('input', event => {
   if ((event.target as HTMLElement).matches('input[data-change-key]')) updateSaveButton();
 });

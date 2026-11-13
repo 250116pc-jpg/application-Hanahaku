@@ -25,6 +25,7 @@ import { RegisterScene } from './Scene/RegisterScene';
 import { LoginScene } from './Scene/LoginScene';
 import './style.css';
 import { loadDisplaySettings } from './display/DisplaySettings';
+import { loadGlobalPlayerCharacter } from './animation/playerCharacter';
 /* === [ 担当 : 250056 斎藤永聖 / 250116 中村伊安 ] ===
  * 処理内容 : 起動処理を定義する
  * ================================== */
@@ -83,5 +84,10 @@ const config: Phaser.Types.Core.GameConfig = {
   backgroundColor: '#000000'
 }
 
-const game = new Phaser.Game(config);
-if (isBattlePreview) Object.assign(window, { __battlePreviewGame: game });
+async function startGame(): Promise<void> {
+  await loadGlobalPlayerCharacter();
+  const game = new Phaser.Game(config);
+  if (isBattlePreview) Object.assign(window, { __battlePreviewGame: game });
+}
+
+void startGame();
