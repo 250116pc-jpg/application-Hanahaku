@@ -16,7 +16,7 @@ $action = $body['action'] ?? 'state';
 /* === [ 担当 : 250116 中村伊安 ] ===
  * 処理内容 : 操作種別と使用可能なアイテムを検証する
  * ================================== */
-if (!in_array($action, ['state', 'buy', 'consume'], true)) respond(['ok'=>false,'error'=>'不正な操作です。'],422);
+if (!in_array($action, ['state', 'buy', 'consume', 'contract'], true)) respond(['ok'=>false,'error'=>'不正な操作です。'],422);
 /* === [ 担当 : 250056 斎藤永聖 ] ===
  * 処理内容 : 購入数と購入条件を検証する
  * ================================== */
@@ -29,6 +29,17 @@ if ($action === 'buy' && (!is_int($quantity) || $quantity < 1 || $quantity > 99)
  * ================================== */
 if ($action === 'consume' && (!is_int($body['itemId'] ?? null) || !in_array($body['itemId'], [12, 13, 14, 15], true) || $quantity !== 1)) {
  respond(['ok'=>false,'error'=>'使用できないアイテムです。'],422);
+}
+if ($action === 'contract') {
+ $flowerId = $body['flowerId'] ?? null;
+ $flower = null;
+ if (is_int($flowerId) && $flowerId > 0) {
+  $path = sprintf('%s/../flower/%03d.json', __DIR__, $flowerId);
+  if (is_file($path)) $flower = json_decode(file_get_contents($path), true);
+ }
+ if (($flower['id'] ?? null) !== $flowerId || !is_int($flowerId)) {
+  respond(['ok'=>false,'error'=>'契約できる花が見つかりません。'],422);
+ }
 }
 /* === [ 担当 : 250056 斎藤永聖 ] ===
  * 処理内容 : ショップの商品定義を読み込む
@@ -47,6 +58,7 @@ try {
  if (!$items instanceof stdClass) throw new RuntimeException('所持品データの形式を確認してください。');
  foreach ($items as $count) if (!is_int($count) || $count<0) throw new RuntimeException('所持品データの形式を確認してください。');
  $coin=(int)$user['coin'];
+ $contractOutcome = null;
  if ($action==='buy') {
   $id=$body['itemId'] ?? null;
   $product=null;
@@ -59,19 +71,30 @@ try {
   if ($count>2147483647-$quantity) throw new RuntimeException('所持数の上限です。');
   $items->$key=$count+$quantity; $coin-=$total;
  }
- if ($action === 'consume') {
-  $id = $body['itemId'];
+ if ($action === 'consume' || $action === 'contract') {
+  $id = $action === 'contract' ? 12 : $body['itemId'];
   $key = (string)$id;
   $count = $items->$key ?? 0;
   if ($count < 1) throw new RuntimeException($id === 12 ? '治療薬が足りません。' : 'アイテムを所持していません。');
   $items->$key = $count - 1;
+  if ($action === 'contract') {
+   $owned = $pdo->prepare('SELECT flower_id FROM player_flowers WHERE user_id = ? AND flower_id = ? FOR UPDATE');
+   $owned->execute([$userId, $flowerId]);
+   if ($owned->fetchColumn() === false) {
+    $insert = $pdo->prepare('INSERT INTO player_flowers (user_id, flower_id) VALUES (?, ?)');
+    $insert->execute([$userId, $flowerId]);
+    $contractOutcome = 'new';
+   } else {
+    $contractOutcome = 'duplicate';
+   }
+  }
  }
  if ($action !== 'state') {
   $q=$pdo->prepare('UPDATE users SET coin = ?, items = ? WHERE id = ?');
   $q->execute([$coin,json_encode($items,JSON_THROW_ON_ERROR),$userId]);
  }
  $pdo->commit();
- respond(['ok'=>true,'coin'=>$coin,'items'=>$items]);
+ respond(['ok'=>true,'coin'=>$coin,'items'=>$items,'contractOutcome'=>$contractOutcome]);
 } catch (Throwable $e) {
  if ($pdo->inTransaction()) $pdo->rollBack();
  error_log('Shop operation failed: '.$e->getMessage());

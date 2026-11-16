@@ -10,12 +10,8 @@ import rawFormationData from '../../php/flower/formation.json?raw';
  * ================================== */
 type FormationData = {
   characters: Array<{ id: number }>;
-  formation: Array<number | null>;
 };
 
-const storageKey = 'hanahaku.formation.v2';
-const legacyStorageKey = 'hanahaku.formation.v1';
-const legacyIds: Record<number, number | null> = {1:1,2:2,3:null,4:3,5:4,6:5,7:6,8:7,9:8,10:9};
 const formationData = JSON.parse(rawFormationData) as FormationData;
 const availableFlowerIds = new Set(formationData.characters.map(character => character.id));
 
@@ -23,7 +19,7 @@ const availableFlowerIds = new Set(formationData.characters.map(character => cha
  * 処理内容 : 編成の形式と重複を整える
  * ================================== */
 function normalizeFormation(value: unknown): Array<number | null> {
-  const source = Array.isArray(value) ? value : formationData.formation;
+  const source = Array.isArray(value) ? value : [];
   const formation: Array<number | null> = [null, null, null, null];
   const used = new Set<number>();
 
@@ -38,22 +34,28 @@ function normalizeFormation(value: unknown): Array<number | null> {
 /* === [ 担当 : 250056 斎藤永聖 / 250116 中村伊安 ] ===
  * 処理内容 : 保存済みの編成を読み込む
  * ================================== */
-export function loadFormation(): Array<number | null> {
+export function loadFormation(ownedFlowerIds?: ReadonlySet<number>): Array<number | null> {
   try {
-    const saved = typeof window === 'undefined' ? null : window.localStorage.getItem(storageKey);
-    if (saved) return normalizeFormation(JSON.parse(saved));
-    const legacy = typeof window === 'undefined' ? null : window.localStorage.getItem(legacyStorageKey);
-    if (legacy) {
-      const old: unknown = JSON.parse(legacy);
-      if (Array.isArray(old)) {
-        const migrated = normalizeFormation(old.map(id => typeof id === 'number' ? legacyIds[id] ?? null : null));
-        saveFormation(migrated);
-        return migrated;
-      }
+    const key = getFormationStorageKey();
+    if (!key) return normalizeFormation(null);
+    const saved = localStorage.getItem(key);
+    if (saved !== null) return normalizeFormation(JSON.parse(saved));
+
+    // DBで所持を確認できた場合だけ旧編成を引き継ぐ。旧データの持ち主は断定しない。
+    // 保存済みの空編成も尊重し、アカウントごとの設定を上書きしない。
+    if (!ownedFlowerIds) return normalizeFormation(null);
+    const v2 = localStorage.getItem('hanahaku.formation.v2');
+    const legacy = v2 ?? localStorage.getItem('hanahaku.formation.v1');
+    let value: unknown = JSON.parse(legacy ?? 'null');
+    if (v2 === null && Array.isArray(value)) {
+      const ids: Record<number, number | null> = {1:1,2:2,3:null,4:3,5:4,6:5,7:6,8:7,9:8,10:9};
+      value = value.map(id => typeof id === 'number' ? ids[id] ?? null : null);
     }
-    return normalizeFormation(formationData.formation);
+    const recovered = normalizeFormation(value).map(id => id !== null && ownedFlowerIds.has(id) ? id : null);
+    localStorage.setItem(key, JSON.stringify(recovered));
+    return recovered;
   } catch {
-    return normalizeFormation(formationData.formation);
+    return normalizeFormation(null);
   }
 }
 
@@ -63,10 +65,16 @@ export function loadFormation(): Array<number | null> {
 export function saveFormation(value: Array<number | null>): boolean {
   const formation = normalizeFormation(value);
   try {
-    if (typeof window === 'undefined') return false;
-    window.localStorage.setItem(storageKey, JSON.stringify(formation));
+    const key = getFormationStorageKey();
+    if (!key) return false;
+    localStorage.setItem(key, JSON.stringify(formation));
     return true;
   } catch {
     return false;
   }
+}
+
+function getFormationStorageKey(): string | null {
+  const user = JSON.parse(localStorage.getItem('hanahakuCurrentUser') ?? 'null');
+  return Number.isSafeInteger(user?.id) && user.id > 0 ? 'hanahaku.formation.v3:' + user.id : null;
 }
