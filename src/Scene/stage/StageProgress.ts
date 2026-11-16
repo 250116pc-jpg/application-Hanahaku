@@ -9,11 +9,17 @@ import { getPhpBaseUrl } from '../../auth/PhpBaseUrl';
  * ================================== */
 export interface StageProgress {
   completedStageIds: number[];
+  completedStorySceneIds: string[];
   coins: number;
 }
 
 export interface StageCompletion extends StageProgress {
   reward: number;
+  persisted: 'server' | 'device';
+  saveError?: string;
+}
+
+export interface StoryCompletion extends StageProgress {
   persisted: 'server' | 'device';
   saveError?: string;
 }
@@ -41,9 +47,15 @@ function readLocalProgress(): StageProgress {
     return {
       completedStageIds: Array.isArray(saved?.completedStageIds)
         ? saved.completedStageIds.filter((id): id is number => Number.isInteger(id)) : [],
+      completedStorySceneIds: Array.isArray(saved?.completedStorySceneIds)
+        ? saved.completedStorySceneIds.filter((id): id is string => typeof id === 'string' && /^\d+:\d+$/.test(id)) : [],
       coins: Number.isFinite(saved?.coins) ? Math.max(0, Number(saved?.coins)) : 0,
     };
-  } catch { return { completedStageIds: [], coins: 0 }; }
+  } catch { return { completedStageIds: [], completedStorySceneIds: [], coins: 0 }; }
+}
+
+export function getCachedStageProgress(): StageProgress {
+  return readLocalProgress();
 }
 
 /* === [ 担当 : 250116 中村伊安 ] ===
@@ -60,8 +72,12 @@ function parseProgress(value: unknown): StageProgress {
   if (typeof value !== 'object' || value === null || !('completedStageIds' in value) || !Array.isArray(value.completedStageIds) || !('coins' in value) || typeof value.coins !== 'number') {
     throw new Error('進行状況のデータを読み取れませんでした。');
   }
+  const completedStorySceneIds = 'completedStorySceneIds' in value && Array.isArray(value.completedStorySceneIds)
+    ? value.completedStorySceneIds.filter((id): id is string => typeof id === 'string' && /^\d+:\d+$/.test(id))
+    : [];
   return {
     completedStageIds: value.completedStageIds.filter((id): id is number => typeof id === 'number' && Number.isInteger(id)),
+    completedStorySceneIds,
     coins: Math.max(0, value.coins),
   };
 }
@@ -69,7 +85,7 @@ function parseProgress(value: unknown): StageProgress {
 /* === [ 担当 : 250116 中村伊安 ] ===
  * 処理内容 : 進行取得・クリア保存APIへ送信し、応答を検証する
  * ================================== */
-async function request(endpoint: 'progress' | 'complete', body: Record<string, number> = {}): Promise<unknown> {
+async function request(endpoint: 'progress' | 'complete' | 'story-complete', body: Record<string, number> = {}): Promise<unknown> {
   const controller = new AbortController();
   const timeout = window.setTimeout(() => controller.abort(), 8000);
   try {
@@ -117,12 +133,40 @@ export async function completeStage(stageId: number, fallbackReward = 100): Prom
     const alreadyCleared = progress.completedStageIds.includes(stageId);
     const next: StageProgress = {
       completedStageIds: alreadyCleared ? progress.completedStageIds : [...progress.completedStageIds, stageId],
+      completedStorySceneIds: progress.completedStorySceneIds,
       coins: progress.coins + (alreadyCleared ? 0 : fallbackReward),
     };
     writeLocalProgress(next);
     return {
       ...next,
       reward: alreadyCleared ? 0 : fallbackReward,
+      persisted: 'device',
+      saveError: error instanceof Error ? error.message : 'サーバーに接続できませんでした。',
+    };
+  }
+}
+
+export async function completeStoryScene(chapter: number, stage: number): Promise<StoryCompletion> {
+  const sceneId = `${chapter}:${stage}`;
+  try {
+    const result = await request('story-complete', { chapter, stage });
+    if (typeof result !== 'object' || result === null || !('progress' in result)) {
+      throw new Error('シナリオの進行状況を保存できませんでした。');
+    }
+    const progress = parseProgress(result.progress);
+    writeLocalProgress(progress);
+    return { ...progress, persisted: 'server' };
+  } catch (error) {
+    const progress = readLocalProgress();
+    const next: StageProgress = {
+      ...progress,
+      completedStorySceneIds: progress.completedStorySceneIds.includes(sceneId)
+        ? progress.completedStorySceneIds
+        : [...progress.completedStorySceneIds, sceneId],
+    };
+    writeLocalProgress(next);
+    return {
+      ...next,
       persisted: 'device',
       saveError: error instanceof Error ? error.message : 'サーバーに接続できませんでした。',
     };

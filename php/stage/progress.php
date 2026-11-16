@@ -22,7 +22,14 @@ try {
     $stageData = is_string($row['stage_data']) ? json_decode($row['stage_data'], true) : $row['stage_data'];
     $completed = is_array($stageData) && isset($stageData['completed']) && is_array($stageData['completed'])
         ? array_values(array_unique(array_map('intval', $stageData['completed']))) : [];
-    respond(['ok' => true, 'progress' => ['completedStageIds' => $completed, 'coins' => (int)$row['coin']]]);
+    $completedStories = is_array($stageData) && isset($stageData['completedStories']) && is_array($stageData['completedStories'])
+        ? array_values(array_unique(array_filter($stageData['completedStories'], static fn($id) => is_string($id) && preg_match('/^\d+:\d+$/', $id) === 1)))
+        : [];
+    respond(['ok' => true, 'progress' => [
+        'completedStageIds' => $completed,
+        'completedStorySceneIds' => $completedStories,
+        'coins' => (int)$row['coin'],
+    ]]);
 } catch (Throwable $error) {
     error_log('Could not load stage progress: ' . $error->getMessage());
     respond(['ok' => false, 'error' => '進行状況を読み込めませんでした。'], 500);
