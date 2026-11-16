@@ -23,7 +23,7 @@ import { getPhpBaseUrl } from '../auth/PhpBaseUrl';
 import { playSe } from '../audio/BgmManager';
 import trainingScrollPreview from '../assets/audio/training-scroll-preview.mp3';
 import trainingLevelPreview from '../assets/audio/training-level-preview.mp3';
-import { MAX_FLOWER_LEVEL, experienceThresholds, flowerStats, levelPreview, skillPreview, skillThresholds } from './training/trainingRules';
+import { MAX_FLOWER_LEVEL, experienceThresholds, flowerStats, batchPreview, materialExperience, targetMaterials, skillThresholds } from './training/trainingRules';
 
 /* === [ 担当 : 250082 武田優人 ] ===
  * 処理内容 : 花の表示・レベル強化・スキル強化を定義する
@@ -46,8 +46,9 @@ export class TrainingScene extends Phaser.Scene {
   private selectedId = testData.characters.find(flower => flower.code === 'sunflower')?.id ?? testData.characters[0].id;
   private tab: Tab = 'status';
   private page = 0;
-  private quantity = 1;
-  private material: number | null = null;
+  private targetLevel = 2;
+  private targetPlan?: ReturnType<typeof targetMaterials>;
+  private selectedMaterials: Record<string, number> = {};
   private inventory: Record<string, number> = {};
   private inventoryStatus: 'loading' | 'ready' | 'error' = 'loading';
   private inventoryError = '';
@@ -82,7 +83,9 @@ export class TrainingScene extends Phaser.Scene {
   init(data: { characterId?: number } = {}): void {
     if (testData.characters.some(flower => flower.id === data.characterId)) this.selectedId = data.characterId!;
     this.page = Math.floor(testData.characters.findIndex(flower => flower.id === this.selectedId) / 6);
-    this.quantity = 1;
+    this.selectedMaterials = {};
+    this.targetLevel = 2;
+    this.targetPlan = undefined;
   }
   /* === [ 担当 : 250082 武田優人 / 250116 中村伊安 ] ===
    * 処理内容 : 使用する画像・音声を読み込む
@@ -209,9 +212,9 @@ export class TrainingScene extends Phaser.Scene {
     const isCompact = w <= 54;
     const texture = isCompact ? 'training-compact-button' : isTab && selected ? 'training-tab' : 'training-button';
     const g = this.add.image(x + w / 2, y + h / 2, texture, 'rect')
-      .setDisplaySize(isCompact ? 46 : isTab ? w : w + 8, isCompact ? 46 : isTab ? h : h + 7);
+      .setDisplaySize(isCompact ? Math.min(46, w + 8) : isTab ? w : w + 8, isCompact ? Math.min(46, h + 8) : isTab ? h : h + 7);
     this.content.add(g);
-    const caption = this.text(x + w / 2, y + h / 2, label, isCompact ? 24 : 18, '#fff5df').setOrigin(.5);
+    const caption = this.text(x + w / 2, y + h / 2, label, isCompact ? (w < 32 ? 20 : 24) : 18, '#fff5df').setOrigin(.5);
     const hit = this.add.zone(x + w / 2, y + h / 2, w, h);
     if (enabled) hit.setInteractive({ useHandCursor: true });
     else g.setAlpha(.4);
@@ -280,7 +283,7 @@ export class TrainingScene extends Phaser.Scene {
     if (flower) this.portraitLevel?.setText(`Lv.${flower.level}`);
     TABS.forEach(([tab, label], index) => {
       const x = 460 + index * 264;
-      this.button(x, 88, 256, 58, label, () => { this.tab = tab; this.quantity = 1; this.upgradeMessage = ''; this.render(); }, this.tab === tab);
+      this.button(x, 88, 256, 58, label, () => { this.tab = tab; this.resetTargetSelection(); this.upgradeMessage = ''; this.render(); }, this.tab === tab);
     });
     this.panel(460, 160, 784, 338);
     if (!flower) {
@@ -336,67 +339,114 @@ export class TrainingScene extends Phaser.Scene {
     this.text(1215, 422, `Lv.${flower.skillLevel}`, 17, C.green).setOrigin(1, 0);
     this.text(488, 448, this.wrapped(skill?.name ?? 'スキル未設定', 35), 18);
   }
+  /* === [ 担当 : 250082 武田優人 ] ===
+   * 処理内容 : 選択した複数素材を送信用の一覧にし、成長結果をプレビューする
+   * ================================== */
+  private materials(): Array<{ itemId: number; quantity: number }> {
+    return Object.entries(this.selectedMaterials).filter(([, quantity]) => quantity > 0).map(([id, quantity]) => ({ itemId: Number(id), quantity }));
+  }
+  private previewMaterials(flower: TrainingFlower, materials = this.materials()) {
+    const skill = this.tab === 'skill';
+    return batchPreview(flower.id, skill ? flower.skillLevel : flower.level, skill ? flower.skillExp : flower.exp, materials, this.inventory, skill);
+  }
+  /* === [ 担当 : 250082 武田優人 ] ===
+   * 処理内容 : 目標を変更したときだけ素材を自動選択し、その後の個数の手動調整を保持する
+   * ================================== */
+  private chooseTarget(target: number, clearMessage = true): void {
+    const flower = this.ownedFlowers.find(item => item.id === this.selectedId);
+    if (!flower || this.tab === 'status') return;
+    const skill = this.tab === 'skill', level = skill ? flower.skillLevel : flower.level;
+    const maximum = skill ? skillThresholds.length : MAX_FLOWER_LEVEL;
+    const availableLevel = this.maximumTarget(flower);
+    this.targetLevel = Math.min(availableLevel, Math.max(level + 1, target));
+    // 次のレベルに届かない場合も、所持素材でEXPだけを加算できるようにする。
+    const planningLevel = this.targetLevel > level ? this.targetLevel : Math.min(maximum, level + 1);
+    const plan = targetMaterials(flower.id, level, skill ? flower.skillExp : flower.exp, planningLevel, this.inventory, skill);
+    this.targetPlan = { ...plan, targetLevel: this.targetLevel, missingExp: this.targetLevel > level ? plan.missingExp : 0 };
+    this.selectedMaterials = Object.fromEntries(this.targetPlan.materials.map(item => [String(item.itemId), item.quantity]));
+    if (clearMessage) this.upgradeMessage = '';
+  }
+  private resetTargetSelection(): void {
+    this.selectedMaterials = {}; this.targetPlan = undefined;
+    const flower = this.ownedFlowers.find(item => item.id === this.selectedId);
+    if (flower) this.chooseTarget((this.tab === 'skill' ? flower.skillLevel : flower.level) + 1);
+  }
+  /* === [ 担当 : 250082 武田優人 ] ===
+   * 処理内容 : 所持素材を使って到達できる最高レベルを求め、上限ボタンの目標にする
+   * ================================== */
+  private maximumTarget(flower: TrainingFlower): number {
+    const skill = this.tab === 'skill', level = skill ? flower.skillLevel : flower.level;
+    const maximum = skill ? skillThresholds.length : MAX_FLOWER_LEVEL;
+    if (level >= maximum || this.inventoryStatus !== 'ready') return level;
+    return targetMaterials(flower.id, level, skill ? flower.skillExp : flower.exp, maximum, this.inventory, skill).reachableLevel;
+  }
   private renderLevel(flower: TrainingFlower): void {
     /* === [ 担当 : 250082 武田優人 ] ===
      * 処理内容 : レベル・スキル強化の素材と操作を表示する
      * ================================== */
     const isSkill = this.tab === 'skill';
     const materials = isSkill ? seeds : nutrients;
-    if (!materials.some(item => item.id === this.material && (this.inventory[String(item.id)] ?? 0) > 0)) this.material = materials.find(item => (this.inventory[String(item.id)] ?? 0) > 0)?.id ?? null;
     const currentLevel = isSkill ? flower.skillLevel : flower.level;
     const currentExp = isSkill ? flower.skillExp : flower.exp;
     const maxLevel = isSkill ? skillThresholds.length : MAX_FLOWER_LEVEL;
-    const calculate = isSkill ? skillPreview : levelPreview;
-    const count = this.inventory[String(this.material)] ?? 0;
-    const limit = calculate(flower.id, currentLevel, currentExp, this.material, count, this.quantity);
-    this.quantity = Math.min(Math.max(1, this.quantity), limit.maxQuantity);
-    const preview = calculate(flower.id, currentLevel, currentExp, this.material, count, this.quantity);
-    if (isSkill) this.text(851, 226, this.wrapped(getFlowerSkill(flower.id)?.name ?? '', 20), 17);
+    const preview = this.previewMaterials(flower);
     this.text(488, 183, isSkill ? 'スキル強化' : 'レベル強化', 23);
+    if (isSkill) this.text(1216, 185, getFlowerSkill(flower.id)?.name ?? 'スキル未設定', 16, C.muted).setOrigin(1, 0);
     this.text(488, 226, preview.used ? `Lv.${currentLevel}  →  Lv.${preview.afterLevel}` : `Lv.${currentLevel} / ${maxLevel}`, 29, C.green);
-    if (preview.used && !isSkill) this.text(851, 225, `HP  ${flower.stats.hp} → ${preview.stats?.hp ?? flower.stats.hp}\nATK  ${flower.stats.atk} → ${preview.stats?.atk ?? flower.stats.atk}`, 16, C.green).setLineSpacing(5);
-    this.expText = this.text(488, 275, `累計EXP  ${BigInt(currentExp).toLocaleString('ja-JP')}${preview.used ? `  →  ${preview.afterExp.toLocaleString('ja-JP')}` : ''}`, 16, C.muted);
+    this.text(786, 226, '目標', 14);
+    this.button(830, 218, 26, 24, '−', () => { this.chooseTarget(this.targetLevel - 1); this.render(); }, false, !this.upgrading && this.targetLevel > currentLevel + 1);
+    this.text(892, 230, 'Lv.' + this.targetLevel, 19).setOrigin(.5);
+    const availableLevel = this.maximumTarget(flower);
+    this.button(930, 218, 26, 24, '＋', () => { this.chooseTarget(this.targetLevel + 1); this.render(); }, false,
+      !this.upgrading && this.inventoryStatus === 'ready' && this.targetLevel < availableLevel);
+    this.button(1122, 215, 90, 32, '上限', () => { this.chooseTarget(availableLevel); this.render(); }, false,
+      !this.upgrading && this.inventoryStatus === 'ready' && availableLevel > currentLevel);
+    if (!isSkill && preview.used) this.text(851, 258, 'HP ' + flower.stats.hp + ' → ' + preview.stats?.hp + ' ／ ATK ' + flower.stats.atk + ' → ' + preview.stats?.atk, 14, C.green);
+    this.expText = this.text(488, 258, `累計EXP  ${BigInt(currentExp).toLocaleString('ja-JP')}${preview.used ? `  →  ${preview.afterExp.toLocaleString('ja-JP')}` : ''}`, 16, C.muted);
     /* === [ 担当 : 250082 武田優人 ] ===
-     * 処理内容 : 必要なデータを取得して画面へ反映する
+     * 処理内容 : 経験値ゲージと複数素材の個数選択・消費後の所持数を表示する
      * ================================== */
-    this.content.add(this.add.rectangle(488, 297, 728, 3, 0xd8ceb4).setOrigin(0, .5));
-    this.expFill = this.add.rectangle(488, 297, 0, 3, 0xa99150).setOrigin(0, .5);
+    this.content.add(this.add.rectangle(488, 279, 728, 3, 0xd8ceb4).setOrigin(0, .5));
+    this.expFill = this.add.rectangle(488, 279, 0, 3, 0xa99150).setOrigin(0, .5);
     this.content.add(this.expFill);
     this.updateExperienceGauge(Math.min(Number(currentExp), isSkill ? skillThresholds[skillThresholds.length - 1] : experienceThresholds[MAX_FLOWER_LEVEL - 1]));
     if (this.inventoryStatus === 'loading') {
-      this.text(488, 305, '所持している素材を読み込み中…', 18, C.muted);
+      this.text(488, 315, '所持している素材を読み込み中…', 18, C.muted);
     } else if (this.inventoryStatus === 'error') {
-      this.text(488, 288, this.wrapped(this.inventoryError, 36), 17, '#9b4739').setLineSpacing(4);
+      this.text(488, 310, this.wrapped(this.inventoryError, 36), 17, '#9b4739');
       this.button(1040, 363, 176, 40, '再読み込み', () => { void this.loadInventory(); });
     } else {
       const owned = materials.filter(item => (this.inventory[String(item.id)] ?? 0) > 0);
-      if (owned.length === 0) this.text(488, 305, isSkill ? '種を所持していません。' : '栄養剤を所持していません。', 19, C.muted);
-      else {
-        // 所持している強化素材を最大5種類表示する。
-        const gap = 10, width = Math.min(232, (728 - gap * (owned.length - 1)) / owned.length);
-        owned.forEach((item, index) => {
-          const x = 488 + index * (width + gap), selected = this.material === item.id;
-          this.box(x, 316, width, 72, selected ? 0xffeac1 : 0xf1e6cf, 6, selected ? 0xcf943b : 0xd6c29b);
-          const image = this.add.image(x + 27, 352, `training-nutrient-${item.id}`);
-          image.setScale(40 / Math.max(image.width, image.height)); this.content.add(image);
-          this.text(x + 51, 328, item.name, 13);
-          this.text(x + 51, 355, `所持 ${this.inventory[String(item.id)]}個`, 13, C.muted);
-          if (selected) this.text(x + width - 6, 319, '✓', 12, C.green).setOrigin(1, 0);
-          const hit = this.add.zone(x + width / 2, 352, width, 72).setInteractive({ useHandCursor: true });
-          this.content.add(hit);
-          hit.on('pointerup', () => { this.material = item.id; this.quantity = 1; this.render(); });
-        });
-        this.text(488, 442, '使用数', 17);
-        this.button(590, 434, 42, 38, '−', () => { this.quantity = Math.max(1, this.quantity - 1); this.render(); }, false, this.quantity > 1);
-        this.text(668, 453, String(this.quantity), 24).setOrigin(.5);
-        this.button(703, 434, 42, 38, '＋', () => { this.quantity = Math.min(preview.maxQuantity, this.quantity + 1); this.render(); }, false, this.quantity < preview.maxQuantity);
-        this.text(780, 444, `/ 所持 ${count}個`, 16, C.muted);
-      }
+      if (!owned.length) this.text(488, 315, isSkill ? '種を所持していません。' : '栄養剤を所持していません。', 19, C.muted);
+      owned.forEach((item, index) => {
+        const x = 488 + index * 148, quantity = this.selectedMaterials[String(item.id)] ?? 0;
+        const count = this.inventory[String(item.id)] ?? 0;
+        this.box(x, 293, 136, 99, quantity ? 0xffeac1 : 0xf1e6cf, 6, quantity ? 0xcf943b : 0xd6c29b);
+        const image = this.add.image(x + 20, 315, `training-nutrient-${item.id}`);
+        image.setScale(30 / Math.max(image.width, image.height)); this.content.add(image);
+        this.text(x + 40, 302, item.name, 12);
+        this.text(x + 40, 321, `所持 ${count} → ${count - quantity}`, 11, C.muted);
+        const unit = materialExperience(flower.id, item.id, isSkill);
+        this.text(x + 8, 341, `1個 ${unit} EXP`, 11, C.muted);
+        const change = (amount: number): void => {
+          const next = Math.max(0, Math.min(count, quantity + amount));
+          if (next) this.selectedMaterials[String(item.id)] = next;
+          else delete this.selectedMaterials[String(item.id)];
+          this.upgradeMessage = ''; this.render();
+        };
+        this.button(x + 8, 362, 26, 24, '−', () => change(-1), false, quantity > 0 && !this.upgrading);
+        this.text(x + 68, 374, String(quantity), 18).setOrigin(.5);
+        this.button(x + 102, 362, 26, 24, '＋', () => change(1), false,
+          !this.upgrading && quantity < count && currentLevel < maxLevel && preview.discarded === 0 && preview.afterLevel < maxLevel);
+      });
     }
-    // 常時の補足文は置かず、保存結果や強化できない理由だけを素材と操作行の間に表示する。
-    const message = this.upgrading ? '強化しています…' : this.upgradeMessage || preview.reason;
-    this.upgradeStatusText = this.text(488, 400, this.wrapped(message, 48), 13, C.muted).setLineSpacing(3);
-    this.upgradeButtonLabel = this.button(986, 430, 230, 46, this.upgrading ? '強化中…' : '強化する', () => { void this.upgradeLevel(flower); }, true,
+    this.text(488, 400, `合計 ${preview.used}個 ／ 獲得EXP +${preview.gain.toLocaleString('ja-JP')}`, 16, C.green);
+    if (preview.discarded > 0) this.text(488, 423, `上限超過の ${preview.discarded.toLocaleString('ja-JP')} EXP は加算されません。`, 13, '#9b4739');
+    this.button(835, 434, 125, 38, '選択解除', () => { this.selectedMaterials = {}; this.upgradeMessage = ''; this.render(); }, false, !this.upgrading && preview.used > 0);
+    const shortage = this.targetPlan?.missingExp ? '目標まで ' + this.targetPlan.missingExp.toLocaleString('ja-JP') + ' EXP不足（到達可能 Lv.' + this.targetPlan.reachableLevel + '）' : '';
+    const message = this.upgrading ? '強化しています…' : this.upgradeMessage || shortage || preview.reason;
+    this.upgradeStatusText = this.text(488, 447, this.wrapped(message, 27), 13, C.muted).setLineSpacing(3);
+    this.upgradeButtonLabel = this.button(986, 430, 200, 46, this.upgrading ? '強化中…' : '強化', () => { void this.upgradeLevel(flower); }, true,
       !this.upgrading && this.inventoryStatus === 'ready' && !preview.reason && preview.used > 0);
     // TODO: プレイヤーレベルが実装されたら、育成上限をmin(50, プレイヤーレベル)にする。
     // 回復力の基本値・成長反映は別途決定する。
@@ -417,10 +467,8 @@ export class TrainingScene extends Phaser.Scene {
         throw new Error('所持品データの形式を確認してください。');
       }
       this.inventory = state.items;
-      const owned = nutrients.filter(item => (this.inventory[String(item.id)] ?? 0) > 0);
-      if (!owned.some(item => item.id === this.material)) this.material = owned[0]?.id ?? null;
-      this.quantity = Math.min(Math.max(1, this.quantity), this.inventory[String(this.material)] ?? 0);
       this.inventoryStatus = 'ready';
+      if (this.flowersStatus === 'ready') this.chooseTarget(this.targetLevel, false);
     } catch (error) {
       if (request !== this.inventoryRequest || !this.sys.isActive()) return;
       this.inventoryStatus = 'error';
@@ -473,6 +521,7 @@ export class TrainingScene extends Phaser.Scene {
       if (!this.ownedFlowers.some(flower => flower.id === this.selectedId)) this.selectedId = this.ownedFlowers[0]?.id ?? 0;
       this.page = Math.max(0, Math.floor(this.ownedFlowers.findIndex(flower => flower.id === this.selectedId) / 6));
       this.flowersStatus = 'ready';
+      if (this.inventoryStatus === 'ready') this.chooseTarget(this.targetLevel, false);
     } catch (error) {
       if (request !== this.flowersRequest || !this.sys.isActive()) return;
       this.flowersStatus = 'error';
@@ -490,10 +539,10 @@ export class TrainingScene extends Phaser.Scene {
      * ================================== */
     if (this.upgrading || this.inventoryStatus !== 'ready' || this.flowersStatus !== 'ready') return;
     const isSkill = this.tab === 'skill';
-    const preview = (isSkill ? skillPreview : levelPreview)(flower.id, isSkill ? flower.skillLevel : flower.level, isSkill ? flower.skillExp : flower.exp, this.material, this.inventory[String(this.material)] ?? 0, this.quantity);
-    if (preview.reason || preview.used < 1 || preview.used !== this.quantity) return;
+    const preview = this.previewMaterials(flower);
+    if (preview.reason || preview.used < 1) return;
     const lifecycle = this.lifecycle;
-    const body = { kind: isSkill ? 'skill' : 'level', flowerId: flower.id, itemId: this.material, quantity: preview.used, expectedLevel: isSkill ? flower.skillLevel : flower.level, expectedExp: isSkill ? flower.skillExp : flower.exp };
+    const body = { kind: isSkill ? 'skill' : 'level', flowerId: flower.id, materials: this.materials(), expectedLevel: isSkill ? flower.skillLevel : flower.level, expectedExp: isSkill ? flower.skillExp : flower.exp };
     this.upgrading = true;
     this.upgradeMessage = '';
     this.input.enabled = false;
@@ -517,7 +566,8 @@ export class TrainingScene extends Phaser.Scene {
           typeof result.exp !== 'string' || !/^[0-9]+$/.test(result.exp) || BigInt(result.exp) > BigInt(experienceThresholds[MAX_FLOWER_LEVEL - 1]) ||
           BigInt(result.exp) < BigInt(flower.exp) || !Number.isSafeInteger(result.skillLevel) || result.skillLevel < 1 ||
           typeof result.skillExp !== 'string' || !/^[0-9]+$/.test(result.skillExp) ||
-          (isSkill && (result.skillLevel !== preview.afterLevel || Number(result.skillExp) !== preview.afterExp)) ||
+          (isSkill ? result.skillLevel !== preview.afterLevel || Number(result.skillExp) !== preview.afterExp : result.level !== preview.afterLevel || Number(result.exp) !== preview.afterExp) ||
+          this.materials().some(item => result.items?.[String(item.itemId)] !== (this.inventory[String(item.itemId)] ?? 0) - item.quantity) ||
           !result.items || typeof result.items !== 'object' || Array.isArray(result.items) || Object.values(result.items).some(count => !Number.isSafeInteger(count) || Number(count) < 0)) {
         throw new Error('強化結果を確認できませんでした。最新の状態を取得します。');
       }
@@ -533,8 +583,7 @@ export class TrainingScene extends Phaser.Scene {
         stats: { ...item.stats, hp: stats?.hp ?? 0, mp: stats?.mp ?? 0, atk: stats?.atk ?? 0, def: stats?.def ?? 0 },
       } : item);
       this.inventory = { ...result.items };
-      const owned = nutrients.filter(item => (this.inventory[String(item.id)] ?? 0) > 0);
-      if (!owned.some(item => item.id === this.material)) this.material = owned[0]?.id ?? null;
+      this.selectedMaterials = {};
       /* === [ 担当 : 250082 武田優人 ] ===
        * 処理内容 : 送信中の状態を解除して入力操作を復元する
        * ================================== */
@@ -547,7 +596,8 @@ export class TrainingScene extends Phaser.Scene {
     } finally {
       window.clearTimeout(timer);
       if (lifecycle === this.lifecycle && this.sys.isActive()) {
-        this.quantity = 1;
+        this.selectedMaterials = {};
+        this.chooseTarget(this.targetLevel, false);
         this.upgrading = false;
         this.input.enabled = true;
         this.render();
@@ -651,7 +701,7 @@ export class TrainingScene extends Phaser.Scene {
       if (selected) this.text(x + 153, cardTop + 4, '✓', 15, C.green).setOrigin(1, 0);
       const hit = this.add.zone(x + 83, centerY, 167, 77).setInteractive({ useHandCursor: true });
       this.content.add(hit);
-      hit.on('pointerup', () => { this.selectedId = flower.id; this.quantity = 1; this.render(); });
+      hit.on('pointerup', () => { this.selectedId = flower.id; this.resetTargetSelection(); this.render(); });
     });
     // 契約の登録は別の処理で行い、この画面はplayer_flowersの取得結果だけを表示する。
   }
