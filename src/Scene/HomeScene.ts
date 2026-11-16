@@ -135,7 +135,7 @@ export class HomeScene extends Phaser.Scene {
     // 主人公は建物と道より手前に描画する。
     // スプライトシートの余白が、建物や看板のタッチを遮らないようにする。
     player.setInteractive({
-      hitArea: new Phaser.Geom.Rectangle(65, 27, 62, 101),
+      hitArea: new Phaser.Geom.Rectangle(player.width / 2 - 31, 27, 62, 101),
       hitAreaCallback: Phaser.Geom.Rectangle.Contains,
       useHandCursor: true,
     })
