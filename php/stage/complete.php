@@ -35,13 +35,20 @@ try {
     $alreadyCleared = in_array($stageId, $completed, true);
     if (!$alreadyCleared) $completed[] = $stageId;
     $stageData['completed'] = $completed;
+    $completedStories = isset($stageData['completedStories']) && is_array($stageData['completedStories'])
+        ? array_values(array_unique(array_filter($stageData['completedStories'], static fn($id) => is_string($id) && preg_match('/^\d+:\d+$/', $id) === 1)))
+        : [];
     $reward = $alreadyCleared ? 0 : STAGE_CLEAR_REWARD;
     $coins = (int)$row['coin'] + $reward;
 
     $update = $pdo->prepare('UPDATE users SET coin = ?, stage_data = ? WHERE id = ?');
     $update->execute([$coins, json_encode($stageData, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), $userId]);
     $pdo->commit();
-    respond(['ok' => true, 'reward' => $reward, 'progress' => ['completedStageIds' => $completed, 'coins' => $coins]]);
+    respond(['ok' => true, 'reward' => $reward, 'progress' => [
+        'completedStageIds' => $completed,
+        'completedStorySceneIds' => $completedStories,
+        'coins' => $coins,
+    ]]);
 } catch (Throwable $error) {
     if ($pdo->inTransaction()) $pdo->rollBack();
     error_log('Could not save stage completion: ' . $error->getMessage());

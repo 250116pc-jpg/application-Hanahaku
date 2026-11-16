@@ -7,7 +7,7 @@ import { getPlayerAnimation } from './playerCharacter';
 import type { PlayerAnimationName } from './playerCharacter';
 
 // 各攻撃の専用スプライト。
-// 1コマ192×128。frameRateで速度、repeatで繰り返し回数を調整する。
+// フレーム寸法は主人公の共通定義から取得する。frameRateで速度、repeatで繰り返し回数を調整する。
 /* === [ 担当 : 250082 武田優人 ] ===
  * 処理内容 : ホーム専用アニメーション定義を定義する
  * ================================== */
@@ -31,6 +31,7 @@ export const homeAnimationData = {
   idle: playerAnimation('idle', -1),
   attack1: playerAnimation('attack', 0),
   attack2: playerAnimation('attack2', 0),
+  attack3: playerAnimation('attack3', 0),
   dashAttack: playerAnimation('dashAttack', 0),
   downwardAttack: playerAnimation('downwardAttack', 0),
   duckingAttack: playerAnimation('duckingAttack', 0),
@@ -43,7 +44,7 @@ export type HomeAttackName = Exclude<HomeAnimationName, 'idle' | 'run' | 'jump' 
 // 攻撃画像をつないで1本のコンボにする。速度は12fpsのまま維持する。
 // attacksの順序を変えて組み合わせを調整できる。同じ攻撃も複数回指定可能。
 export const homeAttackCombos = [
-  { key: 'bladeRush', attacks: ['attack1', 'attack2', 'dashAttack', 'spinAttack'], frameRate: 12 }, // 連続斬り
+  { key: 'bladeRush', attacks: ['attack1', 'attack2', 'attack3'], frameRate: 12 }, // 連続斬り
   { key: 'lowToHigh', attacks: ['duckingAttack', 'attack1', 'downwardAttack', 'dashAttack'], frameRate: 12 }, // 下段から連撃
 ] as const satisfies readonly { key: string; attacks: readonly HomeAttackName[]; frameRate: number }[];
 

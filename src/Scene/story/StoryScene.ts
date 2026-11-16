@@ -13,6 +13,7 @@ import { getTextStyle } from '../../utils/ui';
 //debug機能
 import { showDebugSceneName } from '../../debug';
 import { SCENE_KEYS } from '../sceneKeys';
+import { completeStoryScene } from '../stage/StageProgress';
 
 //--------------------------------------------------------------
 
@@ -68,6 +69,8 @@ export class StoryScene extends Phaser.Scene {
   private storyData: StoryChapter[] = story_data as StoryChapter[];
   private scenario: Dialogue[] = [];
   private currentChapter = 1;
+  private currentStoryStage = 1;
+  private isFinishing = false;
 
   /* === [ 担当 : 250116 中村伊安 ] ===
    * 処理内容 : 初期状態と画面キーを設定する
@@ -89,6 +92,8 @@ export class StoryScene extends Phaser.Scene {
      * ================================== */
     showDebugSceneName(this);
     this.currentChapter = data.chapter;
+    this.currentStoryStage = data.stage;
+    this.isFinishing = false;
     this.currentIndex = 0;
     this.isAuto = false;
     this.autoTimer = undefined;
@@ -231,6 +236,7 @@ export class StoryScene extends Phaser.Scene {
    * 処理内容 : 次のセリフへ進み、終端なら次の画面へ移る
    * ================================== */
   private nextScenario(): void {
+    if (this.isFinishing) return;
     if (this.currentIndex >= this.scenario.length - 1) {
       this.finishScenario();
       return;
@@ -270,6 +276,8 @@ export class StoryScene extends Phaser.Scene {
    * 処理内容 : 会話を終了して次の画面へ進む
    * ================================== */
   private finishScenario(): void {
+    if (this.isFinishing) return;
+    this.isFinishing = true;
     this.isAuto = false;
 
     if (this.autoTimer) {
@@ -277,8 +285,10 @@ export class StoryScene extends Phaser.Scene {
       this.autoTimer = undefined;
     }
 
-    // 次の画面へ
-    transitionWithLoading(this, SCENE_KEYS.SELECT_STAGE, { areaId: this.currentChapter });
+    void completeStoryScene(this.currentChapter, this.currentStoryStage).then(completion => {
+      if (completion.saveError) console.error('シナリオの進行状況をサーバーに保存できませんでした。', completion.saveError);
+      transitionWithLoading(this, SCENE_KEYS.SELECT_STAGE, { areaId: this.currentChapter });
+    });
   }
 
   // ==================================================

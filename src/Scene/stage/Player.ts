@@ -3,6 +3,7 @@
  * 学籍番号：250082、250056、250116
  * 氏名：武田優人、斎藤永聖、中村伊安
  * ================================== */
+import { getPlayerAttackTiming } from '../../animation/playerCharacter';
 import { showBattleNumber } from './BattleFeedback';
 import { PLAYER_RUN_STEP_KEYS, playSe } from '../../audio/BgmManager';
 import { SCENE_KEYS } from '../sceneKeys';
@@ -22,8 +23,13 @@ const SKILL_AREA_CELL_SIZE = 40;
 const AIR_GRAVITY_SCALE = 4;
 const FALL_GRAVITY_REDUCTION = 0.9;
 const JUMP_POWER_SCALE = 1.4;
-// Phaserのフレーム番号は1始まり。剣が伸びる2フレーム目で攻撃を命中させる。
-const BASIC_ATTACK_IMPACT_FRAME = 5;
+// 各コマの足運びに合わせる。振り下ろす瞬間と構え直し中は足を止める。
+const BASIC_ATTACK_STEP_SPEEDS = [
+  [0, -60, -60, 180, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 80, 0, 0, 0, 0],
+] as const;
+
 export type DamageType = 'physical' | 'magical';
 
 export interface CombatTarget {
@@ -85,6 +91,10 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   private maxHealthBonusUntil = 0;
   private nextBasicAttackAt = 0;
   private basicAttackTargets: readonly CombatTarget[] | null = null;
+  private basicComboStep = -1;
+  private basicComboUntil = 0;
+  private queuedBasicAttack: readonly CombatTarget[] | null = null;
+  private basicAttackDirection = 1;
   /* === [ 担当 : 250116 中村伊安 ] ===
    * 処理内容 : 基本HPに強化分を加えた最大HPを返す
    * ================================== */
@@ -249,7 +259,11 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       if (animation.key === 'player-run' && (frame.index === 3 || frame.index === 7)) {
         this.playRunStep();
       }
-      if (animation.key !== 'player-attack' || frame.index < BASIC_ATTACK_IMPACT_FRAME || !this.basicAttackTargets) return;
+      if (this.action === 'attack' && this.cursors?.up?.isDown) {
+        this.jump();
+        return;
+      }
+      if (!['player-attack', 'player-attack2', 'player-attack3'].includes(animation.key) || frame.index < getPlayerAttackTiming(this.basicComboStep).impactFrame || !this.basicAttackTargets) return;
       // 攻撃アニメーションの指定フレームで一度だけ命中処理を行う。
       const targets = this.basicAttackTargets;
       this.basicAttackTargets = null;
@@ -259,7 +273,13 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
      * 処理内容 : クリック・キー操作と終了時の後片付けを設定する
      * ================================== */
     this.on(Phaser.Animations.Events.ANIMATION_STOP, (animation: Phaser.Animations.Animation) => {
-      if (animation.key === 'player-attack') this.basicAttackTargets = null;
+      if (['player-attack', 'player-attack2', 'player-attack3'].includes(animation.key)) {
+        this.basicAttackTargets = null;
+        this.queuedBasicAttack = null;
+        this.basicComboUntil = 0;
+        if (this.action === 'attack') this.action = null;
+        this.setVelocityX(0);
+      }
     });
     this.on(Phaser.Animations.Events.ANIMATION_COMPLETE, (animation: Phaser.Animations.Animation) => {
       if (animation.key === 'player-land') {
@@ -267,6 +287,8 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       }
       if ([
         'player-attack',
+        'player-attack2',
+        'player-attack3',
         'player-skill',
         'player-hurt',
         'player-drink',
@@ -274,6 +296,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       ].includes(animation.key)) {
         // 行動アニメーション終了後に操作可能状態へ戻す。
         this.action = null;
+        this.setVelocityX(0);
       }
     });
 
@@ -358,6 +381,17 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   }
 
   public update(): void {
+    if (this.cursors?.up?.isDown && (this.action === 'attack' || this.queuedBasicAttack)) this.jump();
+    if (!this.dead && this.action === null && this.queuedBasicAttack && battleNow(this.scene) >= this.nextBasicAttackAt) {
+      const targets = this.queuedBasicAttack;
+      this.queuedBasicAttack = null;
+      this.attack(targets);
+    }
+    if (this.action === 'attack') {
+      const frame = this.anims.currentFrame?.index ?? 0;
+      const speed = BASIC_ATTACK_STEP_SPEEDS[this.basicComboStep]?.[frame - 1] ?? 0;
+      this.setVelocityX(this.basicAttackDirection * speed);
+    }
     /* === [ 担当 : 250056 斎藤永聖 / 250116 中村伊安 ] ===
      * 処理内容 : 操作と現在の状態を表示へ反映する
      * ================================== */
@@ -374,7 +408,9 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       : 0);
 
     // 行動アニメーション、防御、チャージ／コンボ中は横移動を止め、それ以外だけ入力を反映する。
-    if (this.action !== null || this.isGuarding() || battleNow(this.scene) < Math.max(this.chargeUntil, this.comboUntil)) {
+    if (this.action === 'attack') {
+      // 踏み込みは上で設定した物理速度で進め、壁との衝突を有効にする。
+    } else if (this.action !== null || this.isGuarding() || battleNow(this.scene) < Math.max(this.chargeUntil, this.comboUntil)) {
       this.setVelocityX(0);
     } else if (this.cursors.left?.isDown) {
       this.setVelocityX(-this.PLAYER_SPEED * this.stats.agility / 100);
@@ -389,7 +425,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     // 接地中の上入力だけをジャンプとして扱い、空中での再ジャンプを防ぐ。
     if (this.cursors.up?.isDown && body.blocked.down) this.jump();
 
-    const isGrounded = body.blocked.down;
+    const isGrounded = body.blocked.down && body.velocity.y >= 0;
     const crouchGuarding = this.isGuarding();
     /* === [ 担当 : 250056 斎藤永聖 / 250116 中村伊安 ] ===
      * 処理内容 : 操作と現在の状態を表示へ反映する
@@ -437,11 +473,25 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
    * ================================== */
   public jump(): void {
     const body = this.body as Phaser.Physics.Arcade.Body;
-    if (!this.dead && this.action === null && battleNow(this.scene) >= Math.max(this.chargeUntil, this.comboUntil) && !this.isGuarding() && body?.blocked.down) {
-      // 接地かつ行動可能なときだけ離陸し、接地直前の負速度などで効果音が重複しないようにする。
-      const takingOff = body.velocity.y >= 0;
+    if (this.dead || !body) return;
+    if (this.action === 'attack' || this.queuedBasicAttack) {
+      this.queuedBasicAttack = null;
+      this.basicAttackTargets = null;
+      this.basicComboUntil = 0;
+      this.basicComboStep = -1;
+      if (this.action === 'attack') {
+        this.anims.stop();
+        this.action = null;
+        this.setVelocityX(0);
+        this.landingAnimationPlaying = false;
+        this.playAnimation(body.velocity.y <= 0 ? 'player-jump' : 'player-fall');
+      }
+    }
+    if (this.action === null && battleNow(this.scene) >= Math.max(this.chargeUntil, this.comboUntil) && !this.isGuarding() && body.blocked.down && body.velocity.y >= 0) {
       this.setVelocityY(-this.JUMP_POWER * JUMP_POWER_SCALE);
-      if (takingOff) playSe(this.scene, 'player-jump', 0.5);
+      this.landingAnimationPlaying = false;
+      this.playAnimation('player-jump');
+      playSe(this.scene, 'player-jump', 0.5);
     }
   }
 
@@ -449,11 +499,24 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
    * 処理内容 : 通常攻撃を行う
    * ================================== */
   public attack(targets: readonly CombatTarget[] = []): void {
-    if (battleNow(this.scene) < Math.max(this.chargeUntil, this.comboUntil) || battleNow(this.scene) < this.continuousUntil ||
-        battleNow(this.scene) < this.nextBasicAttackAt) return;
-    if (!this.playAction('attack', 'player-attack')) return;
-    // 次回攻撃可能時刻と、アニメーションの命中フレームで参照する対象一覧を記録する。
-    this.nextBasicAttackAt = battleNow(this.scene) + this.stats.attackIntervalMs;
+    if (this.cursors?.up?.isDown) {
+      this.jump();
+      return;
+    }
+    const now = battleNow(this.scene);
+    if (this.dead || now < Math.max(this.chargeUntil, this.comboUntil, this.continuousUntil)) return;
+    if (this.action === 'attack' || (this.action === null && now < this.nextBasicAttackAt && now < this.basicComboUntil)) {
+      this.queuedBasicAttack = targets;
+      return;
+    }
+    if (now < this.nextBasicAttackAt) return;
+    const step = now <= this.basicComboUntil ? (this.basicComboStep + 1) % 3 : 0;
+    const key = ['player-attack', 'player-attack2', 'player-attack3'][step];
+    if (!this.playAction('attack', key)) return;
+    this.basicComboStep = step;
+    this.basicAttackDirection = this.flipX ? -1 : 1;
+    this.nextBasicAttackAt = now + this.stats.attackIntervalMs;
+    this.basicComboUntil = Math.max(this.nextBasicAttackAt, now + 600) + 900;
     this.basicAttackTargets = targets;
   }
 
@@ -462,7 +525,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
    * ================================== */
   private landBasicAttack(targets: readonly CombatTarget[]): void {
     this.showSlash();
-    const hits = this.getTargetsInRange(targets, 125, false);
+    const hits = this.getTargetsInRange(targets, getPlayerAttackTiming().range, false);
     if (hits.length > 0) playSe(this.scene, 'player-sword-hit', 0.65);
     else playSe(this.scene, 'player-sword-swing');
     // 範囲内の敵が複数いても、通常攻撃は最初の1体だけにダメージを与える。
@@ -477,16 +540,22 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
    * ================================== */
   private showSlash(): void {
     const direction = this.flipX ? -1 : 1;
-    const x = this.x + direction * 48;
+    const range = getPlayerAttackTiming().range;
     const y = this.y - 65;
     const slash = this.scene.add.graphics().setDepth(18).setScrollFactor(1);
-    // 同じ弧を太さと色を変えて重ね、短時間で消える斬撃の残像を描く。
-    slash.lineStyle(18, 0xff5267, 0.24).beginPath()
-      .arc(x, y, 82, direction > 0 ? -1.2 : Math.PI + 0.2, direction > 0 ? 0.55 : Math.PI - 0.55, direction < 0).strokePath();
-    slash.lineStyle(8, 0xffa1ad, 0.95).beginPath()
-      .arc(x, y, 82, direction > 0 ? -1.2 : Math.PI + 0.2, direction > 0 ? 0.55 : Math.PI - 0.55, direction < 0).strokePath();
-    slash.lineStyle(2, 0xffe7ce, 0.95).beginPath()
-      .arc(x, y, 82, direction > 0 ? -1.2 : Math.PI + 0.2, direction > 0 ? 0.55 : Math.PI - 0.55, direction < 0).strokePath();
+    // 各段の剣筋を縦斬り・横薙ぎ・突きとして描き分ける。
+    for (const [width, color, alpha] of [[18, 0xffc45a, 0.24], [8, 0xffdc86, 0.95], [2, 0xffe7ce, 0.95]]) {
+      slash.lineStyle(width, color, alpha);
+      if (this.basicComboStep === 2) {
+        slash.beginPath().moveTo(this.x + direction * 32, y)
+          .lineTo(this.x + direction * range, y).strokePath();
+      } else if (this.basicComboStep === 1) {
+        slash.strokeEllipse(this.x + direction * range / 2, y, range, 30);
+      } else {
+        slash.beginPath().moveTo(this.x + direction * 35, this.y - 110)
+          .lineTo(this.x + direction * 100, this.y - 5).strokePath();
+      }
+    }
     this.scene.tweens.add({ targets: slash, alpha: 0, duration: 240, onComplete: () => slash.destroy() });
   }
 
@@ -725,6 +794,9 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     /* === [ 担当 : 250116 中村伊安 ] ===
      * 処理内容 : 被ダメージと無敵・撃破処理を行う
      * ================================== */
+    this.basicComboUntil = 0;
+    this.queuedBasicAttack = null;
+    this.basicAttackTargets = null;
     this.action = 'hurt';
     this.landingAnimationPlaying = false;
     this.setVelocityX(0);
@@ -740,6 +812,8 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     if (this.dead || !this.scene.anims.exists('player-death')) return;
     // 二重実行を防ぎ、物理ボディを無効化して死亡演出中の移動や衝突を止める。
     this.dead = true;
+    this.queuedBasicAttack = null;
+    this.basicAttackTargets = null;
     this.action = null;
     this.setVelocity(0, 0);
     const body = this.body;
@@ -771,6 +845,8 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     ) {
       return false;
     }
+    this.queuedBasicAttack = null;
+    this.basicComboUntil = 0;
     this.action = 'skill';
     this.landingAnimationPlaying = false;
     this.setVelocityX(0);
