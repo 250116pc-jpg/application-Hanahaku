@@ -88,12 +88,18 @@ export class StageResultScene extends Phaser.Scene {
     if (!data.victory) this.createButton(width / 2 - 110, buttonY, 'もう一度', 0x527c63, () => {
       transitionWithLoading(this, SCENE_KEYS.STAGE, { stageId: data.stageId, stageNumber: data.stageNumber });
     });
-    this.createButton(BACK_BUTTON_POSITION.x, BACK_BUTTON_POSITION.y, '‹ ステージ選択へ', 0x586f84, () => {
-      transitionWithLoading(this, SCENE_KEYS.SELECT_STAGE, { areaId: 1 });
-    });
-    this.createButton(width / 2 + (data.victory ? 0 : 110), buttonY, '町マップへ', 0x80683e, () => {
-      navigateToTownMap(this);
-    });
+    if (data.victory) {
+      this.createButton(width / 2, buttonY, '‹ ステージ選択へ', 0x586f84, () => {
+        transitionWithLoading(this, SCENE_KEYS.SELECT_STAGE, { areaId: 1 });
+      });
+    } else {
+      this.createButton(BACK_BUTTON_POSITION.x, BACK_BUTTON_POSITION.y, '‹ ステージ選択へ', 0x586f84, () => {
+        transitionWithLoading(this, SCENE_KEYS.SELECT_STAGE, { areaId: 1 });
+      });
+      this.createButton(width / 2 + 110, buttonY, '町マップへ', 0x80683e, () => {
+        navigateToTownMap(this);
+      });
+    }
   }
 
   /* === [ 担当 : 250116 中村伊安 ] ===
