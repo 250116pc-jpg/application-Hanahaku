@@ -336,7 +336,7 @@ export class SettingsScene extends Phaser.Scene {
   private renderCredits(): void {
     this.text(this.body, 410, 245, 'フラワーリンク  − Flower link −', 23);
     this.text(this.body, 410, 287, [
-      '制作：Aチーム（中村・武田・斎藤）',
+      '制作：チームTARA',
       '音声：VOICEVOX:ずんだもん',
       'BGM：PeriTune',
       '  Frosylva / Harbor Morning / Ancient Gust / Harvest6 / Glimmering Woods',
