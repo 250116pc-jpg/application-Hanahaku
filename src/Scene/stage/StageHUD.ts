@@ -49,8 +49,8 @@ export class StageHUD {
   private flowers: CharacterData[] = [];
   public isReady = false;
   private selectedFlower = 0;
-  private readonly partyStatusContainers: Array<Phaser.GameObjects.Container | undefined> = [];
-  private readonly partyStatusUntil = Array.from({ length: 4 }, () => new Map<string, number>());
+  private readonly playerStatusUntil = new Map<string, number>();
+  private playerStatusContainer?: Phaser.GameObjects.Container;
   private readonly flowerMp = new Map(testData.characters.map(character =>
     [character.id, character.stats.mp] as const
   ));
@@ -121,7 +121,7 @@ export class StageHUD {
     const x = compact ? 12 : 24;
     const y = 18;
     const panelW = compact ? 214 : 330;
-    const panelH = compact ? 80 : 96;
+    const panelH = 106;
     this.panel(x, y, panelW, panelH, 14);
     this.text(x + 16, y + 10, leader ? `${leader.name}  Lv.${leader.level}` : '主人公', compact ? 13 : 17, '#fff', 'bold');
     /* === [ 担当 : 250056 斎藤永聖 / 250116 中村伊安 ] ===
@@ -177,6 +177,8 @@ export class StageHUD {
      * 処理内容 : 主人公のMPバーを表示専用で満タンにする（花のMPやスキル消費には影響しない）
      * ================================== */
     this.bar(x + 50, y + 62, panelW - (compact ? 66 : 88), 9, 1, 1, 0x32bddb);
+    this.playerStatusContainer = this.scene.add.container(x + 16, y + 87)
+      .setScrollFactor(0).setDepth(this.depth + 5);
   }
 
   /* === [ 担当 : 250116 中村伊安 ] ===
@@ -443,7 +445,6 @@ export class StageHUD {
         this.flowerMpLabels.push(undefined);
         this.flowerMpBars.push(undefined);
         this.flowerMpBarLayouts.push(undefined);
-        this.partyStatusContainers.push(undefined);
         this.flowerCooldownOverlays.push(undefined);
         this.flowerSkillIconCenters.push(undefined);
         this.text(x + cardW / 2, top + cardH / 2, '＋ 空き枠', 16, '#d4dce5', 'bold').setOrigin(0.5);
@@ -485,9 +486,6 @@ export class StageHUD {
           this.selectFlower(i);
           this.useSelectedFlowerSkill(i);
         });
-      const statusContainer = this.scene.add.container(x + 8, top + 76)
-        .setScrollFactor(0).setDepth(this.depth + 5);
-      this.partyStatusContainers.push(statusContainer);
       this.updateFlowerMp(i, character);
     }
   }
@@ -501,22 +499,24 @@ export class StageHUD {
   }
 
   /* === [ 担当 : 250116 中村伊安 ] ===
-   * 処理内容 : 花に付いた状態効果と表示終了時刻を登録する
+   * 処理内容 : 主人公の状態効果と表示終了時刻を登録する
    * ================================== */
-  private setPartyStatuses(index: number, statusIds: string[], durationMs: number): void {
+  private setPlayerStatuses(statusIds: string[], durationMs: number): void {
     if (durationMs <= 0) return;
-    const untilByStatus = this.partyStatusUntil[index];
-    statusIds.forEach(statusId => untilByStatus.set(statusId, battleNow(this.scene) + durationMs));
-    this.renderPartyStatuses(index);
-    this.scene.time.delayedCall(durationMs + 30, () => this.renderPartyStatuses(index));
+    const expiresAt = battleNow(this.scene) + durationMs;
+    statusIds.forEach(statusId => {
+      this.playerStatusUntil.set(statusId, Math.max(this.playerStatusUntil.get(statusId) ?? 0, expiresAt));
+    });
+    this.renderPlayerStatuses();
+    this.scene.time.delayedCall(durationMs + 30, () => this.renderPlayerStatuses());
   }
 
   /* === [ 担当 : 250116 中村伊安 ] ===
-   * 処理内容 : 編成花の状態効果アイコンを表示する
+   * 処理内容 : 主人公の状態効果アイコンをHPパネルへ表示する
    * ================================== */
-  private renderPartyStatuses(index: number): void {
-    const container = this.partyStatusContainers[index];
-    const untilByStatus = this.partyStatusUntil[index];
+  private renderPlayerStatuses(): void {
+    const container = this.playerStatusContainer;
+    const untilByStatus = this.playerStatusUntil;
     if (!container) return;
     container.removeAll(true);
     for (const [statusId, until] of untilByStatus) {
@@ -741,7 +741,7 @@ export class StageHUD {
     // Enemy debuffs must not be displayed as a debuff on the caster.
     if (skill.type !== 'slowAttack' && !redMaple) {
       this.scene.time.delayedCall(160, () => {
-        if (this.player && this.player.health > 0) this.setPartyStatuses(index, appliedStatuses, duration);
+        if (this.player && this.player.health > 0) this.setPlayerStatuses(appliedStatuses, duration);
       });
     }
     this.updateSkillLabel();
