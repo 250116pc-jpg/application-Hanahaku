@@ -777,7 +777,9 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     const statDamageMultiplier = 100 / (100 + defense);
     const buffDamageMultiplier = Math.max(0.1, 1 - activeDefenseBonus / 100);
     const damageMultiplier = statDamageMultiplier * buffDamageMultiplier * (defending ? 0.5 : 1);
+    const previousHealth = this.health;
     this.health = Math.max(0, this.health - Math.ceil(amount * damageMultiplier * (damageType === 'physical' && now < this.itemDefenseUntil ? 0.8 : 1)));
+    showBattleNumber(this.scene, this.x, this.y, previousHealth - this.health, damageType);
     /* === [ 担当 : 250056 斎藤永聖 / 250116 中村伊安 ] ===
      * 処理内容 : 被ダメージと無敵・撃破処理を行う
      * ================================== */
