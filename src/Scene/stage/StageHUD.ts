@@ -49,7 +49,6 @@ export class StageHUD {
   private flowers: CharacterData[] = [];
   public isReady = false;
   private selectedFlower = 0;
-  private readonly partySelectionBorders: Phaser.GameObjects.Graphics[] = [];
   private readonly partyStatusContainers: Array<Phaser.GameObjects.Container | undefined> = [];
   private readonly partyStatusUntil = Array.from({ length: 4 }, () => new Map<string, number>());
   private readonly flowerMp = new Map(testData.characters.map(character =>
@@ -440,9 +439,6 @@ export class StageHUD {
     for (let i = 0; i < 4; i++) {
       const x = left + i * (cardW + gap);
       const character = this.flowers.find(c => c.id === formation[i]);
-      const border = this.scene.add.graphics().setScrollFactor(0).setDepth(this.depth + 2);
-      this.partySelectionBorders.push(border);
-      this.drawPartySelection(border, x, top, cardW, cardH, i === this.selectedFlower);
       if (!character) {
         this.flowerMpLabels.push(undefined);
         this.flowerMpBars.push(undefined);
@@ -486,7 +482,7 @@ export class StageHUD {
       this.scene.add.zone(skillX, skillY, 72, 72).setName('stage-skill')
         .setScrollFactor(0).setDepth(this.depth + 10).setInteractive({ useHandCursor: true })
         .on('pointerdown', () => {
-          this.selectFlower(i, cardH);
+          this.selectFlower(i);
           this.useSelectedFlowerSkill(i);
         });
       const statusContainer = this.scene.add.container(x + 8, top + 76)
@@ -499,26 +495,9 @@ export class StageHUD {
   /* === [ 担当 : 250116 中村伊安 ] ===
    * 処理内容 : 選択内容と一覧表示を切り替える
    * ================================== */
-  private selectFlower(index: number, height: number): void {
+  private selectFlower(index: number): void {
     this.selectedFlower = index;
-    this.partySelectionBorders.forEach((border, i) => {
-      // Card positions are evenly spaced; derive each border rectangle from its index.
-      const gap = 10;
-      const totalW = Math.min(this.scene.scale.width * 0.72, 750);
-      const cardW = (totalW - gap * 3) / 4;
-      const left = Math.max(16, Math.min(220, this.scene.scale.width - totalW - 16));
-      const top = this.scene.scale.height - height - 18;
-      this.drawPartySelection(border, left + i * (cardW + gap), top, cardW, height, i === index);
-    });
     this.updateSkillLabel();
-  }
-
-  /* === [ 担当 : 250116 中村伊安 ] ===
-   * 処理内容 : 選択中の花の枠を強調表示する
-   * ================================== */
-  private drawPartySelection(graphics: Phaser.GameObjects.Graphics, x: number, y: number, width: number, height: number, selected: boolean): void {
-    graphics.clear();
-    if (selected) graphics.lineStyle(2, 0xffc968, 0.98).strokeRoundedRect(x, y, width, height, 11);
   }
 
   /* === [ 担当 : 250116 中村伊安 ] ===
