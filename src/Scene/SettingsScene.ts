@@ -297,21 +297,30 @@ export class SettingsScene extends Phaser.Scene {
   private renderDisplay(): void {
     this.text(this.body, 410, 253, '最大FPS', 23);
     ([30, 60, 120] as const).forEach((fps, index) => {
-      const image = this.artButton(this.body, 700 + index * 155, 274, 145, 53, `${fps} FPS`, () => {
+      this.displayOption(700 + index * 155, 274, 145, `${fps} FPS`, this.display.maxFps === fps, () => {
         this.updateDisplay({ ...this.display, maxFps: fps });
       });
-      if (this.display.maxFps === fps) image.setTint(0xa7eff2);
     });
     this.text(this.body, 410, 331, '画質', 23);
     (['crisp', 'smooth'] as const).forEach((quality, index) => {
-      const image = this.artButton(this.body, 743 + index * 230, 351, 218, 53, quality === 'crisp' ? 'くっきり' : 'なめらか', () => {
+      const label = quality === 'crisp' ? 'くっきり' : 'なめらか';
+      this.displayOption(743 + index * 230, 351, 218, label, this.display.quality === quality, () => {
         this.updateDisplay({ ...this.display, quality });
       });
-      if (this.display.quality === quality) image.setTint(0xa7eff2);
     });
     this.text(this.body, 410, 407, '画面設定は自動で保存され、再読み込み後に反映されます。\n実際のFPSは端末やディスプレイによって異なります。', 17, '#786449').setLineSpacing(10);
     // TODO: 表示方法などの追加設定は、この画面設定タブに実装する。
   }
+  private displayOption(x: number, y: number, width: number, label: string, selected: boolean, onClick: () => void): void {
+    const image = this.artButton(this.body, x, y, width, 53, label, () => {
+      image.clearTint();
+      onClick();
+    }, selected ? 'settings-tab' : 'settings-tab-cream');
+    (image.getData('label') as Phaser.GameObjects.Text).setColor(selected ? '#fff5df' : INK);
+    image.on('pointerdown', () => image.setTint(0x999999));
+    image.on('pointerout', () => image.clearTint());
+  }
+
   /* === [ 担当 : 250056 斎藤永聖 ] ===
    * 処理内容 : 操作ガイドを表示する
    * ================================== */
