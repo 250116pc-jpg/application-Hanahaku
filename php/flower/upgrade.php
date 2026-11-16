@@ -14,6 +14,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') respond(['ok'=>false,'error'=>'POST�
 try {
     $userId = requireStageUserId($pdo);
     $body = requestBody();
+    if (!in_array($body['kind'] ?? 'level', ['level', 'skill'], true)) throw new RuntimeException('強化の種類を確認してください。', 422);
     respond(upgradeFlowerLevel($pdo, $userId, $body, ($body['kind'] ?? 'level') === 'skill'));
 } catch (Throwable $error) {
     $status = (int)$error->getCode();
