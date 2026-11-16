@@ -9,7 +9,6 @@
 export const SCENE_KEYS = {
   TITLE: 'TitleScene',
   LOGIN: 'LoginScene',
-  REGISTER: 'RegisterScene',
   HOME: 'HomeScene',
   SETTINGS: 'SettingsScene',
   TRAINING: 'TrainingScene',

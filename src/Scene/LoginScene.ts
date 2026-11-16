@@ -7,6 +7,7 @@ import { createSceneFade } from '../utils/ui/scene-fade';
 import { getPhpBaseUrl } from '../auth/PhpBaseUrl';
 import Phaser from 'phaser';
 import { mountAuthLayout } from '../auth/AuthLayout';
+import { createRegisterForm } from './RegisterScene';
 import {
   mountGoogleSignInButton,
   saveCurrentUser,
@@ -43,7 +44,6 @@ export class LoginScene extends Phaser.Scene {
         <div class="google-signin-button" aria-label="Googleアカウントで続ける"></div>
         <p class="google-auth-hint">初回はGoogleアカウントで自動登録されます</p>
       </div>
-      <div class="auth-separator"><span>またはメールアドレスでログイン</span></div>
       <label>
         メールアドレス
         <input name="email" type="email" maxlength="255" autocomplete="email" required>
@@ -56,10 +56,24 @@ export class LoginScene extends Phaser.Scene {
       <button type="submit">ログイン</button>
     `;
 
-    mountAuthLayout(this, formElement, 'ログイン', 'アカウント作成へ', 'RegisterScene', navigate);
+    const register = createRegisterForm((email) => {
+      this.time.delayedCall(1200, () => {
+        register.reset();
+        const registerMessage = register.querySelector<HTMLParagraphElement>('.register-message')!;
+        this.setMessage(registerMessage, '', false);
+        const registerSubmit = register.querySelector<HTMLButtonElement>('button[type="submit"]')!;
+        registerSubmit.disabled = false;
+        registerSubmit.textContent = '作成する';
+        formElement.reset();
+        formElement.querySelector<HTMLInputElement>('[name="email"]')!.value = email;
+        if (message) this.setMessage(message, 'アカウントを作成しました。ログインしてください。', false, true);
+        layout.focusLogin();
+      });
+    });
+    const layout = mountAuthLayout(this, formElement, register, navigate);
     const message = formElement.querySelector<HTMLParagraphElement>('.register-message');
     const submitButton = formElement.querySelector<HTMLButtonElement>('button[type="submit"]');
-    const googleButton = formElement.querySelector<HTMLDivElement>('.google-signin-button');
+    const { googleButton, googleMessage } = layout;
 
     const finishLogin = (user: AuthenticatedUser): void => {
       if (!message || !submitButton) return;
@@ -76,12 +90,15 @@ export class LoginScene extends Phaser.Scene {
     const disposeGoogleButton = googleButton
       ? mountGoogleSignInButton(googleButton, {
         onStart: () => {
-          if (message) this.setMessage(message, 'Googleアカウントを確認しています。', false);
+          this.setMessage(googleMessage, 'Googleアカウントを確認しています。', false);
           if (submitButton) submitButton.disabled = true;
         },
-        onSuccess: finishLogin,
+        onSuccess: (user) => {
+          this.setMessage(googleMessage, 'ログイン成功', false, true);
+          finishLogin(user);
+        },
         onError: (text) => {
-          if (message) this.setMessage(message, text, true);
+          this.setMessage(googleMessage, text, true);
           if (submitButton) submitButton.disabled = false;
         },
       })

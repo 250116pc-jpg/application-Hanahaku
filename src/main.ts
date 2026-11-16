@@ -21,7 +21,6 @@ import { StoryScene } from './Scene/story/StoryScene';
 import { EncyclopediaScene } from './Scene/EncyclopediaScene';
 import { FormScene } from './form/form'
 import { ShopScene } from './Scene/shop/shop'
-import { RegisterScene } from './Scene/RegisterScene';
 import { LoginScene } from './Scene/LoginScene';
 import './style.css';
 import { loadDisplaySettings } from './display/DisplaySettings';
@@ -53,7 +52,6 @@ const config: Phaser.Types.Core.GameConfig = {
     ...(import.meta.env.DEV && new URLSearchParams(location.search).get('flower-test') === '1' ? [EncyclopediaScene] : []),
     TitleScene,
     LoginScene,
-    RegisterScene,
     HomeScene,
     SettingsScene,
     TrainingScene,
