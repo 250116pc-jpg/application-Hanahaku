@@ -6,6 +6,8 @@
 import { transitionWithLoading } from '../../utils/ui/scene-loading';
 import Phaser from 'phaser';
 
+import protagonistArt from '../../assets/characters/1001/1001_1.png';
+import zinniaArt from '../../assets/images/pixel_flowers/zinia.png';
 import backImg from '../../assets/images/background/story/1.jpg';
 import story_data from "../../scenario_data/story_data.json"
 import { createBackground } from '../../background';
@@ -52,6 +54,8 @@ export class StoryScene extends Phaser.Scene {
   /* === [ 担当 : 250116 中村伊安 ] ===
    * 処理内容 : 状態・能力値・操作対象を保持する
    * ================================== */
+  private protagonist?: Phaser.GameObjects.Image;
+  private zinnia?: Phaser.GameObjects.Image;
   private currentIndex: number = 0;
   // AUTO再生中か
   private isAuto: boolean = false;
@@ -84,6 +88,8 @@ export class StoryScene extends Phaser.Scene {
    * ================================== */
   preload(): void {
     this.load.image('Background', backImg);
+    this.load.image('story-protagonist', protagonistArt);
+    this.load.image('story-zinnia', zinniaArt);
   }
 
   create(data: StorySceneData = { chapter: 1, stage: 1 }): void {
@@ -123,10 +129,15 @@ export class StoryScene extends Phaser.Scene {
     createBackground(this, 'Background');
     this.cameras.main.setBackgroundColor('#cfe3f5');
 
-    // UI固定用コンテナ
-    const ui = this.add.container(0, 0);
-    ui.setScrollFactor(0);
-    ui.setDepth(100);
+    this.protagonist = undefined;
+    this.zinnia = undefined;
+    if (data.chapter === 1 && (data.stage === 1 || data.stage === 3)) {
+      this.protagonist = this.add.image(width * 0.32, height - 35, 'story-protagonist').setOrigin(0.5, 1);
+      this.protagonist.setScale(height * 0.79 / this.protagonist.height);
+      this.zinnia = this.add.image(width * 0.68, height - 125, 'story-zinnia').setOrigin(0.5, 1);
+      const size = height * 0.36 / Math.max(this.zinnia.width, this.zinnia.height);
+      this.zinnia.setScale(size);
+    }
 
     // =========================
     // 会話ウィンドウ
@@ -222,6 +233,10 @@ export class StoryScene extends Phaser.Scene {
       return;
     }
 
+    this.protagonist?.setVisible(this.currentStoryStage === 3 || this.currentIndex >= 2);
+    this.zinnia?.setVisible(this.currentStoryStage === 3 || this.currentIndex >= 3);
+    this.protagonist?.setAlpha(data.name === 'ジニア' ? 0.68 : 1);
+    this.zinnia?.setAlpha(data.name === '主人公' ? 0.68 : 1);
     this.nameText.setText(data.name);
     this.scenarioText.setText(data.text);
 
@@ -275,7 +290,7 @@ export class StoryScene extends Phaser.Scene {
   /* === [ 担当 : 250082 武田優人 / 250116 中村伊安 ] ===
    * 処理内容 : 会話を終了して次の画面へ進む
    * ================================== */
-  private finishScenario(): void {
+  private finishScenario(skipped = false): void {
     if (this.isFinishing) return;
     this.isFinishing = true;
     this.isAuto = false;
@@ -287,6 +302,10 @@ export class StoryScene extends Phaser.Scene {
 
     void completeStoryScene(this.currentChapter, this.currentStoryStage).then(completion => {
       if (completion.saveError) console.error('シナリオの進行状況をサーバーに保存できませんでした。', completion.saveError);
+      if (!skipped && this.currentChapter === 1 && this.currentStoryStage === 1) {
+        transitionWithLoading(this, SCENE_KEYS.STAGE, { stageId: 2, stageNumber: '1-1' });
+        return;
+      }
       transitionWithLoading(this, SCENE_KEYS.SELECT_STAGE, { areaId: this.currentChapter });
     });
   }

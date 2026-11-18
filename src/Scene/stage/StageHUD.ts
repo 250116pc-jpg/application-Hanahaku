@@ -98,6 +98,7 @@ export class StageHUD {
   public create(stageId?: number, stageNumber?: string): void {
     this.createStageLabel(stageId, stageNumber);
     this.createUtilityButtons();
+    if (stageId === 2) this.createOpeningBattleGuide();
     trackSceneLoading(this.scene, this.initializeFlowerSkills(stageId ?? 2));
   }
 
@@ -109,6 +110,25 @@ export class StageHUD {
     const width = this.hpBarWidth * Phaser.Math.Clamp(maximum > 0 ? current / maximum : 0, 0, 1);
     this.hpBar.setSize(width, this.hpBarHeight)
       .setPosition(this.hpBarX + width / 2, this.hpBarY + this.hpBarHeight / 2);
+  }
+
+  private createOpeningBattleGuide(): void {
+    const width = this.scene.scale.width;
+    const guide = this.text(width / 2, 122,
+      'ジニア「影と距離を取って！」\n← → で移動   ↑ でジャンプ   ↓ 長押しで防御\n近づいたら剣ボタン。花のカードを押すとスキルが使えるよ。',
+      17, '#fff4e8').setOrigin(0.5, 0).setAlign('center')
+      .setWordWrapWidth(width - 64)
+      .setPadding(16, 9)
+      .setBackgroundColor('#162330')
+      .setDepth(this.depth + 5);
+    const close = this.text(width / 2, guide.getBounds().bottom + 3, '案内を閉じる ×', 14, '#fff4e8')
+      .setOrigin(0.5, 0).setPadding(10, 5).setBackgroundColor('#162330')
+      .setDepth(this.depth + 5).setInteractive({ useHandCursor: true })
+      .once('pointerup', (_pointer: Phaser.Input.Pointer, _x: number, _y: number, event: Phaser.Types.Input.EventData) => {
+        event.stopPropagation();
+        guide.destroy();
+        close.destroy();
+      });
   }
 
   private createStatusPanel(): void {
