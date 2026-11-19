@@ -4,6 +4,7 @@
  * 氏名：斎藤永聖
  * ================================== */
 import Phaser from 'phaser';
+import { getMenuButtonDimensions } from '../../display/MenuButtonLayout';
 import { getTextStyle } from './styles';
 
 // 共通テキストボタン（戻るボタン、タブ、ヘッダーボタンなどに使用）
@@ -29,6 +30,11 @@ export const createTextButton = (
   .setOrigin(0.5)
   .setScrollFactor(0)
   .setInteractive({ useHandCursor: true });
+
+  // 担当：250056 斎藤永聖。共通の戻る操作にもメニューの高さ設定を反映する。
+  const dimensions = getMenuButtonDimensions(button.width, button.height);
+  const extra = Math.max(0, dimensions.height - button.height) / 2;
+  if (extra > 0) button.setPadding({ ...button.padding, top: (button.padding.top ?? 0) + extra, bottom: (button.padding.bottom ?? 0) + extra });
 
   button.on('pointerover', () => button.setBackgroundColor(hoverColor));
   button.on('pointerout', () => button.setBackgroundColor(bgColor));

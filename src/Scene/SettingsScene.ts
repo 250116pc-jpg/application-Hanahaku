@@ -299,37 +299,43 @@ export class SettingsScene extends Phaser.Scene {
    * 処理内容 : 画質とFPS設定を表示する
    * ================================== */
   private renderDisplay(): void {
-    this.text(this.body, 410, 253, '最大FPS', 23);
+    this.text(this.body, 410, 246, '最大FPS', 23);
     ([30, 60, 120] as const).forEach((fps, index) => {
-      this.displayOption(700 + index * 155, 274, 145, `${fps} FPS`, this.display.maxFps === fps, () => {
+      this.displayOption(700 + index * 155, 263, 145, `${fps} FPS`, this.display.maxFps === fps, () => {
         this.updateDisplay({ ...this.display, maxFps: fps });
       });
     });
-    this.text(this.body, 410, 331, '画質', 23);
+    this.text(this.body, 410, 309, '画質', 23);
     (['crisp', 'smooth'] as const).forEach((quality, index) => {
       const label = quality === 'crisp' ? 'くっきり' : 'なめらか';
-      this.displayOption(743 + index * 230, 351, 218, label, this.display.quality === quality, () => {
+      this.displayOption(743 + index * 230, 326, 218, label, this.display.quality === quality, () => {
         this.updateDisplay({ ...this.display, quality });
       });
     });
-    this.text(this.body, 410, 407, 'ボーダーレス表示', 23);
+    this.text(this.body, 410, 372, 'ボーダーレス表示', 23);
     // 担当：250056 斎藤永聖。全画面非対応端末にはホーム画面からの起動方法を表示する。
     const standalone = (navigator as Navigator & { standalone?: boolean }).standalone === true
       || window.matchMedia('(display-mode: standalone)').matches;
     if (standalone) {
-      this.text(this.body, 650, 417, 'ホーム画面から表示中', 20);
+      this.text(this.body, 650, 385, 'ホーム画面から表示中', 20);
     } else if (!this.scale.fullscreen.available) {
-      this.text(this.body, 650, 407, 'Safariの共有 → ホーム画面に追加\n追加したアイコンから開いてください。', 16).setLineSpacing(6);
+      this.text(this.body, 650, 372, 'Safariの共有 → ホーム画面に追加\n追加したアイコンから開いてください。', 16).setLineSpacing(6);
     } else {
-      this.displayOption(743, 427, 218, this.display.borderless ? 'ON' : 'OFF', this.display.borderless, () => this.toggleBorderless());
+      this.displayOption(743, 389, 218, this.display.borderless ? 'ON' : 'OFF', this.display.borderless, () => this.toggleBorderless());
     }
-    this.text(this.body, 410, 470, '戦闘ボタン', 23);
+    this.text(this.body, 410, 435, '戦闘ボタン', 23);
     (['standard', 'large'] as const).forEach((size, index) => {
-      this.displayOption(743 + index * 230, 490, 218, size === 'large' ? '大きめ' : '標準', this.display.battleButtonSize === size, () => {
+      this.displayOption(743 + index * 230, 452, 218, size === 'large' ? '大きめ' : '標準', this.display.battleButtonSize === size, () => {
         this.updateDisplay({ ...this.display, battleButtonSize: size });
       });
     });
-    this.text(this.body, 410, 542, '自動保存・戦闘に戻ると反映（攻撃・ジャンプ・防御・バッグ・設定・撤退）', 14, '#786449');
+    this.text(this.body, 410, 498, 'メニューボタン', 23);
+    (['standard', 'large'] as const).forEach((size, index) => {
+      this.displayOption(743 + index * 230, 515, 218, size === 'large' ? '大きめ' : '標準', this.display.menuButtonSize === size, () => {
+        this.updateDisplay({ ...this.display, menuButtonSize: size });
+      });
+    });
+    this.text(this.body, 410, 559, '自動保存。メニューは編成・育成・ショップ・図鑑の操作に反映します。', 14, '#786449');
   }
   private displayOption(x: number, y: number, width: number, label: string, selected: boolean, onClick: () => void): void {
     const image = this.artButton(this.body, x, y, width, 53, label, () => {

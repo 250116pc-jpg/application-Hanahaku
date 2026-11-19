@@ -7,6 +7,7 @@ import Phaser from 'phaser'
 import { transitionWithLoading, returnWithLoading, trackSceneLoading } from '../utils/ui/scene-loading'
 import testData, { type CharacterData } from '../Scene/test_data'
 import { FormationManager } from './FormationManager'
+import { getMenuButtonDimensions } from '../display/MenuButtonLayout';
 import { loadFormation, saveFormation } from './formationStorage'
 import { parseOwnedProgress, visibleFormationFlowers, type OwnedFormationFlower, type FormationSort } from './FormationData'
 import { SCENE_KEYS } from '../Scene/sceneKeys'
@@ -270,8 +271,12 @@ export class FormScene extends Phaser.Scene {
    * 処理内容 : 操作可能なボタンとクリック時の処理を作る
    * ================================== */
   private button(x: number, y: number, w: number, h: number, label: string, action: () => void, selected = false, enabled = true): void {
-    const image = this.add.image(x, y, w <= 46 ? 'form-square' : selected ? 'form-amber' : 'form-wood', 'ui').setDisplaySize(w, h)
-    this.content.add(image); this.label(x, y, label, w <= 46 ? 22 : 17, enabled ? '#fff5df' : '#66523b').setOrigin(.5)
+    const compact = w <= 46;
+    const dimensions = getMenuButtonDimensions(w, h, h <= 43 ? 44 : 64);
+    w = dimensions.width;
+    h = dimensions.height;
+    const image = this.add.image(x, y, compact ? 'form-square' : selected ? 'form-amber' : 'form-wood', 'ui').setDisplaySize(w, h)
+    this.content.add(image); this.label(x, y, label, (compact ? 22 : 17) * (w >= 100 ? dimensions.fontScale : 1), enabled ? '#fff5df' : '#66523b').setOrigin(.5)
     if (!enabled) { image.setAlpha(.45); return }
     const hit = this.add.zone(x, y, w, h).setInteractive({ useHandCursor: true }); this.content.add(hit)
     hit.on('pointerover', () => image.setAlpha(.82)).on('pointerout', () => image.setAlpha(1)).on('pointerup', () => { if (this.dragDistance <= 6) action() })

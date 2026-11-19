@@ -4,6 +4,7 @@
  * 氏名：斎藤永聖、中村伊安
  * ================================== */
 import type { ItemDetailView, ShopItem } from './types'
+import { loadDisplaySettings } from '../../display/DisplaySettings';
 import { getShopItemImageKey } from './assets'
 
 /* === [ 担当 : 250116 中村伊安 ] ===
@@ -58,6 +59,7 @@ export function createItemDetail(
   const pageButton = scene.add.text(PANEL_X, 510, '', {
     fontFamily: '"UD Digi Kyokasho NP-R", "Yu Gothic", "Meiryo", sans-serif', fontSize: '13px', color: '#486a4f'
   }).setOrigin(0.5).setInteractive({ useHandCursor: true })
+  if (loadDisplaySettings().menuButtonSize === 'large') pageButton.setFontSize(15).setPadding(8, 5, 8, 5);
   pageButton.on('pointerup', () => {
     if (descriptionPages.length < 2) return
     descriptionPage = (descriptionPage + 1) % descriptionPages.length
@@ -144,18 +146,19 @@ function createTextButton(
   y: number,
   label: string
 ) {
-  const art = scene.add.image(x, y, 'shop-button').setDisplaySize(222, 66)
+  const large = loadDisplaySettings().menuButtonSize === 'large';
+  const art = scene.add.image(x, y, 'shop-button').setDisplaySize(222, large ? 92 : 66)
   const text = scene.add.text(x, y, label, {
     fontFamily: '"UD Digi Kyokasho NP-R", "Yu Gothic", "Meiryo", sans-serif',
-    fontSize: '20px',
+    fontSize: large ? '23px' : '20px',
     color: '#ffffff',
     // Button artwork is shared with the encyclopedia.
     fontStyle: 'bold',
     padding: {
       left: 42,
       right: 42,
-      top: 12,
-      bottom: 12
+      top: large ? 25 : 12,
+      bottom: large ? 25 : 12
     }
   })
     .setOrigin(0.5)

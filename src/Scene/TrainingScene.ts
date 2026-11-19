@@ -17,6 +17,7 @@ import selectedTabArtwork from '../assets/ui/training_tab_wood_selected.png';
 import titleOrnament from '../assets/ui/training_title_ornament.png';
 import compactButtonArtwork from '../assets/ui/training_button_wood_square.png';
 import skillDefinitions from '../../php/skill/skills.json';
+import { getMenuButtonDimensions } from '../display/MenuButtonLayout';
 import { requestShop, shopCatalog } from './shop/ShopApi';
 import { getShopItemImageUrl } from './shop/assets';
 import { getPhpBaseUrl } from '../auth/PhpBaseUrl';
@@ -208,14 +209,17 @@ export class TrainingScene extends Phaser.Scene {
    * 処理内容 : 操作可能なボタンとクリック時の処理を作る
    * ================================== */
   private button(x: number, y: number, w: number, h: number, label: string, action: () => void, selected = false, enabled = true): Phaser.GameObjects.Text {
+    const dimensions = getMenuButtonDimensions(w, h);
+    const centerX = x + w / 2, centerY = y + h / 2;
     const isTab = h === 58;
     const isCompact = w <= 54;
     const texture = isCompact ? 'training-compact-button' : isTab && selected ? 'training-tab' : 'training-button';
-    const g = this.add.image(x + w / 2, y + h / 2, texture, 'rect')
-      .setDisplaySize(isCompact ? Math.min(46, w + 8) : isTab ? w : w + 8, isCompact ? Math.min(46, h + 8) : isTab ? h : h + 7);
+    const large = dimensions.fontScale > 1;
+    const g = this.add.image(centerX, centerY, texture, 'rect')
+      .setDisplaySize(large ? dimensions.width : isCompact ? Math.min(46, w + 8) : isTab ? w : w + 8, large ? dimensions.height : isCompact ? Math.min(46, h + 8) : isTab ? h : h + 7);
     this.content.add(g);
-    const caption = this.text(x + w / 2, y + h / 2, label, isCompact ? (w < 32 ? 20 : 24) : 18, '#fff5df').setOrigin(.5);
-    const hit = this.add.zone(x + w / 2, y + h / 2, w, h);
+    const caption = this.text(centerX, centerY, label, (isCompact ? (w < 32 ? 20 : 24) : 18) * dimensions.fontScale, '#fff5df').setOrigin(.5);
+    const hit = this.add.zone(centerX, centerY, large ? dimensions.width : w, large ? dimensions.height : h);
     if (enabled) hit.setInteractive({ useHandCursor: true });
     else g.setAlpha(.4);
     this.content.add(hit);
@@ -434,9 +438,9 @@ export class TrainingScene extends Phaser.Scene {
           else delete this.selectedMaterials[String(item.id)];
           this.upgradeMessage = ''; this.render();
         };
-        this.button(x + 8, 362, 26, 24, '−', () => change(-1), false, quantity > 0 && !this.upgrading);
-        this.text(x + 68, 374, String(quantity), 18).setOrigin(.5);
-        this.button(x + 102, 362, 26, 24, '＋', () => change(1), false,
+        this.button(x + 8, 365, 26, 24, '−', () => change(-1), false, quantity > 0 && !this.upgrading);
+        this.text(x + 68, 377, String(quantity), 18).setOrigin(.5);
+        this.button(x + 102, 365, 26, 24, '＋', () => change(1), false,
           !this.upgrading && quantity < count && currentLevel < maxLevel && preview.discarded === 0 && preview.afterLevel < maxLevel);
       });
     }

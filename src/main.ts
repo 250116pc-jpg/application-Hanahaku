@@ -90,6 +90,7 @@ const config: Phaser.Types.Core.GameConfig = {
 
 async function startGame(): Promise<void> {
   await loadGlobalPlayerCharacter();
+  document.documentElement.dataset.menuButtonSize = loadDisplaySettings().menuButtonSize;
   const game = new Phaser.Game(config);
   /* === [ 担当 : 250056 斎藤永聖 ] ===
    * 処理内容 : キーボード開閉・画面回転後の実表示位置でタッチ座標を補正し、終了時に監視を解除する

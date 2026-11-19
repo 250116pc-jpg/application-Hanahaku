@@ -11,6 +11,7 @@ export interface DisplaySettings {
   quality: 'crisp' | 'smooth';
   borderless: boolean;
   battleButtonSize: 'standard' | 'large';
+  menuButtonSize: 'standard' | 'large';
 }
 const KEY = 'flowerLinkDisplaySettings';
 /* === [ 担当 : 250056 斎藤永聖 ] ===
@@ -24,13 +25,18 @@ export function loadDisplaySettings(): DisplaySettings {
       quality: value?.quality === 'smooth' ? 'smooth' : 'crisp',
       borderless: value?.borderless === true,
       battleButtonSize: value?.battleButtonSize === 'large' ? 'large' : 'standard',
+      menuButtonSize: value?.menuButtonSize === 'large' ? 'large' : 'standard',
     };
-  } catch { return { maxFps: 60, quality: 'crisp', borderless: false, battleButtonSize: 'standard' }; }
+  } catch { return { maxFps: 60, quality: 'crisp', borderless: false, battleButtonSize: 'standard', menuButtonSize: 'standard' }; }
 }
 /* === [ 担当 : 250056 斎藤永聖 ] ===
  * 処理内容 : 画質と最大FPSをブラウザに保存する
  * ================================== */
 export function saveDisplaySettings(settings: DisplaySettings): boolean {
-  try { localStorage.setItem(KEY, JSON.stringify(settings)); return true; }
+  try {
+    localStorage.setItem(KEY, JSON.stringify(settings));
+    document.documentElement.dataset.menuButtonSize = settings.menuButtonSize;
+    return true;
+  }
   catch { return false; }
 }
