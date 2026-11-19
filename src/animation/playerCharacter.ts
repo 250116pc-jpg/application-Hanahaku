@@ -1,6 +1,6 @@
 import maleAttack2 from '../assets/characters/1001/sprites/combo-2-distinct.png';
 import maleAttack3 from '../assets/characters/1001/sprites/combo-3-distinct.png';
-import maleAttack from '../assets/characters/1001/sprites/attack-step-down.png';
+import maleAttack from '../assets/characters/1001/sprites/attack-heavy-down.png';
 import maleDashAttack from '../assets/characters/1001/sprites/dashAttack-polished.png';
 import maleDeath from '../assets/characters/1001/sprites/death-polished.png';
 import maleDefend from '../assets/characters/1001/sprites/defend-polished.png';
@@ -55,7 +55,7 @@ const maleAnimations: PlayerAnimationSet = {
   jump: { image: maleJump, frameWidth: 384, frameHeight: 128, frameCount: 4, frameRate: 10 },
   fall: { image: maleFall, frameWidth: 384, frameHeight: 128, frameCount: 2, frameRate: 8 },
   land: { image: maleLand, frameWidth: 384, frameHeight: 128, frameCount: 4, frameRate: 12 },
-  attack: { image: maleAttack, frameWidth: 384, frameHeight: 128, frameCount: 8, frameRate: 15 },
+  attack: { image: maleAttack, frameWidth: 384, frameHeight: 128, frameCount: 10, frameRate: 16 },
   skill: { image: maleSkill, frameWidth: 384, frameHeight: 128, frameCount: 6, frameRate: 12 },
   defend: { image: maleDefend, frameWidth: 384, frameHeight: 128, frameCount: 6, frameRate: 8 },
   death: { image: maleDeath, frameWidth: 384, frameHeight: 128, frameCount: 6, frameRate: 8 },
@@ -97,7 +97,7 @@ export function getPlayerAnimation(name: PlayerAnimationName): PlayerAnimationDa
 
 export function getPlayerAttackTiming(step = 0): { impactFrame: number; range: number } {
   return selectedCharacter === 'male'
-    ? { impactFrame: step === 0 ? 6 : 5, range: 160 }
+    ? { impactFrame: step === 0 ? 7 : 5, range: 160 }
     : { impactFrame: 5, range: 125 };
 }
 

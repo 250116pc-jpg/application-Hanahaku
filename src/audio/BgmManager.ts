@@ -173,6 +173,7 @@ export function preloadAudio(scene: Phaser.Scene): void {
  * ================================== */
 function sceneBgmKey(scene: Phaser.Scene): string | null {
   if (scene.scene.key === 'TitleScene') return BGM_KEYS.title
+  if (scene.scene.key === 'StoryScene') return null
   // Overlays keep the BGM of the scene underneath, including paused battles.
   if (scene.scene.key === 'SettingsScene' || scene.scene.key === 'InventoryScene') return null
   // Contract and result scenes manage their own jingles.
@@ -210,7 +211,8 @@ export function initializeAudio(scene: Phaser.Scene): void {
   for (const target of scene.game.scene.scenes) {
     target.events.on(Phaser.Scenes.Events.CREATE, () => {
       const key = sceneBgmKey(target)
-      if (key) playBgm(target, key)
+      if (target.scene.key === 'StoryScene') stopBgm(target)
+      else if (key) playBgm(target, key)
 
       target.input.on(Phaser.Input.Events.GAMEOBJECT_DOWN, (_pointer: Phaser.Input.Pointer, object: Phaser.GameObjects.GameObject) => {
         const webAudio = target.sound as Phaser.Sound.WebAudioSoundManager
