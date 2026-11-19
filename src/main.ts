@@ -44,7 +44,9 @@ const config: Phaser.Types.Core.GameConfig = {
     mode: Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH,
     width: 1280,
-    height: 720
+    height: 720,
+    // 図鑑などはdocument.body直下のDOMで描画するため、キャンバスだけでなくページ全体をフルスクリーンに含める。
+    fullscreenTarget: document.documentElement
   },
 
   parent: 'app',
