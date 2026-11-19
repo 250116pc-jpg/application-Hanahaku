@@ -3,7 +3,7 @@
  * 学籍番号：250082、250056、250116
  * 氏名：武田優人、斎藤永聖、中村伊安
  * ================================== */
-import { transitionWithLoading, openSceneWithLoading, trackSceneLoading } from '../utils/ui/scene-loading';
+import { transitionWithLoading, openSceneWithLoading } from '../utils/ui/scene-loading';
 import Phaser from 'phaser';
 import { restoreSession } from '../auth/Session';
 import { shouldSkipLogin } from '../debug';
@@ -39,22 +39,10 @@ export class TitleScene extends Phaser.Scene {
 
   create(): void {
     /* === [ 担当 : 250082 武田優人 / 250056 斎藤永聖 / 250116 中村伊安 ] ===
-     * 処理内容 : ログイン状態を復元し、開始先と音声を準備する
+     * 処理内容 : タイトル画面の操作と音声を準備し、開始ボタンが押されるまで待つ
      * ================================== */
     initializeAudio(this);
-    if (shouldSkipLogin()) {
-      this.input.enabled = true;
-    } else {
-      this.input.enabled = false;
-      let active = true;
-      this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => { active = false; });
-      trackSceneLoading(this, restoreSession().then(loggedIn => {
-        if (!active) return;
-        if (loggedIn) transitionWithLoading(this, SCENE_KEYS.HOME);
-      }).catch(() => {
-        // Keep manual login available when offline or the server is unavailable.
-      }).finally(() => { if (active) this.input.enabled = true; }));
-    }
+    this.input.enabled = true;
     /* === [ 担当 : 250082 武田優人 / 250116 中村伊安 ] ===
      * 処理内容 : 画面サイズに合わせて背景を配置する
      * ================================== */
@@ -118,23 +106,35 @@ export class TitleScene extends Phaser.Scene {
     /* === [ 担当 : 250082 武田優人 / 250056 斎藤永聖 ] ===
      * 処理内容 : ログイン状態を確認して画面の開始先を決める
      * ================================== */
+    let active = true;
     let starting = false;
     let pressed = false;
     const animateScale = (scale: number): void => {
       this.tweens.killTweensOf(prompt);
       this.tweens.add({ targets: prompt, scale, duration: 45, ease: 'Sine.easeOut' });
     };
-    const start = (): void => {
+    /* === [ 担当 : 250056 斎藤永聖 ] ===
+     * 処理内容 : 開始操作でセッションを確認し、有効ならホーム、未ログインならログイン画面へ進む
+     * ================================== */
+    const start = async (): Promise<void> => {
       if (starting || !this.input.enabled) return;
       starting = true;
       prompt.disableInteractive();
+      this.input.enabled = false;
       breathing.stop();
+      let loggedIn = shouldSkipLogin();
+      if (!loggedIn) {
+        hint.setText('ログイン状態を確認中…');
+        try { loggedIn = await restoreSession(); }
+        catch { /* 接続できない場合も手動のログイン画面へ進める。 */ }
+      }
+      if (!active) return;
 
       label.setAlpha(1).clearTint();
       startBgm(this);
       animateScale(1);
       this.tweens.add({ targets: [prompt, hint], alpha: 0, duration: 240 });
-      transitionWithLoading(this, shouldSkipLogin() ? SCENE_KEYS.HOME : SCENE_KEYS.LOGIN);
+      transitionWithLoading(this, loggedIn ? SCENE_KEYS.HOME : SCENE_KEYS.LOGIN);
     };
     /* === [ 担当 : 250056 斎藤永聖 ] ===
      * 処理内容 : ボタンのホバー・押下・キー操作を設定する
@@ -162,10 +162,11 @@ export class TitleScene extends Phaser.Scene {
       label.setTint(0xd8c9ad);
       animateScale(.97);
     });
-    prompt.on('pointerup', () => { if (pressed) start(); });
+    prompt.on('pointerup', () => { if (pressed) void start(); });
     // タイトル以外でキー入力が残らないよう、終了時に解除する。
     this.input.keyboard?.on('keydown-ENTER', start);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      active = false;
       this.input.keyboard?.off('keydown-ENTER', start);
     });
   }

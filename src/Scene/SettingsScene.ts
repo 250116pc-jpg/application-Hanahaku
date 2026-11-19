@@ -386,9 +386,36 @@ export class SettingsScene extends Phaser.Scene {
     this.text(this.body, 410, 250, 'ログイン中のアカウント', 19, '#8d6c37');
     this.text(this.body, 410, 296, typeof user?.name === 'string' ? user.name : '未ログイン', 26).setWordWrapWidth(630);
     this.text(this.body, 410, 348, typeof user?.email === 'string' ? user.email : '', 17).setWordWrapWidth(630);
-    this.text(this.body, 410, 406, 'ログアウトするとログイン画面に戻ります。', 18);
+    this.text(this.body, 410, 399, 'ゲームを終わるとログイン状態を保持してタイトルへ戻ります。\nログアウトするとログイン画面に戻ります。', 17).setLineSpacing(8);
+    this.artButton(this.body, 650, 492, 250, 58, 'ゲームを終わる', () => this.confirmEndGame());
     this.artButton(this.body, 996, 492, 240, 58, 'ログアウト', () => { void this.logoutUser(); });
   }
+  /* === [ 担当 : 250056 斎藤永聖 ] ===
+   * 処理内容 : 終了前に確認を表示し、進行中の戦闘が終了することを案内する
+   * ================================== */
+  private confirmEndGame(): void {
+    this.body.removeAll(true);
+    this.text(this.body, 410, 250, 'タイトルへ戻りますか？', 26);
+    const inBattle = this.scene.isActive('StageScene') || this.scene.isPaused('StageScene');
+    this.text(this.body, 410, 310, 'ログイン状態は保持されます。\n次回は「スタートする」から再開できます。'
+      + (inBattle ? '\n進行中の戦闘は終了します。' : ''), 20).setLineSpacing(12);
+    this.artButton(this.body, 650, 492, 250, 58, 'キャンセル', () => this.renderTab('account'));
+    this.artButton(this.body, 996, 492, 240, 58, 'タイトルへ戻る', () => this.endGame());
+  }
+
+  /* === [ 担当 : 250056 斎藤永聖 ] ===
+   * 処理内容 : ログイン情報を保持したまま各ゲーム画面を終了し、タイトルへ戻る
+   * ================================== */
+  private endGame(): void {
+    if (this.leaving) return;
+    this.leaving = true;
+    this.voice.stop();
+    for (const scene of this.scene.manager.getScenes(false)) {
+      if (scene !== this) this.scene.stop(scene.scene.key);
+    }
+    transitionWithLoading(this, 'TitleScene');
+  }
+
   /* === [ 担当 : 250056 斎藤永聖 ] ===
    * 処理内容 : 操作に応じた案内画像へ切り替える
    * ================================== */
