@@ -17,15 +17,17 @@ import { playerStats } from './allyStats.ts';
  * 処理内容 : 主人公操作・戦闘を定義する
  * ================================== */
 const BUFF_EFFECT_COLOR = 0xff5964;
-// スキル範囲の表示と命中判定で共通して使う、1マスあたりのピクセル数。
+// スキル範囲の表示と敵の位置判定を同じ基準で行うため、1マスを40pxとして定数化する。
 const SKILL_AREA_CELL_SIZE = 40;
-// 空中での重力を強めて跳躍を素早くしつつ、下降時だけ係数を下げて落下を緩やかにする。
+// 上昇と下降で空中操作感を変える重力設定。
+// 上昇中は4倍の重力でジャンプを素早く終え、下降中だけ緩和係数を掛けて落下を少しゆっくりにする。
 const AIR_GRAVITY_SCALE = 4;
 const FALL_GRAVITY_REDUCTION = 0.9;
 const JUMP_POWER_SCALE = 1.4;
-// 各コマの足運びに合わせる。振り下ろす瞬間と構え直し中は足を止める。
+// 通常攻撃の各フレームで進ませる踏み込み距離を段ごとに設定する。
+// 0は足を止めるフレーム、正の値は剣の動きに合わせた前進速度を表す。
 const BASIC_ATTACK_STEP_SPEEDS = [
-  [0, -60, -60, 180, 0, 0, 0, 0],
+  [0, 0, 0, 0, 90, 0, 0, 0, 0, 0],
   [0, 0, 0, 0, 0, 0, 0, 0],
   [0, 0, 0, 80, 0, 0, 0, 0],
 ] as const;
@@ -56,6 +58,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
    * ================================== */
   private stats = { ...playerStats };
   private cursors: Phaser.Types.Input.Keyboard.CursorKeys | undefined;
+  // 移動速度やジャンプ力など、フレーム更新ごとに参照する基本能力値を保存する。
   private readonly PLAYER_SPEED = this.stats.moveSpeed;
   private readonly JUMP_POWER = this.stats.jumpPower;
   private readonly FALL_GRAVITY_BONUS = this.stats.fallGravityBonus;
@@ -93,6 +96,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   private basicAttackTargets: readonly CombatTarget[] | null = null;
   private basicComboStep = -1;
   private basicComboUntil = 0;
+  // 攻撃中に追加入力された攻撃を一時保留し、アニメーション終了後に次の段へ繰り越す。
   private queuedBasicAttack: readonly CombatTarget[] | null = null;
   private basicAttackDirection = 1;
   /* === [ 担当 : 250116 中村伊安 ] ===
@@ -119,7 +123,8 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   public applyFlowerStats(flowers: readonly { hp: number; mp: number; atk: number; def: number; cd: number }[]): void {
     // 前回の編成値を引き継がないよう毎回初期値へ戻してから、編成中の花の補正を合算する。
     this.stats = { ...playerStats };
-    const bonusRate = 0.25; // 編成人数にかかわらず1体につき25%。
+    // 編成人数にかかわらず、編成される花1体につき各ステータスの25%を主人公へ加算する。
+    const bonusRate = 0.25;
     for (const flower of flowers) {
       this.stats.hp += flower.hp * bonusRate;
       this.stats.physicalAttack += flower.atk * bonusRate;
@@ -249,22 +254,26 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
      * ================================== */
     super(scene, x, y, 'player_idle');
     
-    // シーンと物理エンジンに自身を追加
+    // 表示オブジェクトとArcade Physicsの両方へ登録し、このクラスの当たり判定を有効にする。
     scene.add.existing(this);
     scene.physics.add.existing(this);
 
     this.cursors = cursors;
+    // オブジェクト破棄時に継続回復用タイマーだけを明示的に解除し、破棄後の回復を防ぐ。
     this.once(Phaser.GameObjects.Events.DESTROY, () => this.clearRegeneration());
     this.on(Phaser.Animations.Events.ANIMATION_UPDATE, (animation: Phaser.Animations.Animation, frame: Phaser.Animations.AnimationFrame) => {
+      // player-runの指定フレームで足音を再生し、走りのリズムに合わせる。
       if (animation.key === 'player-run' && (frame.index === 3 || frame.index === 7)) {
         this.playRunStep();
       }
+      // 攻撃アニメーション中に上方向が押された場合はジャンプ処理へ渡し、硬直をキャンセルする。
       if (this.action === 'attack' && this.cursors?.up?.isDown) {
         this.jump();
         return;
       }
+      // 指定フレーム以前、または別アニメーション中はダメージ判定を行わない。
       if (!['player-attack', 'player-attack2', 'player-attack3'].includes(animation.key) || frame.index < getPlayerAttackTiming(this.basicComboStep).impactFrame || !this.basicAttackTargets) return;
-      // 攻撃アニメーションの指定フレームで一度だけ命中処理を行う。
+      // ANIMATION_UPDATEはフレーム更新ごとに呼ばれるため、対象配列をnullにして命中処理は一度だけ行う。
       const targets = this.basicAttackTargets;
       this.basicAttackTargets = null;
       this.landBasicAttack(targets);
@@ -273,6 +282,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
      * 処理内容 : クリック・キー操作と終了時の後片付けを設定する
      * ================================== */
     this.on(Phaser.Animations.Events.ANIMATION_STOP, (animation: Phaser.Animations.Animation) => {
+      // 攻撃アニメーションが途中で停止した場合も、保留攻撃・敵配列・行動状態を確実に解除する。
       if (['player-attack', 'player-attack2', 'player-attack3'].includes(animation.key)) {
         this.basicAttackTargets = null;
         this.queuedBasicAttack = null;
@@ -381,13 +391,16 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   }
 
   public update(): void {
+    // 攻撃中や保留中にジャンプ入力がある場合は、先にジャンプへ割り込み処理を渡す。
     if (this.cursors?.up?.isDown && (this.action === 'attack' || this.queuedBasicAttack)) this.jump();
+    // 保留された通常攻撃は、行動可能になりクールタイムも経過したタイミングで実行する。
     if (!this.dead && this.action === null && this.queuedBasicAttack && battleNow(this.scene) >= this.nextBasicAttackAt) {
       const targets = this.queuedBasicAttack;
       this.queuedBasicAttack = null;
       this.attack(targets);
     }
     if (this.action === 'attack') {
+      // 通常攻撃中はアニメーションの現在フレームに対応する踏み込み速度を向きへ掛ける。
       const frame = this.anims.currentFrame?.index ?? 0;
       const speed = BASIC_ATTACK_STEP_SPEEDS[this.basicComboStep]?.[frame - 1] ?? 0;
       this.setVelocityX(this.basicAttackDirection * speed);
@@ -436,7 +449,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.wasCrouchGuarding = crouchGuarding;
 
     if (this.action !== null) {
-      // Keep the action animation visible until it completes.
+      // 行動アニメーション再生中はANIMATION_COMPLETEまたはANIMATION_STOPで状態を解除するまで上書きしない。
     } else if (battleNow(this.scene) < this.chargeUntil) {
       this.playAnimation('player-defend');
     } else if (crouchGuarding) {
@@ -452,6 +465,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       changeCharacterAnimation(this, body.velocity.x === 0 ? 'idle' : 'run');
     }
 
+    // 次フレームの着地判定やアニメーション切り替えで使うため、更新後の接地状態を保存する。
     this.wasGrounded = isGrounded;
   }
 
@@ -474,6 +488,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   public jump(): void {
     const body = this.body as Phaser.Physics.Arcade.Body;
     if (this.dead || !body) return;
+    // 通常攻撃中または連続攻撃の予約中のジャンプは、攻撃状態をキャンセルして空中アニメーションへ移行する。
     if (this.action === 'attack' || this.queuedBasicAttack) {
       this.queuedBasicAttack = null;
       this.basicAttackTargets = null;
@@ -499,17 +514,20 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
    * 処理内容 : 通常攻撃を行う
    * ================================== */
   public attack(targets: readonly CombatTarget[] = []): void {
+    // 攻撃操作中のジャンプ入力はジャンプへ優先して処理し、攻撃は開始しない。
     if (this.cursors?.up?.isDown) {
       this.jump();
       return;
     }
     const now = battleNow(this.scene);
+    // 被弾・チャージ・コンボ中は通常攻撃を開始できず、連続攻撃中の入力だけ予約する。
     if (this.dead || now < Math.max(this.chargeUntil, this.comboUntil, this.continuousUntil)) return;
     if (this.action === 'attack' || (this.action === null && now < this.nextBasicAttackAt && now < this.basicComboUntil)) {
       this.queuedBasicAttack = targets;
       return;
     }
     if (now < this.nextBasicAttackAt) return;
+    // コンボ有効時間内なら次の段へ進め、有効時間外なら最初の攻撃へ戻す。
     const step = now <= this.basicComboUntil ? (this.basicComboStep + 1) % 3 : 0;
     const key = ['player-attack', 'player-attack2', 'player-attack3'][step];
     if (!this.playAction('attack', key)) return;
@@ -541,22 +559,40 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   private showSlash(): void {
     const direction = this.flipX ? -1 : 1;
     const range = getPlayerAttackTiming().range;
-    const y = this.y - 65;
-    const slash = this.scene.add.graphics().setDepth(18).setScrollFactor(1);
-    // 各段の剣筋を縦斬り・横薙ぎ・突きとして描き分ける。
-    for (const [width, color, alpha] of [[18, 0xffc45a, 0.24], [8, 0xffdc86, 0.95], [2, 0xffe7ce, 0.95]]) {
-      slash.lineStyle(width, color, alpha);
-      if (this.basicComboStep === 2) {
-        slash.beginPath().moveTo(this.x + direction * 32, y)
-          .lineTo(this.x + direction * range, y).strokePath();
-      } else if (this.basicComboStep === 1) {
-        slash.strokeEllipse(this.x + direction * range / 2, y, range, 30);
-      } else {
-        slash.beginPath().moveTo(this.x + direction * 35, this.y - 110)
-          .lineTo(this.x + direction * 100, this.y - 5).strokePath();
+    const slash = this.scene.add.graphics({ x: this.x, y: this.y })
+      .setDepth(18).setScale(direction, 1).setBlendMode(Phaser.BlendModes.ADD);
+    const paths = [
+      [new Phaser.Math.Vector2(10, -143), new Phaser.Math.Vector2(145, -139), new Phaser.Math.Vector2(105, -5)],
+      [new Phaser.Math.Vector2(24, -96), new Phaser.Math.Vector2(range * 1.75, -72), new Phaser.Math.Vector2(36, -38)],
+      [new Phaser.Math.Vector2(24, -65), new Phaser.Math.Vector2(range * 0.6, -65), new Phaser.Math.Vector2(range, -65)],
+    ];
+    const [start, control, end] = paths[Math.max(0, this.basicComboStep)];
+    const curve = new Phaser.Curves.QuadraticBezier(start, control, end);
+    // 両端を細く絞った三層の軌跡で、鋭い芯と金色の残光を作る。
+    for (const [width, color, alpha] of [[22, 0xff982b, 0.22], [11, 0xffca5c, 0.8], [3.5, 0xfff9df, 1]]) {
+      const outside: Phaser.Math.Vector2[] = [];
+      const inside: Phaser.Math.Vector2[] = [];
+      for (let i = 0; i <= 24; i++) {
+        const t = i / 24;
+        const point = curve.getPoint(t);
+        const tangent = curve.getTangent(t);
+        const thickness = Math.sin(Math.PI * t) * width * (this.basicComboStep === 2 ? 0.45 : 1);
+        outside.push(new Phaser.Math.Vector2(point.x - tangent.y * thickness, point.y + tangent.x * thickness));
+        inside.push(new Phaser.Math.Vector2(point.x + tangent.y * thickness, point.y - tangent.x * thickness));
       }
+      slash.fillStyle(color, alpha).fillPoints([...outside, ...inside.reverse()], true);
     }
-    this.scene.tweens.add({ targets: slash, alpha: 0, duration: 240, onComplete: () => slash.destroy() });
+    // 軌跡に沿って小さな残光を散らし、剣筋から離れるほど早く消す。
+    const embers = this.scene.add.graphics({ x: this.x, y: this.y })
+      .setDepth(19).setScale(direction, 1).setBlendMode(Phaser.BlendModes.ADD);
+    for (let i = 1; i <= 7; i++) {
+      const point = curve.getPoint(i / 8);
+      const offset = i % 2 === 0 ? 12 : -12;
+      embers.fillStyle(i % 2 === 0 ? 0xffdb80 : 0xfff7db, 0.85)
+        .fillTriangle(point.x, point.y + offset, point.x - 7, point.y + offset - 2, point.x - 12, point.y + offset + 2);
+    }
+    this.scene.tweens.add({ targets: slash, alpha: 0, scaleY: 1.06, duration: 210, ease: 'Quad.easeOut', onComplete: () => slash.destroy() });
+    this.scene.tweens.add({ targets: embers, x: this.x + direction * 14, y: this.y - 9, alpha: 0, duration: 290, ease: 'Quad.easeOut', onComplete: () => embers.destroy() });
   }
 
   /* === [ 担当 : 250116 中村伊安 ] ===
@@ -564,14 +600,28 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
    * ================================== */
   private showHit(x: number, y: number): void {
     this.scene.cameras.main.shake(70, 0.0025);
-    const burst = this.scene.add.graphics({ x, y }).setDepth(19).setScrollFactor(1);
-    burst.lineStyle(3, 0xffe4b0, 0.95);
-    // 7方向へ短い線を伸ばし、縮尺と透明度のTweenで命中の瞬間を表現する。
-    for (let i = 0; i < 7; i++) {
-      const angle = (Math.PI * 2 * i) / 7;
-      burst.lineBetween(Math.cos(angle) * 8, Math.sin(angle) * 8, Math.cos(angle) * 25, Math.sin(angle) * 25);
+    const flash = this.scene.add.graphics({ x, y }).setDepth(20).setBlendMode(Phaser.BlendModes.ADD);
+    flash.fillStyle(0xffb84a, 0.6).fillCircle(0, 0, 13);
+    flash.fillStyle(0xfff8db, 1).fillPoints([
+      new Phaser.Math.Vector2(-23, 0), new Phaser.Math.Vector2(-4, -4),
+      new Phaser.Math.Vector2(0, -15), new Phaser.Math.Vector2(4, -4),
+      new Phaser.Math.Vector2(23, 0), new Phaser.Math.Vector2(4, 4),
+      new Phaser.Math.Vector2(0, 15), new Phaser.Math.Vector2(-4, 4),
+    ], true);
+    flash.lineStyle(2, 0xffdc83, 0.8).strokeCircle(0, 0, 16);
+    this.scene.tweens.add({ targets: flash, alpha: 0, scale: 1.6, duration: 140, onComplete: () => flash.destroy() });
+    for (let i = 0; i < 8; i++) {
+      const angle = Math.PI * 2 * i / 8 + 0.2;
+      const distance = 28 + (i % 3) * 12;
+      const spark = this.scene.add.graphics({ x, y }).setDepth(20)
+        .setRotation(angle).setBlendMode(Phaser.BlendModes.ADD);
+      spark.fillStyle(i % 2 === 0 ? 0xfff8df : 0xffbf54, 1).fillTriangle(13, 0, -4, -2, -4, 2);
+      this.scene.tweens.add({
+        targets: spark, x: x + Math.cos(angle) * distance, y: y + Math.sin(angle) * distance,
+        alpha: 0, scaleX: 0.3, scaleY: 0.6, duration: 190 + i * 12, ease: 'Quad.easeOut',
+        onComplete: () => spark.destroy(),
+      });
     }
-    this.scene.tweens.add({ targets: burst, alpha: 0, scale: 1.35, duration: 180, onComplete: () => burst.destroy() });
   }
 
   /* === [ 担当 : 250116 中村伊安 ] ===
@@ -623,12 +673,14 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
    * 処理内容 : 指定した花のスキルを実行する
    * ================================== */
   public useFlowerSkill(skill: ServerFlowerSkill, targets: readonly CombatTarget[] = []): boolean {
+    // 花ごとにスキルの種類を判定し、回復・防御系と攻撃系で発動アニメーションを切り替える。
     if (!this.playSkillAnimation(skill.type === 'heal' ? 'player-drink' :
       ['defensiveRecovery', 'fortify'].includes(skill.type) ? 'player-defend' : 'player-skill')) return false;
 
     this.emitSkillVisual(skill, 'cast');
     const windup = 160;
-    // 多段攻撃と紅葉の連続段階は終了まで入力をロックするため、追加演出時間を加算する。
+    // アニメーション演出後に効果を発動するまでの準備時間として、基本の160msを設定する。
+    // 多段攻撃と紅葉スキルは全段の演出が終わるまで入力をロックするため、段数分を追加する。
     const sequence = skill.type === 'multiHit' ? Math.max(0, skill.hitCount - 1) * 145
       : skill.type === 'maple' && this.mapleIsRed ? Math.max(0, skill.stages.length - 1) * 450 : 0;
     this.comboUntil = battleNow(this.scene) + windup + sequence;
@@ -640,7 +692,8 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
    * 処理内容 : スキルの種類に応じた戦闘効果を処理する
    * ================================== */
   private executeFlowerSkill(skill: ServerFlowerSkill, targets: readonly CombatTarget[]): void {
-    // サーバー定義のタイプごとに、攻撃・回復・強化・状態異常の効果を適用する。
+    // サーバーから受け取ったskill.typeを分岐点にし、効果内容・演出・期限をそれぞれ適用する。
+    // ここで行う分岐はサーバー定義に応じた主人公側の処理であり、対象へ与えるダメージは各case内で確定する。
     switch (skill.type) {
       case 'multiHit':
         // 各ヒット時点で生存・有効状態を確認し、範囲内の敵へ個別にダメージを与える。
@@ -669,7 +722,8 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
         this.emitSkillVisual(skill, 'charge', [this]);
         break;
       case 'balanced':
-        // 強化期間中に弾を繰り返し発射し、発射時に決めた対象へ着弾後ダメージを与える。
+        // 強化期間中に一定間隔で弾を発射する。
+        // 発射時点で範囲内の対象を固定し、220ms後の着弾時点では既に撃破済みの対象を除外する。
         this.applyTimedBuff(skill.attackBonusPercent, skill.defenseBonusPercent, skill.durationMs);
         this.repeatUntil(skill.durationMs, skill.repeatIntervalMs, () => {
           const launched = this.getTargetsInArea(targets, skill.area);
@@ -698,7 +752,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
         break;
       case 'maple':
         if (this.mapleIsRed) {
-          // 紅葉状態なら段階攻撃を行い、終了時に紅葉状態を解除する。
+          // 紅葉状態なら保存された段ごとの範囲へ順番に攻撃を行い、最初の段から最後の段まで処理した後に解除する。
           this.mapleIsRed = false;
           skill.stages.forEach((stage, index) => {
             this.scene.time.delayedCall(index * 450, () => {
@@ -767,7 +821,9 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
      * 処理内容 : 被ダメージと無敵・撃破処理を行う
      * ================================== */
     const now = battleNow(this.scene);
+    // 死亡中、無敵時間中、回復値0以下の呼び出しでは被ダメージ処理を開始しない。
     if (this.dead || now < this.invulnerableUntil || amount <= 0) return;
+    // 回避スキルの有効時間内に成功判定が出た場合は、ダメージ計算も演出も行わない。
     if (now < this.evasionUntil && Math.random() * 100 < this.evasionPercent) return;
 
     // 回避判定後に、防御力・防御バフ・ガード・物理防御アイテムの軽減を順に合成する。
@@ -778,6 +834,8 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     const buffDamageMultiplier = Math.max(0.1, 1 - activeDefenseBonus / 100);
     const damageMultiplier = statDamageMultiplier * buffDamageMultiplier * (defending ? 0.5 : 1);
     const previousHealth = this.health;
+    // 切り上げでダメージを求め、最小0から最大HPの範囲で現在HPを更新する。
+    // 防御宝石の有効時間中だけ、物理ダメージへさらに20%軽減を掛ける。
     this.health = Math.max(0, this.health - Math.ceil(amount * damageMultiplier * (damageType === 'physical' && now < this.itemDefenseUntil ? 0.8 : 1)));
     showBattleNumber(this.scene, this.x, this.y, previousHealth - this.health, damageType);
     /* === [ 担当 : 250056 斎藤永聖 / 250116 中村伊安 ] ===
@@ -865,7 +923,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     radial: boolean
   ): CombatTarget[] {
     const direction = this.flipX ? -1 : 1;
-    // radial=falseは向いている側の矩形範囲、trueは距離による円形範囲として判定する。
+    // radial=falseは主人公の向いている側を前方矩形として判定し、radial=trueは距離を円形範囲として判定する。
     return targets.filter(target => {
       if (target.isDefeated) return false;
       const distanceX = (target.x - this.x) * direction;
@@ -929,7 +987,8 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
    * 処理内容 : 効果時間内のスキル・アイテムによる攻撃倍率を適用する
    * ================================== */
   private applyAttackBonus(damage: number): number {
-    // バフと攻撃宝石の倍率を重ね、最終ダメージは最低1に保つ。
+    // スキルの攻撃強化と攻撃宝石の倍率をそれぞれ判定し、有効な場合だけ倍数へ加算する。
+    // 加算後の倍率を掛けて端数を丸め、何があってもダメージが0以下にならないよう最低1にする。
     const bonus = battleNow(this.scene) < this.attackBonusUntil ? this.attackBonusPercent : 0;
     return Math.max(1, Math.round(damage * (1 + bonus / 100) * (battleNow(this.scene) < this.itemAttackUntil ? 1.2 : 1)));
   }
