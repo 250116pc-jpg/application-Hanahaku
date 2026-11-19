@@ -266,22 +266,39 @@ html[data-menu-button-size="large"] .flower-book-screen .book-tab {
   padding-block: 10px;
 }
 /* 紙の各タイルの元画像サイズが見出しの高さを押し広げないようにする。 */
-.encyclopedia-book-ui h1 {
-  display: flex;
+.encyclopedia-book-heading {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  gap: 1cqw;
+  column-gap: 1.2cqw;
+  width: 43%;
+  margin-left: 3%;
+  flex-shrink: 0;
+}
+.encyclopedia-book-heading h1 {
+  width: auto;
+  min-width: 0;
+  padding: 0;
+  font-size: 1.875cqw;
+}
+.encyclopedia-book-heading + .encyclopedia-book-progress {
+  margin-top: 0;
+  flex-shrink: 0;
 }
 .encyclopedia-book-ui .people-journal-link {
   box-sizing: border-box;
   flex-shrink: 0;
-  height: 6.6667cqh;
+  width: 7.2cqw;
+  height: 5.5556cqh;
   min-height: 0;
   margin-inline-start: 0;
   padding: 0 1cqw;
   white-space: nowrap;
 }
 .encyclopedia-book-ui .people-note-paper {
+  contain: size;
+  overflow: hidden;
   grid-template: repeat(3, minmax(0, 1fr)) / minmax(0, 1fr) minmax(0, 2fr) minmax(0, 1fr);
 }
 .encyclopedia-book-ui .people-note-paper img { display: block; }
-html[data-menu-button-size="large"] .encyclopedia-book-ui .people-journal-link { height: 7.7778cqh; }
+html[data-menu-button-size="large"] .encyclopedia-book-ui .people-journal-link { height: 6.6667cqh; }

@@ -156,8 +156,10 @@ export function mountEncyclopediaBook(options: {
   * 処理内容 : 画像・文字・パネルを配置する
   * ================================== */
  const close=():void=>{if(busy)return;animate(true,options.onHome)}
- const title=document.createElement('h1');title.textContent='花の図鑑';ui.append(title)
- const peopleLink=button(title,'キャラ',()=>openPeopleJournal(root))
+ // 担当：250056 斎藤永聖。見出しと人物録を別々の枠に収め、契約件数は次の行に配置する。
+ const heading=document.createElement('div');heading.className='encyclopedia-book-heading';ui.append(heading)
+ const title=document.createElement('h1');title.textContent='花の図鑑';heading.append(title)
+ const peopleLink=button(heading,'キャラ',()=>openPeopleJournal(root))
  peopleLink.className='people-journal-link'
  if(new URLSearchParams(location.search).get('people-ui')==='portrait') {
   peopleLink.classList.add('with-portrait')
