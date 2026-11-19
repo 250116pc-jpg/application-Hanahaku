@@ -11,7 +11,7 @@ import type { ItemCategory } from '../inventory/InventoryData'
  * 処理内容 : 所持品通信を定義する
  * ================================== */
 export const shopCatalog = JSON.parse(rawCatalog) as Array<ShopItem & { category: ItemCategory }>
-export type ShopState = { coin: number; items: Record<string, number>; contractOutcome?: 'new' | 'duplicate' }
+export type ShopState = { coin: number; items: Record<string, number>; contractOutcome?: 'new' | 'duplicate' | null }
 export async function requestShop(action: 'state' | 'buy' | 'consume' | 'contract' = 'state', itemId?: number, quantity = 1, flowerId?: number): Promise<ShopState> {
  /* === [ 担当 : 250056 斎藤永聖 / 250116 中村伊安 ] ===
   * 処理内容 : 画像・文字・パネルを配置する

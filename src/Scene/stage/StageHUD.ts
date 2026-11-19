@@ -49,9 +49,8 @@ export class StageHUD {
   private flowers: CharacterData[] = [];
   public isReady = false;
   private selectedFlower = 0;
-  private readonly partySelectionBorders: Phaser.GameObjects.Graphics[] = [];
-  private readonly partyStatusContainers: Array<Phaser.GameObjects.Container | undefined> = [];
-  private readonly partyStatusUntil = Array.from({ length: 4 }, () => new Map<string, number>());
+  private readonly playerStatusUntil = new Map<string, number>();
+  private playerStatusContainer?: Phaser.GameObjects.Container;
   private readonly flowerMp = new Map(testData.characters.map(character =>
     [character.id, character.stats.mp] as const
   ));
@@ -68,6 +67,11 @@ export class StageHUD {
   private readonly flowerSkillIconCenters: Array<{ x: number; y: number } | undefined> = [];
   private retreatDialog: HTMLDivElement | null = null;
   private hpBar?: Phaser.GameObjects.Rectangle;
+  private delayedHpBar?: Phaser.GameObjects.Rectangle;
+  private previousHealth?: number;
+  private delayedHpRatio = 0;
+  private lastHealthUpdate = 0;
+  private hpDelayUntil = 0;
   private hpBarX = 0;
   private hpBarY = 0;
   private hpBarWidth = 0;
@@ -89,6 +93,11 @@ export class StageHUD {
     scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => { this.disposed = true; });
     if (this.player) {
       const effects = this.effects = new SkillEffects(scene, this.player);
+      const onHealthChanged = (current: number, maximum: number): void => this.updateHealth(current, maximum);
+      this.player.on('health-changed', onHealthChanged);
+      scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+        this.player?.off('health-changed', onHealthChanged);
+      });
       this.player.setSkillVisualHandler((skill, phase, targets, area) => effects.play(skill, phase, targets, area));
     }
   }
@@ -99,6 +108,7 @@ export class StageHUD {
   public create(stageId?: number, stageNumber?: string): void {
     this.createStageLabel(stageId, stageNumber);
     this.createUtilityButtons();
+    if (stageId === 2) this.createOpeningBattleGuide();
     trackSceneLoading(this.scene, this.initializeFlowerSkills(stageId ?? 2));
   }
 
@@ -106,10 +116,48 @@ export class StageHUD {
    * 処理内容 : 現在HPの割合に合わせてHUDのHPバーを更新する
    * ================================== */
   public updateHealth(current: number, maximum: number): void {
-    if (!this.hpBar) return;
-    const width = this.hpBarWidth * Phaser.Math.Clamp(maximum > 0 ? current / maximum : 0, 0, 1);
+    if (!this.hpBar || !this.delayedHpBar) return;
+    const now = battleNow(this.scene);
+    const ratio = Phaser.Math.Clamp(maximum > 0 ? current / maximum : 0, 0, 1);
+
+    if (this.previousHealth === undefined) {
+      this.delayedHpRatio = ratio;
+    } else if (current < this.previousHealth) {
+      this.hpDelayUntil = now + 3000;
+    } else {
+      // 待機終了後の経過時間だけを使い、毎秒最大HPの25%ずつ追従する。
+      const elapsed = Math.max(0, now - Math.max(this.lastHealthUpdate, this.hpDelayUntil));
+      this.delayedHpRatio = Math.max(ratio, this.delayedHpRatio - elapsed / 4000);
+    }
+    this.delayedHpRatio = Math.max(ratio, this.delayedHpRatio);
+    this.previousHealth = current;
+    this.lastHealthUpdate = now;
+
+    const width = this.hpBarWidth * ratio;
     this.hpBar.setSize(width, this.hpBarHeight)
       .setPosition(this.hpBarX + width / 2, this.hpBarY + this.hpBarHeight / 2);
+    const delayedWidth = this.hpBarWidth * this.delayedHpRatio;
+    this.delayedHpBar.setSize(delayedWidth, this.hpBarHeight)
+      .setPosition(this.hpBarX + delayedWidth / 2, this.hpBarY + this.hpBarHeight / 2);
+  }
+
+  private createOpeningBattleGuide(): void {
+    const width = this.scene.scale.width;
+    const guide = this.text(width / 2, 122,
+      'ジニア「影と距離を取って！」\n← → で移動   ↑ でジャンプ   ↓ 長押しで防御\n近づいたら剣ボタン。花のカードを押すとスキルが使えるよ。',
+      17, '#fff4e8').setOrigin(0.5, 0).setAlign('center')
+      .setWordWrapWidth(width - 64)
+      .setPadding(16, 9)
+      .setBackgroundColor('#162330')
+      .setDepth(this.depth + 5);
+    const close = this.text(width / 2, guide.getBounds().bottom + 3, '案内を閉じる ×', 14, '#fff4e8')
+      .setOrigin(0.5, 0).setPadding(10, 5).setBackgroundColor('#162330')
+      .setDepth(this.depth + 5).setInteractive({ useHandCursor: true })
+      .once('pointerup', (_pointer: Phaser.Input.Pointer, _x: number, _y: number, event: Phaser.Types.Input.EventData) => {
+        event.stopPropagation();
+        guide.destroy();
+        close.destroy();
+      });
   }
 
   private createStatusPanel(): void {
@@ -122,7 +170,7 @@ export class StageHUD {
     const x = compact ? 12 : 24;
     const y = 18;
     const panelW = compact ? 214 : 330;
-    const panelH = compact ? 80 : 96;
+    const panelH = 106;
     this.panel(x, y, panelW, panelH, 14);
     this.text(x + 16, y + 10, leader ? `${leader.name}  Lv.${leader.level}` : '主人公', compact ? 13 : 17, '#fff', 'bold');
     /* === [ 担当 : 250056 斎藤永聖 / 250116 中村伊安 ] ===
@@ -164,20 +212,20 @@ export class StageHUD {
     this.hpBarY = y + 40;
     this.hpBarWidth = panelW - (compact ? 66 : 88);
     this.hpBarHeight = 9;
-    this.hpBar = this.bar(
-      this.hpBarX,
-      this.hpBarY,
-      this.hpBarWidth,
-      this.hpBarHeight,
-      this.player?.health ?? 100,
-      this.player?.maxHealth ?? 100,
-      0xf05b86
+    this.delayedHpBar = this.bar(
+      this.hpBarX, this.hpBarY, this.hpBarWidth, this.hpBarHeight, 1, 1, 0xf4eee5
     );
+    this.hpBar = this.scene.add.rectangle(
+      this.hpBarX, this.hpBarY, 0, this.hpBarHeight, 0xf05b86
+    ).setScrollFactor(0).setDepth(this.depth + 3);
+    this.updateHealth(this.player?.health ?? 100, this.player?.maxHealth ?? 100);
     this.text(x + 16, y + 59, 'MP', 12, '#7ee6fa', 'bold');
     /* === [ 担当 : 250082 武田優人 ] ===
      * 処理内容 : 主人公のMPバーを表示専用で満タンにする（花のMPやスキル消費には影響しない）
      * ================================== */
     this.bar(x + 50, y + 62, panelW - (compact ? 66 : 88), 9, 1, 1, 0x32bddb);
+    this.playerStatusContainer = this.scene.add.container(x + 16, y + 87)
+      .setScrollFactor(0).setDepth(this.depth + 5);
   }
 
   /* === [ 担当 : 250116 中村伊安 ] ===
@@ -200,6 +248,7 @@ export class StageHUD {
    * ================================== */
   private createUtilityButtons(): void {
     this.imageButton(72, 170, 74, '', 'stage-bag', () => this.openInventory());
+    this.imageButton(72, 260, 74, '', 'stage-settings-ui', () => this.openSettings());
     const x = this.scene.scale.width - 68;
     this.createRetreatDomButton(x, 282, 76);
   }
@@ -440,14 +489,10 @@ export class StageHUD {
     for (let i = 0; i < 4; i++) {
       const x = left + i * (cardW + gap);
       const character = this.flowers.find(c => c.id === formation[i]);
-      const border = this.scene.add.graphics().setScrollFactor(0).setDepth(this.depth + 2);
-      this.partySelectionBorders.push(border);
-      this.drawPartySelection(border, x, top, cardW, cardH, i === this.selectedFlower);
       if (!character) {
         this.flowerMpLabels.push(undefined);
         this.flowerMpBars.push(undefined);
         this.flowerMpBarLayouts.push(undefined);
-        this.partyStatusContainers.push(undefined);
         this.flowerCooldownOverlays.push(undefined);
         this.flowerSkillIconCenters.push(undefined);
         this.text(x + cardW / 2, top + cardH / 2, '＋ 空き枠', 16, '#d4dce5', 'bold').setOrigin(0.5);
@@ -486,12 +531,9 @@ export class StageHUD {
       this.scene.add.zone(skillX, skillY, 72, 72).setName('stage-skill')
         .setScrollFactor(0).setDepth(this.depth + 10).setInteractive({ useHandCursor: true })
         .on('pointerdown', () => {
-          this.selectFlower(i, cardH);
+          this.selectFlower(i);
           this.useSelectedFlowerSkill(i);
         });
-      const statusContainer = this.scene.add.container(x + 8, top + 76)
-        .setScrollFactor(0).setDepth(this.depth + 5);
-      this.partyStatusContainers.push(statusContainer);
       this.updateFlowerMp(i, character);
     }
   }
@@ -499,45 +541,30 @@ export class StageHUD {
   /* === [ 担当 : 250116 中村伊安 ] ===
    * 処理内容 : 選択内容と一覧表示を切り替える
    * ================================== */
-  private selectFlower(index: number, height: number): void {
+  private selectFlower(index: number): void {
     this.selectedFlower = index;
-    this.partySelectionBorders.forEach((border, i) => {
-      // Card positions are evenly spaced; derive each border rectangle from its index.
-      const gap = 10;
-      const totalW = Math.min(this.scene.scale.width * 0.72, 750);
-      const cardW = (totalW - gap * 3) / 4;
-      const left = Math.max(16, Math.min(220, this.scene.scale.width - totalW - 16));
-      const top = this.scene.scale.height - height - 18;
-      this.drawPartySelection(border, left + i * (cardW + gap), top, cardW, height, i === index);
-    });
     this.updateSkillLabel();
   }
 
   /* === [ 担当 : 250116 中村伊安 ] ===
-   * 処理内容 : 選択中の花の枠を強調表示する
+   * 処理内容 : 主人公の状態効果と表示終了時刻を登録する
    * ================================== */
-  private drawPartySelection(graphics: Phaser.GameObjects.Graphics, x: number, y: number, width: number, height: number, selected: boolean): void {
-    graphics.clear();
-    if (selected) graphics.lineStyle(2, 0xffc968, 0.98).strokeRoundedRect(x, y, width, height, 11);
-  }
-
-  /* === [ 担当 : 250116 中村伊安 ] ===
-   * 処理内容 : 花に付いた状態効果と表示終了時刻を登録する
-   * ================================== */
-  private setPartyStatuses(index: number, statusIds: string[], durationMs: number): void {
+  private setPlayerStatuses(statusIds: string[], durationMs: number): void {
     if (durationMs <= 0) return;
-    const untilByStatus = this.partyStatusUntil[index];
-    statusIds.forEach(statusId => untilByStatus.set(statusId, battleNow(this.scene) + durationMs));
-    this.renderPartyStatuses(index);
-    this.scene.time.delayedCall(durationMs + 30, () => this.renderPartyStatuses(index));
+    const expiresAt = battleNow(this.scene) + durationMs;
+    statusIds.forEach(statusId => {
+      this.playerStatusUntil.set(statusId, Math.max(this.playerStatusUntil.get(statusId) ?? 0, expiresAt));
+    });
+    this.renderPlayerStatuses();
+    this.scene.time.delayedCall(durationMs + 30, () => this.renderPlayerStatuses());
   }
 
   /* === [ 担当 : 250116 中村伊安 ] ===
-   * 処理内容 : 編成花の状態効果アイコンを表示する
+   * 処理内容 : 主人公の状態効果アイコンをHPパネルへ表示する
    * ================================== */
-  private renderPartyStatuses(index: number): void {
-    const container = this.partyStatusContainers[index];
-    const untilByStatus = this.partyStatusUntil[index];
+  private renderPlayerStatuses(): void {
+    const container = this.playerStatusContainer;
+    const untilByStatus = this.playerStatusUntil;
     if (!container) return;
     container.removeAll(true);
     for (const [statusId, until] of untilByStatus) {
@@ -762,7 +789,7 @@ export class StageHUD {
     // Enemy debuffs must not be displayed as a debuff on the caster.
     if (skill.type !== 'slowAttack' && !redMaple) {
       this.scene.time.delayedCall(160, () => {
-        if (this.player && this.player.health > 0) this.setPartyStatuses(index, appliedStatuses, duration);
+        if (this.player && this.player.health > 0) this.setPlayerStatuses(appliedStatuses, duration);
       });
     }
     this.updateSkillLabel();
@@ -917,6 +944,18 @@ export class StageHUD {
   /* === [ 担当 : 250116 中村伊安 ] ===
    * 処理内容 : 戦闘を一時停止してバッグを開く
    * ================================== */
+  // 担当：250056 斎藤永聖。設定中は戦闘を停止し、閉じると同じ戦闘を再開する。
+  private openSettings(): void {
+    if (isBattlePreview) return;
+    if (this.scene.scene.isActive(SCENE_KEYS.SETTINGS)) return;
+    this.scene.scene.launch(SCENE_KEYS.SETTINGS, {
+      returnScene: SCENE_KEYS.STAGE,
+      resumeOnClose: true,
+    });
+    this.scene.scene.bringToTop(SCENE_KEYS.SETTINGS);
+    this.scene.scene.pause(SCENE_KEYS.STAGE);
+  }
+
   private openInventory(): void {
     if (isBattlePreview) return;
     if (this.scene.scene.isActive(SCENE_KEYS.INVENTORY)) return;

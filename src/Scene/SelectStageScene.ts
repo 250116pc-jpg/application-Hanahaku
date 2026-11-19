@@ -12,6 +12,7 @@ import testData from './test_data';
 import { loadFormation } from '../form/formationStorage';
 import { getPhpBaseUrl } from '../auth/PhpBaseUrl';
 import { AREA_STAGE_LAYOUTS, type StagePosition } from './stageSelectData';
+import { getCachedStageProgress, loadStageProgress, type StageProgress } from './stage/StageProgress';
 /* === [ 担当 : 250082 武田優人 / 250116 中村伊安 ] ===
  * 処理内容 : ステージ選択・詳細・移動を定義する
  * ================================== */
@@ -62,6 +63,12 @@ export class SelectStageScene extends Phaser.Scene {
   private readonly stageRouteOffsetY = 40;
   private stagePositions: StagePosition[] = [];
   private stages: StageData[] = [];
+  private stageProgress: StageProgress = { completedStageIds: [], completedStorySceneIds: [], coins: 0 };
+  private stageButtons: Array<{
+    index: number;
+    button: Phaser.GameObjects.Image;
+    lockLabel: Phaser.GameObjects.Text;
+  }> = [];
   // プレイヤー
   private player!: Phaser.GameObjects.Sprite;
   private currentChapter = 1;
@@ -120,17 +127,21 @@ export class SelectStageScene extends Phaser.Scene {
      * ================================== */
     this.currentChapter = AREA_STAGE_LAYOUTS[data.areaId ?? 1] ? (data.areaId ?? 1) : 1;
     this.stagePositions = AREA_STAGE_LAYOUTS[this.currentChapter];
+    this.stageProgress = getCachedStageProgress();
+    this.stageButtons = [];
     this.pageCount = Math.ceil(this.stagePositions.length / STAGES_PER_PAGE);
     const savedPage = this.registry.get(getSavedPageKey(this.currentChapter)) as number | undefined;
     const initialPage = data.page ?? savedPage ?? 0;
-    this.currentPage = Phaser.Math.Clamp(initialPage, 0, this.pageCount - 1);
+    const lastUnlockedIndex = this.getLastUnlockedStageIndex();
+    const lastUnlockedPage = Math.floor(lastUnlockedIndex / STAGES_PER_PAGE);
+    this.currentPage = Phaser.Math.Clamp(initialPage, 0, Math.min(this.pageCount - 1, lastUnlockedPage));
     const pageStart = this.currentPage * STAGES_PER_PAGE;
     const pageEnd = Math.min(pageStart + STAGES_PER_PAGE, this.stagePositions.length);
     const savedStageIndex = this.registry.get(getSavedStageIndexKey(this.currentChapter, this.currentPage)) as number | undefined;
     const initialStageIndex = savedStageIndex ?? pageStart;
-    this.currentStageIndex = initialStageIndex >= pageStart && initialStageIndex < pageEnd
+    this.currentStageIndex = initialStageIndex >= pageStart && initialStageIndex < pageEnd && this.isStageUnlocked(initialStageIndex)
       ? initialStageIndex
-      : pageStart;
+      : Math.min(pageStart, this.getLastUnlockedStageIndex());
     this.saveStageSelectProgress();
     let storyCount = 0;
     let battleCount = 0;
@@ -195,6 +206,7 @@ export class SelectStageScene extends Phaser.Scene {
 
       this.createActionCircle(position.x, position.y, 110, index);
     }
+    this.refreshStageAvailability();
 
     // ----------------------------------------
     // Playerアニメーション作成
@@ -221,6 +233,24 @@ export class SelectStageScene extends Phaser.Scene {
     );
     this.player.setScale(1.5).setDepth(2);
     this.createPageControls();
+
+    void loadStageProgress().then(progress => {
+      if (!this.scene.isActive(SCENE_KEYS.SELECT_STAGE)) return;
+      this.stageProgress = progress;
+      const unlockedIndex = this.getLastUnlockedStageIndex();
+      const unlockedPage = Math.floor(unlockedIndex / STAGES_PER_PAGE);
+      if (this.currentPage > unlockedPage) {
+        this.scene.restart({ areaId: this.currentChapter, page: unlockedPage });
+        return;
+      }
+      if (!this.isStageUnlocked(this.currentStageIndex)) {
+        this.currentStageIndex = unlockedIndex;
+        const position = this.stagePositions[unlockedIndex];
+        this.player.setPosition(position.x, position.y + this.stageRouteOffsetY - 50);
+        this.saveStageSelectProgress();
+      }
+      this.refreshStageAvailability();
+    });
   }
 
   /* === [ 担当 : 250116 中村伊安 ] ===
@@ -285,6 +315,37 @@ export class SelectStageScene extends Phaser.Scene {
       if (!texture.has(name)) texture.add(name, 0, x, y, width, height);
     });
     applySmoothDisplay(this, ['stage-icons', 'background']);
+  }
+
+  private isStageCompleted(index: number): boolean {
+    const position = this.stagePositions[index];
+    if (!position) return false;
+    return position.type === 'battle'
+      ? this.stageProgress.completedStageIds.includes(position.id)
+      : this.stageProgress.completedStorySceneIds.includes(`${this.currentChapter}:${position.id}`);
+  }
+
+  private getLastUnlockedStageIndex(): number {
+    let index = 0;
+    while (index < this.stagePositions.length - 1 && this.isStageCompleted(index)) index++;
+    return index;
+  }
+
+  private isStageUnlocked(index: number): boolean {
+    return index >= 0 && index <= this.getLastUnlockedStageIndex();
+  }
+
+  private refreshStageAvailability(): void {
+    this.stageButtons.forEach(({ index, button, lockLabel }) => {
+      const unlocked = this.isStageUnlocked(index);
+      button.setAlpha(unlocked ? 1 : 0.4);
+      if (unlocked) {
+        button.clearTint().setInteractive({ useHandCursor: true });
+      } else {
+        button.setTint(0x555555).disableInteractive();
+      }
+      lockLabel.setVisible(!unlocked);
+    });
   }
 
   // ========================================
@@ -397,13 +458,17 @@ export class SelectStageScene extends Phaser.Scene {
       darkBackground.destroy();
       return;
     }
+    const stageIndex = this.stages.indexOf(stage);
+    if (stageIndex < 0 || !this.isStageUnlocked(stageIndex)) {
+      darkBackground.destroy();
+      return;
+    }
 
     /* === [ 担当 : 250082 武田優人 / 250116 中村伊安 ] ===
      * 処理内容 : 戦闘・会話データと契約候補を取得し、詳細枠の大きさを決める
      * ================================== */
     this.isStageInfoOpen = true;
 
-    const stageIndex = this.stages.findIndex(item => item.id === stage.id);
     const isBattleStage = this.stagePositions[stageIndex]?.type === 'battle';
     const story = !isBattleStage ? storyData.find(chapter => chapter.chapter === this.currentChapter)?.stages.find(entry => entry.stage === stage.id) : undefined;
     const battle = this.currentChapter === 1 && isBattleStage ? battleData['../../php/stage/stage' + stage.id + '.json'] : undefined;
@@ -673,6 +738,12 @@ export class SelectStageScene extends Phaser.Scene {
     const position = this.stagePositions[targetIndex];
     const button = this.add.image(x, y + this.stageRouteOffsetY, 'stage-icons', position.type)
       .setDisplaySize(diameter, diameter * 255 / 480).setDepth(1).setInteractive({ useHandCursor: true });
+    const lockLabel = this.add.text(x, y + this.stageRouteOffsetY + 13, 'LOCK', getTextStyle(13, {
+      color: '#ffffff',
+      backgroundColor: '#603f33',
+      padding: { left: 7, right: 7, top: 3, bottom: 3 },
+    })).setOrigin(0.5).setDepth(3);
+    this.stageButtons.push({ index: targetIndex, button, lockLabel });
     if (position.type === 'battle') {
       const text = specialText(this, x, y + this.stageRouteOffsetY + 48, 27, 4, this.stages[targetIndex].name, '#ffffff', '#01070b')
         .setDepth(1);
@@ -681,7 +752,7 @@ export class SelectStageScene extends Phaser.Scene {
     button.on('pointerover', () => button.setTint(0xffe4b5));
     button.on('pointerout', () => button.clearTint());
     button.on('pointerup', () => {
-      if (this.isMoving || this.isStageInfoOpen) return;
+      if (this.isMoving || this.isStageInfoOpen || !this.isStageUnlocked(targetIndex)) return;
       this.movePlayerToStage(targetIndex);
     });
   }
@@ -708,6 +779,7 @@ export class SelectStageScene extends Phaser.Scene {
       console.error(`無効なステージインデックス: ${targetIndex}`);
       return;
     }
+    if (!this.isStageUnlocked(targetIndex)) return;
 
     if (targetIndex === this.currentStageIndex) {
       this.openStageInfo(this, this.stages[targetIndex]);

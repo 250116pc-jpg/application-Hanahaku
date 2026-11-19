@@ -149,6 +149,8 @@ export class SettingsScene extends Phaser.Scene {
     this.input.on('pointermove', move);
     this.input.on('pointerup', release);
     this.input.on('gameout', release);
+    this.scale.on(Phaser.Scale.Events.ENTER_FULLSCREEN, this.onFullscreenChanged, this);
+    this.scale.on(Phaser.Scale.Events.LEAVE_FULLSCREEN, this.onFullscreenChanged, this);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       this.active = false;
       this.drag = undefined;
@@ -156,6 +158,8 @@ export class SettingsScene extends Phaser.Scene {
       this.input.off('pointermove', move);
       this.input.off('pointerup', release);
       this.input.off('gameout', release);
+      this.scale.off(Phaser.Scale.Events.ENTER_FULLSCREEN, this.onFullscreenChanged, this);
+      this.scale.off(Phaser.Scale.Events.LEAVE_FULLSCREEN, this.onFullscreenChanged, this);
       this.voice.stop();
     });
     this.renderTab('sound');
@@ -308,8 +312,9 @@ export class SettingsScene extends Phaser.Scene {
         this.updateDisplay({ ...this.display, quality });
       });
     });
-    this.text(this.body, 410, 407, '画面設定は自動で保存され、再読み込み後に反映されます。\n実際のFPSは端末やディスプレイによって異なります。', 17, '#786449').setLineSpacing(10);
-    // TODO: 表示方法などの追加設定は、この画面設定タブに実装する。
+    this.text(this.body, 410, 407, 'ボーダーレス表示', 23);
+    this.displayOption(743, 427, 218, this.display.borderless ? 'ON' : 'OFF', this.display.borderless, () => this.toggleBorderless());
+    this.text(this.body, 410, 493, '画面設定は自動で保存されます。\n実際のFPSは端末やディスプレイによって異なります。', 17, '#786449').setLineSpacing(8);
   }
   private displayOption(x: number, y: number, width: number, label: string, selected: boolean, onClick: () => void): void {
     const image = this.artButton(this.body, x, y, width, 53, label, () => {
@@ -336,7 +341,7 @@ export class SettingsScene extends Phaser.Scene {
   private renderCredits(): void {
     this.text(this.body, 410, 245, 'フラワーリンク  − Flower link −', 23);
     this.text(this.body, 410, 287, [
-      '制作：Aチーム（中村・武田・斎藤）',
+      '制作：チームTARA',
       '音声：VOICEVOX:ずんだもん',
       'BGM：PeriTune',
       '  Frosylva / Harbor Morning / Ancient Gust / Harvest6 / Glimmering Woods',
@@ -375,6 +380,24 @@ export class SettingsScene extends Phaser.Scene {
    * 処理内容 : 案内文と音声を再生する
    * ================================== */
   private speak(message: string): void { this.message.setText(message); this.voice.speak(message); }
+  /* === [ 担当 : 250056 斎藤永聖 ] ===
+   * 処理内容 : ボーダーレス表示を切り替えてブラウザのフルスクリーン状態へ保存する
+   * ================================== */
+  private toggleBorderless(): void {
+    if (this.scale.isFullscreen) {
+      this.scale.stopFullscreen();
+      return;
+    }
+    this.scale.startFullscreen();
+  }
+  /* === [ 担当 : 250056 斎藤永聖 ] ===
+   * 処理内容 : フルスクリーンの状態変化を画面設定へ反映する
+   * ================================== */
+  private onFullscreenChanged(): void {
+    const borderless = this.scale.isFullscreen;
+    if (this.display.borderless === borderless) return;
+    this.updateDisplay({ ...this.display, borderless });
+  }
   /* === [ 担当 : 250082 武田優人 / 250056 斎藤永聖 ] ===
    * 処理内容 : 設定を反映して元の画面へ戻る
    * ================================== */

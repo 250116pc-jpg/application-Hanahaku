@@ -236,7 +236,7 @@ export class FormScene extends Phaser.Scene {
       })
       const owned = new Set(this.flowers.map(f => f.id))
       const normalize = (slots: Array<number | null>) => slots.map(id => id !== null && owned.has(id) ? id : null)
-      this.saved = normalize(loadFormation())
+      this.saved = normalize(loadFormation(owned))
       this.manager = new FormationManager(this.flowers, normalize(draft ?? this.saved))
       if (!owned.has(this.selectedId ?? -1)) this.selectedId = this.manager.getFormation().find(id => id !== null) ?? this.flowers[0]?.id ?? null
       this.status = progress.length > this.flowers.length ? '一部の所持花は編成用の基本データが未登録です。' : this.flowers.length ? '' : '契約済みの花がありません。図鑑・花契の案内を確認してください。'

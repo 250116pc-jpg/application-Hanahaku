@@ -41,22 +41,32 @@ function flowerTrainingStats(int $id, int $level): array {
     return $stats;
 }
 /* === [ 担当 : 250082 武田優人 ] ===
- * 処理内容 : 素材と育成状態を検証して同時に保存する
+ * 処理内容 : 複数素材の用途・所持数・育成状態を検証して同時に保存する
  * ================================== */
 function upgradeFlowerLevel(PDO $pdo, int $userId, array $body, bool $skill = false): array {
-    foreach (['flowerId','itemId','quantity','expectedLevel'] as $key) {
+    foreach (['flowerId','expectedLevel'] as $key) {
         if (!isset($body[$key]) || !is_int($body[$key]) || $body[$key] < 1) throw new RuntimeException('強化内容を確認してください。', 422);
     }
     if (!isset($body['expectedExp']) || !is_string($body['expectedExp']) || !preg_match('/^[0-9]+$/D', $body['expectedExp'])) throw new RuntimeException('強化前の経験値が正しくありません。', 422);
     $rules = flowerTrainingRules();
-    $perItem = $rules['nutrientExp'][(string)$body['itemId']] ?? 0;
+    // 旧クライアントの単一素材形式も受け付ける。新形式との混在は拒否する。
+    $materials = $body['materials'] ?? [['itemId'=>$body['itemId'] ?? null, 'quantity'=>$body['quantity'] ?? null]];
+    if (isset($body['materials']) && (isset($body['itemId']) || isset($body['quantity']))) throw new RuntimeException('素材の送信形式を確認してください。', 422);
+    $allowed = $skill ? $rules['skill']['seedElements'] : $rules['nutrientExp'];
+    if (!is_array($materials) || !array_is_list($materials) || count($materials) < 1 || count($materials) > count($allowed)) throw new RuntimeException('使用する素材を選択してください。', 422);
+    $element = null;
     if ($skill) {
         if (!in_array($body['flowerId'], $rules['enabledFlowerIds'], true)) throw new RuntimeException('この花はまだ育成できません。', 422);
         $definition = json_decode(file_get_contents(__DIR__ . '/' . str_pad((string)$body['flowerId'], 3, '0', STR_PAD_LEFT) . '.json'), true, 512, JSON_THROW_ON_ERROR);
-        $seed = $rules['skill']['seedElements'][(string)$body['itemId']] ?? null;
-        $perItem = $seed === null ? 0 : ($seed === $definition['element'] ? $rules['skill']['matchingExp'] : $rules['skill']['otherExp']);
+        $element = $definition['element'];
     }
-    if ($perItem < 1) throw new RuntimeException('強化素材を選択してください。', 422);
+    $units = [];
+    foreach ($materials as $material) {
+        if (!is_array($material) || !isset($material['itemId'], $material['quantity']) || !is_int($material['itemId']) || !is_int($material['quantity']) || $material['quantity'] < 1) throw new RuntimeException('強化素材と個数を確認してください。', 422);
+        $key = (string)$material['itemId'];
+        if (!isset($allowed[$key]) || isset($units[$key])) throw new RuntimeException('素材の用途または重複を確認してください。', 422);
+        $units[$key] = $skill ? ($allowed[$key] === $element ? $rules['skill']['matchingExp'] : $rules['skill']['otherExp']) : $allowed[$key];
+    }
     flowerTrainingStats($body['flowerId'], 1);
     $thresholds = $skill ? $rules['skill']['thresholds'] : flowerExperienceThresholds(); $cap = end($thresholds);
     $maxLevel = count($thresholds);
@@ -78,13 +88,22 @@ function upgradeFlowerLevel(PDO $pdo, int $userId, array $body, bool $skill = fa
         if ($level >= $maxLevel) throw new RuntimeException('レベル上限に到達しています。', 422);
         // BIGINTを整数化する前に、今回の小さな経験値テーブルの範囲内か確認する。
         if ($level < 1 || !preg_match('/^[0-9]+$/D', $exp) || strlen($exp) > strlen((string)$cap) || (int)$exp < $thresholds[$level - 1] || (int)$exp >= $thresholds[$level]) throw new RuntimeException('保存レベルと累計EXPが一致しません。', 422);
-        $current = (int)$exp; $key = (string)$body['itemId']; $owned = $items->$key ?? 0;
-        $maximum = min($owned, (int)ceil(($cap - $current) / $perItem));
-        if ($body['quantity'] > $maximum) throw new RuntimeException('所持数または上限到達に必要な個数を超えています。', 422);
-        $newExp = min($cap, $current + $perItem * $body['quantity']);
+        $current = (int)$exp; $totalExp = 0;
+        foreach ($materials as $material) {
+            $key = (string)$material['itemId']; $owned = $items->$key ?? 0;
+            // 乗算前に数量を制限し、巨大なリクエストによる整数オーバーフローも防ぐ。
+            if ($material['quantity'] > min($owned, (int)ceil(($cap - $current) / $units[$key]))) throw new RuntimeException('所持数または上限到達に必要な個数を超えています。', 422);
+            $totalExp += $units[$key] * $material['quantity'];
+        }
+        // 最小EXPの素材を1個抜いても上限に届く選択は、余分な消費として拒否する。
+        if ($totalExp - min($units) >= $cap - $current) throw new RuntimeException('上限に必要な個数を超えています。素材を減らしてください。', 422);
+        $newExp = min($cap, $current + $totalExp);
         $newLevel = $level;
         while ($newLevel < $maxLevel && $newExp >= $thresholds[$newLevel]) $newLevel++;
-        $items->$key = $owned - $body['quantity'];
+        foreach ($materials as $material) {
+            $key = (string)$material['itemId'];
+            $items->$key -= $material['quantity'];
+        }
         $query = $pdo->prepare('UPDATE users SET items = ? WHERE id = ?');
         $query->execute([json_encode($items, JSON_THROW_ON_ERROR), $userId]);
         $query = $pdo->prepare($skill

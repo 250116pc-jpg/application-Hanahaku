@@ -21,7 +21,6 @@ import { StoryScene } from './Scene/story/StoryScene';
 import { EncyclopediaScene } from './Scene/EncyclopediaScene';
 import { FormScene } from './form/form'
 import { ShopScene } from './Scene/shop/shop'
-import { RegisterScene } from './Scene/RegisterScene';
 import { LoginScene } from './Scene/LoginScene';
 import './style.css';
 import { loadDisplaySettings } from './display/DisplaySettings';
@@ -40,8 +39,14 @@ const config: Phaser.Types.Core.GameConfig = {
   height: 720,
 
   scale: {
+    // FITはキャンバスの縦横比を1280×720のまま維持し、画面に収まる最大サイズへ拡大する。
+    // 画面比率と異なる端末では、上下または左右に水色の余白を残してもよい。
     mode: Phaser.Scale.FIT,
-    autoCenter: Phaser.Scale.CENTER_BOTH
+    autoCenter: Phaser.Scale.CENTER_BOTH,
+    width: 1280,
+    height: 720,
+    // 図鑑などはdocument.body直下のDOMで描画するため、キャンバスだけでなくページ全体をフルスクリーンに含める。
+    fullscreenTarget: document.documentElement
   },
 
   parent: 'app',
@@ -53,7 +58,6 @@ const config: Phaser.Types.Core.GameConfig = {
     ...(import.meta.env.DEV && new URLSearchParams(location.search).get('flower-test') === '1' ? [EncyclopediaScene] : []),
     TitleScene,
     LoginScene,
-    RegisterScene,
     HomeScene,
     SettingsScene,
     TrainingScene,
@@ -87,6 +91,38 @@ const config: Phaser.Types.Core.GameConfig = {
 async function startGame(): Promise<void> {
   await loadGlobalPlayerCharacter();
   const game = new Phaser.Game(config);
+  if (displaySettings.borderless) {
+    // ブラウザは読み込み直後のFullscreen API呼び出しを拒否するため、最初の実タップ時に要求する。
+    const cleanup = (): void => {
+      document.removeEventListener('pointerup', onFirstPointerUp);
+      game.scale.off(Phaser.Scale.Events.ENTER_FULLSCREEN, cleanup);
+      game.scale.off(Phaser.Scale.Events.FULLSCREEN_UNSUPPORTED, onFullscreenUnsupported);
+      game.scale.off(Phaser.Scale.Events.FULLSCREEN_FAILED, onFullscreenFailed);
+      game.events.off(Phaser.Core.Events.DESTROY, cleanup);
+    };
+    const onFullscreenUnsupported = (): void => {
+      console.warn('このブラウザではフルスクリーン表示を利用できません。');
+      cleanup();
+    };
+    const onFullscreenFailed = (error: Error): void => {
+      console.warn('フルスクリーン表示を開始できませんでした。', error);
+      cleanup();
+    };
+    const onFirstPointerUp = (event: PointerEvent): void => {
+      if (!event.isTrusted) return;
+      if (game.scale.isFullscreen) {
+        cleanup();
+        return;
+      }
+      game.scale.startFullscreen();
+    };
+
+    game.scale.once(Phaser.Scale.Events.ENTER_FULLSCREEN, cleanup);
+    game.scale.once(Phaser.Scale.Events.FULLSCREEN_UNSUPPORTED, onFullscreenUnsupported);
+    game.scale.once(Phaser.Scale.Events.FULLSCREEN_FAILED, onFullscreenFailed);
+    game.events.once(Phaser.Core.Events.DESTROY, cleanup);
+    document.addEventListener('pointerup', onFirstPointerUp);
+  }
   if (isBattlePreview) Object.assign(window, { __battlePreviewGame: game });
 }
 

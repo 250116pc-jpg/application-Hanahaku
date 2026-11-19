@@ -17,6 +17,7 @@ import terrainImg from '../../assets/stage/Cainos/Pixel Art Platformer - Village
 import propsImg from '../../assets/stage/Cainos/Pixel Art Platformer - Village Props/Texture/TX Village Props.png';
 import backgroundImg from '../../assets/stage/flower_ruins/sanctuary-twilight.png';
 import bagButton from '../../assets/ui/button/bag_button.png';
+import settingButton from '../../assets/ui/button/setting_button.png';
 import attackButton from '../../assets/ui/button/attack_button.png';
 import jumpButton from '../../assets/ui/button/jump_button.png';
 import skillButton from '../../assets/ui/button/skill_button.png';
@@ -115,6 +116,7 @@ export class StageScene extends Phaser.Scene {
     this.load.image('stage-props', propsImg);
     this.load.image('stage-background', backgroundImg);
     this.load.image('stage-bag', bagButton);
+    this.load.image('stage-settings', settingButton);
     this.load.image('stage-attack', attackButton);
     this.load.image('stage-jump', jumpButton);
     this.load.image('stage-skill', skillButton);
@@ -150,6 +152,9 @@ export class StageScene extends Phaser.Scene {
     loadCharacterAnimation(this, 'player_fall', playerData.fall);
     loadCharacterAnimation(this, 'player_land', playerData.land);
     loadCharacterAnimation(this, 'player_attack', playerData.attack);
+    loadCharacterAnimation(this, 'player_airAttack', playerData.airAttack);
+    loadCharacterAnimation(this, 'player_attack2', playerData.attack2);
+    loadCharacterAnimation(this, 'player_attack3', playerData.attack3);
     loadCharacterAnimation(this, 'player_skill', playerData.skill);
     loadCharacterAnimation(this, 'player_defend', playerData.defend);
     loadCharacterAnimation(this, 'player_death', playerData.death);
@@ -161,6 +166,18 @@ export class StageScene extends Phaser.Scene {
    * 処理内容 : マップ・主人公・敵・戦闘HUDと衝突判定を組み立てる
    * ================================== */
   create(data: { stageId?: number; stageNumber?: string } = {}): void {
+    // 高解像度の設定画像をUI向けに縮小し、ドット絵用の描画設定でも輪郭を滑らかにする。
+    if (!this.textures.exists('stage-settings-ui')) {
+      const texture = this.textures.createCanvas('stage-settings-ui', 192, 192);
+      if (texture) {
+        const context = texture.getContext();
+        context.imageSmoothingEnabled = true;
+        context.imageSmoothingQuality = 'high';
+        context.drawImage(this.textures.get('stage-settings').getSourceImage() as HTMLImageElement, 0, 0, 192, 192);
+        texture.refresh();
+        texture.setFilter(Phaser.Textures.FilterMode.LINEAR);
+      }
+    }
     battleNow(this);
     this.isEnding = false;
     this.rescued = false;
@@ -372,7 +389,7 @@ export class StageScene extends Phaser.Scene {
       playerData.idle.frameRate
     );
 
-    for (const action of ['jump', 'fall', 'land', 'attack', 'skill', 'defend', 'death', 'drink'] as const) {
+    for (const action of ['jump', 'fall', 'land', 'airAttack', 'attack', 'attack2', 'attack3', 'skill', 'defend', 'death', 'drink'] as const) {
       const animation = playerData[action];
       const textureKey = `player_${action}`;
       createCharacterAnimation(
@@ -381,7 +398,7 @@ export class StageScene extends Phaser.Scene {
         textureKey,
         animation.frameCount,
         animation.frameRate,
-        action === 'land' || action === 'attack' || action === 'skill' ||
+        action === 'airAttack' || action === 'jump' || action === 'land' || action === 'attack' || action === 'attack2' || action === 'attack3' || action === 'skill' ||
           action === 'defend' || action === 'death' || action === 'drink' ? 0 : -1
       );
     }

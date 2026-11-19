@@ -9,6 +9,7 @@
 export interface DisplaySettings {
   maxFps: 30 | 60 | 120;
   quality: 'crisp' | 'smooth';
+  borderless: boolean;
 }
 const KEY = 'flowerLinkDisplaySettings';
 /* === [ 担当 : 250056 斎藤永聖 ] ===
@@ -20,8 +21,9 @@ export function loadDisplaySettings(): DisplaySettings {
     return {
       maxFps: [30, 60, 120].includes(value?.maxFps) ? value.maxFps : 60,
       quality: value?.quality === 'smooth' ? 'smooth' : 'crisp',
+      borderless: value?.borderless === true,
     };
-  } catch { return { maxFps: 60, quality: 'crisp' }; }
+  } catch { return { maxFps: 60, quality: 'crisp', borderless: false }; }
 }
 /* === [ 担当 : 250056 斎藤永聖 ] ===
  * 処理内容 : 画質と最大FPSをブラウザに保存する

@@ -13,6 +13,7 @@ import { requestShop } from '../shop/ShopApi';
 import { getShopItemImageUrl } from '../shop/assets';
 import { completeStage } from './StageProgress';
 import { prepareFlowerContract, readFlowerContracts } from './flowerContracts';
+import contractBackground from '../../assets/images/background/auth-meadow.png';
 
 /* === [ 担当 : 250116 中村伊安 ] ===
  * 処理内容 : 契約操作・消費・結果遷移を定義する
@@ -37,6 +38,7 @@ export class ContractScene extends Phaser.Scene {
    * ================================== */
   preload(): void {
     if (!this.textures.exists(potionTexture)) this.load.image(potionTexture, getShopItemImageUrl(potionId));
+    if (!this.textures.exists('contract-background')) this.load.image('contract-background', contractBackground);
   }
 
   create(data: ContractSceneData): void {
@@ -55,7 +57,9 @@ export class ContractScene extends Phaser.Scene {
      * 処理内容 : 契約画面を覆う背景と表示部品の生成処理を作る
      * ================================== */
     const dialog = scene.add.container().setDepth(5000);
-    dialog.add(scene.add.rectangle(640, 360, 1280, 720, 0x08111e, 1).setInteractive());
+     const { width, height } = scene.scale;
+     dialog.add(scene.add.image(width / 2, height / 2, 'contract-background').setDisplaySize(width, height));
+     dialog.add(scene.add.rectangle(width / 2, height / 2, width, height, 0x08111e, 0.48).setInteractive());
 
     const panel = (x: number, y: number, width: number, height: number, fill = 0x142235) => {
       const frame = scene.add.graphics({ x, y });
@@ -167,14 +171,12 @@ export class ContractScene extends Phaser.Scene {
       try {
         if (!contractMessage) {
           const state = await requestShop('contract', potionId, 1, flower.id);
-          count = state.items[String(potionId)] ?? 0;
           let localOutcome: 'new' | 'duplicate' = 'new';
-          try {
-            localOutcome = prepareFlowerContract(flower.id)();
-          } catch (error) {
-            console.warn('Could not update local flower collection', error);
-          }
+          // Keep the existing encyclopedia and duplicate counters in sync after DB success.
+          try { localOutcome = prepareFlowerContract(flower.id)(); }
+          catch { /* A browser storage failure must not repeat a completed contract. */ }
           const outcome = state.contractOutcome ?? localOutcome;
+          count = state.items[String(potionId)] ?? 0;
           contractMessage = outcome === 'new'
             ? `${flower.name}と契約しました`
             : `${flower.name}の花片 ×1 を獲得しました`;

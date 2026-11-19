@@ -1,19 +1,21 @@
-import maleAttack2 from '../assets/characters/1001/sprites/attack2-v5.png';
-import maleAttack from '../assets/characters/1001/sprites/attack-v7.png';
-import maleDashAttack from '../assets/characters/1001/sprites/dashAttack-v5.png';
-import maleDeath from '../assets/characters/1001/sprites/death-v5.png';
-import maleDefend from '../assets/characters/1001/sprites/defend-v5.png';
-import maleDownwardAttack from '../assets/characters/1001/sprites/downwardAttack-v5.png';
-import maleDrink from '../assets/characters/1001/sprites/drink-v5.png';
-import maleDuckingAttack from '../assets/characters/1001/sprites/duckingAttack-v5.png';
-import maleFall from '../assets/characters/1001/sprites/fall-v6.png';
-import maleHurt from '../assets/characters/1001/sprites/hurt-v5.png';
-import maleIdle from '../assets/characters/1001/sprites/idle-v6.png';
-import maleJump from '../assets/characters/1001/sprites/jump-v6.png';
-import maleLand from '../assets/characters/1001/sprites/land-v6.png';
-import maleRun from '../assets/characters/1001/sprites/run-v7.png';
-import maleSkill from '../assets/characters/1001/sprites/skill-v5.png';
-import maleWin from '../assets/characters/1001/sprites/win-v5.png';
+import maleAirAttack from '../assets/characters/1001/sprites/air-plunge-vertical.png';
+import maleAttack2 from '../assets/characters/1001/sprites/combo-2-distinct.png';
+import maleAttack3 from '../assets/characters/1001/sprites/combo-3-distinct.png';
+import maleAttack from '../assets/characters/1001/sprites/attack-heavy-down.png';
+import maleDashAttack from '../assets/characters/1001/sprites/dashAttack-polished.png';
+import maleDeath from '../assets/characters/1001/sprites/death-polished.png';
+import maleDefend from '../assets/characters/1001/sprites/defend-polished.png';
+import maleDownwardAttack from '../assets/characters/1001/sprites/downwardAttack-polished.png';
+import maleDrink from '../assets/characters/1001/sprites/drink-polished.png';
+import maleDuckingAttack from '../assets/characters/1001/sprites/duckingAttack-polished.png';
+import maleFall from '../assets/characters/1001/sprites/fall-polished.png';
+import maleHurt from '../assets/characters/1001/sprites/hurt-polished.png';
+import maleIdle from '../assets/characters/1001/sprites/idle-polished.png';
+import maleJump from '../assets/characters/1001/sprites/jump-polished.png';
+import maleLand from '../assets/characters/1001/sprites/land-polished.png';
+import maleRun from '../assets/characters/1001/sprites/run-polished.png';
+import maleSkill from '../assets/characters/1001/sprites/skill-polished.png';
+import maleWin from '../assets/characters/1001/sprites/win-polished.png';
 import femaleAttack2 from '../assets/characters/player/Red Cape Knight Character Asset/Player_Red sheets/Red_attack_2.png';
 import femaleAttack from '../assets/characters/player/Red Cape Knight Character Asset/Player_Red sheets/Red_attack_1.png';
 import femaleDashAttack from '../assets/characters/player/Red Cape Knight Character Asset/Player_Red sheets/Red_attack_3_Dash.png';
@@ -36,7 +38,7 @@ export type PlayerCharacter = 'male' | 'female';
 export type PlayerAnimationName =
   | 'idle' | 'run' | 'jump' | 'fall' | 'land' | 'attack' | 'skill'
   | 'defend' | 'death' | 'drink' | 'hurt' | 'win' | 'attack2'
-  | 'dashAttack' | 'downwardAttack' | 'duckingAttack';
+  | 'airAttack' | 'attack3' | 'dashAttack' | 'downwardAttack' | 'duckingAttack';
 
 export interface PlayerAnimationData {
   readonly image: string;
@@ -49,25 +51,28 @@ export interface PlayerAnimationData {
 type PlayerAnimationSet = Record<PlayerAnimationName, PlayerAnimationData>;
 
 const maleAnimations: PlayerAnimationSet = {
-  idle: { image: maleIdle, frameWidth: 192, frameHeight: 128, frameCount: 6, frameRate: 8 },
-  run: { image: maleRun, frameWidth: 192, frameHeight: 128, frameCount: 8, frameRate: 12 },
-  jump: { image: maleJump, frameWidth: 192, frameHeight: 128, frameCount: 4, frameRate: 10 },
-  fall: { image: maleFall, frameWidth: 192, frameHeight: 128, frameCount: 2, frameRate: 8 },
-  land: { image: maleLand, frameWidth: 192, frameHeight: 128, frameCount: 4, frameRate: 12 },
-  attack: { image: maleAttack, frameWidth: 192, frameHeight: 128, frameCount: 8, frameRate: 15 },
-  skill: { image: maleSkill, frameWidth: 192, frameHeight: 128, frameCount: 6, frameRate: 12 },
-  defend: { image: maleDefend, frameWidth: 192, frameHeight: 128, frameCount: 6, frameRate: 8 },
-  death: { image: maleDeath, frameWidth: 192, frameHeight: 128, frameCount: 6, frameRate: 8 },
-  drink: { image: maleDrink, frameWidth: 192, frameHeight: 128, frameCount: 6, frameRate: 10 },
-  hurt: { image: maleHurt, frameWidth: 192, frameHeight: 128, frameCount: 5, frameRate: 12 },
-  win: { image: maleWin, frameWidth: 192, frameHeight: 128, frameCount: 6, frameRate: 8 },
-  attack2: { image: maleAttack2, frameWidth: 192, frameHeight: 128, frameCount: 6, frameRate: 12 },
-  dashAttack: { image: maleDashAttack, frameWidth: 192, frameHeight: 128, frameCount: 6, frameRate: 12 },
-  downwardAttack: { image: maleDownwardAttack, frameWidth: 192, frameHeight: 128, frameCount: 6, frameRate: 12 },
-  duckingAttack: { image: maleDuckingAttack, frameWidth: 192, frameHeight: 128, frameCount: 6, frameRate: 12 },
+  airAttack: { image: maleAirAttack, frameWidth: 384, frameHeight: 128, frameCount: 6, frameRate: 16 },
+  idle: { image: maleIdle, frameWidth: 384, frameHeight: 128, frameCount: 6, frameRate: 8 },
+  run: { image: maleRun, frameWidth: 384, frameHeight: 128, frameCount: 8, frameRate: 12 },
+  jump: { image: maleJump, frameWidth: 384, frameHeight: 128, frameCount: 4, frameRate: 10 },
+  fall: { image: maleFall, frameWidth: 384, frameHeight: 128, frameCount: 2, frameRate: 8 },
+  land: { image: maleLand, frameWidth: 384, frameHeight: 128, frameCount: 4, frameRate: 12 },
+  attack: { image: maleAttack, frameWidth: 384, frameHeight: 128, frameCount: 10, frameRate: 16 },
+  skill: { image: maleSkill, frameWidth: 384, frameHeight: 128, frameCount: 6, frameRate: 12 },
+  defend: { image: maleDefend, frameWidth: 384, frameHeight: 128, frameCount: 6, frameRate: 8 },
+  death: { image: maleDeath, frameWidth: 384, frameHeight: 128, frameCount: 6, frameRate: 8 },
+  drink: { image: maleDrink, frameWidth: 384, frameHeight: 128, frameCount: 6, frameRate: 10 },
+  hurt: { image: maleHurt, frameWidth: 384, frameHeight: 128, frameCount: 6, frameRate: 12 },
+  win: { image: maleWin, frameWidth: 384, frameHeight: 128, frameCount: 6, frameRate: 8 },
+  attack2: { image: maleAttack2, frameWidth: 384, frameHeight: 128, frameCount: 8, frameRate: 16 },
+  attack3: { image: maleAttack3, frameWidth: 384, frameHeight: 128, frameCount: 8, frameRate: 14 },
+  dashAttack: { image: maleDashAttack, frameWidth: 384, frameHeight: 128, frameCount: 6, frameRate: 12 },
+  downwardAttack: { image: maleDownwardAttack, frameWidth: 384, frameHeight: 128, frameCount: 6, frameRate: 12 },
+  duckingAttack: { image: maleDuckingAttack, frameWidth: 384, frameHeight: 128, frameCount: 6, frameRate: 12 },
 };
 
 const femaleAnimations: PlayerAnimationSet = {
+  airAttack: { image: femaleDownwardAttack, frameWidth: 192, frameHeight: 128, frameCount: 11, frameRate: 16 },
   idle: { image: femaleIdle, frameWidth: 192, frameHeight: 128, frameCount: 5, frameRate: 8 },
   run: { image: femaleRun, frameWidth: 192, frameHeight: 128, frameCount: 9, frameRate: 12 },
   jump: { image: femaleJump, frameWidth: 192, frameHeight: 128, frameCount: 4, frameRate: 10 },
@@ -81,6 +86,7 @@ const femaleAnimations: PlayerAnimationSet = {
   hurt: { image: femaleHurt, frameWidth: 192, frameHeight: 128, frameCount: 5, frameRate: 12 },
   win: { image: femaleWin, frameWidth: 192, frameHeight: 128, frameCount: 5, frameRate: 8 },
   attack2: { image: femaleAttack2, frameWidth: 192, frameHeight: 128, frameCount: 6, frameRate: 12 },
+  attack3: { image: femaleDashAttack, frameWidth: 192, frameHeight: 128, frameCount: 7, frameRate: 14 },
   dashAttack: { image: femaleDashAttack, frameWidth: 192, frameHeight: 128, frameCount: 7, frameRate: 12 },
   downwardAttack: { image: femaleDownwardAttack, frameWidth: 192, frameHeight: 128, frameCount: 11, frameRate: 12 },
   duckingAttack: { image: femaleDuckingAttack, frameWidth: 192, frameHeight: 128, frameCount: 6, frameRate: 12 },
@@ -90,6 +96,12 @@ let selectedCharacter: PlayerCharacter = 'male';
 
 export function getPlayerAnimation(name: PlayerAnimationName): PlayerAnimationData {
   return (selectedCharacter === 'female' ? femaleAnimations : maleAnimations)[name];
+}
+
+export function getPlayerAttackTiming(step = 0): { impactFrame: number; range: number } {
+  return selectedCharacter === 'male'
+    ? { impactFrame: step === 0 ? 7 : 5, range: 160 }
+    : { impactFrame: 5, range: 125 };
 }
 
 export async function loadGlobalPlayerCharacter(): Promise<void> {

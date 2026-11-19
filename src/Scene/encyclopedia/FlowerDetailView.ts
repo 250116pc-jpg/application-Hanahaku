@@ -1,7 +1,7 @@
 /* ==================================
  * 期末テスト提出プログラム
- * 学籍番号：250056、250116
- * 氏名：斎藤永聖、中村伊安
+ * 学籍番号：250082、250056、250116
+ * 氏名：武田優人、斎藤永聖、中村伊安
  * ================================== */
 import type { PrototypeFlower } from './contractPreview'
 import buttonImage from '../../assets/images/encyclopedia/journal-button.png'
@@ -24,7 +24,7 @@ function node<K extends keyof HTMLElementTagNameMap>(tag: K, className = '', tex
 
 /** Read-only catalog pages. Contract testing never changes the real party or battle data. */
 export function mountFlowerDetail(flower: PrototypeFlower, options: {
-  owned: boolean; testMode: boolean; unknownUrl: string; onClose: () => void; onHome: () => void; onContract: () => void
+  backLabel?: string; owned: boolean; testMode: boolean; unknownUrl: string; onClose: () => void; onHome: () => void; onContract: () => void
 }): () => void {
   /* === [ 担当 : 250056 斎藤永聖 ] ===
    * 処理内容 : 花の詳細をHTMLで表示する
@@ -61,8 +61,11 @@ export function mountFlowerDetail(flower: PrototypeFlower, options: {
   const render = (): void => {
     root.replaceChildren()
     const book = node('article', 'flower-book')
+    /* === [ 担当 : 250082 武田優人 ] ===
+     * 処理内容 : 呼び出し元に応じた戻るボタンの文字と操作を設定する
+     * ================================== */
     const header = node('header', 'book-header')
-    header.append(button('‹ 図鑑に戻る', options.onClose, 'book-button book-back'), node('span', 'book-brand', '❀ 花の図鑑'))
+    header.append(button(options.backLabel ?? '‹ 図鑑に戻る', options.onClose, 'book-button book-back'), node('span', 'book-brand', '❀ 花の図鑑'))
     const nav = node('nav', 'book-tabs'); nav.setAttribute('aria-label', '詳細ページ')
     for (const [key, label] of [['ability', '能力・スキル'], ['botanical', '花の説明']] as const) {
       const tab = button(label, () => { page = key; render() }, 'book-tab')
