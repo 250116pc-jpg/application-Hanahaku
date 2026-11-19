@@ -10,6 +10,7 @@ export interface DisplaySettings {
   maxFps: 30 | 60 | 120;
   quality: 'crisp' | 'smooth';
   borderless: boolean;
+  battleButtonSize: 'standard' | 'large';
 }
 const KEY = 'flowerLinkDisplaySettings';
 /* === [ 担当 : 250056 斎藤永聖 ] ===
@@ -22,8 +23,9 @@ export function loadDisplaySettings(): DisplaySettings {
       maxFps: [30, 60, 120].includes(value?.maxFps) ? value.maxFps : 60,
       quality: value?.quality === 'smooth' ? 'smooth' : 'crisp',
       borderless: value?.borderless === true,
+      battleButtonSize: value?.battleButtonSize === 'large' ? 'large' : 'standard',
     };
-  } catch { return { maxFps: 60, quality: 'crisp', borderless: false }; }
+  } catch { return { maxFps: 60, quality: 'crisp', borderless: false, battleButtonSize: 'standard' }; }
 }
 /* === [ 担当 : 250056 斎藤永聖 ] ===
  * 処理内容 : 画質と最大FPSをブラウザに保存する

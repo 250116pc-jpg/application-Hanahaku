@@ -5,6 +5,7 @@
  * ================================== */
 import { transitionWithLoading, trackSceneLoading } from '../../utils/ui/scene-loading';
 import { isBattlePreview } from '../../debug';
+import { loadDisplaySettings } from '../../display/DisplaySettings';
 import { battleNow } from './BattleClock';
 import { playSe, playUiSe } from '../../audio/BgmManager';
 import retreatPanel from '../../assets/inventory-fantasy/panel-frame.png';
@@ -42,6 +43,29 @@ export class StageHUD {
    * 処理内容 : 状態・能力値・操作対象を保持する
    * ================================== */
   private readonly depth = 2000;
+  private readonly controlButtons = new Map<string, { container: Phaser.GameObjects.Container; size: number }>();
+  private placeRetreat?: () => void;
+
+  /* === [ 担当 : 250056 斎藤永聖 ] ===
+   * 処理内容 : 戦闘ボタンの画像・タップ領域を一緒に拡大し、花の枠と画面端から離して配置する
+   * ================================== */
+  private applyControlLayout(): void {
+    const large = loadDisplaySettings().battleButtonSize === 'large';
+    const w = this.scene.scale.width;
+    const h = this.scene.scale.height;
+    const layout: Record<string, [number, number, number]> = {
+      'stage-bag': [72, 184, large ? 104 : 74],
+      'stage-settings-ui': [72, 304, large ? 104 : 74],
+      'stage-attack': [w - 270, h - 100, large ? 160 : 130],
+      'stage-jump': [w - 100, h - 100, large ? 160 : 130],
+      'stage-guard': [w - 100, h - 282, large ? 140 : 106],
+    };
+    for (const [key, button] of this.controlButtons) {
+      const [x, y, size] = layout[key];
+      button.container.setPosition(x, y).setScale(size / button.size);
+    }
+    this.placeRetreat?.();
+  }
   private readonly scene: Phaser.Scene;
   private readonly player?: Player;
   private readonly enemies: readonly CombatTarget[];
@@ -106,8 +130,21 @@ export class StageHUD {
    * 処理内容 : HP・ステージ名・操作ボタン・編成花のHUDを組み立てる
    * ================================== */
   public create(stageId?: number, stageNumber?: string): void {
+    // 移動・防御・攻撃などを複数の指で同時に操作できるようにする。
+    const missingPointers = 4 - this.scene.input.manager.pointersTotal;
+    if (missingPointers > 0) this.scene.input.addPointer(missingPointers);
     this.createStageLabel(stageId, stageNumber);
     this.createUtilityButtons();
+    this.applyControlLayout();
+    const refreshControls = (): void => this.applyControlLayout();
+    this.scene.events.on(Phaser.Scenes.Events.RESUME, refreshControls);
+    this.scene.events.on(Phaser.Scenes.Events.WAKE, refreshControls);
+    this.scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      this.scene.events.off(Phaser.Scenes.Events.RESUME, refreshControls);
+      this.scene.events.off(Phaser.Scenes.Events.WAKE, refreshControls);
+      this.controlButtons.clear();
+      this.placeRetreat = undefined;
+    });
     if (stageId === 2) this.createOpeningBattleGuide();
     trackSceneLoading(this.scene, this.initializeFlowerSkills(stageId ?? 2));
   }
@@ -277,7 +314,9 @@ export class StageHUD {
     /* === [ 担当 : 250116 中村伊安 ] ===
      * 処理内容 : 画面サイズに合わせて配置の基準を求める
      * ================================== */
+    const standardSize = size;
     const placeButton = (): void => {
+      size = loadDisplaySettings().battleButtonSize === 'large' ? 104 : standardSize;
       const canvasRect = canvas.getBoundingClientRect();
       const scaleX = canvasRect.width / this.scene.scale.width;
       const scaleY = canvasRect.height / this.scene.scale.height;
@@ -290,6 +329,7 @@ export class StageHUD {
     /* === [ 担当 : 250056 斎藤永聖 / 250116 中村伊安 ] ===
      * 処理内容 : 撤退ボタンをDOMへ追加し、押下と画面サイズ変更を監視する
      * ================================== */
+    this.placeRetreat = placeButton;
     document.body.appendChild(button);
     placeButton();
     const resizeObserver = new ResizeObserver(placeButton);
@@ -477,7 +517,7 @@ export class StageHUD {
     const width = this.scene.scale.width;
     const height = this.scene.scale.height;
     const gap = 10;
-    const totalW = Math.min(width * 0.72, 750);
+    const totalW = Math.min(width * 0.72, 700);
     const cardW = (totalW - gap * 3) / 4;
     const cardH = 150;
     const left = Math.max(16, Math.min(220, width - totalW - 16));
@@ -627,11 +667,12 @@ export class StageHUD {
     //攻撃
     this.imageButton(baseX - 154, h - 94, 130, '', 'stage-attack', () => this.player?.attack(this.enemies));
     // Flower cards are the skill buttons; this label reports the selected flower's skill state.
-    this.skillNameText = this.text(w - 24, h - 295, '', 14, '#fff4e8', 'bold').setOrigin(1, .5).setWordWrapWidth(240);
+    this.skillNameText = this.text(w - 190, h - 282, '', 14, '#fff4e8', 'bold').setOrigin(1, .5).setWordWrapWidth(150);
     this.updateSkillLabel();
     this.scene.time.addEvent({ delay: 50, loop: true, callback: () => this.updateSkillLabel() });
     //ジャンプ
     this.imageButton(baseX - 40, h - 64, 130, '', 'stage-jump', () => this.player?.jump());
+    this.applyControlLayout();
   }
 
   /* === [ 担当 : 250116 中村伊安 ] ===
@@ -657,6 +698,8 @@ export class StageHUD {
     const button = this.imageButton(x, y, 106, '', key, () => {}, held => this.player?.setGuardHeld(held));
     const label = this.text(x, y + 23, '防御', 19, '#f4dfb8', 'bold')
       .setOrigin(0.5).setDepth(this.depth + 4);
+    label.setPosition(0, 23).setScrollFactor(1);
+    this.controlButtons.get(key)!.container.add(label);
     this.scene.time.addEvent({ delay: 50, loop: true, callback: () => {
       const active = this.player?.isGuarding() === true;
       if (active) button.setTint(0xa0ebff);
@@ -677,8 +720,14 @@ export class StageHUD {
       .setScrollFactor(0).setDepth(this.depth + 5)
       .setInteractive(new Phaser.Geom.Rectangle(0, 0, size, size), Phaser.Geom.Rectangle.Contains);
     if (hitArea.input) hitArea.input.cursor = 'pointer';
-    this.text(x, y + size * 0.34, label, Math.max(10, size * 0.15), '#fff4e8', 'bold')
+    const caption = this.text(x, y + size * 0.34, label, Math.max(10, size * 0.15), '#fff4e8', 'bold')
       .setOrigin(0.5).setDepth(this.depth + 4);
+    const container = this.scene.add.container(x, y).setScrollFactor(0).setDepth(this.depth + 5);
+    image.setPosition(0, 0).setScrollFactor(1);
+    hitArea.setPosition(0, 0).setScrollFactor(1);
+    caption.setPosition(0, size * 0.34).setScrollFactor(1);
+    container.add([image, caption, hitArea]);
+    this.controlButtons.set(texture, { container, size });
     // setDisplaySize changes displayWidth/Height; preserve that base scale for hover feedback.
     /* === [ 担当 : 250116 中村伊安 ] ===
      * 処理内容 : クリック・キー操作と終了時の後片付けを設定する
