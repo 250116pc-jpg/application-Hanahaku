@@ -91,6 +91,38 @@ const config: Phaser.Types.Core.GameConfig = {
 async function startGame(): Promise<void> {
   await loadGlobalPlayerCharacter();
   const game = new Phaser.Game(config);
+  if (displaySettings.borderless) {
+    // ブラウザは読み込み直後のFullscreen API呼び出しを拒否するため、最初の実タップ時に要求する。
+    const cleanup = (): void => {
+      document.removeEventListener('pointerup', onFirstPointerUp);
+      game.scale.off(Phaser.Scale.Events.ENTER_FULLSCREEN, cleanup);
+      game.scale.off(Phaser.Scale.Events.FULLSCREEN_UNSUPPORTED, onFullscreenUnsupported);
+      game.scale.off(Phaser.Scale.Events.FULLSCREEN_FAILED, onFullscreenFailed);
+      game.events.off(Phaser.Core.Events.DESTROY, cleanup);
+    };
+    const onFullscreenUnsupported = (): void => {
+      console.warn('このブラウザではフルスクリーン表示を利用できません。');
+      cleanup();
+    };
+    const onFullscreenFailed = (error: Error): void => {
+      console.warn('フルスクリーン表示を開始できませんでした。', error);
+      cleanup();
+    };
+    const onFirstPointerUp = (event: PointerEvent): void => {
+      if (!event.isTrusted) return;
+      if (game.scale.isFullscreen) {
+        cleanup();
+        return;
+      }
+      game.scale.startFullscreen();
+    };
+
+    game.scale.once(Phaser.Scale.Events.ENTER_FULLSCREEN, cleanup);
+    game.scale.once(Phaser.Scale.Events.FULLSCREEN_UNSUPPORTED, onFullscreenUnsupported);
+    game.scale.once(Phaser.Scale.Events.FULLSCREEN_FAILED, onFullscreenFailed);
+    game.events.once(Phaser.Core.Events.DESTROY, cleanup);
+    document.addEventListener('pointerup', onFirstPointerUp);
+  }
   if (isBattlePreview) Object.assign(window, { __battlePreviewGame: game });
 }
 
