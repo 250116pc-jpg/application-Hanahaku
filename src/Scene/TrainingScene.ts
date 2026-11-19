@@ -4,7 +4,7 @@
  * 氏名：武田優人、中村伊安
  * ================================== */
 import Phaser from 'phaser';
-import { transitionWithLoading, trackSceneLoading } from '../utils/ui/scene-loading';
+import { openSceneWithLoading, trackSceneLoading } from '../utils/ui/scene-loading';
 import testData, { getFlowerSkill } from './test_data';
 import type { CharacterData } from './test_data';
 import { SCENE_KEYS } from './sceneKeys';
@@ -315,7 +315,7 @@ export class TrainingScene extends Phaser.Scene {
     this.portraitLevel = this.text(62, 459, `Lv.${flower.level}`, 24);
     this.text(129, 466, `/ ${flower.maxLevel}`, 16, C.muted);
     this.button(276, 449, 133, 35, '花の詳細  ›', () => {
-      transitionWithLoading(this, SCENE_KEYS.CHARACTER_DETAIL, { characterId: flower.id, returnScene: SCENE_KEYS.TRAINING, returnLabel: '育成へ' });
+      openSceneWithLoading(this, SCENE_KEYS.ENCYCLOPEDIA, { flowerId: flower.id, returnToTraining: true });
     });
   }
   /* === [ 担当 : 250082 武田優人 ] ===
@@ -442,7 +442,16 @@ export class TrainingScene extends Phaser.Scene {
     }
     this.text(488, 400, `合計 ${preview.used}個 ／ 獲得EXP +${preview.gain.toLocaleString('ja-JP')}`, 16, C.green);
     if (preview.discarded > 0) this.text(488, 423, `上限超過の ${preview.discarded.toLocaleString('ja-JP')} EXP は加算されません。`, 13, '#9b4739');
-    this.button(835, 434, 125, 38, '選択解除', () => { this.selectedMaterials = {}; this.upgradeMessage = ''; this.render(); }, false, !this.upgrading && preview.used > 0);
+    /* === [ 担当 : 250082 武田優人 ] ===
+     * 処理内容 : 素材と自動選択計画を解除し、目標を現在の次のレベルへ戻す（上限以内）
+     * ================================== */
+    this.button(835, 434, 125, 38, '選択解除', () => {
+      this.selectedMaterials = {};
+      this.targetPlan = undefined;
+      this.targetLevel = Math.min(maxLevel, currentLevel + 1);
+      this.upgradeMessage = '';
+      this.render();
+    }, false, !this.upgrading && preview.used > 0);
     const shortage = this.targetPlan?.missingExp ? '目標まで ' + this.targetPlan.missingExp.toLocaleString('ja-JP') + ' EXP不足（到達可能 Lv.' + this.targetPlan.reachableLevel + '）' : '';
     const message = this.upgrading ? '強化しています…' : this.upgradeMessage || shortage || preview.reason;
     this.upgradeStatusText = this.text(488, 447, this.wrapped(message, 27), 13, C.muted).setLineSpacing(3);

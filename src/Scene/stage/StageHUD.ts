@@ -248,6 +248,7 @@ export class StageHUD {
    * ================================== */
   private createUtilityButtons(): void {
     this.imageButton(72, 170, 74, '', 'stage-bag', () => this.openInventory());
+    this.imageButton(72, 260, 74, '', 'stage-settings-ui', () => this.openSettings());
     const x = this.scene.scale.width - 68;
     this.createRetreatDomButton(x, 282, 76);
   }
@@ -943,6 +944,18 @@ export class StageHUD {
   /* === [ 担当 : 250116 中村伊安 ] ===
    * 処理内容 : 戦闘を一時停止してバッグを開く
    * ================================== */
+  // 担当：250056 斎藤永聖。設定中は戦闘を停止し、閉じると同じ戦闘を再開する。
+  private openSettings(): void {
+    if (isBattlePreview) return;
+    if (this.scene.scene.isActive(SCENE_KEYS.SETTINGS)) return;
+    this.scene.scene.launch(SCENE_KEYS.SETTINGS, {
+      returnScene: SCENE_KEYS.STAGE,
+      resumeOnClose: true,
+    });
+    this.scene.scene.bringToTop(SCENE_KEYS.SETTINGS);
+    this.scene.scene.pause(SCENE_KEYS.STAGE);
+  }
+
   private openInventory(): void {
     if (isBattlePreview) return;
     if (this.scene.scene.isActive(SCENE_KEYS.INVENTORY)) return;

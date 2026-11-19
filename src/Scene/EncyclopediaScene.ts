@@ -3,7 +3,7 @@
  * 学籍番号：250082、250056、250116
  * 氏名：武田優人、斎藤永聖、中村伊安
  * ================================== */
-import { deferSceneLoading, waitForSceneReveal } from '../utils/ui/scene-loading';
+import { deferSceneLoading, waitForSceneReveal, returnWithLoading } from '../utils/ui/scene-loading';
 import trainingButton from '../assets/ui/training_button_wood.png'
 import pageTurnSound from '../assets/audio/encyclopedia/page-turn-firefly.wav'
 import { playSe } from '../audio/BgmManager'
@@ -15,6 +15,7 @@ import questionFall from '../assets/images/encyclopedia/unknown-autumn.png'
 import questionWinter from '../assets/images/encyclopedia/unknown-winter.png'
 import Phaser from 'phaser'
 import type { Season } from './test_data'
+import { SCENE_KEYS } from './sceneKeys'
 import { BACK_BUTTON_POSITION, getTextStyle } from '../utils/ui'
 import { prototypeFlowers, contractPreview } from './encyclopedia/contractPreview'
 import type { PrototypeFlower } from './encyclopedia/contractPreview'
@@ -42,6 +43,8 @@ export class EncyclopediaScene extends Phaser.Scene {
  private season: Season = '春'
  private page = 0
  private detailCleanup: (() => void) | null = null
+ private returnToTraining = false
+ private trainingFlowerId?: number
  /* === [ 担当 : 250056 斎藤永聖 ] ===
   * 処理内容 : 初期状態と画面キーを設定する
   * ================================== */
@@ -55,15 +58,19 @@ export class EncyclopediaScene extends Phaser.Scene {
   for (const {key,url} of Object.values(unknownFlowers)) if (!this.textures.exists(key)) this.load.image(key,url)
   for (const flower of prototypeFlowers) if (!this.textures.exists(flower.key)) this.load.image(flower.key,flower.url)
  }
- /* === [ 担当 : 250056 斎藤永聖 ] ===
-  * 処理内容 : 図鑑の季節・ページを初期化して一覧を開く
+ /* === [ 担当 : 250082 武田優人 / 250056 斎藤永聖 ] ===
+  * 処理内容 : 通常は図鑑一覧を開き、育成から来た場合は指定した所持花の詳細を直接開く
   * ================================== */
- create(): void {
+ create(data: { flowerId?: number; returnToTraining?: boolean } = {}): void {
   this.bookOpened = false
   this.season = '春'
   this.page = 0
+  this.returnToTraining = data.returnToTraining === true && (this.scene.isActive(SCENE_KEYS.TRAINING) || this.scene.isPaused(SCENE_KEYS.TRAINING))
+  this.trainingFlowerId = this.returnToTraining ? data.flowerId : undefined
   this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => { this.closeDetail(); this.closeBook() })
-  this.list()
+  const flower = prototypeFlowers.find(item => item.id === this.trainingFlowerId)
+  if (flower) this.detail(flower)
+  else this.list()
  }
  /* === [ 担当 : 250056 斎藤永聖 ] ===
   * 処理内容 : 位置と文字サイズを指定し、折り返し付きの文字を生成する
@@ -92,12 +99,20 @@ export class EncyclopediaScene extends Phaser.Scene {
   this.cameras.main.setBackgroundColor('#edf4ec')
   this.text(420,25,title,30)
   this.text(270,75,'花を選ぶと詳細を表示します。テストの花契状態は再読み込みでリセットされます。',17)
-  this.button(BACK_BUTTON_POSITION.x,BACK_BUTTON_POSITION.y,'← 町マップ',()=>navigateToTownMap(this))
+  this.button(BACK_BUTTON_POSITION.x,BACK_BUTTON_POSITION.y,'← 町マップ',()=>this.returnToTownMap())
  }
  /* === [ 担当 : 250056 斎藤永聖 ] ===
   * 処理内容 : 画面終了時に表示とイベントを解除する
   * ================================== */
  private closeBook(): void { this.bookCleanup?.(); this.bookCleanup=null }
+ /* === [ 担当 : 250082 武田優人 ] ===
+  * 処理内容 : 町へ移動するときは保持中の育成画面も終了し、背景に残さない
+  * ================================== */
+ private returnToTownMap(): void {
+  if (this.returnToTraining) this.scene.stop(SCENE_KEYS.TRAINING)
+  navigateToTownMap(this)
+ }
+
  /* === [ 担当 : 250082 武田優人 / 250056 斎藤永聖 / 250116 中村伊安 ] ===
   * 処理内容 : 選択内容と一覧表示を切り替える
   * ================================== */
@@ -113,7 +128,7 @@ export class EncyclopediaScene extends Phaser.Scene {
    onSeason:(season,page=0)=>{this.bookTurn=(['春','夏','秋','冬'].indexOf(season)-['春','夏','秋','冬'].indexOf(this.season));this.season=season;this.page=page;this.list()},
    onPage:page=>{this.bookTurn=page-this.page;this.page=page;this.list()},
    onSelect:flower=>{this.closeBook();this.detail(flower)},
-   onHome:()=>navigateToTownMap(this),
+   onHome:()=>this.returnToTownMap(),
    onReset:()=>{this.closeBook();this.confirmReset()},
   })
   this.bookOpened=true
@@ -127,17 +142,22 @@ export class EncyclopediaScene extends Phaser.Scene {
   this.detailCleanup = null
   this.input.enabled = true
  }
- /* === [ 担当 : 250056 斎藤永聖 / 250116 中村伊安 ] ===
-  * 処理内容 : 選択内容と一覧表示を切り替える
+ /* === [ 担当 : 250082 武田優人 / 250056 斎藤永聖 / 250116 中村伊安 ] ===
+  * 処理内容 : 花の詳細を表示し、育成から来た場合は所持花として開いて育成へ戻す
   * ================================== */
  private detail(flower:PrototypeFlower): void {
   this.closeDetail()
   this.input.enabled = false
   this.detailCleanup = mountFlowerDetail(flower, {
-   owned: contractPreview.owned.has(flower.id) || !!readFlowerContracts()[flower.id],
+   owned: flower.id === this.trainingFlowerId || contractPreview.owned.has(flower.id) || !!readFlowerContracts()[flower.id],
+   backLabel: this.returnToTraining ? '‹ 育成に戻る' : undefined,
    unknownUrl: unknownFlowers[flower.season].url,
-   onClose: () => { this.closeDetail(); this.list() },
-   onHome: () => { this.closeDetail(); navigateToTownMap(this) },
+   onClose: () => {
+    this.closeDetail()
+    if (this.returnToTraining && this.scene.isPaused(SCENE_KEYS.TRAINING)) returnWithLoading(this, SCENE_KEYS.TRAINING)
+    else this.list()
+   },
+   onHome: () => { this.closeDetail(); this.returnToTownMap() },
    onContract: () => contractPreview.contract(flower.id),
   })
  }
