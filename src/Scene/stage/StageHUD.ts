@@ -724,7 +724,8 @@ export class StageHUD {
       .setOrigin(0.5).setDepth(this.depth + 4);
     const container = this.scene.add.container(x, y).setScrollFactor(0).setDepth(this.depth + 5);
     image.setPosition(0, 0).setScrollFactor(1);
-    hitArea.setPosition(0, 0).setScrollFactor(1);
+    // 入力判定も画面固定にし、カメラ移動後も画像と一致させる。
+    hitArea.setPosition(0, 0).setScrollFactor(0);
     caption.setPosition(0, size * 0.34).setScrollFactor(1);
     container.add([image, caption, hitArea]);
     this.controlButtons.set(texture, { container, size });
