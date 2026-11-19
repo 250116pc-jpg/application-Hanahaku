@@ -7,6 +7,8 @@ import { transitionWithLoading } from '../../utils/ui/scene-loading';
 import Phaser from 'phaser';
 
 import backImg from '../../assets/images/background/story/1.jpg';
+import fireplaceAudio from '../../assets/audio/story-fireplace.mp3';
+import { loadAudioSettings } from '../../audio/BgmManager';
 import story_data from "../../scenario_data/story_data.json"
 import { createBackground } from '../../background';
 import { getTextStyle } from '../../utils/ui';
@@ -84,6 +86,7 @@ export class StoryScene extends Phaser.Scene {
    * ================================== */
   preload(): void {
     this.load.image('Background', backImg);
+    this.load.audio('story-fireplace', fireplaceAudio);
   }
 
   create(data: StorySceneData = { chapter: 1, stage: 1 }): void {
@@ -121,6 +124,12 @@ export class StoryScene extends Phaser.Scene {
      * 処理内容 : 会話の背景・話者名・セリフ枠を配置する
      * ================================== */
     createBackground(this, 'Background');
+    // 第1章のストーリーで暖炉の環境音を流す。
+    if (data.chapter === 1) {
+      const fire = this.sound.add('story-fireplace', { loop: true, volume: loadAudioSettings(this).seVolume * 0.25 });
+      fire.play();
+      this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => { fire.stop(); fire.destroy(); });
+    }
     this.cameras.main.setBackgroundColor('#cfe3f5');
 
     // UI固定用コンテナ
