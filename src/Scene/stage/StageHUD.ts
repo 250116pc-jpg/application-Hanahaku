@@ -67,6 +67,11 @@ export class StageHUD {
   private readonly flowerSkillIconCenters: Array<{ x: number; y: number } | undefined> = [];
   private retreatDialog: HTMLDivElement | null = null;
   private hpBar?: Phaser.GameObjects.Rectangle;
+  private delayedHpBar?: Phaser.GameObjects.Rectangle;
+  private previousHealth?: number;
+  private delayedHpRatio = 0;
+  private lastHealthUpdate = 0;
+  private hpDelayUntil = 0;
   private hpBarX = 0;
   private hpBarY = 0;
   private hpBarWidth = 0;
@@ -88,6 +93,11 @@ export class StageHUD {
     scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => { this.disposed = true; });
     if (this.player) {
       const effects = this.effects = new SkillEffects(scene, this.player);
+      const onHealthChanged = (current: number, maximum: number): void => this.updateHealth(current, maximum);
+      this.player.on('health-changed', onHealthChanged);
+      scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+        this.player?.off('health-changed', onHealthChanged);
+      });
       this.player.setSkillVisualHandler((skill, phase, targets, area) => effects.play(skill, phase, targets, area));
     }
   }
@@ -106,10 +116,29 @@ export class StageHUD {
    * 処理内容 : 現在HPの割合に合わせてHUDのHPバーを更新する
    * ================================== */
   public updateHealth(current: number, maximum: number): void {
-    if (!this.hpBar) return;
-    const width = this.hpBarWidth * Phaser.Math.Clamp(maximum > 0 ? current / maximum : 0, 0, 1);
+    if (!this.hpBar || !this.delayedHpBar) return;
+    const now = battleNow(this.scene);
+    const ratio = Phaser.Math.Clamp(maximum > 0 ? current / maximum : 0, 0, 1);
+
+    if (this.previousHealth === undefined) {
+      this.delayedHpRatio = ratio;
+    } else if (current < this.previousHealth) {
+      this.hpDelayUntil = now + 3000;
+    } else {
+      // 待機終了後の経過時間だけを使い、毎秒最大HPの25%ずつ追従する。
+      const elapsed = Math.max(0, now - Math.max(this.lastHealthUpdate, this.hpDelayUntil));
+      this.delayedHpRatio = Math.max(ratio, this.delayedHpRatio - elapsed / 4000);
+    }
+    this.delayedHpRatio = Math.max(ratio, this.delayedHpRatio);
+    this.previousHealth = current;
+    this.lastHealthUpdate = now;
+
+    const width = this.hpBarWidth * ratio;
     this.hpBar.setSize(width, this.hpBarHeight)
       .setPosition(this.hpBarX + width / 2, this.hpBarY + this.hpBarHeight / 2);
+    const delayedWidth = this.hpBarWidth * this.delayedHpRatio;
+    this.delayedHpBar.setSize(delayedWidth, this.hpBarHeight)
+      .setPosition(this.hpBarX + delayedWidth / 2, this.hpBarY + this.hpBarHeight / 2);
   }
 
   private createOpeningBattleGuide(): void {
@@ -183,15 +212,13 @@ export class StageHUD {
     this.hpBarY = y + 40;
     this.hpBarWidth = panelW - (compact ? 66 : 88);
     this.hpBarHeight = 9;
-    this.hpBar = this.bar(
-      this.hpBarX,
-      this.hpBarY,
-      this.hpBarWidth,
-      this.hpBarHeight,
-      this.player?.health ?? 100,
-      this.player?.maxHealth ?? 100,
-      0xf05b86
+    this.delayedHpBar = this.bar(
+      this.hpBarX, this.hpBarY, this.hpBarWidth, this.hpBarHeight, 1, 1, 0xf4eee5
     );
+    this.hpBar = this.scene.add.rectangle(
+      this.hpBarX, this.hpBarY, 0, this.hpBarHeight, 0xf05b86
+    ).setScrollFactor(0).setDepth(this.depth + 3);
+    this.updateHealth(this.player?.health ?? 100, this.player?.maxHealth ?? 100);
     this.text(x + 16, y + 59, 'MP', 12, '#7ee6fa', 'bold');
     /* === [ 担当 : 250082 武田優人 ] ===
      * 処理内容 : 主人公のMPバーを表示専用で満タンにする（花のMPやスキル消費には影響しない）
