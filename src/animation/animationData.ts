@@ -26,6 +26,7 @@ export const characterAnimations = {
     fall: animation('fall'),
     land: animation('land'),
     attack: animation('attack'),
+    airAttack: animation('airAttack'),
     attack2: animation('attack2'),
     attack3: animation('attack3'),
     skill: animation('skill'),

@@ -1,3 +1,4 @@
+import maleAirAttack from '../assets/characters/1001/sprites/air-plunge-vertical.png';
 import maleAttack2 from '../assets/characters/1001/sprites/combo-2-distinct.png';
 import maleAttack3 from '../assets/characters/1001/sprites/combo-3-distinct.png';
 import maleAttack from '../assets/characters/1001/sprites/attack-heavy-down.png';
@@ -37,7 +38,7 @@ export type PlayerCharacter = 'male' | 'female';
 export type PlayerAnimationName =
   | 'idle' | 'run' | 'jump' | 'fall' | 'land' | 'attack' | 'skill'
   | 'defend' | 'death' | 'drink' | 'hurt' | 'win' | 'attack2'
-  | 'attack3' | 'dashAttack' | 'downwardAttack' | 'duckingAttack';
+  | 'airAttack' | 'attack3' | 'dashAttack' | 'downwardAttack' | 'duckingAttack';
 
 export interface PlayerAnimationData {
   readonly image: string;
@@ -50,6 +51,7 @@ export interface PlayerAnimationData {
 type PlayerAnimationSet = Record<PlayerAnimationName, PlayerAnimationData>;
 
 const maleAnimations: PlayerAnimationSet = {
+  airAttack: { image: maleAirAttack, frameWidth: 384, frameHeight: 128, frameCount: 6, frameRate: 16 },
   idle: { image: maleIdle, frameWidth: 384, frameHeight: 128, frameCount: 6, frameRate: 8 },
   run: { image: maleRun, frameWidth: 384, frameHeight: 128, frameCount: 8, frameRate: 12 },
   jump: { image: maleJump, frameWidth: 384, frameHeight: 128, frameCount: 4, frameRate: 10 },
@@ -70,6 +72,7 @@ const maleAnimations: PlayerAnimationSet = {
 };
 
 const femaleAnimations: PlayerAnimationSet = {
+  airAttack: { image: femaleDownwardAttack, frameWidth: 192, frameHeight: 128, frameCount: 11, frameRate: 16 },
   idle: { image: femaleIdle, frameWidth: 192, frameHeight: 128, frameCount: 5, frameRate: 8 },
   run: { image: femaleRun, frameWidth: 192, frameHeight: 128, frameCount: 9, frameRate: 12 },
   jump: { image: femaleJump, frameWidth: 192, frameHeight: 128, frameCount: 4, frameRate: 10 },

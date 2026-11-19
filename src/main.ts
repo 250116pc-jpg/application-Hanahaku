@@ -39,8 +39,12 @@ const config: Phaser.Types.Core.GameConfig = {
   height: 720,
 
   scale: {
+    // FITはキャンバスの縦横比を1280×720のまま維持し、画面に収まる最大サイズへ拡大する。
+    // 画面比率と異なる端末では、上下または左右に水色の余白を残してもよい。
     mode: Phaser.Scale.FIT,
-    autoCenter: Phaser.Scale.CENTER_BOTH
+    autoCenter: Phaser.Scale.CENTER_BOTH,
+    width: 1280,
+    height: 720
   },
 
   parent: 'app',

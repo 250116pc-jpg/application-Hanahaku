@@ -28,6 +28,8 @@ body {
 
 canvas {
   display: block;
+  max-width: 100vw;
+  max-height: 100dvh;
 }
 
 /* === [ 担当 : 250056 斎藤永聖 ] ===

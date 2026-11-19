@@ -99,6 +99,8 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   // 攻撃中に追加入力された攻撃を一時保留し、アニメーション終了後に次の段へ繰り越す。
   private queuedBasicAttack: readonly CombatTarget[] | null = null;
   private basicAttackDirection = 1;
+  private airAttackTargets: readonly CombatTarget[] | null = null;
+  private airAttackPreviousY = 0;
   /* === [ 担当 : 250116 中村伊安 ] ===
    * 処理内容 : 基本HPに強化分を加えた最大HPを返す
    * ================================== */
@@ -282,6 +284,10 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
      * 処理内容 : クリック・キー操作と終了時の後片付けを設定する
      * ================================== */
     this.on(Phaser.Animations.Events.ANIMATION_STOP, (animation: Phaser.Animations.Animation) => {
+      if (animation.key === 'player-airAttack') {
+        this.airAttackTargets = null;
+        if (this.action === 'airAttack') this.action = null;
+      }
       // 攻撃アニメーションが途中で停止した場合も、保留攻撃・敵配列・行動状態を確実に解除する。
       if (['player-attack', 'player-attack2', 'player-attack3'].includes(animation.key)) {
         this.basicAttackTargets = null;
@@ -391,6 +397,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   }
 
   public update(): void {
+    if (this.action === 'airAttack') this.updateAirAttack();
     // 攻撃中や保留中にジャンプ入力がある場合は、先にジャンプへ割り込み処理を渡す。
     if (this.cursors?.up?.isDown && (this.action === 'attack' || this.queuedBasicAttack)) this.jump();
     // 保留された通常攻撃は、行動可能になりクールタイムも経過したタイミングで実行する。
@@ -514,6 +521,11 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
    * 処理内容 : 通常攻撃を行う
    * ================================== */
   public attack(targets: readonly CombatTarget[] = []): void {
+    const body = this.body as Phaser.Physics.Arcade.Body;
+    if (body && (!body.blocked.down || body.velocity.y < 0)) {
+      this.startAirAttack(targets);
+      return;
+    }
     // 攻撃操作中のジャンプ入力はジャンプへ優先して処理し、攻撃は開始しない。
     if (this.cursors?.up?.isDown) {
       this.jump();
@@ -538,6 +550,49 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.basicAttackTargets = targets;
   }
 
+  private startAirAttack(targets: readonly CombatTarget[]): void {
+    const now = battleNow(this.scene);
+    if (now < Math.max(this.nextBasicAttackAt, this.chargeUntil, this.comboUntil, this.continuousUntil)) return;
+    if (!this.playAction('airAttack', 'player-airAttack')) return;
+    this.queuedBasicAttack = null;
+    this.basicAttackTargets = null;
+    this.basicComboUntil = 0;
+    this.basicComboStep = -1;
+    this.airAttackTargets = targets;
+    this.airAttackPreviousY = this.y;
+    this.nextBasicAttackAt = now + this.stats.attackIntervalMs;
+    playSe(this.scene, 'player-sword-swing');
+  }
+
+  private updateAirAttack(): void {
+    const body = this.body as Phaser.Physics.Arcade.Body;
+    const ready = (this.anims.currentFrame?.index ?? 0) >= 3;
+    const swordX = this.x;
+    if (ready && !body.blocked.down) this.setVelocityY(Math.max(body.velocity.y, 420));
+    // 前フレームからの落下区間を調べ、高速落下でも敵をすり抜けないようにする。
+    if (ready && body.velocity.y >= 0 && this.airAttackTargets) {
+      const top = Math.min(this.airAttackPreviousY, this.y) - 24;
+      const bottom = Math.max(this.airAttackPreviousY, this.y) + 40;
+      const target = this.airAttackTargets.find(enemy => !enemy.isDefeated &&
+        Math.abs(enemy.x - swordX) <= 44 && enemy.y - 40 >= top && enemy.y - 40 <= bottom);
+      if (target) {
+        this.airAttackTargets = null;
+        target.receiveDamage(this.applyPlayerCritical(this.applyAttackBonus(this.stats.physicalAttack)));
+        playSe(this.scene, 'player-sword-hit', 0.65);
+        this.showHit(target.x, target.y - 40);
+      }
+    }
+    this.airAttackPreviousY = this.y;
+    if (body.blocked.down && body.velocity.y >= 0) {
+      this.airAttackTargets = null;
+      this.action = null;
+      this.setVelocityX(0);
+      this.landingAnimationPlaying = true;
+      this.wasGrounded = true;
+      this.showHit(swordX, this.y - 4);
+      this.play('player-land');
+    }
+  }
   /* === [ 担当 : 250056 斎藤永聖 / 250116 中村伊安 ] ===
    * 処理内容 : 前方の敵1体へ通常攻撃のダメージと命中演出を適用する
    * ================================== */
@@ -857,6 +912,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.basicComboUntil = 0;
     this.queuedBasicAttack = null;
     this.basicAttackTargets = null;
+    this.airAttackTargets = null;
     this.action = 'hurt';
     this.landingAnimationPlaying = false;
     this.setVelocityX(0);
@@ -872,6 +928,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     if (this.dead || !this.scene.anims.exists('player-death')) return;
     // 二重実行を防ぎ、物理ボディを無効化して死亡演出中の移動や衝突を止める。
     this.dead = true;
+    this.airAttackTargets = null;
     this.queuedBasicAttack = null;
     this.basicAttackTargets = null;
     this.action = null;
