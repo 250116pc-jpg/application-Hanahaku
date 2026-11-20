@@ -1,3 +1,4 @@
+import { loadDisplaySettings } from '../../display/DisplaySettings'
 /* ==================================
  * 期末テスト提出プログラム
  * 学籍番号：250116
@@ -43,6 +44,7 @@ export function createTownMap(
   scene: Phaser.Scene, current: TownAreaId,
   travel: (area: TownAreaId, destination: TownMapDestination) => void, onClose: () => void,
 ): () => void {
+  const large = loadDisplaySettings().menuButtonSize === 'large'
   const root = scene.add.container(0, 0).setScale(scene.scale.width / 1280, scene.scale.height / 720)
     .setScrollFactor(0).setDepth(1000)
   const add = <T extends Phaser.GameObjects.GameObject & Phaser.GameObjects.Components.ScrollFactor>(object: T): T => {
@@ -61,8 +63,8 @@ export function createTownMap(
 
   add(scene.add.rectangle(235, 69, 290, 51, 0xf2f8e8, .97)).setStrokeStyle(1, 0x61916a)
   add(label(235, 69, '花咲く街の地図', 26))
-  const closeButton = add(scene.add.rectangle(1151, 69, 100, 42, 0x315942)).setInteractive({ useHandCursor: true })
-  add(label(1151, 69, '閉じる ×', 17)).setColor('#fffdf1')
+  const closeButton = add(scene.add.rectangle(1125, 77, large ? 156 : 124, large ? 68 : 52, 0x315942)).setInteractive({ useHandCursor: true })
+  add(label(1125, 77, '閉じる ×', large ? 24 : 20)).setColor('#fffdf1')
   add(label(640, 666, '建物を選んで移動', 16)).setBackgroundColor('#f2f8e8').setPadding(12, 4)
 
   const landmarks: { id: TownAreaId; name: Phaser.GameObjects.Text; halo: Phaser.GameObjects.Ellipse }[] = []
@@ -110,20 +112,21 @@ export function createTownMap(
     if (!selected) return
 
     const area = townAreas[selected]
-    const width = 218
-    const height = 44 + area.mapDestinations.length * 42
-    const x = area.mapX + (area.mapX < 640 ? 210 : -210)
+    const width = large ? 300 : 252
+    const rowHeight = large ? 68 : 54
+    const height = 50 + area.mapDestinations.length * rowHeight
+    const x = Phaser.Math.Clamp(area.mapX + (area.mapX < 640 ? 235 : -235), 70 + width / 2, 1210 - width / 2)
     const top = Phaser.Math.Clamp(area.mapY - height / 2, 103, 620 - height)
     details.add(scene.add.rectangle(x, top + height / 2, width, height, 0xf5faee)
       .setStrokeStyle(2, 0x416d4e).setScrollFactor(0).setInteractive())
-    details.add(label(x, top + 19, area.name, 18))
+    details.add(label(x, top + 22, area.name, large ? 24 : 20))
     for (const [index, destination] of area.mapDestinations.entries()) {
-      const y = top + 56 + index * 42
+      const y = top + 50 + rowHeight / 2 + index * rowHeight
       const available = !destination.notice
-      const row = scene.add.rectangle(x, y, 196, 34, available ? 0xffffff : 0xe3e9df)
+      const row = scene.add.rectangle(x, y, width - 24, rowHeight - 10, available ? 0xffffff : 0xe3e9df)
         .setStrokeStyle(1, 0x87a987).setScrollFactor(0).setName('town-destination-' + index)
       details.add(row)
-      details.add(label(x, y, available ? destination.label + ' ›' : destination.label + '（未実装）', 16))
+      details.add(label(x, y, available ? destination.label + ' ›' : destination.label + '（未実装）', large ? 23 : 19))
       if (!available) continue
       row.setInteractive({ useHandCursor: true })
       row.on('pointerover', () => row.setFillStyle(0xd9edc9))

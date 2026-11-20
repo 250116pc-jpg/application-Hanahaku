@@ -179,9 +179,15 @@ export class SettingsScene extends Phaser.Scene {
    * 処理内容 : 画像ボタンと押下時の反応を作る
    * ================================== */
   private artButton(parent: Phaser.GameObjects.Container, x: number, y: number, width: number, height: number, label: string, onClick: () => void, texture = 'settings-button'): Phaser.GameObjects.Image {
-    const image = this.add.image(x, y, texture, texture === 'settings-tab' ? 'rect' : undefined).setDisplaySize(width, height).setInteractive({ useHandCursor: true });
+    const image = this.add.image(x, y, texture, texture === 'settings-tab' ? 'rect' : undefined).setDisplaySize(width, height);
     parent.add(image);
     image.setData('label', this.text(parent, x, y, label, 21, '#fff5df').setOrigin(.5));
+    // 画像切り替えや透明な余白に左右されない、表示サイズと同じクリック領域。
+    const hit = this.add.zone(x, y, width, height).setInteractive({ useHandCursor: true });
+    parent.add(hit);
+    for (const eventName of ['pointerover', 'pointerout', 'pointerdown', 'pointerup']) {
+      hit.on(eventName, (...args: unknown[]) => image.emit(eventName, ...args));
+    }
     image.on('pointerover', () => image.setAlpha(.85));
     image.on('pointerout', () => image.setAlpha(1));
     image.on('pointerup', () => { if (!this.leaving) { resumeAudioFromGesture(this); onClick(); } });
