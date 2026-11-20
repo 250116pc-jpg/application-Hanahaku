@@ -53,7 +53,7 @@ export type SkillVisualHandler = (
 ) => void;
 
 export class Player extends Phaser.Physics.Arcade.Sprite {
-  /* === [ 担当 : 250056 斎藤永聖 / 250116 中村伊安 ] ===
+  /* === [ 担当 : 250116 中村伊安 ] ===
    * 処理内容 : 主人公の移動・行動・死亡状態とスキル効果の期限を保持する
    * ================================== */
   private stats = { ...playerStats };
