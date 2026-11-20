@@ -58,9 +58,9 @@ export class StageHUD {
     const layout: Record<string, [number, number, number]> = {
       'stage-bag': [72, 184, large ? 104 : 74],
       'stage-settings-ui': [72, 304, large ? 104 : 74],
-      'stage-attack': [w - 270, h - 100, large ? 160 : 130],
-      'stage-jump': [w - 100, h - 100, large ? 160 : 130],
-      'stage-guard': [w - 100, h - 282, large ? 140 : 106],
+      'stage-attack': [w - 226, h - 94, large ? 160 : 130],
+      'stage-jump': [w - 112, h - 64, large ? 160 : 130],
+      'stage-guard': [w - 162, h - 199, large ? 140 : 106],
     };
     const custom = loadBattleLayout();
     for (const [key, button] of this.controlButtons) {

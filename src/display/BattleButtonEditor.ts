@@ -12,10 +12,10 @@ const KEY = 'flowerLinkBattleLayout';
 const buttons = [
   { key: 'stage-bag', name: 'バッグ', image: bag, x: .056, y: .255, size: 74 },
   { key: 'stage-settings-ui', name: '設定', image: settings, x: .056, y: .422, size: 74 },
-  { key: 'stage-attack', name: '攻撃', image: attack, x: .789, y: .861, size: 130 },
-  { key: 'stage-jump', name: 'ジャンプ', image: jump, x: .922, y: .861, size: 130 },
+  { key: 'stage-attack', name: '攻撃', image: attack, x: (1280 - 226) / 1280, y: (720 - 94) / 720, size: 130 },
+  { key: 'stage-jump', name: 'ジャンプ', image: jump, x: (1280 - 112) / 1280, y: (720 - 64) / 720, size: 130 },
   { key: 'stage-retreat', name: '撤退', image: retreat, x: 1212 / 1280, y: 282 / 720, size: 76 },
-  { key: 'stage-guard', name: '防御', image: '', x: .922, y: .608, size: 106 },
+  { key: 'stage-guard', name: '防御', image: '', x: (1280 - 162) / 1280, y: (720 - 199) / 720, size: 106 },
 ];
 export function loadBattleLayout(): Layout {
   try {

@@ -50,6 +50,7 @@ export class SettingsScene extends Phaser.Scene {
   private message!: Phaser.GameObjects.Text;
   private tabs: Phaser.GameObjects.Image[] = [];
   private character?: Phaser.GameObjects.Image;
+  private popupShade?: Phaser.GameObjects.Rectangle;
   private leaving = false;
   private active = false;
   private drag?: { move: (pointer: Phaser.Input.Pointer) => void; end: () => void };
@@ -103,6 +104,7 @@ export class SettingsScene extends Phaser.Scene {
     this.leaving = false;
     this.tabs = [];
     this.drag = undefined;
+    this.popupShade = undefined;
     this.input.enabled = true;
     this.cameras.main.setScroll(0, 0).setRoundPixels(false);
     /* === [ 担当 : 250056 斎藤永聖 ] ===
@@ -118,7 +120,7 @@ export class SettingsScene extends Phaser.Scene {
     const battlePopup = this.resumeOnClose && this.returnScene === 'StageScene';
     this.cameras.main.setBackgroundColor('rgba(0,0,0,0)');
     if (battlePopup) {
-      this.add.rectangle(this.scale.width / 2, this.scale.height / 2, this.scale.width, this.scale.height, 0x000000, .5)
+      this.popupShade = this.add.rectangle(this.scale.width / 2, this.scale.height / 2, this.scale.width, this.scale.height, 0x000000, .5)
         .setDepth(-1).setInteractive();
       const scale = this.layout.scaleX * .9;
       this.layout.setScale(scale).setPosition((this.scale.width - 1280 * scale) / 2, (this.scale.height - 720 * scale) / 2);
@@ -172,6 +174,18 @@ export class SettingsScene extends Phaser.Scene {
       this.scale.off(Phaser.Scale.Events.LEAVE_FULLSCREEN, this.onFullscreenChanged, this);
       this.voice.stop();
     });
+    if (battlePopup && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      // 戦闘を止めたまま、設定を上から表示する。
+      const targetY = this.layout.y;
+      this.layout.setY(targetY - 48 * this.layout.scaleY).setAlpha(0);
+      this.popupShade!.setAlpha(0);
+      this.input.enabled = false;
+      this.tweens.add({ targets: this.popupShade, alpha: 1, duration: 220 });
+      this.tweens.add({
+        targets: this.layout, y: targetY, alpha: 1, duration: 220, ease: 'Cubic.Out',
+        onComplete: () => { if (this.active && !this.leaving) this.input.enabled = true; },
+      });
+    }
     this.renderTab('sound');
     applySmoothDisplay(this, ['settings-background', 'settings-panel', 'settings-button', 'settings-tab', ...Object.keys(reactionFiles).map(key => `settings-${key}`).filter(key => this.textures.exists(key))]);
   }
@@ -473,8 +487,20 @@ export class SettingsScene extends Phaser.Scene {
     this.leaving = true;
     this.voice.stop();
     if (this.resumeOnClose && this.returnScene === 'StageScene') {
-      this.scene.resume(this.returnScene);
-      this.scene.stop();
+      const finish = (): void => {
+        this.scene.resume(this.returnScene);
+        this.scene.stop();
+      };
+      this.input.enabled = false;
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        finish();
+        return;
+      }
+      this.tweens.add({ targets: this.popupShade, alpha: 0, duration: 160 });
+      this.tweens.add({
+        targets: this.layout, y: this.layout.y - 48 * this.layout.scaleY,
+        alpha: 0, duration: 160, ease: 'Cubic.In', onComplete: finish,
+      });
     } else if (this.resumeOnClose) returnWithLoading(this, this.returnScene);
     else transitionWithLoading(this, this.returnScene);
   }
