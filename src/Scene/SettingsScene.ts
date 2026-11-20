@@ -115,11 +115,20 @@ export class SettingsScene extends Phaser.Scene {
     // 他の画面と同じ1280×720の座標で組み、縦横比を保って画面に収める。
     const scale = Math.min(this.scale.width / 1280, this.scale.height / 720);
     this.layout = this.add.container((this.scale.width - 1280 * scale) / 2, (this.scale.height - 720 * scale) / 2).setScale(scale);
-    this.layout.add(this.add.image(640, 360, 'settings-background').setDisplaySize(1280, 720));
+    const battlePopup = this.resumeOnClose && this.returnScene === 'StageScene';
+    this.cameras.main.setBackgroundColor('rgba(0,0,0,0)');
+    if (battlePopup) {
+      this.add.rectangle(this.scale.width / 2, this.scale.height / 2, this.scale.width, this.scale.height, 0x000000, .5)
+        .setDepth(-1).setInteractive();
+      const scale = this.layout.scaleX * .9;
+      this.layout.setScale(scale).setPosition((this.scale.width - 1280 * scale) / 2, (this.scale.height - 720 * scale) / 2);
+    } else {
+      this.layout.add(this.add.image(640, 360, 'settings-background').setDisplaySize(1280, 720));
+    }
     /* === [ 担当 : 250082 武田優人 / 250056 斎藤永聖 ] ===
      * 処理内容 : 背景・見出し・戻るボタンを配置する
      * ================================== */
-    this.layout.add(this.add.rectangle(640, 360, 1280, 720, 0x071932, .25));
+    if (!battlePopup) this.layout.add(this.add.rectangle(640, 360, 1280, 720, 0x071932, .25));
     // 共通の戻るボタンは固定し、設定カード全体に上の余白を設ける。
     const content = this.add.container(0, SETTINGS_CONTENT_OFFSET_Y);
     this.layout.add(content);
@@ -463,7 +472,10 @@ export class SettingsScene extends Phaser.Scene {
     if (this.leaving) return;
     this.leaving = true;
     this.voice.stop();
-    if (this.resumeOnClose) returnWithLoading(this, this.returnScene);
+    if (this.resumeOnClose && this.returnScene === 'StageScene') {
+      this.scene.resume(this.returnScene);
+      this.scene.stop();
+    } else if (this.resumeOnClose) returnWithLoading(this, this.returnScene);
     else transitionWithLoading(this, this.returnScene);
   }
   /* === [ 担当 : 250082 武田優人 / 250056 斎藤永聖 ] ===
