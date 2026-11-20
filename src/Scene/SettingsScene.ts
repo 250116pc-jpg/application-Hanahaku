@@ -1,3 +1,4 @@
+import { openBattleButtonEditor } from '../display/BattleButtonEditor';
 /* ==================================
  * 期末テスト提出プログラム
  * 学籍番号：250082、250056、250116
@@ -323,12 +324,7 @@ export class SettingsScene extends Phaser.Scene {
     } else {
       this.displayOption(743, 389, 218, this.display.borderless ? 'ON' : 'OFF', this.display.borderless, () => this.toggleBorderless());
     }
-    this.text(this.body, 410, 435, '戦闘ボタン', 23);
-    (['standard', 'large'] as const).forEach((size, index) => {
-      this.displayOption(743 + index * 230, 452, 218, size === 'large' ? '大きめ' : '標準', this.display.battleButtonSize === size, () => {
-        this.updateDisplay({ ...this.display, battleButtonSize: size });
-      });
-    });
+    this.displayOption(850, 452, 440, '戦闘ボタン調整', false, () => openBattleButtonEditor(this));
     this.text(this.body, 410, 498, 'メニューボタン', 23);
     (['standard', 'large'] as const).forEach((size, index) => {
       this.displayOption(743 + index * 230, 515, 218, size === 'large' ? '大きめ' : '標準', this.display.menuButtonSize === size, () => {

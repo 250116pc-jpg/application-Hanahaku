@@ -1,3 +1,5 @@
+import { ensureGuardButtonTexture } from '../../display/GuardButtonTexture';
+import { loadBattleLayout } from '../../display/BattleButtonEditor';
 /* ==================================
  * 期末テスト提出プログラム
  * 学籍番号：250082、250056、250116
@@ -60,8 +62,14 @@ export class StageHUD {
       'stage-jump': [w - 100, h - 100, large ? 160 : 130],
       'stage-guard': [w - 100, h - 282, large ? 140 : 106],
     };
+    const custom = loadBattleLayout();
     for (const [key, button] of this.controlButtons) {
-      const [x, y, size] = layout[key];
+      let [x, y, size] = layout[key];
+      if (custom[key]) {
+        size = custom[key].size;
+        x = Phaser.Math.Clamp(custom[key].x * w, size / 2, w - size / 2);
+        y = Phaser.Math.Clamp(custom[key].y * h, size / 2, h - size / 2);
+      }
       button.container.setPosition(x, y).setScale(size / button.size);
     }
     this.placeRetreat?.();
@@ -316,12 +324,17 @@ export class StageHUD {
      * ================================== */
     const standardSize = size;
     const placeButton = (): void => {
-      size = loadDisplaySettings().battleButtonSize === 'large' ? 104 : standardSize;
+      const custom = loadBattleLayout()['stage-retreat'];
+      const width = this.scene.scale.width;
+      const height = this.scene.scale.height;
+      size = custom?.size ?? (loadDisplaySettings().battleButtonSize === 'large' ? 104 : standardSize);
+      const positionX = custom ? Phaser.Math.Clamp(custom.x * width, size / 2, width - size / 2) : x;
+      const positionY = custom ? Phaser.Math.Clamp(custom.y * height, size / 2, height - size / 2) : y;
       const canvasRect = canvas.getBoundingClientRect();
       const scaleX = canvasRect.width / this.scene.scale.width;
       const scaleY = canvasRect.height / this.scene.scale.height;
-      button.style.left = `${canvasRect.left + x * scaleX - size * scaleX / 2}px`;
-      button.style.top = `${canvasRect.top + y * scaleY - size * scaleY / 2}px`;
+      button.style.left = `${canvasRect.left + positionX * scaleX - size * scaleX / 2}px`;
+      button.style.top = `${canvasRect.top + positionY * scaleY - size * scaleY / 2}px`;
       button.style.width = `${size * scaleX}px`;
       button.style.height = `${size * scaleY}px`;
     };
@@ -680,21 +693,7 @@ export class StageHUD {
    * ================================== */
   private createGuardButton(x: number, y: number): void {
     const key = 'stage-guard';
-    if (!this.scene.textures.exists(key)) {
-      const art = this.scene.make.graphics({ x: 0, y: 0 }, false);
-      art.fillStyle(0x202a37).fillCircle(60, 60, 55);
-      art.lineStyle(2, 0xe5d4a5).strokeCircle(60, 60, 54);
-      art.lineStyle(1, 0xbca780).strokeCircle(60, 60, 50);
-      for (const [px, py] of [[60, 9], [111, 60], [60, 111], [9, 60]]) {
-        art.strokePoints([{ x: px, y: py - 4 }, { x: px + 4, y: py },
-          { x: px, y: py + 4 }, { x: px - 4, y: py }], true);
-      }
-      art.fillStyle(0xf4dfb8).fillPoints([{ x: 39, y: 31 }, { x: 60, y: 24 },
-        { x: 81, y: 31 }, { x: 78, y: 53 }, { x: 60, y: 69 }, { x: 42, y: 53 }], true);
-      art.lineStyle(2, 0x8b7458).lineBetween(60, 32, 60, 60).lineBetween(47, 43, 73, 43);
-      art.generateTexture(key, 120, 120);
-      art.destroy();
-    }
+    ensureGuardButtonTexture(this.scene);
     const button = this.imageButton(x, y, 106, '', key, () => {}, held => this.player?.setGuardHeld(held));
     const label = this.text(x, y + 23, '防御', 19, '#f4dfb8', 'bold')
       .setOrigin(0.5).setDepth(this.depth + 4);
