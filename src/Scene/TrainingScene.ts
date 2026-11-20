@@ -1,3 +1,5 @@
+import { createFittedContainer, createImageButton } from '../utils/ui';
+import { enableSceneUiLayout } from '../utils/ui/layout';
 /* ==================================
  * 期末テスト提出プログラム
  * 学籍番号：250082、250116
@@ -112,6 +114,7 @@ export class TrainingScene extends Phaser.Scene {
     });
   }
   create(): void {
+    enableSceneUiLayout(this);
     /* === [ 担当 : 250082 武田優人 / 250116 中村伊安 ] ===
      * 処理内容 : タブ・パネル用の画像と描画素材を準備する
      * ================================== */
@@ -148,8 +151,7 @@ export class TrainingScene extends Phaser.Scene {
     /* === [ 担当 : 250082 武田優人 ] ===
      * 処理内容 : 画像・文字・パネルを配置する
      * ================================== */
-    const scale = Math.min(this.scale.width / 1280, this.scale.height / 720);
-    this.layout = this.add.container((this.scale.width - 1280 * scale) / 2, (this.scale.height - 720 * scale) / 2).setScale(scale);
+    this.layout = createFittedContainer(this);
     this.layout.add(this.add.image(640, 360, 'training-garden').setDisplaySize(1280, 720));
     this.layout.add(this.add.rectangle(640, 360, 1280, 720, 0x20120a, .14));
     this.portraitId = -1;
@@ -215,17 +217,14 @@ export class TrainingScene extends Phaser.Scene {
     const isCompact = w <= 54;
     const texture = isCompact ? 'training-compact-button' : isTab && selected ? 'training-tab' : 'training-button';
     const large = dimensions.fontScale > 1;
-    const g = this.add.image(centerX, centerY, texture, 'rect')
-      .setDisplaySize(large ? dimensions.width : isCompact ? Math.min(46, w + 8) : isTab ? w : w + 8, large ? dimensions.height : isCompact ? Math.min(46, h + 8) : isTab ? h : h + 7);
-    this.content.add(g);
-    const caption = this.text(centerX, centerY, label, (isCompact ? (w < 32 ? 20 : 24) : 18) * dimensions.fontScale, '#fff5df').setOrigin(.5);
-    const hit = this.add.zone(centerX, centerY, large ? dimensions.width : w, large ? dimensions.height : h);
-    if (enabled) hit.setInteractive({ useHandCursor: true });
-    else g.setAlpha(.4);
-    this.content.add(hit);
-    hit.on('pointerover', () => g.setAlpha(.8)); hit.on('pointerout', () => g.setAlpha(1));
-    hit.on('pointerup', action);
-    return caption;
+    return createImageButton(this, {
+      parent: this.content, x: centerX, y: centerY, width: large ? dimensions.width : w, height: large ? dimensions.height : h,
+      texture, frame: 'rect', label, layoutId: `TrainingScene.${label}`,
+      imageWidth: large ? dimensions.width : isCompact ? Math.min(46, w + 8) : isTab ? w : w + 8,
+      imageHeight: large ? dimensions.height : isCompact ? Math.min(46, h + 8) : isTab ? h : h + 7,
+      textStyle: { fontSize: (isCompact ? (w < 32 ? 20 : 24) : 18) * dimensions.fontScale, resolution: 2 },
+      enabled, hoverAlpha: .8, onClick: action,
+    }).label;
   }
   /* === [ 担当 : 250082 武田優人 ] ===
    * 処理内容 : 表示に使う画像・アニメーションを用意する

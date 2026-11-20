@@ -1,3 +1,4 @@
+import { bindDomGui } from '../../utils/ui/dom-layout';
 /* ==================================
  * 期末テスト提出プログラム
  * 学籍番号：250056、250116
@@ -197,6 +198,7 @@ const categories = document.createElement('nav')
     panel.append(header, note, categories, content, this.message)
     this.root.append(style, panel)
     document.body.append(this.root)
+    bindDomGui(panel, 'InventoryScene')
     if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches && typeof this.root.animate === 'function') {
       this.root.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 150, easing: 'ease-out' })
       panel.animate([{ transform: 'translateY(-28px)' }, { transform: 'translateY(0)' }], { duration: 150, easing: 'ease-out' })

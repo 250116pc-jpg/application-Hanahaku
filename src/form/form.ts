@@ -1,3 +1,5 @@
+import { createFittedContainer, createImageButton } from '../utils/ui';
+import { enableSceneUiLayout, syncGuiMask } from '../utils/ui/layout';
 /* ==================================
  * 期末テスト提出プログラム
  * 学籍番号：250082、250056、250116
@@ -95,6 +97,7 @@ export class FormScene extends Phaser.Scene {
     this.sys.settings.data = {}
   }
   create(): void {
+    enableSceneUiLayout(this);
     /* === [ 担当 : 250082 武田優人 / 250116 中村伊安 ] ===
      * 処理内容 : 編成画面のボタンとパネル画像の切り出しを準備する
      * ================================== */
@@ -127,8 +130,7 @@ export class FormScene extends Phaser.Scene {
     /* === [ 担当 : 250082 武田優人 ] ===
      * 処理内容 : 画像・文字・パネルを配置する
      * ================================== */
-    const scale = Math.min(this.scale.width / 1280, this.scale.height / 720)
-    this.layout = this.add.container((this.scale.width - 1280 * scale) / 2, (this.scale.height - 720 * scale) / 2).setScale(scale)
+    this.layout = createFittedContainer(this);
     this.layout.add(this.add.image(640, 360, 'form-garden').setDisplaySize(1280, 720))
     this.layout.add(this.add.rectangle(640, 360, 1280, 720, 0x20120a, .14))
     this.content = this.add.container(0, 0); this.layout.add(this.content)
@@ -163,7 +165,9 @@ export class FormScene extends Phaser.Scene {
     const move = (pointer: Phaser.Input.Pointer) => {
       const start = this.dragStart
       if (!start || pointer.id !== start.pointerId || !pointer.isDown) return
-      const dx = (pointer.x - start.x) / this.layout.scaleX, dy = (pointer.y - start.y) / this.layout.scaleY
+      const matrix = this.layout.getWorldTransformMatrix()
+      const nowLocal = matrix.applyInverse(pointer.x, pointer.y), startLocal = matrix.applyInverse(start.x, start.y)
+      const dx = nowLocal.x - startLocal.x, dy = nowLocal.y - startLocal.y
       this.dragDistance = Math.max(this.dragDistance, Math.hypot(dx, dy))
       if (this.dragPreview) {
         const local = this.layout.getWorldTransformMatrix().applyInverse(pointer.x, pointer.y)
@@ -275,11 +279,16 @@ export class FormScene extends Phaser.Scene {
     const dimensions = getMenuButtonDimensions(w, h, h <= 43 ? 44 : 64);
     w = dimensions.width;
     h = dimensions.height;
-    const image = this.add.image(x, y, compact ? 'form-square' : selected ? 'form-amber' : 'form-wood', 'ui').setDisplaySize(w, h)
-    this.content.add(image); this.label(x, y, label, (compact ? 22 : 17) * (w >= 100 ? dimensions.fontScale : 1), enabled ? '#fff5df' : '#66523b').setOrigin(.5)
-    if (!enabled) { image.setAlpha(.45); return }
-    const hit = this.add.zone(x, y, w, h).setInteractive({ useHandCursor: true }); this.content.add(hit)
-    hit.on('pointerover', () => image.setAlpha(.82)).on('pointerout', () => image.setAlpha(1)).on('pointerup', () => { if (this.dragDistance <= 6) action() })
+    const button = createImageButton(this, {
+      parent: this.content, x, y, width: w, height: h,
+      texture: compact ? 'form-square' : selected ? 'form-amber' : 'form-wood', frame: 'ui',
+      label, layoutId: `FormScene.${label}`,
+      textStyle: { fontFamily: FONT, fontSize: (compact ? 22 : 17) * (w >= 100 ? dimensions.fontScale : 1), fontStyle: 'normal',
+        color: enabled ? '#fff5df' : '#66523b', resolution: 2, padding: { top: 2, bottom: 2 } },
+      enabled, disabledAlpha: .45, hoverAlpha: .82,
+      canActivate: () => this.dragDistance <= 6, onClick: action,
+    });
+    smoothText(button.label);
   }
   /* === [ 担当 : 250082 武田優人 ] ===
    * 処理内容 : 花の画像を縦横比を保って指定サイズに配置する
@@ -416,8 +425,9 @@ export class FormScene extends Phaser.Scene {
       if (object.input) object.input.hitAreaCallback = (area: Phaser.Geom.Rectangle, x: number, y: number) =>
         Phaser.Geom.Rectangle.Contains(area, x, y) && this.rosterContains(this.input.activePointer)
     })
-    const topLeft = this.layout.getWorldTransformMatrix().transformPoint(341, 397)
-    this.rosterClip = this.add.graphics().setVisible(false).fillStyle(0xffffff).fillRect(topLeft.x, topLeft.y, 895 * this.layout.scaleX, viewportHeight * this.layout.scaleY)
+    const topLeft = { x: this.layout.x + 341 * this.layout.scaleX, y: this.layout.y + 397 * this.layout.scaleY }
+    this.rosterClip = this.make.graphics({}, false).setVisible(false).fillStyle(0xffffff).fillRect(topLeft.x, topLeft.y, 895 * this.layout.scaleX, viewportHeight * this.layout.scaleY)
+    syncGuiMask(this, this.rosterClip)
     this.rosterMask = this.rosterClip.createGeometryMask(); body.setMask(this.rosterMask)
     /* === [ 担当 : 250082 武田優人 ] ===
      * 処理内容 : 画像・文字・パネルを配置する

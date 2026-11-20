@@ -1,4 +1,6 @@
 import { openBattleButtonEditor } from '../display/BattleButtonEditor';
+import { createFittedContainer, createImageButton } from '../utils/ui';
+import { enableSceneUiLayout } from '../utils/ui/layout';
 /* ==================================
  * 期末テスト提出プログラム
  * 学籍番号：250082、250056、250116
@@ -82,6 +84,7 @@ export class SettingsScene extends Phaser.Scene {
   }
 
   create(): void {
+    enableSceneUiLayout(this);
     /* === [ 担当 : 250082 武田優人 / 250056 斎藤永聖 ] ===
      * 処理内容 : タブ・パネル用の画像と描画素材を準備する
      * ================================== */
@@ -115,8 +118,7 @@ export class SettingsScene extends Phaser.Scene {
     this.audio = { ...this.audioOnOpen };
     this.display = loadDisplaySettings();
     // 他の画面と同じ1280×720の座標で組み、縦横比を保って画面に収める。
-    const scale = Math.min(this.scale.width / 1280, this.scale.height / 720);
-    this.layout = this.add.container((this.scale.width - 1280 * scale) / 2, (this.scale.height - 720 * scale) / 2).setScale(scale);
+    this.layout = createFittedContainer(this);
     const battlePopup = this.resumeOnClose && this.returnScene === 'StageScene';
     this.cameras.main.setBackgroundColor('rgba(0,0,0,0)');
     if (battlePopup) {
@@ -202,19 +204,13 @@ export class SettingsScene extends Phaser.Scene {
    * 処理内容 : 画像ボタンと押下時の反応を作る
    * ================================== */
   private artButton(parent: Phaser.GameObjects.Container, x: number, y: number, width: number, height: number, label: string, onClick: () => void, texture = 'settings-button'): Phaser.GameObjects.Image {
-    const image = this.add.image(x, y, texture, texture === 'settings-tab' ? 'rect' : undefined).setDisplaySize(width, height);
-    parent.add(image);
-    image.setData('label', this.text(parent, x, y, label, 21, '#fff5df').setOrigin(.5));
-    // 画像切り替えや透明な余白に左右されない、表示サイズと同じクリック領域。
-    const hit = this.add.zone(x, y, width, height).setInteractive({ useHandCursor: true });
-    parent.add(hit);
-    for (const eventName of ['pointerover', 'pointerout', 'pointerdown', 'pointerup']) {
-      hit.on(eventName, (...args: unknown[]) => image.emit(eventName, ...args));
-    }
-    image.on('pointerover', () => image.setAlpha(.85));
-    image.on('pointerout', () => image.setAlpha(1));
-    image.on('pointerup', () => { if (!this.leaving) { resumeAudioFromGesture(this); onClick(); } });
-    return image;
+    return createImageButton(this, {
+      parent, x, y, width, height, texture, frame: texture === 'settings-tab' ? 'rect' : undefined,
+      label, layoutId: `SettingsScene.${label}`,
+      textStyle: { fontSize: 21, resolution: 2 }, hoverAlpha: .85,
+      canActivate: () => !this.leaving,
+      onClick: () => { resumeAudioFromGesture(this); onClick(); },
+    }).image;
   }
   private renderTab(tab: Tab): void {
     /* === [ 担当 : 250082 武田優人 / 250056 斎藤永聖 ] ===

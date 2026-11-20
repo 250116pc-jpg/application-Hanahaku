@@ -100,7 +100,6 @@ DB定義・初期データ,sql,skill_seed.sql,.sql,データベーステーブ�
 認証,src/auth,PhpBaseUrl.ts,.ts,ログイン、登録、セッション連携,src/auth/PhpBaseUrl.ts
 認証,src/auth,Session.ts,.ts,ログイン、登録、セッション連携,src/auth/Session.ts
 フロントエンド共通,src,background.ts,.ts,ゲーム起動、共通処理、画面スタイル,src/background.ts
-フロントエンド共通,src,config.ts,.ts,ゲーム起動、共通処理、画面スタイル,src/config.ts
 フロントエンド共通,src,debug.ts,.ts,ゲーム起動、共通処理、画面スタイル,src/debug.ts
 表示・設定,src/display,DisplaySettings.ts,.ts,表示設定、画面パネル、日誌,src/display/DisplaySettings.ts
 表示・設定,src/display,EncyclopediaBook.css,.css,表示設定、画面パネル、日誌,src/display/EncyclopediaBook.css
@@ -122,7 +121,6 @@ DB定義・初期データ,sql,skill_seed.sql,.sql,データベーステーブ�
 画面,src/Scene,CharacterDetailScene.ts,.ts,画面・機能の実装,src/Scene/CharacterDetailScene.ts
 図鑑,src/Scene/encyclopedia,contractPreview.ts,.ts,花の図鑑一覧、詳細、プレビュー,src/Scene/encyclopedia/contractPreview.ts
 図鑑,src/Scene/encyclopedia,EncyclopediaListView.ts,.ts,花の図鑑一覧、詳細、プレビュー,src/Scene/encyclopedia/EncyclopediaListView.ts
-図鑑,src/Scene/encyclopedia,flowerCatalog.ts,.ts,花の図鑑一覧、詳細、プレビュー,src/Scene/encyclopedia/flowerCatalog.ts
 図鑑,src/Scene/encyclopedia,flower-detail.css,.css,花の図鑑一覧、詳細、プレビュー,src/Scene/encyclopedia/flower-detail.css
 図鑑,src/Scene/encyclopedia,FlowerDetailView.ts,.ts,花の図鑑一覧、詳細、プレビュー,src/Scene/encyclopedia/FlowerDetailView.ts
 図鑑,src/Scene,EncyclopediaScene.ts,.ts,花の図鑑一覧、詳細、プレビュー,src/Scene/EncyclopediaScene.ts
@@ -180,7 +178,6 @@ DB定義・初期データ,sql,skill_seed.sql,.sql,データベーステーブ�
 共通UI,src/utils/ui,area-select.ts,.ts,画面共通のUI部品と演出,src/utils/ui/area-select.ts
 共通UI,src/utils/ui,back-button.ts,.ts,画面共通のUI部品と演出,src/utils/ui/back-button.ts
 共通UI,src/utils/ui,buttons.ts,.ts,画面共通のUI部品と演出,src/utils/ui/buttons.ts
-共通UI,src/utils/ui,dialogs.ts,.ts,画面共通のUI部品と演出,src/utils/ui/dialogs.ts
 共通UI,src/utils/ui,display-quality.ts,.ts,画面共通のUI部品と演出,src/utils/ui/display-quality.ts
 共通UI,src/utils/ui,index.ts,.ts,画面共通のUI部品と演出,src/utils/ui/index.ts
 共通UI,src/utils/ui,scene-fade.ts,.ts,画面共通のUI部品と演出,src/utils/ui/scene-fade.ts

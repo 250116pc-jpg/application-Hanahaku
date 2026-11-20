@@ -1,3 +1,4 @@
+import { bindDomGui } from '../../utils/ui/dom-layout';
 /* ==================================
  * 期末テスト提出プログラム
  * 学籍番号：250082、250056、250116
@@ -130,6 +131,7 @@ export function mountFlowerDetail(flower: PrototypeFlower, options: {
     const footer = node('footer', 'book-footer')
     footer.append(node('span', 'book-folio', page === 'ability' ? 'I — 能力・スキル' : 'II — 花の説明'), button('町マップへ ›', options.onHome))
     book.append(header, spread, footer); root.append(book)
+    bindDomGui(book, 'EncyclopediaScene.detail')
     const selected = nav.querySelector<HTMLButtonElement>('[aria-pressed="true"]'); selected?.focus({ preventScroll: true })
   }
   /* === [ 担当 : 250056 斎藤永聖 ] ===

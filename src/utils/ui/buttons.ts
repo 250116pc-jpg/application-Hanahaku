@@ -5,6 +5,8 @@
  * ================================== */
 import Phaser from 'phaser';
 import { getMenuButtonDimensions } from '../../display/MenuButtonLayout';
+import { registerButton } from './layout';
+import { createImageButton } from './image-button';
 import { getTextStyle } from './styles';
 
 // 共通テキストボタン（戻るボタン、タブ、ヘッダーボタンなどに使用）
@@ -17,7 +19,7 @@ export const createTextButton = (
   y: number,
   label: string,
   onClick: () => void,
-  options: { fontSize?: number; bgColor?: string; hoverColor?: string; downColor?: string; padding?: any } = {}
+  options: { layoutId?: string; fontSize?: number; bgColor?: string; hoverColor?: string; downColor?: string; padding?: any } = {}
 ): Phaser.GameObjects.Text => {
   const bgColor = options.bgColor ?? '#ffffff';
   const hoverColor = options.hoverColor ?? '#eaf4fb';
@@ -44,42 +46,8 @@ export const createTextButton = (
     onClick();
   });
 
+  registerButton(scene, options.layoutId ?? `${scene.sys.settings.key}.${label}`, [button]);
   return button;
-};
-
-// 共通枠付き矩形ボタン（ポップアップのボタンや「キャラ詳細を見る」などの大型ボタン）
-export const createRectButton = (
-  scene: Phaser.Scene,
-  x: number,
-  y: number,
-  width: number,
-  height: number,
-  label: string,
-  onClick: () => void,
-  options: { fontSize?: number; fillColor?: number; hoverColor?: number; downColor?: number; textColor?: string } = {}
-): Phaser.GameObjects.Container => {
-  const fillColor = options.fillColor ?? 0xffffff;
-  const hoverColor = options.hoverColor ?? 0xeaf4fb;
-  const downColor = options.downColor ?? 0xd5e8f5;
-
-  const bg = scene.add.rectangle(0, 0, width, height, fillColor)
-    .setStrokeStyle(2, 0x333333)
-    .setInteractive({ useHandCursor: true });
-
-  const text = scene.add.text(0, 0, label, getTextStyle(options.fontSize ?? 24, {
-    color: options.textColor ?? '#000000'
-  })).setOrigin(0.5);
-  const container = scene.add.container(x, y, [bg, text]).setScrollFactor(0);
-
-  bg.on('pointerover', () => bg.setFillStyle(hoverColor));
-  bg.on('pointerout', () => bg.setFillStyle(fillColor));
-  bg.on('pointerdown', () => bg.setFillStyle(downColor));
-  bg.on('pointerup', () => {
-    bg.setFillStyle(hoverColor);
-    onClick();
-  });
-
-  return container;
 };
 
 // 画像または矩形背景付きの共通ボタン
@@ -94,7 +62,8 @@ export const createTextImageButton = (
     key: string;
     width?: number;
     height?: number;
-  }
+  },
+  layoutId?: string
 ): Phaser.GameObjects.Container => {
   const height = 65;
 
@@ -102,13 +71,19 @@ export const createTextImageButton = (
     ? { key: image, width, height }
     : image ?? null;
 
-  const background = imageConfig
-    ? scene.add.image(0, 0, imageConfig.key)
-        .setDisplaySize(
-          imageConfig.width ?? width,
-          imageConfig.height ?? height
-        )
-    : scene.add.rectangle(0, 0, width, height, 0x7fa2c4);
+  if (imageConfig) {
+    const container = scene.add.container(x, y);
+    createImageButton(scene, {
+      parent: container, x: 0, y: 0, width, height, texture: imageConfig.key,
+      imageWidth: imageConfig.width ?? width, imageHeight: imageConfig.height ?? height,
+      label, layoutId: layoutId ?? `${scene.sys.settings.key}.${label}`, hitTarget: 'parent',
+      textStyle: getTextStyle(24, { color: '#ffffff', fontStyle: 'bold', align: 'center' }),
+      hoverAlpha: .8, trigger: 'pointerdown', onClick,
+    });
+    return container;
+  }
+
+  const background = scene.add.rectangle(0, 0, width, height, 0x7fa2c4);
 
   const text = scene.add.text(0, 0, label, getTextStyle(24, {
     color: '#ffffff',
@@ -124,5 +99,6 @@ export const createTextImageButton = (
   container.on('pointerout', () => background.setAlpha(1));
   container.on('pointerdown', onClick);
 
+  registerButton(scene, layoutId ?? `${scene.sys.settings.key}.${label}`, [container]);
   return container;
 };

@@ -1,0 +1,144 @@
+<!doctype html><html><head><meta charset="utf-8"><style>body{margin:0;overflow:hidden}#result{position:fixed;inset:0;pointer-events:none}</style></head><body><pre id="result">RUNNING</pre><script type="module">
+import Phaser from 'phaser';
+import { enableSceneUiLayout, registerGui, registerButton, syncGuiMask } from '/src/utils/ui/layout.ts';
+import { bindDomGui } from '/src/utils/ui/dom-layout.ts';
+import { createImageButton } from '/src/utils/ui/image-button.ts';
+import { getFittedLayout, createFittedContainer } from '/src/utils/ui/fit-layout.ts';
+import { createTextImageButton } from '/src/utils/ui/buttons.ts';
+import { resetUiLayoutSettings, updateUiLayoutSettings, getUiLayoutSettings, loadUiLayoutSettings } from '/src/display/UiLayoutSettings.ts';
+const result = document.querySelector('#result');
+const checks = [];
+function near(actual, expected, label) { if (Math.abs(actual - expected) > .08) throw Error(`${label}: ${actual} != ${expected}`); checks.push(label); }
+const wait = () => new Promise(resolve => setTimeout(resolve, 60));
+window.addEventListener('error', event => { result.textContent = `FAIL: ${event.message}`; });
+window.addEventListener('unhandledrejection', event => { result.textContent = `FAIL: ${event.reason?.stack ?? event.reason}`; });
+resetUiLayoutSettings();
+class TestScene extends Phaser.Scene {
+  create() {
+    enableSceneUiLayout(this, object => object.name === 'fixed');
+    this.background = new Phaser.GameObjects.Rectangle(this, 640, 360, 1280, 720, 0x333333).setName('fixed');
+    this.add.existing(this.background);
+    this.root = this.add.container(50, 40).setScale(.8);
+    this.label = this.add.text(200, 100, 'HP'); this.root.add(this.label);
+    this.button = this.add.rectangle(300, 200, 80, 50, 0x88ff88).setInteractive();
+    this.root.add(this.button);
+    registerButton(this, 'Test.attack', [this.button]);
+    this.maskArt = this.make.graphics({}, false).fillRect(10, 10, 100, 100);
+    syncGuiMask(this, this.maskArt);
+    setTimeout(() => run(this).catch(error => { result.textContent = `FAIL: ${error.stack}`; }), 100);
+  }
+}
+async function run(scene) {
+  const pos = object => object.getWorldTransformMatrix().transformPoint(0, 0);
+  near(pos(scene.label).x, 210, 'default GUI position');
+  near(pos(scene.button).x, 290, 'default button position');
+  updateUiLayoutSettings({ gui: { scale: .75, offsetX: 40, offsetY: -15 }, buttons: { 'Test.attack': { scale: 1.5, offsetX: 30, offsetY: -20 } } });
+  near(pos(scene.label).x, 357.5, 'nested GUI scales once');
+  near(pos(scene.label).y, 165, 'GUI global offset');
+  near(pos(scene.background).x, 640, 'background remains fixed');
+  near(scene.background.getWorldTransformMatrix().scaleX, 1, 'background keeps original size');
+  near(pos(scene.button).x, 320, 'button independent X');
+  near(pos(scene.button).y, 180, 'button independent Y');
+  near(scene.button.getWorldTransformMatrix().scaleX, 1.2, 'button independent size');
+  near(scene.maskArt.scaleX, .75, 'mask scale');
+  near(scene.maskArt.x, 200, 'mask offset');
+  scene.button.setScale(.97);
+  scene.events.emit(Phaser.Scenes.Events.PRE_UPDATE, 0, 16);
+  near(scene.button.getWorldTransformMatrix().scaleX, .8 * 1.5 * .97, 'pressed effect preserves configured size');
+  scene.button.setScale(1);
+  await wait();
+  const pointer = scene.input.activePointer;
+  pointer.position.set(320, 180);
+  const hits = scene.input.manager.hitTest(pointer, [scene.button], scene.cameras.main);
+  near(hits.length, 1, 'input hit area follows button');
+  const second = scene.scene.add('Second', { create() {
+    enableSceneUiLayout(this);
+    this.label = this.add.text(210, 120, 'Second');
+  } }, true);
+  await wait();
+  near(pos(second.label).x, 357.5, 'new scene inherits GUI setting');
+  scene.scene.pause();
+  updateUiLayoutSettings({ gui: { offsetX: 60 } });
+  near(pos(scene.label).x, 377.5, 'paused scene updates');
+  scene.scene.resume();
+  const old = scene.button.parentContainer;
+  scene.button.destroy();
+  scene.events.emit(Phaser.Scenes.Events.PRE_UPDATE, 0, 16);
+  near(old.scene ? 1 : 0, 0, 'destroyed button wrapper cleaned');
+  resetUiLayoutSettings();
+  const fit = getFittedLayout(1000, 1000);
+  near(fit.scale, 1000 / 1280, 'portrait viewport fits width');
+  near(fit.x, 0, 'portrait viewport centered X');
+  near(fit.y, 218.75, 'portrait viewport centered Y');
+  near(getFittedLayout(1920, 1080).scale, 1.5, 'large viewport keeps aspect ratio');
+  const area = createFittedContainer(scene, 1672, 941);
+  near(area.y, 0, 'alternate design size fits height');
+  near(area.scaleX, 720 / 941, 'alternate design size retains aspect ratio');
+  area.destroy();
+  let invalidSize = false; try { getFittedLayout(1280, 720, 0, 720); } catch { invalidSize = true; }
+  near(Number(invalidSize), 1, 'invalid design size rejected');
+  let allowed = false, clicks = 0;
+  const generated = createImageButton(scene, {
+    x: 450, y: 300, width: 120, height: 50, imageWidth: 140, texture: '__WHITE',
+    label: 'generated', layoutId: 'Test.generated', hoverAlpha: .8,
+    canActivate: () => allowed, onClick: () => clicks++,
+  });
+  near(generated.image.displayWidth, 140, 'image can include visual padding');
+  near(generated.hit.width, 120, 'click range excludes visual padding');
+  generated.hit.emit('pointerup'); near(clicks, 0, 'activation guard prevents action');
+  allowed = true; generated.hit.emit('pointerup'); near(clicks, 1, 'enabled action runs once');
+  generated.hit.emit('pointerover'); near(generated.image.alpha, .8, 'shared hover effect');
+  generated.hit.emit('pointerout'); near(generated.image.alpha, 1, 'shared hover reset');
+  updateUiLayoutSettings({gui:{scale:.8},buttons:{'Test.generated':{scale:1.2,offsetX:15}}});
+  near(pos(generated.image).x, 465, 'generated image follows individual setting');
+  near(pos(generated.hit).x, 465, 'generated input follows individual setting');
+  near(generated.hit.getWorldTransformMatrix().scaleX, 1.2, 'generated input independent of GUI scale');
+  const disabled = createImageButton(scene, {
+    x: 200, y: 200, width: 100, height: 40, texture: '__WHITE', label: 'disabled',
+    layoutId: 'Test.disabled', enabled: false, disabledAlpha: .45, onClick: () => clicks++,
+  });
+  disabled.hit.emit('pointerup'); near(clicks, 1, 'disabled button cannot activate');
+  near(disabled.image.alpha, .45, 'disabled image appearance preserved');
+  near(Number(Boolean(disabled.hit.input)), 0, 'disabled button has no input target');
+  let legacyClicks = 0;
+  const legacy = createTextImageButton(scene, 700, 450, 180, 'legacy', () => legacyClicks++, '__WHITE', 'Test.legacy');
+  legacy.emit('pointerdown'); near(legacyClicks, 1, 'existing image button API keeps pointerdown trigger');
+  scene.events.emit(Phaser.Scenes.Events.PRE_UPDATE, 0, 16);
+  near(pos(legacy).x, 700, 'container button retains original center');
+  resetUiLayoutSettings();
+  const panel = document.createElement('section');
+  panel.style.cssText = 'position:fixed;left:200px;top:100px;width:300px;height:200px;background:tan';
+  const button = document.createElement('button'); button.textContent = 'test'; button.dataset.uiId = 'attack';
+  button.style.cssText = 'position:absolute;left:20px;top:20px;width:100px;height:40px;scale:1 1.32';
+  panel.append(button); document.body.append(panel);
+  const baseline = button.getBoundingClientRect();
+  const dispose = bindDomGui(panel, 'DOM');
+  await wait();
+  near(button.getBoundingClientRect().height, baseline.height, 'DOM existing CSS scale preserved');
+  updateUiLayoutSettings({ gui: { scale: .75, offsetX: 40, offsetY: -15 }, buttons: { 'DOM.attack': { scale: 1.2, offsetX: 30, offsetY: -20 } } });
+  await wait();
+  const rect = button.getBoundingClientRect();
+  near(rect.width, baseline.width * 1.2, 'DOM independent size');
+  near(rect.left + rect.width / 2, baseline.left + baseline.width / 2 + 30, 'DOM independent X');
+  near(rect.top + rect.height / 2, baseline.top + baseline.height / 2 - 20, 'DOM independent Y');
+  const added = document.createElement('button'); added.textContent = 'dynamic'; panel.append(added);
+  await wait();
+  near(added.dataset.uiLayoutId === 'DOM.dynamic' ? 1 : 0, 1, 'DOM dynamically added button');
+  const hidden = document.createElement('div'); hidden.hidden = true;
+  const hiddenButton = document.createElement('button'); hiddenButton.textContent = 'hidden'; hidden.append(hiddenButton); panel.append(hidden);
+  await wait(); hidden.hidden = false; await wait();
+  near(Number.parseFloat(hiddenButton.style.scale), 1 / .75, 'DOM initially hidden button updates when shown');
+  dispose(); panel.remove();
+  const copy = getUiLayoutSettings(); copy.gui.scale = 999;
+  near(getUiLayoutSettings().gui.scale, .75, 'settings returned by copy');
+  updateUiLayoutSettings({ buttons: { 'DOM.attack': null } });
+  near(Object.hasOwn(getUiLayoutSettings().buttons, 'DOM.attack') ? 1 : 0, 0, 'individual reset');
+  localStorage.setItem('flowerLinkUiLayoutSettings', '{broken');
+  near(loadUiLayoutSettings().gui.scale, 1, 'corrupt stored settings fallback');
+  resetUiLayoutSettings();
+  near(pos(scene.label).x, 210, 'reset restores original layout');
+  result.textContent = `PASS ${checks.length}\n${checks.join('\n')}`;
+}
+new Phaser.Game({ type: Phaser.CANVAS, width: 1280, height: 720, banner: false, audio: { noAudio: true }, scene: TestScene });
+</script></body></html>
+

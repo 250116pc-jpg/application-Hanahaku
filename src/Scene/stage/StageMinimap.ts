@@ -1,3 +1,4 @@
+import { registerGui } from '../../utils/ui/layout';
 /* ==================================
  * 期末テスト提出プログラム
  * 学籍番号：250116
@@ -36,6 +37,7 @@ export function createStageMinimap(
    * ================================== */
   const root = scene.add.container(scene.scale.width - width - 22, 82)
     .setName('stage-minimap').setScrollFactor(0).setDepth(2001);
+  registerGui(scene, root);
   const terrain = scene.add.graphics();
   terrain.fillStyle(0x101d2c, 0.9).fillRoundedRect(0, 0, width, height, 10);
   terrain.lineStyle(1, 0xbda780, 0.9).strokeRoundedRect(0, 0, width, height, 10);

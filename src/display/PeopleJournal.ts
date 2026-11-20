@@ -1,3 +1,4 @@
+import { bindDomGui } from '../utils/ui/dom-layout';
 /* ==================================
  * 期末テスト提出プログラム
  * 学籍番号：250056
@@ -122,4 +123,5 @@ export function openPeopleJournal(parent: HTMLElement): void {
   list.querySelector('button')!.click()
   fold(1)
   dialog.showModal()
+  bindDomGui(dialog, 'EncyclopediaScene.people')
 }

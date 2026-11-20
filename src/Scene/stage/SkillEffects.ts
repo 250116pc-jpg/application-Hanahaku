@@ -1,3 +1,4 @@
+import { registerGui } from '../../utils/ui/layout';
 /* ==================================
  * 期末テスト提出プログラム
  * 学籍番号：250056、250116
@@ -319,6 +320,7 @@ export class SkillEffects {
     const x = this.scene.scale.width / 2;
     const banner = this.scene.add.container(x, 125).setScrollFactor(0).setDepth(1990).setAlpha(0);
     this.banner = banner;
+    registerGui(this.scene, banner);
     const bg = this.scene.add.graphics();
     bg.fillStyle(0x101725, .86).fillRect(-235, -24, 470, 48);
     bg.lineStyle(1, color, .8).lineBetween(-235, -24, 235, -24).lineBetween(-200, 24, 200, 24);

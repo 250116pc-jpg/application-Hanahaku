@@ -1,3 +1,4 @@
+import { enableSceneUiLayout } from '../utils/ui/layout';
 /* ==================================
  * 期末テスト提出プログラム
  * 学籍番号：250082、250056、250116
@@ -111,6 +112,7 @@ export class CharacterDetailScene extends Phaser.Scene {
    * 処理内容 : 花の基本情報・能力値・スキルと戻る操作を表示する
    * ================================== */
   create(): void {
+    enableSceneUiLayout(this);
     showDebugSceneName(this);
     
     const width = this.scale.width
