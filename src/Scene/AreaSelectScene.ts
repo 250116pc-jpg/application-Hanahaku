@@ -1,3 +1,4 @@
+import { createFittedContainer } from '../utils/ui';
 import { enableSceneUiLayout, registerButton } from '../utils/ui/layout';
 /* ==================================
  * 期末テスト提出プログラム
@@ -75,8 +76,7 @@ export class AreaSelectScene extends Phaser.Scene {
      * ================================== */
     this.prepareTextures();
     // 【画面全体の配置】背景とUIの縦横比を保ち、ゲーム画面に収める。
-    const scale = Math.min(this.scale.width / 1672, this.scale.height / 941);
-    this.layout = this.add.container((this.scale.width - 1672 * scale) / 2, (this.scale.height - 941 * scale) / 2).setScale(scale);
+    this.layout = createFittedContainer(this, 1672, 941);
     this.layout.add(this.add.image(0, 0, 'area-background').setOrigin(0));
     this.selectionRing = this.add.circle(0, 0, 41, 0xffdb70, 0).setStrokeStyle(5, 0xffdf7c);
     this.layout.add(this.selectionRing);

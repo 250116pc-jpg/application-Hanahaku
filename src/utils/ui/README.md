@@ -3,7 +3,9 @@
 - `styles.ts`：文字の書体・標準色。既存画面は `getTextStyle()`、画像UIの本文は `getBodyTextStyle()`、見出しは `getHeadingTextStyle()`。
 - `back-button.ts`：ログインと同じ画像・文字のPhaser用戻るボタン。`preload()` で `preloadBackButton(this)`、`create()` で `createBackButton(this, 配置設定, 戻る処理)` を呼ぶ。
 - `display-quality.ts`：`applySmoothDisplay(this, 画像キー一覧)` で指定画像とCanvas拡大を滑らかにする。文字単体は `smoothText(text)`。画面終了時にはCanvas設定を復元する。
-- `buttons.ts`：従来の文字・矩形・画像付きボタン。
+- `buttons.ts`：文字ボタンと既存の画像付きボタン呼び出し窓口。
+- `image-button.ts`：画像・文字・クリック範囲・ホバー反応・GUI設定への登録を共通生成する。
+- `fit-layout.ts`：基準サイズの縦横比を保ち、画面中央に収める配置計算。
 - `scene-frame.ts`：育成・キャラ詳細で使う従来の画面枠。
 - 旧 `area-select.ts` は削除済み。エリア選択UIは `src/Scene/AreaSelectScene.ts` を使用する。
 - `index.ts`：上記の公開窓口。Sceneからは `../utils/ui` で読み込める。
@@ -67,3 +69,25 @@ HTMLボタンは `data-ui-layout-id` 属性でIDを確認できる。動的な�
 
 確認：`npm run check:ui`（Chrome/Edgeを使った座標・入力・DOM・保存のブラウザテスト）、`npm run build`。
 実シーンの起動確認も行う場合は `npm run check:ui -- --smoke`。
+
+## 画像ボタンと画面へのフィット
+
+育成・編成・設定・ショップの画像ボタンは `createImageButton()` を使用する。
+画像キー・サイズ・書体・色は各シーンに残し、生成・ホバー・入力・レイアウト登録を共有する。
+戻り値の `image`・`label`・`hit` を使って、選択時の画像変更や購入中の文言更新ができる。
+
+```ts
+const { image, label, hit } = createImageButton(this, {
+  parent: this.content, x: 200, y: 100, width: 180, height: 50,
+  texture: 'button-texture', label: '決定', layoutId: 'MyScene.confirm',
+  hoverAlpha: 0.8, onClick: () => this.confirm(),
+});
+this.layout = createFittedContainer(this); // 1280×720を画面内に中央配置
+// 異なるデザイン基準：createFittedContainer(this, 1672, 941)
+```
+
+`imageWidth/Height` は画像の表示サイズ、`width/height` はクリック範囲。
+`hitTarget` は標準が独立したZoneで、画像・文字・親Containerを選ぶこともできる。
+`enabled: false` で入力を無効にし、`canActivate` でドラッグ中・画面終了中などの実行条件を確認する。
+`getFittedLayout(viewportWidth, viewportHeight, baseWidth?, baseHeight?)` は座標と倍率だけを返す。
+画面へのフィットと、設定で指定するGUI倍率は別々に適用する。

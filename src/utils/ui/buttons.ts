@@ -5,6 +5,7 @@
  * ================================== */
 import Phaser from 'phaser';
 import { registerButton } from './layout';
+import { createImageButton } from './image-button';
 import { getTextStyle } from './styles';
 
 // 共通テキストボタン（戻るボタン、タブ、ヘッダーボタンなどに使用）
@@ -64,13 +65,19 @@ export const createTextImageButton = (
     ? { key: image, width, height }
     : image ?? null;
 
-  const background = imageConfig
-    ? scene.add.image(0, 0, imageConfig.key)
-        .setDisplaySize(
-          imageConfig.width ?? width,
-          imageConfig.height ?? height
-        )
-    : scene.add.rectangle(0, 0, width, height, 0x7fa2c4);
+  if (imageConfig) {
+    const container = scene.add.container(x, y);
+    createImageButton(scene, {
+      parent: container, x: 0, y: 0, width, height, texture: imageConfig.key,
+      imageWidth: imageConfig.width ?? width, imageHeight: imageConfig.height ?? height,
+      label, layoutId: layoutId ?? `${scene.sys.settings.key}.${label}`, hitTarget: 'parent',
+      textStyle: getTextStyle(24, { color: '#ffffff', fontStyle: 'bold', align: 'center' }),
+      hoverAlpha: .8, trigger: 'pointerdown', onClick,
+    });
+    return container;
+  }
+
+  const background = scene.add.rectangle(0, 0, width, height, 0x7fa2c4);
 
   const text = scene.add.text(0, 0, label, getTextStyle(24, {
     color: '#ffffff',

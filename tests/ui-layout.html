@@ -2,6 +2,9 @@
 import Phaser from 'phaser';
 import { enableSceneUiLayout, registerGui, registerButton, syncGuiMask } from '/src/utils/ui/layout.ts';
 import { bindDomGui } from '/src/utils/ui/dom-layout.ts';
+import { createImageButton } from '/src/utils/ui/image-button.ts';
+import { getFittedLayout, createFittedContainer } from '/src/utils/ui/fit-layout.ts';
+import { createTextImageButton } from '/src/utils/ui/buttons.ts';
 import { resetUiLayoutSettings, updateUiLayoutSettings, getUiLayoutSettings, loadUiLayoutSettings } from '/src/display/UiLayoutSettings.ts';
 const result = document.querySelector('#result');
 const checks = [];
@@ -62,6 +65,46 @@ async function run(scene) {
   scene.button.destroy();
   scene.events.emit(Phaser.Scenes.Events.PRE_UPDATE, 0, 16);
   near(old.scene ? 1 : 0, 0, 'destroyed button wrapper cleaned');
+  resetUiLayoutSettings();
+  const fit = getFittedLayout(1000, 1000);
+  near(fit.scale, 1000 / 1280, 'portrait viewport fits width');
+  near(fit.x, 0, 'portrait viewport centered X');
+  near(fit.y, 218.75, 'portrait viewport centered Y');
+  near(getFittedLayout(1920, 1080).scale, 1.5, 'large viewport keeps aspect ratio');
+  const area = createFittedContainer(scene, 1672, 941);
+  near(area.y, 0, 'alternate design size fits height');
+  near(area.scaleX, 720 / 941, 'alternate design size retains aspect ratio');
+  area.destroy();
+  let invalidSize = false; try { getFittedLayout(1280, 720, 0, 720); } catch { invalidSize = true; }
+  near(Number(invalidSize), 1, 'invalid design size rejected');
+  let allowed = false, clicks = 0;
+  const generated = createImageButton(scene, {
+    x: 450, y: 300, width: 120, height: 50, imageWidth: 140, texture: '__WHITE',
+    label: 'generated', layoutId: 'Test.generated', hoverAlpha: .8,
+    canActivate: () => allowed, onClick: () => clicks++,
+  });
+  near(generated.image.displayWidth, 140, 'image can include visual padding');
+  near(generated.hit.width, 120, 'click range excludes visual padding');
+  generated.hit.emit('pointerup'); near(clicks, 0, 'activation guard prevents action');
+  allowed = true; generated.hit.emit('pointerup'); near(clicks, 1, 'enabled action runs once');
+  generated.hit.emit('pointerover'); near(generated.image.alpha, .8, 'shared hover effect');
+  generated.hit.emit('pointerout'); near(generated.image.alpha, 1, 'shared hover reset');
+  updateUiLayoutSettings({gui:{scale:.8},buttons:{'Test.generated':{scale:1.2,offsetX:15}}});
+  near(pos(generated.image).x, 465, 'generated image follows individual setting');
+  near(pos(generated.hit).x, 465, 'generated input follows individual setting');
+  near(generated.hit.getWorldTransformMatrix().scaleX, 1.2, 'generated input independent of GUI scale');
+  const disabled = createImageButton(scene, {
+    x: 200, y: 200, width: 100, height: 40, texture: '__WHITE', label: 'disabled',
+    layoutId: 'Test.disabled', enabled: false, disabledAlpha: .45, onClick: () => clicks++,
+  });
+  disabled.hit.emit('pointerup'); near(clicks, 1, 'disabled button cannot activate');
+  near(disabled.image.alpha, .45, 'disabled image appearance preserved');
+  near(Number(Boolean(disabled.hit.input)), 0, 'disabled button has no input target');
+  let legacyClicks = 0;
+  const legacy = createTextImageButton(scene, 700, 450, 180, 'legacy', () => legacyClicks++, '__WHITE', 'Test.legacy');
+  legacy.emit('pointerdown'); near(legacyClicks, 1, 'existing image button API keeps pointerdown trigger');
+  scene.events.emit(Phaser.Scenes.Events.PRE_UPDATE, 0, 16);
+  near(pos(legacy).x, 700, 'container button retains original center');
   resetUiLayoutSettings();
   const panel = document.createElement('section');
   panel.style.cssText = 'position:fixed;left:200px;top:100px;width:300px;height:200px;background:tan';

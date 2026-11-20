@@ -1,4 +1,4 @@
-import { registerButton } from '../../utils/ui/layout';
+import { createImageButton } from '../../utils/ui';
 /* ==================================
  * 期末テスト提出プログラム
  * 学籍番号：250056、250116
@@ -145,26 +145,15 @@ function createTextButton(
   y: number,
   label: string
 ) {
-  const art = scene.add.image(x, y, 'shop-button').setDisplaySize(222, 66)
-  const text = scene.add.text(x, y, label, {
-    fontFamily: '"UD Digi Kyokasho NP-R", "Yu Gothic", "Meiryo", sans-serif',
-    fontSize: '20px',
-    color: '#ffffff',
-    // Button artwork is shared with the encyclopedia.
-    fontStyle: 'bold',
-    padding: {
-      left: 42,
-      right: 42,
-      top: 12,
-      bottom: 12
-    }
-  })
-    .setOrigin(0.5)
-    .setInteractive({ useHandCursor: true })
-  text.on('pointerover', () => art.setTint(0xffe6ac))
-  text.on('pointerout', () => art.clearTint())
-  registerButton(scene, `ShopScene.${label}`, [art, text], { x, y })
-  return text
+  return createImageButton(scene, {
+    x, y, width: 222, height: 66, texture: 'shop-button', label,
+    layoutId: `ShopScene.${label}`, hitTarget: 'label', hoverTint: 0xffe6ac,
+    textStyle: {
+      fontFamily: '"UD Digi Kyokasho NP-R", "Yu Gothic", "Meiryo", sans-serif',
+      fontSize: '20px', color: '#ffffff', fontStyle: 'bold',
+      padding: { left: 42, right: 42, top: 12, bottom: 12 },
+    },
+  }).label
 }
 
 /* === [ 担当 : 250116 中村伊安 ] ===

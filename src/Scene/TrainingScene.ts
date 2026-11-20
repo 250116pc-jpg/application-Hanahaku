@@ -1,4 +1,5 @@
-import { enableSceneUiLayout, registerButton } from '../utils/ui/layout';
+import { createFittedContainer, createImageButton } from '../utils/ui';
+import { enableSceneUiLayout } from '../utils/ui/layout';
 /* ==================================
  * 期末テスト提出プログラム
  * 学籍番号：250082、250116
@@ -149,8 +150,7 @@ export class TrainingScene extends Phaser.Scene {
     /* === [ 担当 : 250082 武田優人 ] ===
      * 処理内容 : 画像・文字・パネルを配置する
      * ================================== */
-    const scale = Math.min(this.scale.width / 1280, this.scale.height / 720);
-    this.layout = this.add.container((this.scale.width - 1280 * scale) / 2, (this.scale.height - 720 * scale) / 2).setScale(scale);
+    this.layout = createFittedContainer(this);
     this.layout.add(this.add.image(640, 360, 'training-garden').setDisplaySize(1280, 720));
     this.layout.add(this.add.rectangle(640, 360, 1280, 720, 0x20120a, .14));
     this.portraitId = -1;
@@ -213,18 +213,14 @@ export class TrainingScene extends Phaser.Scene {
     const isTab = h === 58;
     const isCompact = w <= 54;
     const texture = isCompact ? 'training-compact-button' : isTab && selected ? 'training-tab' : 'training-button';
-    const g = this.add.image(x + w / 2, y + h / 2, texture, 'rect')
-      .setDisplaySize(isCompact ? Math.min(46, w + 8) : isTab ? w : w + 8, isCompact ? Math.min(46, h + 8) : isTab ? h : h + 7);
-    this.content.add(g);
-    const caption = this.text(x + w / 2, y + h / 2, label, isCompact ? (w < 32 ? 20 : 24) : 18, '#fff5df').setOrigin(.5);
-    const hit = this.add.zone(x + w / 2, y + h / 2, w, h);
-    if (enabled) hit.setInteractive({ useHandCursor: true });
-    else g.setAlpha(.4);
-    this.content.add(hit);
-    hit.on('pointerover', () => g.setAlpha(.8)); hit.on('pointerout', () => g.setAlpha(1));
-    hit.on('pointerup', action);
-    registerButton(this, `TrainingScene.${label}`, [g, caption, hit], { x: x + w / 2, y: y + h / 2 });
-    return caption;
+    return createImageButton(this, {
+      parent: this.content, x: x + w / 2, y: y + h / 2, width: w, height: h,
+      texture, frame: 'rect', label, layoutId: `TrainingScene.${label}`,
+      imageWidth: isCompact ? Math.min(46, w + 8) : isTab ? w : w + 8,
+      imageHeight: isCompact ? Math.min(46, h + 8) : isTab ? h : h + 7,
+      textStyle: { fontSize: isCompact ? (w < 32 ? 20 : 24) : 18, resolution: 2 },
+      enabled, hoverAlpha: .8, onClick: action,
+    }).label;
   }
   /* === [ 担当 : 250082 武田優人 ] ===
    * 処理内容 : 表示に使う画像・アニメーションを用意する

@@ -1,4 +1,5 @@
-import { enableSceneUiLayout, registerButton, syncGuiMask } from '../utils/ui/layout';
+import { createFittedContainer, createImageButton } from '../utils/ui';
+import { enableSceneUiLayout, syncGuiMask } from '../utils/ui/layout';
 /* ==================================
  * 期末テスト提出プログラム
  * 学籍番号：250082、250056、250116
@@ -128,8 +129,7 @@ export class FormScene extends Phaser.Scene {
     /* === [ 担当 : 250082 武田優人 ] ===
      * 処理内容 : 画像・文字・パネルを配置する
      * ================================== */
-    const scale = Math.min(this.scale.width / 1280, this.scale.height / 720)
-    this.layout = this.add.container((this.scale.width - 1280 * scale) / 2, (this.scale.height - 720 * scale) / 2).setScale(scale)
+    this.layout = createFittedContainer(this);
     this.layout.add(this.add.image(640, 360, 'form-garden').setDisplaySize(1280, 720))
     this.layout.add(this.add.rectangle(640, 360, 1280, 720, 0x20120a, .14))
     this.content = this.add.container(0, 0); this.layout.add(this.content)
@@ -274,14 +274,16 @@ export class FormScene extends Phaser.Scene {
    * 処理内容 : 操作可能なボタンとクリック時の処理を作る
    * ================================== */
   private button(x: number, y: number, w: number, h: number, label: string, action: () => void, selected = false, enabled = true): void {
-    const image = this.add.image(x, y, w <= 46 ? 'form-square' : selected ? 'form-amber' : 'form-wood', 'ui').setDisplaySize(w, h)
-    this.content.add(image)
-    const caption = this.label(x, y, label, w <= 46 ? 22 : 17, enabled ? '#fff5df' : '#66523b').setOrigin(.5)
-    registerButton(this, `FormScene.${label}`, [image, caption], { x, y })
-    if (!enabled) { image.setAlpha(.45); return }
-    const hit = this.add.zone(x, y, w, h).setInteractive({ useHandCursor: true }); this.content.add(hit)
-    registerButton(this, `FormScene.${label}`, [hit], { x, y })
-    hit.on('pointerover', () => image.setAlpha(.82)).on('pointerout', () => image.setAlpha(1)).on('pointerup', () => { if (this.dragDistance <= 6) action() })
+    const button = createImageButton(this, {
+      parent: this.content, x, y, width: w, height: h,
+      texture: w <= 46 ? 'form-square' : selected ? 'form-amber' : 'form-wood', frame: 'ui',
+      label, layoutId: `FormScene.${label}`,
+      textStyle: { fontFamily: FONT, fontSize: w <= 46 ? 22 : 17, fontStyle: 'normal',
+        color: enabled ? '#fff5df' : '#66523b', resolution: 2, padding: { top: 2, bottom: 2 } },
+      enabled, disabledAlpha: .45, hoverAlpha: .82,
+      canActivate: () => this.dragDistance <= 6, onClick: action,
+    });
+    smoothText(button.label);
   }
   /* === [ 担当 : 250082 武田優人 ] ===
    * 処理内容 : 花の画像を縦横比を保って指定サイズに配置する
