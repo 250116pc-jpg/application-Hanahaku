@@ -138,6 +138,11 @@ async function startGame(): Promise<void> {
     };
     const onFirstPointerUp = (event: PointerEvent): void => {
       if (!event.isTrusted) return;
+      // 起動後にOFFへ変更された場合は、保存済みの古いON状態で復元しない。
+      if (!loadDisplaySettings().borderless) {
+        cleanup();
+        return;
+      }
       if (game.scale.isFullscreen) {
         cleanup();
         return;

@@ -183,18 +183,27 @@ function begin(request: Request): void {
     };
     const onAssetError = (): void => { assetFailed = true; };
     const onStop = (): void => { if (!job.next && (route.source !== target || destinationCreated)) cleanup(); };
-    const event = route.mode === 'resume' ? Phaser.Scenes.Events.RESUME : route.mode === 'wake' ? Phaser.Scenes.Events.WAKE : Phaser.Scenes.Events.CREATE;
+    // 戻り先がpause以外の状態でも、実際の状態に応じて表示を復元する。
+    let mode = route.mode;
+    if (mode === 'resume' || mode === 'wake') {
+      if (target.sys.isSleeping()) mode = 'wake';
+      else if (target.sys.isPaused() || target.sys.isActive()) mode = 'resume';
+      else mode = 'start';
+    }
+    const event = mode === 'resume' ? Phaser.Scenes.Events.RESUME : mode === 'wake' ? Phaser.Scenes.Events.WAKE : Phaser.Scenes.Events.CREATE;
     target.events.once(event, onReady); target.events.on(Phaser.Scenes.Events.SHUTDOWN, onStop); target.load.on('loaderror', onAssetError);
     detach = () => { releaseSimulation(); target.events.off(event, onReady); target.events.off(Phaser.Scenes.Events.SHUTDOWN, onStop); target.load.off('loaderror', onAssetError); };
     watchdog = window.setTimeout(() => { if (!disposed) error('読み込みに時間がかかっています。'); }, 20000);
     started = true;
     route.source.input.keyboard?.resetKeys();
-    if (route.mode === 'launch') {
+    if (mode === 'launch') {
       route.source.scene.launch(route.destination, route.data);
       route.source.scene.bringToTop(route.destination);
       if (route.preserve === 'sleep') route.source.scene.sleep(); else route.source.scene.pause();
-    } else if (route.mode === 'resume' || route.mode === 'wake') {
-      if (route.mode === 'resume') route.source.scene.resume(route.destination); else route.source.scene.wake(route.destination);
+    } else if (mode === 'resume' || mode === 'wake') {
+      target.sys.setVisible(true);
+      if (mode === 'resume') route.source.scene.resume(route.destination); else route.source.scene.wake(route.destination);
+      route.source.scene.bringToTop(route.destination);
       if (route.source !== target) route.source.scene.stop();
       // 既に再開済みでも表示を残し続けない。
       if (target.sys.isActive()) onReady();

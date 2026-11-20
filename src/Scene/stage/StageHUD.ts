@@ -393,6 +393,7 @@ export class StageHUD {
     /* === [ 担当 : 250116 中村伊安 ] ===
      * 処理内容 : Canvasを覆う撤退確認用の暗い背景を作る
      * ================================== */
+    const largeMenu = loadDisplaySettings().menuButtonSize === 'large';
     const canvasRect = this.scene.game.canvas.getBoundingClientRect();
     const dialog = document.createElement('div');
     dialog.setAttribute('role', 'dialog');
@@ -418,8 +419,8 @@ export class StageHUD {
     const panel = document.createElement('div');
     Object.assign(panel.style, {
       boxSizing: 'border-box',
-      width: 'min(650px, 90%)',
-      minHeight: 'min(280px, 84%)',
+      width: largeMenu ? 'min(780px, 94%)' : 'min(650px, 90%)',
+      minHeight: largeMenu ? 'min(330px, 88%)' : 'min(280px, 84%)',
       maxHeight: '94%',
       overflowY: 'auto',
       padding: 'clamp(14px, 4vh, 30px) 18px',
@@ -443,10 +444,10 @@ export class StageHUD {
      * 処理内容 : 撤退の確認文・注意書き・選択ボタンの領域を作る
      * ================================== */
     title.textContent = 'ステージから撤退しますか？';
-    Object.assign(title.style, { fontSize: 'clamp(20px, 3vw, 32px)', fontWeight: 'bold' });
+    Object.assign(title.style, { fontSize: largeMenu ? 'clamp(24px, 3.5vw, 38px)' : 'clamp(20px, 3vw, 32px)', fontWeight: 'bold' });
     const warning = document.createElement('div');
     warning.textContent = '進行状況が失われます。';
-    Object.assign(warning.style, { fontSize: 'clamp(16px, 2vw, 24px)', color: '#795331' });
+    Object.assign(warning.style, { fontSize: largeMenu ? 'clamp(19px, 2.5vw, 28px)' : 'clamp(16px, 2vw, 24px)', color: '#795331' });
     const actions = document.createElement('div');
     Object.assign(actions.style, { display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', width: '100%', gap: '12px' });
     /* === [ 担当 : 250056 斎藤永聖 / 250116 中村伊安 ] ===
@@ -458,7 +459,7 @@ export class StageHUD {
       action.textContent = label;
       Object.assign(action.style, {
         minWidth: '0',
-        minHeight: '48px',
+        minHeight: largeMenu ? '64px' : '48px',
         padding: '8px 4px',
         border: 'solid transparent',
         borderWidth: '0 18px',
@@ -467,7 +468,7 @@ export class StageHUD {
         background: 'transparent',
         imageRendering: 'pixelated',
         color: '#f5e6c5',
-        font: 'bold clamp(14px, 2vw, 20px) Meiryo, sans-serif',
+        font: largeMenu ? 'bold clamp(18px, 2.6vw, 25px) Meiryo, sans-serif' : 'bold clamp(14px, 2vw, 20px) Meiryo, sans-serif',
         cursor: 'pointer'
       });
       action.addEventListener('click', onClick);
