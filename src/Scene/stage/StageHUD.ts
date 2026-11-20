@@ -1,3 +1,6 @@
+import { captureGui, registerGui, registerButton } from '../../utils/ui/layout';
+import { bindDomGui, placeDomButton } from '../../utils/ui/dom-layout';
+import { onUiLayoutChanged } from '../../display/UiLayoutSettings';
 /* ==================================
  * 期末テスト提出プログラム
  * 学籍番号：250082、250056、250116
@@ -106,7 +109,7 @@ export class StageHUD {
    * 処理内容 : HP・ステージ名・操作ボタン・編成花のHUDを組み立てる
    * ================================== */
   public create(stageId?: number, stageNumber?: string): void {
-    this.createStageLabel(stageId, stageNumber);
+    captureGui(this.scene, () => this.createStageLabel(stageId, stageNumber));
     this.createUtilityButtons();
     if (stageId === 2) this.createOpeningBattleGuide();
     trackSceneLoading(this.scene, this.initializeFlowerSkills(stageId ?? 2));
@@ -158,6 +161,7 @@ export class StageHUD {
         guide.destroy();
         close.destroy();
       });
+    registerButton(this.scene, 'StageScene.closeGuide', [close]);
   }
 
   private createStatusPanel(): void {
@@ -278,13 +282,7 @@ export class StageHUD {
      * 処理内容 : 画面サイズに合わせて配置の基準を求める
      * ================================== */
     const placeButton = (): void => {
-      const canvasRect = canvas.getBoundingClientRect();
-      const scaleX = canvasRect.width / this.scene.scale.width;
-      const scaleY = canvasRect.height / this.scene.scale.height;
-      button.style.left = `${canvasRect.left + x * scaleX - size * scaleX / 2}px`;
-      button.style.top = `${canvasRect.top + y * scaleY - size * scaleY / 2}px`;
-      button.style.width = `${size * scaleX}px`;
-      button.style.height = `${size * scaleY}px`;
+      placeDomButton(button, canvas, this.scene.scale, 'StageScene.retreat', x, y, size);
     };
 
     /* === [ 担当 : 250056 斎藤永聖 / 250116 中村伊安 ] ===
@@ -292,6 +290,7 @@ export class StageHUD {
      * ================================== */
     document.body.appendChild(button);
     placeButton();
+    const stopLayout = onUiLayoutChanged(placeButton);
     const resizeObserver = new ResizeObserver(placeButton);
     resizeObserver.observe(canvas);
     window.addEventListener('resize', placeButton);
@@ -328,6 +327,7 @@ export class StageHUD {
       this.scene.events.off(Phaser.Scenes.Events.SLEEP, hideButton);
       this.scene.events.off(Phaser.Scenes.Events.RESUME, showButton);
       this.scene.events.off(Phaser.Scenes.Events.WAKE, showButton);
+      stopLayout();
       resizeObserver.disconnect();
       window.removeEventListener('resize', placeButton);
       button.remove();
@@ -462,6 +462,7 @@ export class StageHUD {
     panel.append(title, warning, actions);
     dialog.append(panel);
     document.body.append(dialog);
+    bindDomGui(panel, 'StageScene.retreatDialog');
     if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches && typeof dialog.animate === 'function') {
       dialog.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 150, easing: 'ease-out' });
       panel.animate([{ transform: 'translateY(-28px)' }, { transform: 'translateY(0)' }], { duration: 150, easing: 'ease-out' });
@@ -519,6 +520,7 @@ export class StageHUD {
         .setDisplaySize(86, 86).setScrollFactor(0).setDepth(this.depth + 2);
       const skillX = x + cardW - 39;
       const skillY = top + cardH - 38;
+      const skillParts = new Set(this.scene.children.getChildren());
       this.scene.add.rectangle(skillX, skillY, 72, 72, 0x101923, 0.96)
         .setStrokeStyle(2, 0xe0c184, 1).setScrollFactor(0).setDepth(this.depth + 3);
       if (this.scene.textures.exists(`flower-skill-${character.id}`)) {
@@ -534,6 +536,7 @@ export class StageHUD {
           this.selectFlower(i);
           this.useSelectedFlowerSkill(i);
         });
+      registerButton(this.scene, `StageScene.skill-${i + 1}`, this.scene.children.getChildren().filter(object => !skillParts.has(object)), { x: skillX, y: skillY });
       this.updateFlowerMp(i, character);
     }
   }
@@ -657,6 +660,7 @@ export class StageHUD {
     const button = this.imageButton(x, y, 106, '', key, () => {}, held => this.player?.setGuardHeld(held));
     const label = this.text(x, y + 23, '防御', 19, '#f4dfb8', 'bold')
       .setOrigin(0.5).setDepth(this.depth + 4);
+    registerButton(this.scene, 'StageScene.stage-guard', [label], { x, y });
     this.scene.time.addEvent({ delay: 50, loop: true, callback: () => {
       const active = this.player?.isGuarding() === true;
       if (active) button.setTint(0xa0ebff);
@@ -677,8 +681,9 @@ export class StageHUD {
       .setScrollFactor(0).setDepth(this.depth + 5)
       .setInteractive(new Phaser.Geom.Rectangle(0, 0, size, size), Phaser.Geom.Rectangle.Contains);
     if (hitArea.input) hitArea.input.cursor = 'pointer';
-    this.text(x, y + size * 0.34, label, Math.max(10, size * 0.15), '#fff4e8', 'bold')
+    const caption = this.text(x, y + size * 0.34, label, Math.max(10, size * 0.15), '#fff4e8', 'bold')
       .setOrigin(0.5).setDepth(this.depth + 4);
+    registerButton(this.scene, `StageScene.${texture}`, [image, hitArea, caption], { x, y });
     // setDisplaySize changes displayWidth/Height; preserve that base scale for hover feedback.
     /* === [ 担当 : 250116 中村伊安 ] ===
      * 処理内容 : クリック・キー操作と終了時の後片付けを設定する
@@ -845,9 +850,9 @@ export class StageHUD {
         const flower = this.flowers.find(character => character.id === state.flowerId);
         if (formationIndex >= 0 && flower) this.updateFlowerMp(formationIndex, flower);
       });
-      this.createStatusPanel();
-      this.createPartyHud();
-      this.createMovementPad();
+      captureGui(this.scene, () => this.createStatusPanel());
+      captureGui(this.scene, () => this.createPartyHud());
+      captureGui(this.scene, () => this.createMovementPad());
       this.createActionButtons();
       this.isReady = true;
       this.updateSkillLabel();
@@ -922,11 +927,11 @@ export class StageHUD {
    * 処理内容 : 位置・大きさ・色を指定して文字を生成する
    * ================================== */
   private text(x: number, y: number, value: string, size: number, color: string, fontStyle?: string): Phaser.GameObjects.Text {
-    return this.scene.add.text(x, y, value, getTextStyle(size, {
+    return registerGui(this.scene, this.scene.add.text(x, y, value, getTextStyle(size, {
       color, fontStyle,
       fontFamily: 'Yu Mincho, YuMincho, serif',
       padding: { top: 0, bottom: 0, left: 0, right: 0 }
-    })).setScrollFactor(0).setDepth(this.depth + 1);
+    })).setScrollFactor(0).setDepth(this.depth + 1));
   }
 
   /* === [ 担当 : 250116 中村伊安 ] ===

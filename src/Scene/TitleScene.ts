@@ -1,3 +1,4 @@
+import { registerGui, registerButton } from '../utils/ui/layout';
 /* ==================================
  * 期末テスト提出プログラム
  * 学籍番号：250082、250056、250116
@@ -79,6 +80,7 @@ export class TitleScene extends Phaser.Scene {
      * ================================== */
     const logo = this.add.image(width / 2, height / 3+80, 'title-logo');
     logo.setScale(850 / logo.width);
+    registerGui(this, logo);
 
     /* === [ 担当 : 250082 武田優人 / 250056 斎藤永聖 ] ===
      * 処理内容 : 設定・スタートボタンと表示品質を設定する
@@ -105,11 +107,13 @@ export class TitleScene extends Phaser.Scene {
     label.setScale(320 / label.width);
     const prompt = this.add.container(x, y, [label]).setSize(label.displayWidth, label.displayHeight);
     prompt.setInteractive({ useHandCursor: true });
+    registerButton(this, 'TitleScene.start', [prompt]);
 
     const hint = this.add.text(x, y + 77, 'クリック / タップ / Enter で開始', {
       fontFamily: '"Yu Gothic", "Meiryo", sans-serif', fontSize: '14px',
       color: '#fff3dc', resolution: 2,
     }).setOrigin(.5).setShadow(0, 2, '#152238', 4);
+    registerGui(this, hint);
     // 待機中は85〜100%の明るさで、ゆっくり控えめに明滅させる。
     const breathing = this.tweens.add({
       targets: label, alpha: .85, duration: 1500,

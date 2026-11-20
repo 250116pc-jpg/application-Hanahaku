@@ -1,3 +1,4 @@
+import { enableSceneUiLayout, registerButton } from '../../utils/ui/layout';
 /* ==================================
  * 期末テスト提出プログラム
  * 学籍番号：250082、250116
@@ -130,6 +131,7 @@ export class StoryScene extends Phaser.Scene {
      * 処理内容 : 会話の背景・話者名・セリフ枠を配置する
      * ================================== */
     createBackground(this, 'Background');
+    enableSceneUiLayout(this, object => object.type === 'Rectangle' && (object as Phaser.GameObjects.Rectangle).width >= this.scale.width);
     // 第1章のストーリーで暖炉の環境音を流す。
     if (data.chapter === 1) {
       const fire = this.sound.add('story-fireplace', { loop: true, volume: loadAudioSettings(this).seVolume * 0.25 });
@@ -216,7 +218,7 @@ export class StoryScene extends Phaser.Scene {
    * 処理内容 : 会話画面のメニューボタンを作る
    * ================================== */
   private createMenuButton(x: number, y: number, text: string): Phaser.GameObjects.Text {
-    return this.add.text(x, y, text, getTextStyle(18, {
+    const button = this.add.text(x, y, text, getTextStyle(18, {
       color: '#ffffff',
       backgroundColor: '#333333',
       padding: { left: 18, right: 18, top: 10, bottom: 10 }
@@ -226,6 +228,8 @@ export class StoryScene extends Phaser.Scene {
       .setDepth(200)
       .setInteractive({ useHandCursor: true })
       .on('pointerover', () => { /* 必要に応じて色変更などを追加 */ });
+    registerButton(this, `StoryScene.${text}`, [button]);
+    return button;
   }
 
   // ==================================================
@@ -385,6 +389,8 @@ export class StoryScene extends Phaser.Scene {
       .setInteractive({ useHandCursor: true });
 
     container.add([darkBackground, popup, text, yesButton, noButton]);
+    registerButton(this, 'StoryScene.yes', [yesButton]);
+    registerButton(this, 'StoryScene.no', [noButton]);
 
     yesButton.on('pointerdown', () => {
       container.destroy();
@@ -432,6 +438,7 @@ export class StoryScene extends Phaser.Scene {
       .setInteractive({ useHandCursor: true });
 
     container.add([darkBackground, popup, log, closeButton]);
+    registerButton(this, 'StoryScene.closeLog', [closeButton]);
 
     closeButton.on('pointerdown', () => {
       container.destroy();

@@ -1,3 +1,4 @@
+import { registerGui } from '../../utils/ui/layout';
 /* ==================================
  * 期末テスト提出プログラム
  * 学籍番号：250116
@@ -82,6 +83,7 @@ export function createVillage(scene: Phaser.Scene, area: TownArea, select: (stop
     }
   }
   const hud = scene.add.container(0, 0).setScale(sx, sy).setScrollFactor(0).setDepth(30)
+  registerGui(scene, hud)
   hud.add(scene.add.text(32, 28, area.name, { ...textStyle, fontSize: '26px' }))
   hud.add(scene.add.text(34, 66, area.description, { fontFamily: 'sans-serif', fontSize: '14px', color: '#fff4d5', stroke: '#382a23', strokeThickness: 3 }))
   const status = scene.add.text(640, 668, '左右にスワイプで村を見渡す · 建物をタッチして移動', {

@@ -1,3 +1,4 @@
+import { registerButton } from '../../utils/ui/layout';
 /* ==================================
  * 期末テスト提出プログラム
  * 学籍番号：250056、250116
@@ -162,6 +163,7 @@ function createTextButton(
     .setInteractive({ useHandCursor: true })
   text.on('pointerover', () => art.setTint(0xffe6ac))
   text.on('pointerout', () => art.clearTint())
+  registerButton(scene, `ShopScene.${label}`, [art, text], { x, y })
   return text
 }
 

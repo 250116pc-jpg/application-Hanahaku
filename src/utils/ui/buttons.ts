@@ -4,6 +4,7 @@
  * 氏名：斎藤永聖
  * ================================== */
 import Phaser from 'phaser';
+import { registerButton } from './layout';
 import { getTextStyle } from './styles';
 
 // 共通テキストボタン（戻るボタン、タブ、ヘッダーボタンなどに使用）
@@ -16,7 +17,7 @@ export const createTextButton = (
   y: number,
   label: string,
   onClick: () => void,
-  options: { fontSize?: number; bgColor?: string; hoverColor?: string; downColor?: string; padding?: any } = {}
+  options: { layoutId?: string; fontSize?: number; bgColor?: string; hoverColor?: string; downColor?: string; padding?: any } = {}
 ): Phaser.GameObjects.Text => {
   const bgColor = options.bgColor ?? '#ffffff';
   const hoverColor = options.hoverColor ?? '#eaf4fb';
@@ -38,6 +39,7 @@ export const createTextButton = (
     onClick();
   });
 
+  registerButton(scene, options.layoutId ?? `${scene.sys.settings.key}.${label}`, [button]);
   return button;
 };
 
@@ -50,7 +52,7 @@ export const createRectButton = (
   height: number,
   label: string,
   onClick: () => void,
-  options: { fontSize?: number; fillColor?: number; hoverColor?: number; downColor?: number; textColor?: string } = {}
+  options: { layoutId?: string; fontSize?: number; fillColor?: number; hoverColor?: number; downColor?: number; textColor?: string } = {}
 ): Phaser.GameObjects.Container => {
   const fillColor = options.fillColor ?? 0xffffff;
   const hoverColor = options.hoverColor ?? 0xeaf4fb;
@@ -73,6 +75,7 @@ export const createRectButton = (
     onClick();
   });
 
+  registerButton(scene, options.layoutId ?? `${scene.sys.settings.key}.${label}`, [container]);
   return container;
 };
 
@@ -88,7 +91,8 @@ export const createTextImageButton = (
     key: string;
     width?: number;
     height?: number;
-  }
+  },
+  layoutId?: string
 ): Phaser.GameObjects.Container => {
   const height = 65;
 
@@ -118,5 +122,6 @@ export const createTextImageButton = (
   container.on('pointerout', () => background.setAlpha(1));
   container.on('pointerdown', onClick);
 
+  registerButton(scene, layoutId ?? `${scene.sys.settings.key}.${label}`, [container]);
   return container;
 };

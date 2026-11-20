@@ -1,3 +1,4 @@
+import { enableSceneUiLayout, syncGuiMask } from '../../utils/ui/layout';
 /* ==================================
  * 期末テスト提出プログラム
  * 学籍番号：250082、250056、250116
@@ -35,6 +36,7 @@ export class ShopScene extends Phaser.Scene {
   }
 
   create(): void {
+    enableSceneUiLayout(this);
     /* === [ 担当 : 250056 斎藤永聖 / 250116 中村伊安 ] ===
      * 処理内容 : 商品一覧と店員・見出しを準備して訪問を記録する
      * ================================== */
@@ -202,6 +204,8 @@ export class ShopScene extends Phaser.Scene {
     const maskGraphics = this.make.graphics({})
     maskGraphics.fillRect(x, y, width, height)
     shopContainer.setMask(maskGraphics.createGeometryMask())
+    syncGuiMask(this, maskGraphics)
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => maskGraphics.destroy())
   }
 }
 

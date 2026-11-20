@@ -1,3 +1,4 @@
+import { bindDomGui } from '../../utils/ui/dom-layout';
 /* ==================================
  * 期末テスト提出プログラム
  * 学籍番号：250056
@@ -157,6 +158,7 @@ export class PurchaseConfirm {
     update()
     if (this.maxQuantity < 1) balance.textContent = `所持コイン：${coin.toLocaleString()} G`
     document.body.append(this.root)
+    bindDomGui(panel, 'ShopScene.confirm')
     scene.events.once(Phaser.Scenes.Events.SHUTDOWN, this.shutdown)
     this.root.addEventListener('keydown', event => {
       if (event.key === 'Escape' && !this.buying) { event.preventDefault(); playUiSe(scene, 'cancel'); this.destroy(); return }

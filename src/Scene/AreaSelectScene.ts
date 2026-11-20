@@ -1,3 +1,4 @@
+import { enableSceneUiLayout, registerButton } from '../utils/ui/layout';
 /* ==================================
  * 期末テスト提出プログラム
  * 学籍番号：250082、250116
@@ -68,6 +69,7 @@ export class AreaSelectScene extends Phaser.Scene {
   }
 
   create(): void {
+    enableSceneUiLayout(this);
     /* === [ 担当 : 250082 武田優人 / 250116 中村伊安 ] ===
      * 処理内容 : クリック・キー操作と終了時の後片付けを設定する
      * ================================== */
@@ -149,6 +151,7 @@ export class AreaSelectScene extends Phaser.Scene {
     button.on('pointerout', () => button.clearTint());
     button.on('pointerdown', onClick);
     this.layout.add(button);
+    registerButton(this, `AreaSelectScene.${frame}`, [button]);
     return button;
   }
 

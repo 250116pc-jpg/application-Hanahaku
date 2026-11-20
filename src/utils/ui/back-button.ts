@@ -4,6 +4,7 @@
  * 氏名：武田優人、中村伊安
  * ================================== */
 import Phaser from 'phaser';
+import { registerButton } from './layout';
 import backImage from '../../assets/ui/button1.png';
 import { getBodyTextStyle } from './styles';
 import { smoothText } from './display-quality';
@@ -51,5 +52,6 @@ export function createBackButton(
   button.on('pointerover', () => image.setTint(0xffe4b5));
   button.on('pointerout', () => image.clearTint());
   button.on('pointerup', onBack);
+  registerButton(scene, `${scene.sys.settings.key}.back`, [button]);
   return button;
 }

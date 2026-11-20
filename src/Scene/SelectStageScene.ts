@@ -1,3 +1,4 @@
+import { enableSceneUiLayout, registerButton } from '../utils/ui/layout';
 /* ==================================
  * 期末テスト提出プログラム
  * 学籍番号：250082、250056、250116
@@ -121,6 +122,7 @@ export class SelectStageScene extends Phaser.Scene {
   // create
   // ========================================
   create(data: SelectStageSceneData = {}): void {
+    enableSceneUiLayout(this);
     /* === [ 担当 : 250082 武田優人 / 250116 中村伊安 ] ===
      * 処理内容 : 選択エリアと保存済みの位置からステージ一覧を準備する
      * ================================== */
@@ -478,6 +480,7 @@ export class SelectStageScene extends Phaser.Scene {
       fontStyle: 'bold',
       padding: { top: 0, bottom: 0, left: 0, right: 0 }
     }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+    registerButton(scene, 'SelectStageScene.close', [closeButton]);
 
     closeButton.on('pointerover', () => closeButton.setColor('#ffd27b'));
     closeButton.on('pointerout', () => closeButton.setColor('#fff1cd'));
@@ -624,6 +627,7 @@ export class SelectStageScene extends Phaser.Scene {
         onClick();
       });
 
+      registerButton(scene, `SelectStageScene.${label}`, [btnContainer]);
       return btnContainer;
     };
 

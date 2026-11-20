@@ -1,3 +1,4 @@
+import { bindDomGui } from '../utils/ui/dom-layout';
 /* ==================================
  * 期末テスト提出プログラム
  * 学籍番号：250082、250056
@@ -112,6 +113,7 @@ export function mountAuthLayout(
     Object.assign(root.style, { left: `${left}px`, top: `${top}px`, width: `${width}px`, height: `${height}px` });
   };
   document.body.append(root);
+  bindDomGui(panel, 'LoginScene');
   position();
   scene.scale.on(Phaser.Scale.Events.RESIZE, position);
   /* === [ 担当 : 250056 斎藤永聖 ] ===

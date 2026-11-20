@@ -1,3 +1,4 @@
+import { enableSceneUiLayout, registerButton } from '../utils/ui/layout';
 /* ==================================
  * 期末テスト提出プログラム
  * 学籍番号：250082、250056、250116
@@ -80,6 +81,7 @@ export class SettingsScene extends Phaser.Scene {
   }
 
   create(): void {
+    enableSceneUiLayout(this);
     /* === [ 担当 : 250082 武田優人 / 250056 斎藤永聖 ] ===
      * 処理内容 : タブ・パネル用の画像と描画素材を準備する
      * ================================== */
@@ -180,7 +182,9 @@ export class SettingsScene extends Phaser.Scene {
   private artButton(parent: Phaser.GameObjects.Container, x: number, y: number, width: number, height: number, label: string, onClick: () => void, texture = 'settings-button'): Phaser.GameObjects.Image {
     const image = this.add.image(x, y, texture, texture === 'settings-tab' ? 'rect' : undefined).setDisplaySize(width, height).setInteractive({ useHandCursor: true });
     parent.add(image);
-    image.setData('label', this.text(parent, x, y, label, 21, '#fff5df').setOrigin(.5));
+    const caption = this.text(parent, x, y, label, 21, '#fff5df').setOrigin(.5);
+    image.setData('label', caption);
+    registerButton(this, `SettingsScene.${label}`, [image, caption], { x, y });
     image.on('pointerover', () => image.setAlpha(.85));
     image.on('pointerout', () => image.setAlpha(1));
     image.on('pointerup', () => { if (!this.leaving) { resumeAudioFromGesture(this); onClick(); } });

@@ -1,3 +1,4 @@
+import { bindDomGui } from '../utils/ui/dom-layout';
 /* ==================================
  * 期末テスト提出プログラム
  * 学籍番号：250082、250056、250116
@@ -220,6 +221,7 @@ export function mountEncyclopediaBook(options: {
  ;seasons.forEach((season,i)=>{const tab=button(tabs,season,()=>{if(season!==options.season)turn(i-seasonIndex,season,0,()=>options.onSeason(season))});const label=document.createElement('span');label.textContent=season;label.style.display='inline-block';const ribbon=document.createElement('img');ribbon.src=bookmarkImage;ribbon.alt='';ribbon.className='encyclopedia-season-ribbon';ribbon.setAttribute('aria-hidden','true');tab.replaceChildren(label,ribbon);tab.style.setProperty('--tab-color',['#e6b5bf','#b7cfaa','#d5b075','#b8cadd'][i]!);tab.setAttribute('aria-pressed',String(season===options.season));tab.classList.toggle('season-past',i<seasonIndex);tab.style.gridRow=String(i+1);tab.style.gridColumn=i<seasonIndex?'1':'2'})
  root.addEventListener('keydown',event=>{if(event.key==='Escape'){event.preventDefault();close()}if(event.key==='Tab'){const list=[...root.querySelectorAll<HTMLButtonElement>('button:not(:disabled)')].filter(b=>b.getClientRects().length);const first=list[0],last=list[list.length-1];if(event.shiftKey&&document.activeElement===first){event.preventDefault();last?.focus()}else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first?.focus()}}})
  document.body.append(root)
+ bindDomGui(book, 'EncyclopediaScene')
  const ready=():void=>{ui.hidden=false;tabs.hidden=false;tabs.querySelector<HTMLButtonElement>('[aria-pressed=true]')?.focus()}
  const preload=['open.png',...Array.from({length:8},(_,i)=>`opening_${String(i).padStart(2,'0')}.png`),...Array.from({length:9},(_,i)=>`turn_next_${String(i).padStart(2,'0')}.png`)].map(name=>{const img=new Image();img.src=asset(name);return img.decode().catch(()=>undefined)})
  // 画像準備だけをロード待機に含め、本を開く演出は画面が見えてから始める。

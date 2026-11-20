@@ -1,3 +1,4 @@
+import { guiPoint, registerGui } from '../../utils/ui/layout';
 /* ==================================
  * 期末テスト提出プログラム
  * 学籍番号：250116
@@ -22,6 +23,7 @@ export function enableShopScroll(
   const thumb = scene.add.rectangle(barX, y, 10, thumbHeight, 0xc4a264)
     .setOrigin(0.5, 0).setStrokeStyle(1, 0xead8af)
 
+  registerGui(scene, track); registerGui(scene, thumb)
   const setScroll = (offset: number): void => {
     const next = Phaser.Math.Clamp(offset, 0, maxScroll)
     shopContainer.y = -next
@@ -33,7 +35,7 @@ export function enableShopScroll(
     thumb.setInteractive({ useHandCursor: true })
     scene.input.setDraggable(thumb)
     track.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
-      setScroll((pointer.y - y - thumbHeight / 2) / travel * maxScroll)
+      setScroll((guiPoint(scene, pointer.x, pointer.y).y - y - thumbHeight / 2) / travel * maxScroll)
     })
     thumb.on('drag', (_pointer: Phaser.Input.Pointer, _dragX: number, dragY: number) => {
       setScroll((dragY - y) / travel * maxScroll)
@@ -54,7 +56,8 @@ export function enableShopScroll(
     _deltaX: number,
     deltaY: number
   ): void => {
-    if (pointer.x < x || pointer.x > barX + 5 || pointer.y < y || pointer.y >= y + height) return
+    const local = guiPoint(scene, pointer.x, pointer.y)
+    if (local.x < x || local.x > barX + 5 || local.y < y || local.y >= y + height) return
     setScroll(-shopContainer.y + deltaY)
   }
   scene.input.on('wheel', handleWheel)

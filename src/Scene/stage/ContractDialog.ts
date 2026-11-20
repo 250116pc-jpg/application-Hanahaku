@@ -1,3 +1,4 @@
+import { enableSceneUiLayout, registerButton } from '../../utils/ui/layout';
 /* ==================================
  * 期末テスト提出プログラム
  * 学籍番号：250082、250056、250116
@@ -42,6 +43,7 @@ export class ContractScene extends Phaser.Scene {
   }
 
   create(data: ContractSceneData): void {
+    enableSceneUiLayout(this);
     /* === [ 担当 : 250056 斎藤永聖 / 250116 中村伊安 ] ===
      * 処理内容 : 救出した花・契約状況・素材所持数の状態を準備する
      * ================================== */
@@ -73,6 +75,7 @@ export class ContractScene extends Phaser.Scene {
         ], true);
       }
       dialog.add(frame);
+      return frame;
     };
 
     const text = (x: number, y: number, value: string, size: number, wrap?: number) => {
@@ -135,7 +138,7 @@ export class ContractScene extends Phaser.Scene {
      * 処理内容 : クリック・キー操作と終了時の後片付けを設定する
      * ================================== */
     const button = (y: number, label: string, primary: boolean, action: () => void) => {
-      panel(822, y, 403, 60, primary ? 0x244a76 : 0x142235);
+      const background = panel(822, y, 403, 60, primary ? 0x244a76 : 0x142235);
       const hit = scene.add.rectangle(1023.5, y + 30, 403, 60, 0xffffff, 0.01)
         .setInteractive({ useHandCursor: true });
       dialog.add(hit);
@@ -143,6 +146,7 @@ export class ContractScene extends Phaser.Scene {
       hit.on('pointerover', () => hit.setAlpha(0.13));
       hit.on('pointerout', () => hit.setAlpha(0.01));
       hit.on('pointerup', action);
+      registerButton(scene, `ContractScene.${primary ? "confirm" : "cancel"}`, [background, hit, caption], { x: 1023.5, y: y + 30 });
       return { hit, caption };
     };
 
@@ -194,6 +198,7 @@ export class ContractScene extends Phaser.Scene {
     icon.setScale(36 / Math.max(icon.width, icon.height));
     dialog.add(icon);
     const countLabel = text(1023.5, 533, '所持数を確認中…', 15).setOrigin(0.5);
+    registerButton(scene, 'ContractScene.confirm', [icon, countLabel], { x: 1023.5, y: 521 });
     const updateCount = () => {
       const canConfirm = (count ?? 0) > 0 || Boolean(contractMessage);
       countLabel.setText(count === undefined ? '所持数を取得できません'

@@ -1,3 +1,4 @@
+import { enableSceneUiLayout, registerButton, syncGuiMask } from '../utils/ui/layout';
 /* ==================================
  * 期末テスト提出プログラム
  * 学籍番号：250082、250056、250116
@@ -94,6 +95,7 @@ export class FormScene extends Phaser.Scene {
     this.sys.settings.data = {}
   }
   create(): void {
+    enableSceneUiLayout(this);
     /* === [ 担当 : 250082 武田優人 / 250116 中村伊安 ] ===
      * 処理内容 : 編成画面のボタンとパネル画像の切り出しを準備する
      * ================================== */
@@ -162,7 +164,9 @@ export class FormScene extends Phaser.Scene {
     const move = (pointer: Phaser.Input.Pointer) => {
       const start = this.dragStart
       if (!start || pointer.id !== start.pointerId || !pointer.isDown) return
-      const dx = (pointer.x - start.x) / this.layout.scaleX, dy = (pointer.y - start.y) / this.layout.scaleY
+      const matrix = this.layout.getWorldTransformMatrix()
+      const nowLocal = matrix.applyInverse(pointer.x, pointer.y), startLocal = matrix.applyInverse(start.x, start.y)
+      const dx = nowLocal.x - startLocal.x, dy = nowLocal.y - startLocal.y
       this.dragDistance = Math.max(this.dragDistance, Math.hypot(dx, dy))
       if (this.dragPreview) {
         const local = this.layout.getWorldTransformMatrix().applyInverse(pointer.x, pointer.y)
@@ -271,9 +275,12 @@ export class FormScene extends Phaser.Scene {
    * ================================== */
   private button(x: number, y: number, w: number, h: number, label: string, action: () => void, selected = false, enabled = true): void {
     const image = this.add.image(x, y, w <= 46 ? 'form-square' : selected ? 'form-amber' : 'form-wood', 'ui').setDisplaySize(w, h)
-    this.content.add(image); this.label(x, y, label, w <= 46 ? 22 : 17, enabled ? '#fff5df' : '#66523b').setOrigin(.5)
+    this.content.add(image)
+    const caption = this.label(x, y, label, w <= 46 ? 22 : 17, enabled ? '#fff5df' : '#66523b').setOrigin(.5)
+    registerButton(this, `FormScene.${label}`, [image, caption], { x, y })
     if (!enabled) { image.setAlpha(.45); return }
     const hit = this.add.zone(x, y, w, h).setInteractive({ useHandCursor: true }); this.content.add(hit)
+    registerButton(this, `FormScene.${label}`, [hit], { x, y })
     hit.on('pointerover', () => image.setAlpha(.82)).on('pointerout', () => image.setAlpha(1)).on('pointerup', () => { if (this.dragDistance <= 6) action() })
   }
   /* === [ 担当 : 250082 武田優人 ] ===
@@ -411,8 +418,9 @@ export class FormScene extends Phaser.Scene {
       if (object.input) object.input.hitAreaCallback = (area: Phaser.Geom.Rectangle, x: number, y: number) =>
         Phaser.Geom.Rectangle.Contains(area, x, y) && this.rosterContains(this.input.activePointer)
     })
-    const topLeft = this.layout.getWorldTransformMatrix().transformPoint(341, 397)
-    this.rosterClip = this.add.graphics().setVisible(false).fillStyle(0xffffff).fillRect(topLeft.x, topLeft.y, 895 * this.layout.scaleX, viewportHeight * this.layout.scaleY)
+    const topLeft = { x: this.layout.x + 341 * this.layout.scaleX, y: this.layout.y + 397 * this.layout.scaleY }
+    this.rosterClip = this.make.graphics({}, false).setVisible(false).fillStyle(0xffffff).fillRect(topLeft.x, topLeft.y, 895 * this.layout.scaleX, viewportHeight * this.layout.scaleY)
+    syncGuiMask(this, this.rosterClip)
     this.rosterMask = this.rosterClip.createGeometryMask(); body.setMask(this.rosterMask)
     /* === [ 担当 : 250082 武田優人 ] ===
      * 処理内容 : 画像・文字・パネルを配置する

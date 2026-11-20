@@ -1,3 +1,4 @@
+import { enableSceneUiLayout, registerButton } from '../utils/ui/layout';
 /* ==================================
  * 期末テスト提出プログラム
  * 学籍番号：250082、250116
@@ -111,6 +112,7 @@ export class TrainingScene extends Phaser.Scene {
     });
   }
   create(): void {
+    enableSceneUiLayout(this);
     /* === [ 担当 : 250082 武田優人 / 250116 中村伊安 ] ===
      * 処理内容 : タブ・パネル用の画像と描画素材を準備する
      * ================================== */
@@ -221,6 +223,7 @@ export class TrainingScene extends Phaser.Scene {
     this.content.add(hit);
     hit.on('pointerover', () => g.setAlpha(.8)); hit.on('pointerout', () => g.setAlpha(1));
     hit.on('pointerup', action);
+    registerButton(this, `TrainingScene.${label}`, [g, caption, hit], { x: x + w / 2, y: y + h / 2 });
     return caption;
   }
   /* === [ 担当 : 250082 武田優人 ] ===

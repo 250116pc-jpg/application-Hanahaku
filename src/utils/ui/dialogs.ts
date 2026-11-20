@@ -1,3 +1,4 @@
+import { registerGui, registerButton } from './layout';
 /* ==================================
  * 期末テスト提出プログラム
  * 学籍番号：250116
@@ -44,10 +45,12 @@ export const showRetreatDialog = (
     bg.on('pointerdown', () => bg.setFillStyle(0xd5e8f5));
     bg.on('pointerup', () => onClick());
     container.add([bg, text]);
+    registerButton(scene, `retreatDialog.${label}`, [bg, text], { x, y: height / 2 + 90 });
   };
 
   // Add the dimmer and popup first so the two buttons remain the topmost hit areas.
   container.add([darkBg, popup, title, warning]);
+  [popup, title, warning].forEach(object => registerGui(scene, object));
   createDialogButton(width / 2 - 150, 'キャンセル', () => container.destroy());
   createDialogButton(width / 2 + 150, '撤退する', () => {
     container.destroy();

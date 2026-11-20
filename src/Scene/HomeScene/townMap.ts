@@ -1,3 +1,4 @@
+import { registerGui, registerButton } from '../../utils/ui/layout';
 /* ==================================
  * 期末テスト提出プログラム
  * 学籍番号：250116
@@ -45,6 +46,7 @@ export function createTownMap(
 ): () => void {
   const root = scene.add.container(0, 0).setScale(scene.scale.width / 1280, scene.scale.height / 720)
     .setScrollFactor(0).setDepth(1000)
+  registerGui(scene, root)
   const add = <T extends Phaser.GameObjects.GameObject & Phaser.GameObjects.Components.ScrollFactor>(object: T): T => {
     root.add(object)
     object.setScrollFactor(0)
@@ -62,7 +64,7 @@ export function createTownMap(
   add(scene.add.rectangle(235, 69, 290, 51, 0xf2f8e8, .97)).setStrokeStyle(1, 0x61916a)
   add(label(235, 69, '花咲く街の地図', 26))
   const closeButton = add(scene.add.rectangle(1151, 69, 100, 42, 0x315942)).setInteractive({ useHandCursor: true })
-  add(label(1151, 69, '閉じる ×', 17)).setColor('#fffdf1')
+  const closeCaption = add(label(1151, 69, '閉じる ×', 17)).setColor('#fffdf1')
   add(label(640, 666, '建物を選んで移動', 16)).setBackgroundColor('#f2f8e8').setPadding(12, 4)
 
   const landmarks: { id: TownAreaId; name: Phaser.GameObjects.Text; halo: Phaser.GameObjects.Ellipse }[] = []
@@ -123,7 +125,9 @@ export function createTownMap(
       const row = scene.add.rectangle(x, y, 196, 34, available ? 0xffffff : 0xe3e9df)
         .setStrokeStyle(1, 0x87a987).setScrollFactor(0).setName('town-destination-' + index)
       details.add(row)
-      details.add(label(x, y, available ? destination.label + ' ›' : destination.label + '（未実装）', 16))
+      const caption = label(x, y, available ? destination.label + ' ›' : destination.label + '（未実装）', 16)
+      details.add(caption)
+      registerButton(scene, `HomeScene.destination-${area.id}-${index}`, [row, caption], { x, y })
       if (!available) continue
       row.setInteractive({ useHandCursor: true })
       row.on('pointerover', () => row.setFillStyle(0xd9edc9))
@@ -136,6 +140,7 @@ export function createTownMap(
     }
   }
 
+  registerButton(scene, 'HomeScene.closeMap', [closeButton, closeCaption], { x: 1151, y: 69 })
   closeButton.on('pointerup', close)
   return close
 }

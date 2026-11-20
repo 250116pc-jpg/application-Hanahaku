@@ -1,3 +1,4 @@
+import { enableSceneUiLayout, registerButton } from '../../utils/ui/layout';
 /* ==================================
  * 期末テスト提出プログラム
  * 学籍番号：250082、250056、250116
@@ -33,6 +34,7 @@ export class StageResultScene extends Phaser.Scene {
   constructor() { super(SCENE_KEYS.RESULT); }
 
   create(data: StageResultData): void {
+    enableSceneUiLayout(this);
     /* === [ 担当 : 250056 斎藤永聖 / 250116 中村伊安 ] ===
      * 処理内容 : 画面のBGM・効果音と音声設定を準備する
      * ================================== */
@@ -113,5 +115,6 @@ export class StageResultScene extends Phaser.Scene {
     button.on('pointerover', () => button.setScale(1.04));
     button.on('pointerout', () => button.setScale(1));
     button.on('pointerup', onClick);
+    registerButton(this, `StageResultScene.${label}`, [button]);
   }
 }
