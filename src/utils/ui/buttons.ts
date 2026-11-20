@@ -43,42 +43,6 @@ export const createTextButton = (
   return button;
 };
 
-// 共通枠付き矩形ボタン（ポップアップのボタンや「キャラ詳細を見る」などの大型ボタン）
-export const createRectButton = (
-  scene: Phaser.Scene,
-  x: number,
-  y: number,
-  width: number,
-  height: number,
-  label: string,
-  onClick: () => void,
-  options: { layoutId?: string; fontSize?: number; fillColor?: number; hoverColor?: number; downColor?: number; textColor?: string } = {}
-): Phaser.GameObjects.Container => {
-  const fillColor = options.fillColor ?? 0xffffff;
-  const hoverColor = options.hoverColor ?? 0xeaf4fb;
-  const downColor = options.downColor ?? 0xd5e8f5;
-
-  const bg = scene.add.rectangle(0, 0, width, height, fillColor)
-    .setStrokeStyle(2, 0x333333)
-    .setInteractive({ useHandCursor: true });
-
-  const text = scene.add.text(0, 0, label, getTextStyle(options.fontSize ?? 24, {
-    color: options.textColor ?? '#000000'
-  })).setOrigin(0.5);
-  const container = scene.add.container(x, y, [bg, text]).setScrollFactor(0);
-
-  bg.on('pointerover', () => bg.setFillStyle(hoverColor));
-  bg.on('pointerout', () => bg.setFillStyle(fillColor));
-  bg.on('pointerdown', () => bg.setFillStyle(downColor));
-  bg.on('pointerup', () => {
-    bg.setFillStyle(hoverColor);
-    onClick();
-  });
-
-  registerButton(scene, options.layoutId ?? `${scene.sys.settings.key}.${label}`, [container]);
-  return container;
-};
-
 // 画像または矩形背景付きの共通ボタン
 export const createTextImageButton = (
   scene: Phaser.Scene,

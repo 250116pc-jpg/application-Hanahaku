@@ -4,7 +4,6 @@
 - `back-button.ts`：ログインと同じ画像・文字のPhaser用戻るボタン。`preload()` で `preloadBackButton(this)`、`create()` で `createBackButton(this, 配置設定, 戻る処理)` を呼ぶ。
 - `display-quality.ts`：`applySmoothDisplay(this, 画像キー一覧)` で指定画像とCanvas拡大を滑らかにする。文字単体は `smoothText(text)`。画面終了時にはCanvas設定を復元する。
 - `buttons.ts`：従来の文字・矩形・画像付きボタン。
-- `dialogs.ts`：撤退確認。
 - `scene-frame.ts`：育成・キャラ詳細で使う従来の画面枠。
 - 旧 `area-select.ts` は削除済み。エリア選択UIは `src/Scene/AreaSelectScene.ts` を使用する。
 - `index.ts`：上記の公開窓口。Sceneからは `../utils/ui` で読み込める。
@@ -61,7 +60,7 @@ HTMLボタンは `data-ui-layout-id` 属性でIDを確認できる。動的な�
 - UI専用シーンは `create()` の先頭で `enableSceneUiLayout(this)` を呼ぶ。背景画像と画面幅以上の暗幕は固定する。除外条件は第2引数で指定できる。
 - ワールドとHUDが混在するシーンは `registerGui(scene, object)` でHUDだけ登録する。まとまった既存の生成処理は `captureGui(scene, () => createPanel())` でも登録できる。
 - 画像・文字・当たり判定を分けて作るボタンは `registerButton(scene, '固定ID', [image, label, hit], { x, y })` とする。全パーツの基準点をそろえる。
-- `createTextButton` / `createRectButton` の `options.layoutId`、`createTextImageButton` の最後の引数で固定IDを指定できる。同じIDのボタンには同じ変更が適用される。
+- `createTextButton` の `options.layoutId`、`createTextImageButton` の最後の引数で固定IDを指定できる。同じIDのボタンには同じ変更が適用される。
 - 共通処理は親Containerで変換するため、既存の座標更新・ゲージ更新・押下Tweenを元のオブジェクトへ行える。`getBounds()` は変換後の座標を返す。親の `list` にはレイアウト用Containerが入るため、操作対象は生成時の参照を保持する。
 - HTMLは `bindDomGui(panel, '名前空間')`。背景全体ではなく本文のパネルを渡す。DOM削除時には自動解除する。返された関数でも解除できる。
 - GeometryMaskは親変換を参照しないので、元の画面座標で描いたGraphicsに `syncGuiMask(scene, graphics)` を設定する。独自の画面座標判定では `guiPoint(scene, x, y)` でGUIの元座標へ戻す。
